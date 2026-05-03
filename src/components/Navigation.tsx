@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Search, User, Leaf, X, Trophy, Shield } from 'lucide-react';
+import { Bell, Search, User, Leaf, X, Trophy, Shield, Menu, Gamepad2, Wrench, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import LoginModal from './LoginModal';
 import { useUser } from '../contexts/UserContext';
@@ -14,12 +14,18 @@ export default function Navigation() {
   const [hasSearched, setHasSearched] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { user, logout, language, t } = useUser();
   const { mode, setMode, resolved } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
   const isEn = language === 'en';
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setShowMobileMenu(false);
+  }, [location.pathname]);
 
   // Offline status monitoring
   useEffect(() => {
@@ -213,6 +219,17 @@ export default function Navigation() {
           </nav>
 
           <div className="flex items-center gap-4 text-primary relative">
+            {/* Mobile menu button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="p-2 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
+              aria-label={t('菜单', 'Menu')}
+            >
+              <Menu className="w-5 h-5" />
+            </motion.button>
+
             {/* Theme toggle */}
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -294,6 +311,41 @@ export default function Navigation() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {showMobileMenu && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-[72px] left-0 right-0 z-40 bg-[#FFF9F2]/95 dark:bg-surface/95 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden"
+          >
+            <nav className="flex flex-col p-4 gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => setShowMobileMenu(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all ${
+                    isActive(item.path)
+                      ? 'bg-primary-container/30 text-primary'
+                      : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container'
+                  }`}
+                >
+                  {item.id === 'home' && <Leaf className="w-5 h-5" />}
+                  {item.id === 'games' && <Gamepad2 className="w-5 h-5" />}
+                  {item.id === 'tools' && <Wrench className="w-5 h-5" />}
+                  {item.id === 'leaderboard' && <Trophy className="w-5 h-5" />}
+                  {item.id === 'about' && <Heart className="w-5 h-5" />}
+                  {isEn ? item.enLabel : item.label}
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <LoginModal
         isOpen={showLoginModal}

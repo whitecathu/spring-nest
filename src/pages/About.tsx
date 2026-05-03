@@ -1,4 +1,4 @@
-import { Heart, Cloud, Sparkles, Sprout, Users, Verified, Mail, MessageCircle } from 'lucide-react';
+import { Heart, Cloud, Sparkles, Sprout, Users, Verified, Mail, MessageCircle, Gamepad2, Wrench, Code, Github, BookOpen } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
@@ -55,7 +55,7 @@ export default function About() {
       </motion.header>
 
       {/* Artistic Hero Section */}
-      <motion.section variants={itemVariants} className="mb-32 relative">
+      <motion.section variants={itemVariants} className="mb-16 relative">
         <div className="w-full aspect-[21/9] rounded-[48px] overflow-hidden relative shadow-2xl group">
           <img 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuACnBgaNKEFGBSzydFefsHzPdYEB3b5hkbSZpyDC5vaZ-x_XcHwQaPDJdat4fXL9AcC_6IPduGtd_AGF2UuZ3shO9BEj5xM6penHNlzc3bLOMLgZnSPX92QElXAux0_rfTrdlCgUAirE1iiKMZznNrtK2sPACDND_KGh1eXZt7cPMnAPFUO8LuwLqE56kWAM3bjIKB_2aCuPzTNoEhashJrleBsSqllX6A9a1bJvuItl5_s8n6bF6VS7aMonOVhqVauj65ZyRjbKtw" 
@@ -78,6 +78,99 @@ export default function About() {
             </div>
             <p className="text-on-surface-variant font-sans italic">{t('"像种子一样在春天发芽，在这里发现让生活更美好的工具。"', '"Sprouting in spring like a seed, discover tools that make life better."')}</p>
           </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Project Stats */}
+      <motion.section variants={itemVariants} className="mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {[
+            { icon: <Gamepad2 className="w-8 h-8" />, value: '5', label: t('款游戏', 'Games'), color: 'bg-tertiary-container text-on-tertiary-container' },
+            { icon: <Wrench className="w-8 h-8" />, value: '8', label: t('款工具', 'Tools'), color: 'bg-primary-container text-on-primary-container' },
+            { icon: <Code className="w-8 h-8" />, value: '', label: t('开源项目', 'Open Source'), color: 'bg-secondary-container text-on-secondary-container' },
+          ].map((stat, i) => (
+            <motion.div
+              key={i}
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+              className="glass-card rounded-[32px] p-8 text-center"
+            >
+              <div className={`w-16 h-16 ${stat.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                {stat.icon}
+              </div>
+              <div className="font-nunito font-extrabold text-4xl text-on-surface mb-2">
+                {stat.value && <span>{stat.value} </span>}
+                {stat.label}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
+      {/* Technology Stack */}
+      <motion.section variants={itemVariants} className="mb-20">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-primary-container/40 text-on-primary-container px-6 py-2 rounded-full w-max font-semibold text-sm mb-6 mx-auto">
+            <Code className="w-4 h-4" />
+            {t('技术栈', 'Tech Stack')}
+          </div>
+          <h2 className="text-3xl font-extrabold text-on-surface">
+            {t('使用现代技术构建', 'Built with Modern Technology')}
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {[
+            { name: 'React 19', desc: t('UI 框架', 'UI Framework') },
+            { name: 'Vite 6', desc: t('构建工具', 'Build Tool') },
+            { name: 'TypeScript', desc: t('类型安全', 'Type Safety') },
+            { name: 'Tailwind CSS', desc: t('原子化 CSS', 'Utility CSS') },
+            { name: 'Framer Motion', desc: t('动画库', 'Animation') },
+            { name: 'React Router', desc: t('客户端路由', 'Client Routing') },
+            { name: 'Vitest', desc: t('单元测试', 'Unit Testing') },
+            { name: 'Playwright', desc: t('E2E 测试', 'E2E Testing') },
+          ].map((tech, i) => (
+            <motion.div
+              key={i}
+              variants={itemVariants}
+              whileHover={{ y: -3 }}
+              className="bg-surface-container-high rounded-2xl p-5 text-center"
+            >
+              <p className="font-bold text-on-surface mb-1">{tech.name}</p>
+              <p className="text-xs text-secondary">{tech.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
+      {/* GitHub & Docs Links */}
+      <motion.section variants={itemVariants} className="mb-20">
+        <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <motion.a
+            whileHover={{ y: -5, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            href="https://github.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 bg-surface-container-high px-8 py-5 rounded-3xl border border-surface-variant hover:shadow-lg transition-all cursor-pointer"
+          >
+            <Github className="text-on-surface w-6 h-6" />
+            <div className="text-left">
+              <p className="font-bold text-on-surface">{t('GitHub 仓库', 'GitHub Repository')}</p>
+              <p className="text-xs text-secondary">{t('查看源代码', 'View Source Code')}</p>
+            </div>
+          </motion.a>
+          <motion.a
+            whileHover={{ y: -5, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            href="/docs"
+            className="flex items-center gap-4 bg-surface-container-high px-8 py-5 rounded-3xl border border-surface-variant hover:shadow-lg transition-all cursor-pointer"
+          >
+            <BookOpen className="text-on-surface w-6 h-6" />
+            <div className="text-left">
+              <p className="font-bold text-on-surface">{t('项目文档', 'Documentation')}</p>
+              <p className="text-xs text-secondary">{t('了解更多详情', 'Learn More')}</p>
+            </div>
+          </motion.a>
         </div>
       </motion.section>
 

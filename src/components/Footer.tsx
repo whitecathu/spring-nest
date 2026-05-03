@@ -92,6 +92,10 @@ export default function Footer() {
           <Link to="/leaderboard" className="hover:text-primary transition-colors">
             {t('排行榜', 'Leaderboard')}
           </Link>
+          <span>·</span>
+          <Link to="/about" className="hover:text-primary transition-colors">
+            {t('关于我们', 'About')}
+          </Link>
         </motion.div>
 
         <motion.div

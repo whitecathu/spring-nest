@@ -1,8 +1,10 @@
-import { Leaf, Gamepad2, Wrench, Sparkles, Flower2, Cloud, Play, Camera, Radio } from 'lucide-react';
+import { Leaf, Gamepad2, Wrench, Sparkles, Flower2, Cloud, Play, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { useRef } from 'react';
 import { useUser } from '../contexts/UserContext';
+import { games } from '../data/games';
+import { tools } from '../data/tools';
 
 export default function Home() {
   const { t } = useUser();
@@ -178,46 +180,114 @@ export default function Home() {
         </div>
       </section>
 
-      {/* New Apps Preview */}
+      {/* Featured Games Section */}
+      <section className="max-w-[1200px] mx-auto px-6 py-10 mb-20 relative w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center justify-between mb-12 relative z-10"
+        >
+          <div className="flex items-center gap-4">
+            <Sparkles className="text-primary-container w-10 h-10 animate-pulse fill-primary-container" />
+            <h2 className="font-nunito font-bold text-3xl text-secondary">{t('精选游戏', 'Featured Games')}</h2>
+          </div>
+          <motion.button
+            whileHover={{ x: 5 }}
+            onClick={() => navigate('/games')}
+            className="flex items-center gap-2 text-primary font-semibold text-sm hover:underline"
+          >
+            {t('查看全部', 'View All')}
+            <ArrowRight className="w-4 h-4" />
+          </motion.button>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+          {games.slice(0, 3).map((game, i) => (
+            <motion.div
+              key={game.id}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              whileHover={{ y: -10, scale: 1.02 }}
+              onClick={() => navigate(game.route)}
+              className="bg-white dark:bg-surface-container-high rounded-[24px] p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_15px_40px_rgba(184,228,201,0.2)] transition-all duration-300 flex flex-col gap-5 border border-surface-variant/30 cursor-pointer group"
+            >
+              <div className={`w-20 h-20 rounded-2xl ${game.iconBg || 'bg-surface-container'} flex items-center justify-center overflow-hidden shadow-inner relative group-hover:scale-105 transition-transform duration-300`}>
+                <span className="text-4xl relative z-10">{game.icon}</span>
+              </div>
+              <div>
+                <h3 className="font-nunito font-bold text-xl text-on-surface mb-2">{t(game.title, game.titleEn)}</h3>
+                <p className="text-sm text-secondary line-clamp-2">{t(game.description, game.descriptionEn)}</p>
+              </div>
+              <div className="mt-auto pt-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-tertiary-container text-on-tertiary-container rounded-full font-bold text-sm shadow-sm hover:shadow-md transition-all"
+                >
+                  <Play className="w-4 h-4 fill-on-tertiary-container" />
+                  {t('开始游戏', 'Play')}
+                </motion.button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Popular Tools Section */}
       <section className="max-w-[1200px] mx-auto px-6 py-10 mb-40 relative w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="flex items-center justify-center gap-4 mb-12 relative z-10"
+          className="flex items-center justify-between mb-12 relative z-10"
         >
-          <Sparkles className="text-primary-container w-10 h-10 animate-pulse fill-primary-container" />
-          <h2 className="font-nunito font-bold text-3xl text-secondary">{t('新品APP即将上架', 'New Apps Coming Soon')}</h2>
-          <Flower2 className="text-tertiary-container w-10 h-10 animate-pulse fill-tertiary-container" />
+          <div className="flex items-center gap-4">
+            <Flower2 className="text-tertiary-container w-10 h-10 animate-pulse fill-tertiary-container" />
+            <h2 className="font-nunito font-bold text-3xl text-secondary">{t('热门工具', 'Popular Tools')}</h2>
+          </div>
+          <motion.button
+            whileHover={{ x: 5 }}
+            onClick={() => navigate('/tools')}
+            className="flex items-center gap-2 text-primary font-semibold text-sm hover:underline"
+          >
+            {t('查看全部', 'View All')}
+            <ArrowRight className="w-4 h-4" />
+          </motion.button>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-          {[
-            { delay: 0.1, icon: <Play className="w-10 h-10 text-primary fill-primary relative z-10" />, bg: "bg-[#FFF9F2] bg-[radial-gradient(at_40%_20%,hsla(28,100%,74%,0.1)_0px,transparent_50%),radial-gradient(at_80%_0%,hsla(189,100%,56%,0.1)_0px,transparent_50%)] dark:bg-surface-container" },
-            { delay: 0.2, icon: <Camera className="w-10 h-10 text-blue-400 fill-blue-400 relative z-10" />, bg: "bg-gradient-to-br from-[#E8F5EE] to-[#FFF9F2] dark:from-[#1a2c1f] dark:to-surface-container" },
-            { delay: 0.3, icon: <Radio className="w-10 h-10 text-orange-400 fill-orange-400 relative z-10" />, bg: "bg-gradient-to-br from-[#FFE5D9] to-[#FFF9F2] dark:from-[#3a2018] dark:to-surface-container" },
-          ].map((item, i) => (
+          {tools.slice(0, 3).map((tool, i) => (
             <motion.div
-              key={i}
+              key={tool.id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: item.delay }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
               whileHover={{ y: -10, scale: 1.02 }}
+              onClick={() => navigate(tool.route)}
               className="bg-white dark:bg-surface-container-high rounded-[24px] p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_15px_40px_rgba(184,228,201,0.2)] transition-all duration-300 flex flex-col gap-5 border border-surface-variant/30 cursor-pointer group"
             >
-              <div className={`w-20 h-20 rounded-2xl ${item.bg} flex items-center justify-center overflow-hidden shadow-inner relative group-hover:scale-105 transition-transform duration-300`}>
-                {item.icon}
+              <div className={`w-20 h-20 rounded-2xl ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center overflow-hidden shadow-inner relative group-hover:scale-105 transition-transform duration-300`}>
+                <span className="text-4xl relative z-10">{tool.icon}</span>
               </div>
               <div>
-                <div className={`h-6 ${i === 0 ? 'w-28' : i === 1 ? 'w-32' : 'w-24'} bg-surface-variant/60 rounded-full mb-3`}></div>
-                <div className="h-4 w-full bg-surface-variant/30 rounded-full mb-2"></div>
-                <div className={`h-4 ${i === 0 ? 'w-2/3' : i === 1 ? 'w-3/4' : 'w-1/2'} bg-surface-variant/30 rounded-full`}></div>
+                <h3 className="font-nunito font-bold text-xl text-on-surface mb-2">{t(tool.title, tool.titleEn)}</h3>
+                <p className="text-sm text-secondary line-clamp-2">{t(tool.description, tool.descriptionEn)}</p>
               </div>
-              <div className="mt-auto pt-4 flex gap-3">
-                <span className={`w-14 h-8 rounded-full ${i === 2 ? 'bg-primary-container/30' : 'bg-tertiary-container/30'}`}></span>
-                {i !== 1 && <span className={`w-14 h-8 rounded-full ${i === 0 ? 'bg-primary-container/30' : 'bg-surface-variant/40'}`}></span>}
+              <div className="mt-auto pt-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-container text-on-primary-container rounded-full font-bold text-sm shadow-sm hover:shadow-md transition-all"
+                >
+                  <Wrench className="w-4 h-4" />
+                  {t('打开工具', 'Open')}
+                </motion.button>
               </div>
             </motion.div>
           ))}
