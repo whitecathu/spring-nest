@@ -1,12 +1,12 @@
 import { FileText, Users, Shield, AlertTriangle, Scale, Clock, Mail, ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 
 interface SectionProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   defaultOpen?: boolean;
 }
 
@@ -63,7 +63,7 @@ export default function Terms() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } }
   };
 
   return (
@@ -82,7 +82,7 @@ export default function Terms() {
           {t('服务条款', 'Terms of Service')}
         </h1>
         <p className="text-secondary text-lg">
-          {t('最后更新: 2025年1月', 'Last updated: January 2025')}
+          {t('最后更新: 2025年5月', 'Last updated: May 2025')}
         </p>
         <p className="text-on-surface-variant mt-4 max-w-2xl mx-auto">
           {t(
@@ -110,7 +110,7 @@ export default function Terms() {
               <li>{t('5 个实用工具: 计算器、番茄钟、单位换算、密码生成器、二维码生成器', '5 practical tools: Calculator, Pomodoro Timer, Unit Converter, Password Generator, QR Code Generator')}</li>
               <li>{t('3 个休闲游戏: 2048、记忆翻牌、打地鼠', '3 casual games: 2048, Memory Game, Whack-a-Mole')}</li>
               <li>{t('用户账户系统: 注册、登录、个人资料管理', 'User account system: registration, login, profile management')}</li>
-              <li>{t('数据同步: 跨设备同步收藏、分数和设置', 'Data sync: cross-device synchronization of favorites, scores, and settings')}</li>
+              <li>{t('本地数据存储: 收藏、分数和设置均保存在您的设备上', 'Local data storage: favorites, scores, and settings are stored on your device')}</li>
               <li>{t('个性化设置: 主题切换、语言选择', 'Personalization: theme switching, language selection')}</li>
             </ul>
             <p className="text-sm text-secondary mt-4">
@@ -204,7 +204,7 @@ export default function Terms() {
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>{t('因不可抗力导致的服务中断', 'Service interruptions caused by force majeure')}</li>
               <li>{t('因用户设备故障导致的数据丢失', 'Data loss caused by user device failures')}</li>
-              <li>{t('因第三方服务（如 Supabase、Vercel）导致的问题', 'Issues caused by third-party services (such as Supabase, Vercel)')}</li>
+              <li>{t('因用户浏览器或设备导致的问题', 'Issues caused by user\'s browser or device')}</li>
               <li>{t('因用户操作不当导致的账户安全问题', 'Account security issues caused by improper user operations')}</li>
             </ul>
             <p className="text-sm text-secondary mt-4">
@@ -224,7 +224,7 @@ export default function Terms() {
             <p>{t('您可以随时:', 'You may at any time:')}</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>{t('停止使用我们的服务', 'Stop using our services')}</li>
-              <li>{t('联系我们删除您的账户和所有相关数据', 'Contact us to delete your account and all related data')}</li>
+              <li>{t('清除浏览器数据以删除您的账户信息和所有本地存储的数据', 'Clear your browser data to delete your account information and all locally stored data')}</li>
             </ul>
             <p>{t('我们有权在以下情况下暂停或终止您的账户:', 'We reserve the right to suspend or terminate your account in the following cases:')}</p>
             <ul className="list-disc list-inside space-y-2 ml-4">

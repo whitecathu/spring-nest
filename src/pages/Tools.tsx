@@ -11,9 +11,6 @@ const Pomodoro = lazy(() => import('./tools/Pomodoro'));
 const UnitConverter = lazy(() => import('./tools/UnitConverter'));
 const PasswordGenerator = lazy(() => import('./tools/PasswordGenerator'));
 const QRCodeGenerator = lazy(() => import('./tools/QRCodeGenerator'));
-const Compass = lazy(() => import('./tools/Compass'));
-const Weather = lazy(() => import('./tools/Weather'));
-const Scanner = lazy(() => import('./tools/Scanner'));
 
 const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'tool-1': Calculator,
@@ -21,9 +18,6 @@ const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'tool-3': UnitConverter,
   'tool-4': PasswordGenerator,
   'tool-5': QRCodeGenerator,
-  'tool-6': Compass,
-  'tool-7': Weather,
-  'tool-8': Scanner,
 };
 
 export default function Tools() {

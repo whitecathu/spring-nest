@@ -39,7 +39,7 @@ const unitDefs: Record<UnitCategory, { units: { id: string; toBase: (v: number) 
   },
 };
 
-function convert(category: UnitCategory, fromUnit: string, toUnit: string, value: number): string {
+function convert(category: UnitCategory, fromUnit: string, toUnit: string, value: number | string): string {
   const def = unitDefs[category];
   const from = def.units.find(u => u.id === fromUnit);
   const to = def.units.find(u => u.id === toUnit);

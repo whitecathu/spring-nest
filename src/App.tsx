@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -17,6 +17,7 @@ const Favorites = lazy(() => import('./pages/Favorites'));
 const SearchResults = lazy(() => import('./pages/SearchResults'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Admin = lazy(() => import('./pages/Admin'));
+const Feedback = lazy(() => import('./pages/Feedback'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -47,6 +48,7 @@ export default function App() {
                   <Route path="/favorites" element={<Favorites />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/feedback" element={<Feedback />} />
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/search" element={<SearchResults />} />

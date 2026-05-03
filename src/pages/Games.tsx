@@ -9,15 +9,11 @@ import { games } from '../data/games';
 const Game2048 = lazy(() => import('./games/Game2048'));
 const MemoryGame = lazy(() => import('./games/MemoryGame'));
 const WhackAMole = lazy(() => import('./games/WhackAMole'));
-const ForestWalk = lazy(() => import('./games/ForestWalk'));
-const ColorMerge = lazy(() => import('./games/ColorMerge'));
 
 const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'game-1': Game2048,
   'game-2': MemoryGame,
   'game-3': WhackAMole,
-  'game-4': ForestWalk,
-  'game-5': ColorMerge,
 };
 
 export default function Games() {

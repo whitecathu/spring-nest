@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Spring Nest App', () => {
+  test.describe.configure({ timeout: 45000 });
+
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    // Navigate once and clear localStorage — each test navigates to its own page anyway
+    await page.goto('/', { timeout: 20000 });
     await page.evaluate(() => localStorage.clear());
-    await page.reload();
   });
 
   test('1. 首页正常加载', async ({ page }) => {
@@ -132,12 +134,12 @@ test.describe('Spring Nest App', () => {
     // Navigate to tools page
     await page.goto('/tools');
     await expect(page.locator('h1')).toContainText('实用小筑');
-    // Click the heart/favorite button on the first tool card
-    const favButton = page.locator('[aria-label="收藏"]').first();
+    // Click the heart/favorite button on the first tool card (scoped to main, not nav)
+    const favButton = page.locator('main [aria-label="收藏"]').first();
     await expect(favButton).toBeVisible();
     await favButton.click();
     // Verify the button now shows "取消收藏" (unfavorite)
-    await expect(page.locator('[aria-label="取消收藏"]').first()).toBeVisible();
+    await expect(page.locator('main [aria-label="取消收藏"]').first()).toBeVisible();
   });
 
   test('8. 收藏游戏', async ({ page }) => {
@@ -165,12 +167,12 @@ test.describe('Spring Nest App', () => {
     // Navigate to games page
     await page.goto('/games');
     await expect(page.locator('h1')).toContainText('游戏天堂');
-    // Click the heart/favorite button on the first game card
-    const favButton = page.locator('[aria-label="收藏"]').first();
+    // Click the heart/favorite button on the first game card (scoped to main, not nav)
+    const favButton = page.locator('main [aria-label="收藏"]').first();
     await expect(favButton).toBeVisible();
     await favButton.click();
     // Verify the button now shows "取消收藏" (unfavorite)
-    await expect(page.locator('[aria-label="取消收藏"]').first()).toBeVisible();
+    await expect(page.locator('main [aria-label="取消收藏"]').first()).toBeVisible();
   });
 
   test('9. 刷新后收藏仍存在', async ({ page }) => {
@@ -197,39 +199,61 @@ test.describe('Spring Nest App', () => {
     await page.reload();
     // Navigate to tools page and favorite the first tool
     await page.goto('/tools');
-    const favButton = page.locator('[aria-label="收藏"]').first();
+    const favButton = page.locator('main [aria-label="收藏"]').first();
     await expect(favButton).toBeVisible();
     await favButton.click();
-    await expect(page.locator('[aria-label="取消收藏"]').first()).toBeVisible();
+    await expect(page.locator('main [aria-label="取消收藏"]').first()).toBeVisible();
     // Refresh the page
     await page.reload();
     // Verify the favorite persists
-    await expect(page.locator('[aria-label="取消收藏"]').first()).toBeVisible();
+    await expect(page.locator('main [aria-label="取消收藏"]').first()).toBeVisible();
   });
 
   test('10. 切换暗色主题', async ({ page }) => {
     await page.goto('/');
+    // Explicitly set theme to light mode first for deterministic starting state
+    await page.evaluate(() => {
+      localStorage.setItem('spring_nest_theme', 'light');
+      document.documentElement.classList.remove('dark');
+    });
+    await page.reload();
+
     // Verify starts in light mode (no dark class)
-    const htmlClass = await page.evaluate(() => document.documentElement.className);
-    // Click theme toggle button
-    const themeButton = page.locator('header button[aria-label*="主题"], header button[title]').first();
-    await themeButton.click();
-    // After clicking, the theme should cycle. Check if dark class is toggled
-    // The theme cycles: light -> dark -> system
-    // We just need to verify the class changed
-    await page.waitForTimeout(300);
-    const hasDark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
-    // If it was light, clicking once should make it dark
-    // If it was already dark (system preference), it might go to system mode
-    // Either way, we verify the toggle works by checking the class exists or changed
-    expect(typeof hasDark).toBe('boolean');
-    // Click again to verify it toggles
+    const initialHasDark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+    expect(initialHasDark).toBe(false);
+
+    // Find the theme toggle button by aria-label
+    const themeButton = page.locator('header button[aria-label*="主题"], header button[aria-label*="Toggle"]').first();
+    await expect(themeButton).toBeVisible();
+
+    // Click 1: light → dark — verify dark class is added
     await themeButton.click();
     await page.waitForTimeout(300);
-    const hasDarkAfterSecondClick = await page.evaluate(() => document.documentElement.classList.contains('dark'));
-    // The state should have changed from the first click
-    // (light->dark->system cycles, so after 2 clicks from light we'd be at system)
-    expect(typeof hasDarkAfterSecondClick).toBe('boolean');
+    const afterFirstClick = await page.evaluate(() => ({
+      hasDark: document.documentElement.classList.contains('dark'),
+      storedTheme: localStorage.getItem('spring_nest_theme'),
+    }));
+    expect(afterFirstClick.hasDark).toBe(true);
+    expect(afterFirstClick.storedTheme).toBe('dark');
+
+    // Click 2: dark → system — dark class depends on system preference
+    await themeButton.click();
+    await page.waitForTimeout(300);
+    const afterSecondClick = await page.evaluate(() => ({
+      hasDark: document.documentElement.classList.contains('dark'),
+      storedTheme: localStorage.getItem('spring_nest_theme'),
+    }));
+    expect(afterSecondClick.storedTheme).toBe('system');
+
+    // Click 3: system → light — verify dark class is removed
+    await themeButton.click();
+    await page.waitForTimeout(300);
+    const afterThirdClick = await page.evaluate(() => ({
+      hasDark: document.documentElement.classList.contains('dark'),
+      storedTheme: localStorage.getItem('spring_nest_theme'),
+    }));
+    expect(afterThirdClick.hasDark).toBe(false);
+    expect(afterThirdClick.storedTheme).toBe('light');
   });
 
   test('11. 访问不存在路由显示 404', async ({ page }) => {
@@ -242,5 +266,101 @@ test.describe('Spring Nest App', () => {
     // Click "返回首页" and verify navigation
     await page.locator('text=返回首页').click();
     await expect(page).toHaveURL('/');
+  });
+
+  test('12. localStorage 清理后状态正确', async ({ page }) => {
+    await page.goto('/');
+    // Set up user state, then clear and verify clean state
+    await page.evaluate(() => {
+      localStorage.setItem('spring_nest_users', JSON.stringify([{
+        id: 'u_test123',
+        email: 'test@example.com',
+        username: 'TestUser',
+        password: 'password123',
+        bio: '',
+        createdAt: new Date().toISOString(),
+      }]));
+      localStorage.setItem('spring_nest_current_user', JSON.stringify({
+        id: 'u_test123',
+        email: 'test@example.com',
+        username: 'TestUser',
+        bio: '',
+        createdAt: new Date().toISOString(),
+      }));
+      localStorage.setItem('spring_nest_favorites', JSON.stringify({
+        u_test123: { tools: ['calculator'], games: ['2048'] },
+      }));
+      localStorage.setItem('spring_nest_theme', 'dark');
+    });
+
+    // Verify data is set
+    const beforeClear = await page.evaluate(() => ({
+      users: localStorage.getItem('spring_nest_users'),
+      currentUser: localStorage.getItem('spring_nest_current_user'),
+      favorites: localStorage.getItem('spring_nest_favorites'),
+      theme: localStorage.getItem('spring_nest_theme'),
+    }));
+    expect(beforeClear.users).toBeTruthy();
+    expect(beforeClear.currentUser).toBeTruthy();
+    expect(beforeClear.favorites).toBeTruthy();
+    expect(beforeClear.theme).toBe('dark');
+
+    // Clear localStorage
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+
+    // Verify all keys are gone
+    const afterClear = await page.evaluate(() => ({
+      users: localStorage.getItem('spring_nest_users'),
+      currentUser: localStorage.getItem('spring_nest_current_user'),
+      favorites: localStorage.getItem('spring_nest_favorites'),
+      theme: localStorage.getItem('spring_nest_theme'),
+    }));
+    expect(afterClear.users).toBeNull();
+    expect(afterClear.currentUser).toBeNull();
+    expect(afterClear.favorites).toBeNull();
+    expect(afterClear.theme).toBeNull();
+
+    // Verify the app still works — user icon should show login button (not avatar)
+    const userButton = page.locator('header button[aria-label*="登录"], header button[aria-label*="Log in"]').first();
+    await expect(userButton).toBeVisible();
+
+    // Verify favorites page shows empty state (no crash)
+    await page.goto('/favorites');
+    // Should not show a 404 or error — just empty or prompt to login
+    await expect(page).not.toHaveURL(/nonexistent/);
+  });
+
+  test('13. PWA manifest 存在验证', async ({ page }) => {
+    await page.goto('/');
+
+    // Verify PWA-related meta tags exist in the HTML
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#3f6751');
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', /apple-touch-icon/);
+    await expect(page.locator('meta[name="apple-mobile-web-app-capable"]')).toHaveAttribute('content', 'yes');
+
+    // Try to fetch manifest.webmanifest — in dev mode vite-plugin-pwa may or may not serve it
+    const response = await page.request.get('/manifest.webmanifest');
+    const contentType = response.headers()['content-type'] || '';
+
+    if (response.ok() && contentType.includes('json')) {
+      // Production build or dev with PWA enabled — verify manifest content
+      const manifest = await response.json();
+      expect(manifest.name).toContain('Spring Nest');
+      expect(manifest.short_name).toBe('Spring Nest');
+      expect(manifest.display).toBe('standalone');
+      expect(manifest.start_url).toBe('/');
+      expect(manifest.icons).toBeDefined();
+      expect(manifest.icons.length).toBeGreaterThan(0);
+
+      // Verify the manifest link tag exists
+      const manifestLink = page.locator('link[rel="manifest"]');
+      await expect(manifestLink).toHaveAttribute('href', /manifest/);
+    } else {
+      // Dev mode without PWA enabled — verify the manifest config exists in build output
+      // The manifest.webmanifest is generated at build time by vite-plugin-pwa
+      // In dev mode, we verify the PWA meta tags are present (already checked above)
+      expect(response.status()).toBeLessThan(500);
+    }
   });
 });

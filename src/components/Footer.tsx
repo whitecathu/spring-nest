@@ -93,6 +93,10 @@ export default function Footer() {
             {t('排行榜', 'Leaderboard')}
           </Link>
           <span>·</span>
+          <Link to="/feedback" className="hover:text-primary transition-colors">
+            {t('意见反馈', 'Feedback')}
+          </Link>
+          <span>·</span>
           <Link to="/about" className="hover:text-primary transition-colors">
             {t('关于我们', 'About')}
           </Link>

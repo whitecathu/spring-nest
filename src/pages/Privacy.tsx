@@ -1,12 +1,12 @@
 import { Shield, Eye, Database, Globe, Cookie, UserCheck, Mail, ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 
 interface SectionProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   defaultOpen?: boolean;
 }
 
@@ -63,7 +63,7 @@ export default function Privacy() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } }
   };
 
   return (
@@ -82,7 +82,7 @@ export default function Privacy() {
           {t('隐私政策', 'Privacy Policy')}
         </h1>
         <p className="text-secondary text-lg">
-          {t('最后更新: 2025年1月', 'Last updated: January 2025')}
+          {t('最后更新: 2025年5月', 'Last updated: May 2025')}
         </p>
         <p className="text-on-surface-variant mt-4 max-w-2xl mx-auto">
           {t(
@@ -110,13 +110,9 @@ export default function Privacy() {
                 <strong>{t('使用数据:', 'Usage Data:')}</strong>
                 {t('我们会记录您使用工具和游戏的偏好、分数和收藏内容。', 'We record your tool and game preferences, scores, and favorites.')}
               </li>
-              <li>
-                <strong>{t('设备信息:', 'Device Information:')}</strong>
-                {t('我们可能会收集您的设备类型、浏览器版本和操作系统信息，以优化用户体验。', 'We may collect your device type, browser version, and operating system information to optimize user experience.')}
-              </li>
             </ul>
             <p className="text-sm text-secondary mt-4">
-              {t('我们不会收集您的真实姓名、电话号码、地址等敏感个人信息。', 'We do not collect sensitive personal information such as your real name, phone number, or address.')}
+              {t('以上所有数据仅存储在您浏览器的 localStorage 中，不会上传至任何服务器。我们不会收集您的真实姓名、电话号码、地址等敏感个人信息。', 'All of the above data is stored ONLY in your browser\'s localStorage and is not uploaded to any server. We do not collect sensitive personal information such as your real name, phone number, or address.')}
             </p>
           </Section>
         </motion.div>
@@ -132,11 +128,10 @@ export default function Privacy() {
               <li>{t('创建和管理您的账户', 'Create and manage your account')}</li>
               <li>{t('保存您的偏好设置（如主题、语言）', 'Save your preferences (such as theme, language)')}</li>
               <li>{t('记录您的游戏分数和成就', 'Record your game scores and achievements')}</li>
-              <li>{t('同步您的数据到云端，实现跨设备访问', 'Sync your data to the cloud for cross-device access')}</li>
-              <li>{t('分析使用情况以改进产品功能', 'Analyze usage to improve product features')}</li>
+              <li>{t('在您的浏览器本地提供数据存储和访问功能', 'Provide local data storage and access functionality in your browser')}</li>
             </ul>
             <p className="text-sm text-secondary mt-4">
-              {t('我们不会将您的个人信息用于广告推送或出售给第三方。', 'We will not use your personal information for advertising or sell it to third parties.')}
+              {t('所有数据仅在您的浏览器本地使用，不会用于广告推送或出售给第三方。', 'All data is used only locally in your browser and will not be used for advertising or sold to third parties.')}
             </p>
           </Section>
         </motion.div>
@@ -148,20 +143,16 @@ export default function Privacy() {
           >
             <p>
               {t(
-                '您的数据存储在 Supabase 提供的云端数据库中，Supabase 使用 Amazon Web Services (AWS) 基础设施，数据中心位于美国。',
-                'Your data is stored in a cloud database provided by Supabase, which uses Amazon Web Services (AWS) infrastructure with data centers located in the United States.'
+                '所有数据均存储在您浏览器的 localStorage 中，不会上传至任何服务器。您可以通过清除浏览器存储来删除所有数据。',
+                'All data is stored in your browser\'s localStorage and is not uploaded to any server. You can delete all data by clearing your browser storage.'
               )}
             </p>
             <p>{t('我们采取以下安全措施:', 'We take the following security measures:')}</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>{t('所有数据传输使用 HTTPS 加密', 'All data transmission uses HTTPS encryption')}</li>
-              <li>{t('数据库启用行级安全策略 (RLS)，确保用户只能访问自己的数据', 'Database enables Row Level Security (RLS) to ensure users can only access their own data')}</li>
-              <li>{t('密码使用 bcrypt 算法加密存储', 'Passwords are encrypted and stored using bcrypt algorithm')}</li>
-              <li>{t('定期进行安全审计和漏洞扫描', 'Regular security audits and vulnerability scanning')}</li>
+              <li>{t('所有数据仅存储在您的设备上，不经过任何第三方服务器', 'All data is stored only on your device and does not pass through any third-party servers')}</li>
+              <li>{t('不收集、不上传、不共享您的个人数据', 'We do not collect, upload, or share your personal data')}</li>
+              <li>{t('您可以随时通过浏览器设置清除所有本地数据', 'You can clear all local data at any time through your browser settings')}</li>
             </ul>
-            <p className="text-sm text-secondary mt-4">
-              {t('同时，您的部分数据也会保存在浏览器的 localStorage 中，作为离线缓存使用。', 'Meanwhile, some of your data is also saved in the browser\'s localStorage as offline cache.')}
-            </p>
           </Section>
         </motion.div>
 
@@ -170,31 +161,16 @@ export default function Privacy() {
             icon={<Globe className="w-5 h-5" />}
             title={t('第三方服务', 'Third-Party Services')}
           >
-            <p>{t('我们使用以下第三方服务:', 'We use the following third-party services:')}</p>
-            <div className="bg-surface-container-low dark:bg-surface-container rounded-2xl p-4 mt-2">
-              <h4 className="font-bold text-on-surface mb-2">Supabase</h4>
-              <p className="text-sm">
-                {t(
-                  '用于用户认证、数据库存储和实时数据同步。Supabase 的隐私政策请参阅: ',
-                  'Used for user authentication, database storage, and real-time data sync. Supabase\'s privacy policy: '
-                )}
-                <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                  supabase.com/privacy
-                </a>
-              </p>
-            </div>
+            <p>{t('我们目前不使用任何第三方数据处理服务。', 'We currently do not use any third-party data processing services.')}</p>
             <div className="bg-surface-container-low dark:bg-surface-container rounded-2xl p-4 mt-2">
               <h4 className="font-bold text-on-surface mb-2">Vercel / Netlify</h4>
               <p className="text-sm">
                 {t(
-                  '用于网站托管和部署。这些服务可能会收集基本的访问日志信息。',
-                  'Used for website hosting and deployment. These services may collect basic access log information.'
+                  '仅用于网站托管和部署，不涉及任何用户数据的处理或存储。',
+                  'Used only for website hosting and deployment, without any processing or storage of user data.'
                 )}
               </p>
             </div>
-            <p className="text-sm text-secondary mt-4">
-              {t('我们不会与第三方共享您的个人身份信息。', 'We do not share your personally identifiable information with third parties.')}
-            </p>
           </Section>
         </motion.div>
 
@@ -205,8 +181,8 @@ export default function Privacy() {
           >
             <p>
               {t(
-                '我们不使用传统的 Cookie 追踪技术。我们使用浏览器的 localStorage 来存储您的偏好设置和应用数据，包括:',
-                'We do not use traditional cookie tracking technologies. We use the browser\'s localStorage to store your preferences and application data, including:'
+                '我们不使用传统的 Cookie 追踪技术。我们使用浏览器的 localStorage 来存储您的所有应用数据，包括:',
+                'We do not use traditional cookie tracking technologies. We use the browser\'s localStorage to store all your application data, including:'
               )}
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
@@ -214,9 +190,11 @@ export default function Privacy() {
               <li>{t('主题和语言偏好', 'Theme and language preferences')}</li>
               <li>{t('收藏列表', 'Favorites list')}</li>
               <li>{t('游戏分数和进度', 'Game scores and progress')}</li>
+              <li>{t('工具使用记录', 'Tool usage records')}</li>
+              <li>{t('反馈记录', 'Feedback records')}</li>
             </ul>
             <p className="text-sm text-secondary mt-4">
-              {t('您可以随时通过清除浏览器数据来删除这些信息。', 'You can delete this information at any time by clearing your browser data.')}
+              {t('所有数据均保存在您的设备上，您可以随时通过清除浏览器数据来删除这些信息。', 'All data is stored on your device. You can delete this information at any time by clearing your browser data.')}
             </p>
           </Section>
         </motion.div>
@@ -238,7 +216,7 @@ export default function Privacy() {
               </li>
               <li>
                 <strong>{t('删除权:', 'Right of Deletion:')}</strong>
-                {t('您可以联系我们删除您的账户和所有相关数据。', 'You can contact us to delete your account and all related data.')}
+                {t('您可以清除浏览器数据来删除所有本地存储的信息。', 'You can clear your browser data to delete all locally stored information.')}
               </li>
               <li>
                 <strong>{t('数据导出权:', 'Right of Data Portability:')}</strong>

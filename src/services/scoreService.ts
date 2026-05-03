@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import { syncScoreToCloud, getLeaderboard, type LeaderboardEntry } from './cloudSyncService';
 
+export type { LeaderboardEntry };
+
 const SCORE_KEYS: Record<string, string> = {
   '2048': 'spring_nest_2048_best',
   'memory': 'spring_nest_memory_best',

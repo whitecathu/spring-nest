@@ -12,18 +12,27 @@ function loadBestScore(): number {
 function saveBestScore(score: number) {
   localStorage.setItem('spring_nest_whackamole_best', JSON.stringify(score));
 }
+function loadBestCombo(): number {
+  try { return JSON.parse(localStorage.getItem('spring_nest_whackamole_best_combo') || '0'); } catch { return 0; }
+}
+function saveBestCombo(combo: number) {
+  localStorage.setItem('spring_nest_whackamole_best_combo', JSON.stringify(combo));
+}
 
 export default function WhackAMole({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [playing, setPlaying] = useState(false);
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(loadBestScore);
+  const [combo, setCombo] = useState(0);
+  const [bestCombo, setBestCombo] = useState(loadBestCombo);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [activeHole, setActiveHole] = useState<number | null>(null);
   const [lastHit, setLastHit] = useState<number | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const moleTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wasHitRef = useRef(false);
   const [countdown, setCountdown] = useState(3);
 
   const clearAllTimers = useCallback(() => {
@@ -33,12 +42,16 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
 
   const startMoleMovement = useCallback(() => {
     const showMole = () => {
+      wasHitRef.current = false;
       setActiveHole(Math.floor(Math.random() * HOLES));
     };
     showMole();
     moleTimerRef.current = setInterval(() => {
       const keepActive = Math.random() < 0.3;
       if (!keepActive) {
+        if (!wasHitRef.current) {
+          setCombo(0); // Mole escaped, reset combo
+        }
         setActiveHole(null);
       }
       setTimeout(() => {
@@ -49,6 +62,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
 
   const startGame = useCallback(() => {
     setScore(0);
+    setCombo(0);
     setTimeLeft(GAME_DURATION);
     setGameOver(false);
     setActiveHole(null);
@@ -85,8 +99,19 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
   const whack = useCallback((holeIndex: number) => {
     if (!playing || gameOver) return;
     if (activeHole === holeIndex) {
+      wasHitRef.current = true;
+      setCombo(prev => {
+        const newCombo = prev + 1;
+        if (newCombo > bestCombo) {
+          setBestCombo(newCombo);
+          saveBestCombo(newCombo);
+        }
+        return newCombo;
+      });
       setScore(s => {
-        const newScore = s + 1;
+        const comboBonus = Math.max(0, combo); // combo is still old value here
+        const points = 1 + comboBonus;
+        const newScore = s + points;
         if (newScore > bestScore) {
           setBestScore(newScore);
           saveBestScore(newScore);
@@ -95,8 +120,10 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
       });
       setLastHit(holeIndex);
       setActiveHole(null);
+    } else {
+      setCombo(0); // Missed, reset combo
     }
-  }, [playing, gameOver, activeHole, bestScore]);
+  }, [playing, gameOver, activeHole, bestScore, bestCombo, combo]);
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
@@ -124,6 +151,10 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
               <div className="text-xl font-bold text-tertiary">{bestScore}</div>
+            </div>
+            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+              <div className="text-xs text-secondary font-medium">🔥 {t('最佳连击', 'Best Combo')}</div>
+              <div className="text-xl font-bold text-tertiary">{bestCombo}</div>
             </div>
           </div>
         </div>
@@ -174,6 +205,29 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        {/* Combo indicator */}
+        <AnimatePresence>
+          {combo >= 2 && playing && (
+            <motion.div
+              key={combo}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 1.5, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              className="text-center mb-4"
+            >
+              <span className={`font-black ${
+                combo >= 10 ? 'text-4xl text-red-500' :
+                combo >= 7 ? 'text-3xl text-orange-500' :
+                combo >= 5 ? 'text-2xl text-yellow-500' :
+                'text-xl text-primary'
+              }`}>
+                🔥 {combo} {t('连击！', 'Combo!')}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Controls */}
         <div className="flex justify-center gap-4">
           {!playing && !gameOver && (
@@ -205,6 +259,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
             >
               <p className="text-2xl mb-2">{t('时间到！', "Time's up!")}</p>
               <p className="text-xl font-bold text-orange-600 mb-1">{t('得分', 'Score')}: {score}</p>
+              {bestCombo > 0 && <p className="text-sm text-orange-500 mb-1">🔥 {t('最佳连击', 'Best Combo')}: {bestCombo}</p>}
               {score > 0 && score === bestScore && <p className="text-sm text-orange-500 mb-4">🏆 {t('新纪录！', 'New Record!')}</p>}
               <button onClick={startGame} className="px-6 py-2 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors">
                 {t('再来一局', 'Play Again')}

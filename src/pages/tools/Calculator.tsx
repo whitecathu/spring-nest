@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Delete, Divide, Equal, Minus, Plus, X } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
@@ -10,6 +10,7 @@ export default function Calculator({ onBack }: { onBack: () => void }) {
   const [history, setHistory] = useState<string[]>([]);
   const [shouldResetDisplay, setShouldResetDisplay] = useState(false);
   const [currentOp, setCurrentOp] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleNumber = (num: string) => {
     if (shouldResetDisplay) {
@@ -104,6 +105,56 @@ export default function Calculator({ onBack }: { onBack: () => void }) {
     return parseFloat(n.toFixed(10)).toString();
   };
 
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(display);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = display;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [display]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore when modifier keys are pressed
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+      const key = e.key;
+
+      if (key >= '0' && key <= '9') {
+        e.preventDefault();
+        handleNumber(key);
+      } else if (key === '.') {
+        e.preventDefault();
+        handleDecimal();
+      } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+        e.preventDefault();
+        handleOperator(key);
+      } else if (key === 'Enter' || key === '=') {
+        e.preventDefault();
+        handleEquals();
+      } else if (key === 'Backspace') {
+        e.preventDefault();
+        handleDelete();
+      } else if (key === 'Escape' || key === 'Delete') {
+        e.preventDefault();
+        handleClear();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleNumber, handleDecimal, handleOperator, handleEquals, handleDelete, handleClear]);
+
   const opActive = (op: string) => currentOp === op;
 
   return (
@@ -115,7 +166,14 @@ export default function Calculator({ onBack }: { onBack: () => void }) {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         {/* Display */}
-        <div className="bg-surface-container-low rounded-2xl p-4 mb-6 min-h-[80px] flex flex-col justify-end items-end">
+        <div className="bg-surface-container-low rounded-2xl p-4 mb-6 min-h-[80px] flex flex-col justify-end items-end relative">
+          <button
+            onClick={handleCopy}
+            aria-label={t('复制', 'Copy')}
+            className="absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-lg bg-primary-container/50 text-primary hover:bg-primary-container transition-colors"
+          >
+            {copied ? t('已复制!', 'Copied!') : t('复制', 'Copy')}
+          </button>
           <div className="text-secondary/50 text-sm font-mono truncate w-full text-right">{expression}</div>
           <div className="text-on-surface text-4xl font-bold tracking-tight truncate w-full text-right mt-1">{display}</div>
         </div>

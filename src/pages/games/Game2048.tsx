@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type TouchEvent as ReactTouchEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, Trophy } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Trophy, Undo2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
 type Grid = number[][];
@@ -111,6 +111,8 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(loadBestScore);
   const [gameOver, setGameOver] = useState(false);
+  const [prevGrid, setPrevGrid] = useState<Grid | null>(null);
+  const [prevScore, setPrevScore] = useState<number | null>(null);
   const startX = useRef(0);
   const startY = useRef(0);
 
@@ -118,6 +120,8 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
     if (gameOver) return;
     const result = moveGrid(grid, dir);
     if (result.moved) {
+      setPrevGrid(grid.map(r => [...r]));
+      setPrevScore(score);
       setGrid(result.grid);
       const newScore = score + result.score;
       setScore(newScore);
@@ -167,6 +171,18 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
     setGrid(initGrid());
     setScore(0);
     setGameOver(false);
+    setPrevGrid(null);
+    setPrevScore(null);
+  };
+
+  const undo = () => {
+    if (prevGrid && prevScore !== null) {
+      setGrid(prevGrid);
+      setScore(prevScore);
+      setGameOver(false);
+      setPrevGrid(null);
+      setPrevScore(null);
+    }
   };
 
   return (
@@ -225,6 +241,14 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
           >
             <RotateCcw className="w-5 h-5" />
             {t('重新开始', 'Restart')}
+          </button>
+          <button
+            onClick={undo}
+            disabled={!prevGrid}
+            className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Undo2 className="w-5 h-5" />
+            {t('撤回', 'Undo')}
           </button>
         </div>
 
