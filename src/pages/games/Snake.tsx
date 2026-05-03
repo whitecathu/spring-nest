@@ -6,6 +6,7 @@ import { useUser } from '../../contexts/UserContext';
 const GRID_SIZE = 10;
 type Direction = 'up' | 'down' | 'left' | 'right';
 type Point = { x: number; y: number };
+type Difficulty = 'easy' | 'normal' | 'hard';
 
 const DIRECTION_VECTORS: Record<Direction, Point> = {
   up: { x: 0, y: -1 },
@@ -20,6 +21,17 @@ const OPPOSITE: Record<Direction, Direction> = {
   left: 'right',
   right: 'left',
 };
+
+const SPEEDS: Record<Difficulty, { base: number; min: number; label: [string, string]; desc: [string, string] }> = {
+  easy:   { base: 220, min: 140, label: ['轻松', 'Easy'],   desc: ['适合新手，移动更慢', 'Slower, great for beginners'] },
+  normal: { base: 160, min: 100, label: ['普通', 'Normal'], desc: ['经典速度', 'Classic speed'] },
+  hard:   { base: 110, min: 70,  label: ['挑战', 'Hard'],   desc: ['更快节奏', 'Faster pace'] },
+};
+
+function getSpeed(difficulty: Difficulty, score: number): number {
+  const cfg = SPEEDS[difficulty];
+  return Math.max(cfg.min, cfg.base - score * 2);
+}
 
 function randomFood(snake: Point[]): Point {
   const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
@@ -48,6 +60,8 @@ export default function Snake({ onBack }: { onBack: () => void }) {
   const [bestScore, setBestScore] = useState(loadBestScore);
   const [snake, setSnake] = useState<Point[]>([{ x: 5, y: 5 }]);
   const [food, setFood] = useState<Point>({ x: 7, y: 5 });
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const difficultyRef = useRef<Difficulty>('easy');
 
   const directionRef = useRef<Direction>('right');
   const nextDirectionRef = useRef<Direction>('right');
@@ -64,10 +78,6 @@ export default function Snake({ onBack }: { onBack: () => void }) {
       clearTimeout(gameLoopRef.current);
       gameLoopRef.current = null;
     }
-  }, []);
-
-  const getSpeed = useCallback((s: number) => {
-    return Math.max(80, 180 - s * 3);
   }, []);
 
   const tick = useCallback(() => {
@@ -125,9 +135,9 @@ export default function Snake({ onBack }: { onBack: () => void }) {
     setSnake([...newSnake]);
 
     if (playingRef.current && !gameOverRef.current) {
-      gameLoopRef.current = setTimeout(tick, getSpeed(scoreRef.current));
+      gameLoopRef.current = setTimeout(tick, getSpeed(difficultyRef.current, scoreRef.current));
     }
-  }, [clearLoop, getSpeed]);
+  }, [clearLoop]);
 
   const startGame = useCallback(() => {
     clearLoop();
@@ -145,8 +155,14 @@ export default function Snake({ onBack }: { onBack: () => void }) {
     setScore(0);
     setPlaying(true);
     setGameOver(false);
-    gameLoopRef.current = setTimeout(tick, getSpeed(0));
-  }, [clearLoop, tick, getSpeed]);
+    gameLoopRef.current = setTimeout(tick, getSpeed(difficultyRef.current, 0));
+  }, [clearLoop, tick]);
+
+  const handleDifficultyChange = useCallback((d: Difficulty) => {
+    if (playingRef.current && !gameOverRef.current) return;
+    setDifficulty(d);
+    difficultyRef.current = d;
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -304,6 +320,32 @@ export default function Snake({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
+        {/* Difficulty Selection */}
+        <div className="mb-4">
+          <p className="text-xs text-secondary text-center mb-2">{t('难度', 'Difficulty')}</p>
+          <div className="flex justify-center gap-2">
+            {(['easy', 'normal', 'hard'] as Difficulty[]).map(d => (
+              <button
+                key={d}
+                onClick={() => handleDifficultyChange(d)}
+                disabled={playing && !gameOver}
+                className={`px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
+                  difficulty === d
+                    ? 'bg-primary text-on-primary'
+                    : playing && !gameOver
+                      ? 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+                      : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
+                }`}
+              >
+                {t(...SPEEDS[d].label)}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-secondary text-center mt-1.5">
+            {t(...SPEEDS[difficulty].desc)}
+          </p>
+        </div>
+
         {/* Controls */}
         <div className="flex justify-center gap-4">
           {!playing && !gameOver && (
@@ -335,18 +377,21 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             >
               <p className="text-2xl mb-2">{t('游戏结束', 'Game Over')}</p>
               <p className="text-xl font-bold text-orange-600 mb-1">{t('得分', 'Score')}: {score}</p>
+              <p className="text-xs text-orange-400 mb-1">{t('难度', 'Difficulty')}: {t(...SPEEDS[difficulty].label)}</p>
               {score > 0 && score === bestScore && (
                 <p className="text-sm text-orange-500 mb-4">🏆 {t('新纪录！', 'New Record!')}</p>
               )}
-              <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[44px]">
-                {t('再来一局', 'Play Again')}
-              </button>
+              <div className="flex justify-center gap-3">
+                <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[44px]">
+                  {t('再来一局', 'Play Again')}
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         <div className="mt-4 text-center text-xs text-secondary/50">
-          {t('方向键、滑动或按钮控制', 'Arrow keys, swipe, or buttons to control')}
+          {t('方向键/WASD 控制移动，手机可滑动或点击方向按钮', 'Arrow keys/WASD to move, swipe or tap direction buttons on mobile')}
         </div>
       </motion.div>
     </div>

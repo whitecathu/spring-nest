@@ -4,6 +4,7 @@ import { ArrowLeft, RotateCcw, Clock, Footprints, Trophy } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
 type Size = 3 | 4;
+type Direction = 'up' | 'down' | 'left' | 'right';
 
 const SIZE_CONFIG: Record<Size, { label: [string, string] }> = {
   3: { label: ['3x3', '3x3'] },
@@ -140,12 +141,63 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
     }, 500);
   }, []);
 
+  const applyMove = useCallback((newTiles: number[]) => {
+    setTiles(newTiles);
+    const newMoves = moves + 1;
+    setMoves(newMoves);
+
+    if (isSolved(newTiles, size)) {
+      clearTimer();
+      const finalTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setElapsed(finalTime);
+      setWon(true);
+
+      const currentBestMoves = loadBestMoves(size);
+      if (currentBestMoves === 0 || newMoves < currentBestMoves) {
+        setBestMoves(newMoves);
+        saveBestMoves(size, newMoves);
+      }
+      const currentBestTime = loadBestTime(size);
+      if (currentBestTime === 0 || finalTime < currentBestTime) {
+        setBestTimeVal(finalTime);
+        saveBestTime(size, finalTime);
+      }
+    }
+  }, [moves, size, clearTimer]);
+
+  const moveByDirection = useCallback((dir: Direction) => {
+    if (won) return;
+    const emptyIndex = tiles.indexOf(0);
+    const s = size;
+    const emptyRow = Math.floor(emptyIndex / s);
+    const emptyCol = emptyIndex % s;
+
+    let tileRow = emptyRow;
+    let tileCol = emptyCol;
+
+    if (dir === 'up') tileRow = emptyRow + 1;
+    else if (dir === 'down') tileRow = emptyRow - 1;
+    else if (dir === 'left') tileCol = emptyCol + 1;
+    else if (dir === 'right') tileCol = emptyCol - 1;
+
+    if (tileRow < 0 || tileRow >= s || tileCol < 0 || tileCol >= s) return;
+
+    const tileIndex = tileRow * s + tileCol;
+    if (!started) {
+      setStarted(true);
+      startTimer();
+    }
+
+    const newTiles = [...tiles];
+    [newTiles[tileIndex], newTiles[emptyIndex]] = [newTiles[emptyIndex], newTiles[tileIndex]];
+    applyMove(newTiles);
+  }, [tiles, size, won, started, startTimer, applyMove]);
+
   const handleTileClick = useCallback((index: number) => {
     if (won) return;
     const emptyIndex = tiles.indexOf(0);
     const s = size;
 
-    // Check adjacency
     const row = Math.floor(index / s);
     const col = index % s;
     const emptyRow = Math.floor(emptyIndex / s);
@@ -157,7 +209,6 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
 
     if (!isAdjacent) return;
 
-    // Start timer on first move
     if (!started) {
       setStarted(true);
       startTimer();
@@ -165,30 +216,47 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
 
     const newTiles = [...tiles];
     [newTiles[index], newTiles[emptyIndex]] = [newTiles[emptyIndex], newTiles[index]];
-    setTiles(newTiles);
-    const newMoves = moves + 1;
-    setMoves(newMoves);
+    applyMove(newTiles);
+  }, [tiles, size, won, started, startTimer, applyMove]);
 
-    // Check win
-    if (isSolved(newTiles, s)) {
-      clearTimer();
-      const finalTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      setElapsed(finalTime);
-      setWon(true);
+  // Keyboard controls
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      const map: Record<string, Direction> = {
+        ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+        w: 'up', s: 'down', a: 'left', d: 'right',
+        W: 'up', S: 'down', A: 'left', D: 'right',
+      };
+      const dir = map[e.key];
+      if (dir) {
+        e.preventDefault();
+        moveByDirection(dir);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [moveByDirection]);
 
-      // Save best scores
-      const currentBestMoves = loadBestMoves(s);
-      if (currentBestMoves === 0 || newMoves < currentBestMoves) {
-        setBestMoves(newMoves);
-        saveBestMoves(s, newMoves);
-      }
-      const currentBestTime = loadBestTime(s);
-      if (currentBestTime === 0 || finalTime < currentBestTime) {
-        setBestTimeVal(finalTime);
-        saveBestTime(s, finalTime);
-      }
+  // Swipe controls
+  const touchStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+    if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+    let dir: Direction;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      dir = dx > 0 ? 'right' : 'left';
+    } else {
+      dir = dy > 0 ? 'down' : 'up';
     }
-  }, [tiles, size, moves, started, won, clearTimer, startTimer]);
+    moveByDirection(dir);
+  }, [moveByDirection]);
 
   const changeSize = useCallback((newSize: Size) => {
     setSize(newSize);
@@ -204,6 +272,19 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
   }, [clearTimer]);
 
   const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+  // Check if a direction is movable
+  const canMoveDir = useCallback((dir: Direction): boolean => {
+    const emptyIndex = tiles.indexOf(0);
+    const s = size;
+    const emptyRow = Math.floor(emptyIndex / s);
+    const emptyCol = emptyIndex % s;
+    if (dir === 'up') return emptyRow < s - 1;
+    if (dir === 'down') return emptyRow > 0;
+    if (dir === 'left') return emptyCol < s - 1;
+    if (dir === 'right') return emptyCol > 0;
+    return false;
+  }, [tiles, size]);
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
@@ -259,7 +340,12 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Puzzle Grid */}
-        <div className="bg-surface-container-high rounded-2xl p-3 mb-4">
+        <div
+          ref={boardRef}
+          className="bg-surface-container-high rounded-2xl p-3 mb-4 touch-none select-none"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div
             className="grid gap-2"
             style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
@@ -268,8 +354,10 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
               const isEmpty = val === 0;
               return (
                 <motion.button
-                  key={`${size}-${i}-${val}`}
+                  key={`${size}-${i}`}
                   onClick={() => handleTileClick(i)}
+                  layout
+                  transition={{ type: 'tween', duration: 0.12, ease: 'easeOut' }}
                   whileTap={isEmpty ? {} : { scale: 0.92 }}
                   className={`aspect-square rounded-xl font-extrabold text-lg sm:text-2xl flex items-center justify-center transition-colors min-h-[44px] ${
                     isEmpty
@@ -284,6 +372,62 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
             })}
           </div>
         </div>
+
+        {/* D-Pad Controls */}
+        {!won && (
+          <div className="grid grid-cols-3 gap-2 w-44 mx-auto mb-4">
+            <div />
+            <button
+              onClick={() => moveByDirection('up')}
+              disabled={!canMoveDir('up')}
+              aria-label={t('向上移动', 'Move up')}
+              className={`w-full aspect-square rounded-xl font-bold text-xl flex items-center justify-center active:scale-90 transition-all min-h-[44px] ${
+                canMoveDir('up') ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant' : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+              }`}
+            >
+              ↑
+            </button>
+            <div />
+            <button
+              onClick={() => moveByDirection('left')}
+              disabled={!canMoveDir('left')}
+              aria-label={t('向左移动', 'Move left')}
+              className={`w-full aspect-square rounded-xl font-bold text-xl flex items-center justify-center active:scale-90 transition-all min-h-[44px] ${
+                canMoveDir('left') ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant' : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+              }`}
+            >
+              ←
+            </button>
+            <div />
+            <button
+              onClick={() => moveByDirection('right')}
+              disabled={!canMoveDir('right')}
+              aria-label={t('向右移动', 'Move right')}
+              className={`w-full aspect-square rounded-xl font-bold text-xl flex items-center justify-center active:scale-90 transition-all min-h-[44px] ${
+                canMoveDir('right') ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant' : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+              }`}
+            >
+              →
+            </button>
+            <div />
+            <button
+              onClick={() => moveByDirection('down')}
+              disabled={!canMoveDir('down')}
+              aria-label={t('向下移动', 'Move down')}
+              className={`w-full aspect-square rounded-xl font-bold text-xl flex items-center justify-center active:scale-90 transition-all min-h-[44px] ${
+                canMoveDir('down') ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant' : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+              }`}
+            >
+              ↓
+            </button>
+            <div />
+          </div>
+        )}
+
+        {/* Operation Hint */}
+        <p className="text-xs text-secondary text-center mb-4">
+          {t('方向键/WASD 控制空位移动，手机可滑动棋盘或点击方向按钮，也可点击相邻数字', 'Arrow keys/WASD to move the blank, swipe the board, tap direction buttons, or tap adjacent tiles')}
+        </p>
 
         {/* Controls */}
         <div className="flex justify-center gap-4">

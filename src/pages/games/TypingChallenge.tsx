@@ -57,6 +57,7 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const startTimeRef = useRef(0);
   const startedRef = useRef(false);
+  const isComposingRef = useRef(false);
 
   const phrases = mode === 'zh' ? CHINESE_PHRASES : ENGLISH_PHRASES;
 
@@ -90,8 +91,7 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
     setMode(newMode);
   }, []);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const validateAndComplete = useCallback((value: string) => {
     if (finished) return;
 
     // Start timer on first character
@@ -103,24 +103,22 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
       setStartTime(now);
     }
 
-    setInputValue(value);
-
     // Check if finished (all characters typed)
-    if (value.length >= targetPhrase.length) {
+    const targetChars = Array.from(targetPhrase.normalize('NFC'));
+    const inputChars = Array.from(value.normalize('NFC'));
+    if (inputChars.length >= targetChars.length) {
       const endTime = Date.now();
       const elapsed = startedRef.current ? endTime - startTimeRef.current : 0;
 
-      // Calculate stats
-      const chars = targetPhrase.length;
       let correct = 0;
-      for (let i = 0; i < chars; i++) {
-        if (value[i] === targetPhrase[i]) correct++;
+      for (let i = 0; i < targetChars.length; i++) {
+        if (inputChars[i] === targetChars[i]) correct++;
       }
-      const accuracy = Math.round((correct / chars) * 100);
+      const accuracy = Math.round((correct / targetChars.length) * 100);
       const minutes = elapsed / 60000;
       const wpm = mode === 'zh'
-        ? Math.round(chars / (elapsed / 1000) * 60) // CPM for Chinese
-        : Math.round((chars / 5) / minutes); // WPM for English
+        ? Math.round(targetChars.length / (elapsed / 1000) * 60)
+        : Math.round((targetChars.length / 5) / minutes);
 
       setFinished(true);
       setFinalElapsed(elapsed);
@@ -139,6 +137,32 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
     }
   }, [finished, targetPhrase, mode]);
 
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (finished) return;
+
+    // Always update the displayed input value so IME composition renders correctly
+    setInputValue(value);
+
+    // Skip validation during IME composition
+    if (isComposingRef.current || (e.nativeEvent as InputEvent)?.isComposing) {
+      return;
+    }
+
+    validateAndComplete(value);
+  }, [finished, validateAndComplete]);
+
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+
+  const handleCompositionEnd = useCallback((e: React.CompositionEvent<HTMLInputElement>) => {
+    isComposingRef.current = false;
+    const value = e.currentTarget.value;
+    setInputValue(value);
+    validateAndComplete(value);
+  }, [validateAndComplete]);
+
   // Timer update effect
   useEffect(() => {
     if (started && !finished) {
@@ -155,8 +179,10 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
   };
 
   const characterComparison = useMemo(() => {
-    return targetPhrase.split('').map((char, i) => {
-      const typed = inputValue[i];
+    const targetChars = Array.from(targetPhrase.normalize('NFC'));
+    const inputChars = Array.from(inputValue.normalize('NFC'));
+    return targetChars.map((char, i) => {
+      const typed = inputChars[i];
       let status: 'correct' | 'wrong' | 'pending' = 'pending';
       if (typed !== undefined) {
         status = typed === char ? 'correct' : 'wrong';
@@ -166,12 +192,15 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
   }, [targetPhrase, inputValue]);
 
   const accuracy = useMemo(() => {
-    if (inputValue.length === 0) return 0;
+    const targetChars = Array.from(targetPhrase.normalize('NFC'));
+    const inputChars = Array.from(inputValue.normalize('NFC'));
+    if (inputChars.length === 0) return 0;
     let correct = 0;
-    for (let i = 0; i < inputValue.length; i++) {
-      if (inputValue[i] === targetPhrase[i]) correct++;
+    const len = Math.min(inputChars.length, targetChars.length);
+    for (let i = 0; i < len; i++) {
+      if (inputChars[i] === targetChars[i]) correct++;
     }
-    return Math.round((correct / inputValue.length) * 100);
+    return Math.round((correct / inputChars.length) * 100);
   }, [inputValue, targetPhrase]);
 
   return (
@@ -255,8 +284,10 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
             type="text"
             value={inputValue}
             onChange={handleInputChange}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={handleCompositionEnd}
             disabled={finished}
-            placeholder={t('在此输入...', 'Type here...')}
+            placeholder={t('在此输入，支持中文输入法...', 'Type here, IME supported...')}
             className={`w-full px-4 py-4 rounded-xl text-lg font-medium border-2 outline-none transition-colors bg-surface-container-high text-on-surface placeholder:text-secondary ${
               finished
                 ? 'border-green-400'
@@ -268,6 +299,11 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
             autoCapitalize="off"
             spellCheck={false}
           />
+          {mode === 'zh' && !finished && (
+            <p className="text-xs text-secondary mt-1.5 text-center">
+              {t('支持中文输入法，候选词上屏后会自动更新进度', 'IME supported — progress updates after committing')}
+            </p>
+          )}
         </div>
 
         {/* Controls */}

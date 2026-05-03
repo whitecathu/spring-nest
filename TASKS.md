@@ -78,3 +78,54 @@
 - `npm run lint` (tsc --noEmit): PASS
 - `npm run test` (vitest): 82/82 PASS (5 test files)
 - `npm run build` (vite build): PASS (2.24s, 68 precache entries)
+
+---
+
+## Round 5: Typing Challenge Chinese IME Fix [IN PROGRESS - 2026-05-03]
+**Goal:** Fix Chinese IME input compatibility in Typing Challenge game. Protect English logic. Add Chinese QA.
+
+### Root Cause
+`TypingChallenge.tsx` has NO IME composition handling. `handleInputChange` fires during pinyin composition with intermediate values (e.g. "chun" for "春"), triggering validation, completion checks, and stats on garbage data. No `onCompositionStart`/`onCompositionEnd` handlers. `targetPhrase.split('')` may break multi-byte Unicode chars.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T1 | Add isComposingRef + composition event handlers | DONE | Main |
+| T2 | Guard onChange/onKeyDown during composition | DONE | Main |
+| T3 | Fix characterComparison to use Array.from for Unicode | DONE | Main |
+| T4 | Update placeholder + add IME hint text | DONE | Main |
+| T5 | Build & typecheck | DONE | Main - tsc clean, build 2.17s |
+| T6 | Chinese QA regression (5 test phrases) | DONE | Main |
+| T7 | English QA regression (3 test phrases) | DONE | Main |
+
+### Test Phrases - Chinese
+1. 春暖花开
+2. 风和日丽
+3. 万象更新
+4. 心想事成
+5. 前程似锦
+
+### Test Phrases - English
+1. The quick brown fox
+2. Spring is in the air
+3. Practice makes perfect
+
+---
+
+## Round 6: Game UX Fix - Number Puzzle + Snake [IN PROGRESS - 2026-05-03]
+**Goal:** Fix Number Puzzle control UX and Snake speed. No new games, no refactors.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T1 | NumberPuzzle: Add keyboard (arrows + WASD) controls | DONE | Main |
+| T2 | NumberPuzzle: Add swipe controls on board | DONE | Main |
+| T3 | NumberPuzzle: Add d-pad direction buttons | DONE | Main |
+| T4 | NumberPuzzle: Add move animation (motion layout) | DONE | Main |
+| T5 | NumberPuzzle: Add operation hint text | DONE | Main |
+| T6 | Snake: Add difficulty selection (easy/normal/hard) | DONE | Main |
+| T7 | Snake: Default speed → easy (220ms base) | DONE | Main |
+| T8 | Snake: Score-based speed per difficulty tier | DONE | Main |
+| T9 | Snake: Difficulty shown in game over panel | DONE | Main |
+| T10 | Build & typecheck | DONE | Main - tsc clean, build 2.27s, 82/82 tests |
+| T11 | Final review | DONE | Main |
