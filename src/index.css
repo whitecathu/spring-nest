@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Nunito:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3f6751;
+  --color-primary-container: #b8e4c9;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #3f6752;
+
+  --color-secondary: #615e59;
+  --color-secondary-container: #e7e2db;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #67645f;
+
+  --color-tertiary: #795648;
+  --color-tertiary-container: #ffd0bd;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #7a5748;
+  --color-tertiary-fixed-dim: #eabdaa;
+
+  --color-background: #FFF9F2;
+  --color-on-background: #1a1c1a;
+
+  --color-surface: #FFF9F2;
+  --color-on-surface: #1a1c1a;
+  --color-surface-variant: #e2e3df;
+  --color-on-surface-variant: #414943;
+
+  --color-surface-container: #eeeeeb;
+  --color-surface-container-low: #f3f4f0;
+  --color-surface-container-high: #e8e8e5;
+  --color-surface-container-lowest: #ffffff;
+
+  --font-sans: 'Plus Jakarta Sans', 'Nunito', 'M PLUS Rounded 1c', sans-serif;
+  --font-nunito: 'Nunito', 'M PLUS Rounded 1c', sans-serif;
+
+  --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-slow: float 8s ease-in-out infinite;
+  --animate-float-slower: float 12s ease-in-out infinite;
+  --animate-float-petal: float-petal 15s linear infinite;
+
+  @keyframes fade-in-up {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+  @keyframes float-petal {
+    0% { transform: translateY(-10vh) rotate(0deg) translateX(0); }
+    100% { transform: translateY(110vh) rotate(360deg) translateX(50px); }
+  }
+}
+
+/* Dark theme overrides */
+.dark {
+  --color-primary: #8fd4a5;
+  --color-primary-container: #2a4737;
+  --color-on-primary: #1a2c1f;
+  --color-on-primary-container: #b8e4c9;
+
+  --color-secondary: #cac5be;
+  --color-secondary-container: #3a3733;
+  --color-on-secondary: #2a2825;
+  --color-on-secondary-container: #e7e2db;
+
+  --color-tertiary: #f5b9a2;
+  --color-tertiary-container: #4a2e25;
+  --color-on-tertiary: #2a1a15;
+  --color-on-tertiary-container: #ffd0bd;
+  --color-tertiary-fixed-dim: #5a3e35;
+
+  --color-background: #121412;
+  --color-on-background: #e2e3df;
+
+  --color-surface: #1a1c1a;
+  --color-on-surface: #e2e3df;
+  --color-surface-variant: #3a3d39;
+  --color-on-surface-variant: #c2c7bf;
+
+  --color-surface-container: #222422;
+  --color-surface-container-low: #1a1c1a;
+  --color-surface-container-high: #2a2c2a;
+  --color-surface-container-lowest: #0e100e;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .glass-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cubic-bezier-transition {
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.button-bounce:active {
+  transform: scale(0.95);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 15px 35px -5px rgba(184, 228, 201, 0.5), 0 8px 15px -5px rgba(184, 228, 201, 0.3);
+  transform: translateY(-4px);
+}
+
+.dark .hover-glow:hover {
+  box-shadow: 0 15px 35px -5px rgba(47, 67, 55, 0.5), 0 8px 15px -5px rgba(47, 67, 55, 0.3);
+}
+
+.btn-gradient {
+  background: linear-gradient(135deg, var(--color-primary-container) 0%, var(--color-primary) 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

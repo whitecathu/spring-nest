@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>/</loc></url>
+  <url><loc>/games</loc></url>
+  <url><loc>/games/2048</loc></url>
+  <url><loc>/games/memory</loc></url>
+  <url><loc>/games/whack-a-mole</loc></url>
+  <url><loc>/tools</loc></url>
+  <url><loc>/tools/calculator</loc></url>
+  <url><loc>/tools/pomodoro</loc></url>
+  <url><loc>/tools/unit-converter</loc></url>
+  <url><loc>/tools/password-generator</loc></url>
+  <url><loc>/tools/qr-code</loc></url>
+  <url><loc>/about</loc></url>
+</urlset>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#3f6751"/>
+  <rect x="40" y="40" width="1120" height="550" rx="20" fill="#FFF9F2"/>
+  <text x="600" y="260" text-anchor="middle" font-family="sans-serif" font-size="72" font-weight="bold" fill="#3f6751">Spring Nest</text>
+  <text x="600" y="350" text-anchor="middle" font-family="sans-serif" font-size="48" fill="#3f6751">春日小筑</text>
+  <text x="600" y="440" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#6b8f7b">实用工具与休闲小游戏</text>
+  <text x="600" y="500" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#9bb5a5">Productivity Tools &amp; Casual Games</text>
+</svg>
