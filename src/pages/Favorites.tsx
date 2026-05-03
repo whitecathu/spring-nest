@@ -5,6 +5,7 @@ import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { games } from '../data/games';
 import { tools } from '../data/tools';
+import SEO from '../components/SEO';
 
 export default function Favorites() {
   const { t } = useUser();
@@ -27,6 +28,7 @@ export default function Favorites() {
 
   return (
     <div className="flex-grow w-full max-w-[1200px] mx-auto px-6 py-10 relative">
+      <SEO title={t('我的收藏 - Spring Nest 春日小筑', 'Favorites - Spring Nest')} description={t('查看你收藏的工具和游戏', 'View your favorite tools and games')} />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

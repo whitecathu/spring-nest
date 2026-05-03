@@ -6,7 +6,7 @@ import { useUser } from '../contexts/UserContext';
 export default function Footer() {
   const { t } = useUser();
   return (
-    <footer className="w-full rounded-t-[64px] mt-auto border-t border-primary-container/40 bg-gradient-to-b from-white/60 to-[#FFF9F2] backdrop-blur-xl relative overflow-hidden">
+    <footer className="w-full rounded-t-[64px] mt-auto border-t border-primary-container/40 bg-gradient-to-b from-white/60 to-[#FFF9F2] backdrop-blur-xl relative overflow-hidden" aria-label={t('页脚', 'Footer')}>
       <motion.div
         animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}

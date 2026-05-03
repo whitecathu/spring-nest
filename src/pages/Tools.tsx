@@ -5,6 +5,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { tools } from '../data/tools';
+import SEO from '../components/SEO';
+import { trackToolOpen } from '../lib/analytics';
+import { recordVisit } from '../lib/recent';
 
 const Calculator = lazy(() => import('./tools/Calculator'));
 const Pomodoro = lazy(() => import('./tools/Pomodoro'));
@@ -14,6 +17,15 @@ const QRCodeGenerator = lazy(() => import('./tools/QRCodeGenerator'));
 const Compass = lazy(() => import('./tools/Compass'));
 const Scanner = lazy(() => import('./tools/Scanner'));
 const Weather = lazy(() => import('./tools/Weather'));
+const RandomPicker = lazy(() => import('./tools/RandomPicker'));
+const TimerStopwatch = lazy(() => import('./tools/TimerStopwatch'));
+const WordCounter = lazy(() => import('./tools/WordCounter'));
+const MarkdownPreview = lazy(() => import('./tools/MarkdownPreview'));
+const JsonFormatter = lazy(() => import('./tools/JsonFormatter'));
+const Base64Codec = lazy(() => import('./tools/Base64Codec'));
+const UrlCodec = lazy(() => import('./tools/UrlCodec'));
+const ColorConverter = lazy(() => import('./tools/ColorConverter'));
+const DateCalculator = lazy(() => import('./tools/DateCalculator'));
 
 const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'tool-1': Calculator,
@@ -24,6 +36,15 @@ const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'tool-6': Compass,
   'tool-7': Scanner,
   'tool-8': Weather,
+  'tool-9': RandomPicker,
+  'tool-10': TimerStopwatch,
+  'tool-11': WordCounter,
+  'tool-12': MarkdownPreview,
+  'tool-13': JsonFormatter,
+  'tool-14': Base64Codec,
+  'tool-15': UrlCodec,
+  'tool-16': ColorConverter,
+  'tool-17': DateCalculator,
 };
 
 export default function Tools() {
@@ -77,10 +98,19 @@ export default function Tools() {
     navigate('/tools');
   };
 
+  // Track tool open
+  useEffect(() => {
+    if (activeTool) {
+      trackToolOpen(activeTool.id);
+      recordVisit('tool', activeTool.id);
+    }
+  }, [activeTool]);
+
   if (activeTool && toolComponents[activeTool.id]) {
     const ToolComponent = toolComponents[activeTool.id];
     return (
       <Suspense fallback={<div className="flex-grow flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+        <SEO title={`${t(activeTool.title, activeTool.titleEn)} - Spring Nest`} description={t(activeTool.description, activeTool.descriptionEn)} type="website" />
         <ToolComponent onBack={handleBack} />
       </Suspense>
     );
@@ -99,6 +129,7 @@ export default function Tools() {
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-6 py-10 relative">
+      <SEO title={t('在线实用工具合集 - Spring Nest 春日小筑', 'Online Tools Collection - Spring Nest')} description={t('Spring Nest 提供计算器、番茄钟、单位换算、密码生成器等实用在线工具。', 'Spring Nest offers Calculator, Pomodoro Timer, Unit Converter, Password Generator, and more.')} />
       <motion.header
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

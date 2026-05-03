@@ -32,50 +32,61 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
   const [gameOver, setGameOver] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const moleTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const wasHitRef = useRef(false);
-  const [countdown, setCountdown] = useState(3);
+  const playingRef = useRef(false);
+  const comboRef = useRef(0);
+  const [countdown, setCountdown] = useState(0);
 
   const clearAllTimers = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     if (moleTimerRef.current) { clearInterval(moleTimerRef.current); moleTimerRef.current = null; }
+    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
   }, []);
 
   const startMoleMovement = useCallback(() => {
     const showMole = () => {
+      if (!playingRef.current) return;
       wasHitRef.current = false;
       setActiveHole(Math.floor(Math.random() * HOLES));
     };
     showMole();
     moleTimerRef.current = setInterval(() => {
+      if (!playingRef.current) return;
       const keepActive = Math.random() < 0.3;
       if (!keepActive) {
         if (!wasHitRef.current) {
-          setCombo(0); // Mole escaped, reset combo
+          comboRef.current = 0;
+          setCombo(0);
         }
         setActiveHole(null);
       }
       setTimeout(() => {
-        if (playing) showMole();
+        showMole();
       }, 200);
     }, 800 + Math.random() * 600);
-  }, [playing]);
+  }, []);
 
   const startGame = useCallback(() => {
+    clearAllTimers();
     setScore(0);
     setCombo(0);
+    comboRef.current = 0;
     setTimeLeft(GAME_DURATION);
     setGameOver(false);
     setActiveHole(null);
     setCountdown(3);
+    setPlaying(false);
+    playingRef.current = false;
 
-    // Countdown
     let count = 3;
-    const countInterval = setInterval(() => {
+    countdownRef.current = setInterval(() => {
       count--;
       setCountdown(count);
       if (count <= 0) {
-        clearInterval(countInterval);
+        if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
         setPlaying(true);
+        playingRef.current = true;
         startMoleMovement();
 
         timerRef.current = setInterval(() => {
@@ -83,6 +94,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
             if (prev <= 1) {
               clearAllTimers();
               setPlaying(false);
+              playingRef.current = false;
               setGameOver(true);
               setActiveHole(null);
               return 0;
@@ -94,23 +106,26 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
     }, 1000);
   }, [clearAllTimers, startMoleMovement]);
 
-  useEffect(() => { return clearAllTimers; }, [clearAllTimers]);
+  useEffect(() => {
+    return () => {
+      playingRef.current = false;
+      clearAllTimers();
+    };
+  }, [clearAllTimers]);
 
   const whack = useCallback((holeIndex: number) => {
-    if (!playing || gameOver) return;
+    if (!playingRef.current || gameOver) return;
     if (activeHole === holeIndex) {
       wasHitRef.current = true;
-      setCombo(prev => {
-        const newCombo = prev + 1;
-        if (newCombo > bestCombo) {
-          setBestCombo(newCombo);
-          saveBestCombo(newCombo);
-        }
-        return newCombo;
-      });
+      comboRef.current += 1;
+      const currentCombo = comboRef.current;
+      setCombo(currentCombo);
+      if (currentCombo > bestCombo) {
+        setBestCombo(currentCombo);
+        saveBestCombo(currentCombo);
+      }
       setScore(s => {
-        const comboBonus = Math.max(0, combo); // combo is still old value here
-        const points = 1 + comboBonus;
+        const points = 1 + Math.max(0, currentCombo - 1);
         const newScore = s + points;
         if (newScore > bestScore) {
           setBestScore(newScore);
@@ -121,13 +136,14 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
       setLastHit(holeIndex);
       setActiveHole(null);
     } else {
-      setCombo(0); // Missed, reset combo
+      comboRef.current = 0;
+      setCombo(0);
     }
-  }, [playing, gameOver, activeHole, bestScore, bestCombo, combo]);
+  }, [gameOver, activeHole, bestScore, bestCombo]);
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm">
+      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2">
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -261,7 +277,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
               <p className="text-xl font-bold text-orange-600 mb-1">{t('得分', 'Score')}: {score}</p>
               {bestCombo > 0 && <p className="text-sm text-orange-500 mb-1">🔥 {t('最佳连击', 'Best Combo')}: {bestCombo}</p>}
               {score > 0 && score === bestScore && <p className="text-sm text-orange-500 mb-4">🏆 {t('新纪录！', 'New Record!')}</p>}
-              <button onClick={startGame} className="px-6 py-2 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors">
+              <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[44px]">
                 {t('再来一局', 'Play Again')}
               </button>
             </motion.div>

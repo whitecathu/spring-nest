@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Home, Search, ArrowLeft, Leaf, Cloud, Flower2 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
+import SEO from '../components/SEO';
 
 export default function NotFound() {
   const { t } = useUser();
@@ -9,6 +10,7 @@ export default function NotFound() {
 
   return (
     <div className="flex-grow flex items-center justify-center px-6 py-20 relative overflow-hidden">
+      <SEO title={t('页面未找到 - Spring Nest', 'Page Not Found - Spring Nest')} />
       {/* Floating background elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div

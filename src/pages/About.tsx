@@ -2,6 +2,7 @@ import { Heart, Cloud, Sparkles, Sprout, Users, Verified, Mail, MessageCircle, G
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
+import SEO from '../components/SEO';
 
 export default function About() {
   const { t } = useUser();
@@ -23,12 +24,13 @@ export default function About() {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
       className="max-w-[1200px] mx-auto px-6 py-16 w-full"
     >
+      <SEO title={t('关于 Spring Nest 春日小筑', 'About Spring Nest')} description={t('了解 Spring Nest 春日小筑——一个治愈系数字角落，提供实用工具与休闲小游戏。', 'Learn about Spring Nest — a healing digital corner with practical tools and casual games.')} />
       {/* Header Section */}
       <motion.header variants={itemVariants} className="text-center mb-24 relative">
         <h1 className="text-5xl font-black text-primary mb-6 flex items-center justify-center gap-4 tracking-tight">

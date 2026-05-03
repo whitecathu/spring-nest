@@ -13,7 +13,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico'],
       manifest: {
         name: 'Spring Nest - 春日小筑',
-        short_name: 'Spring Nest',
+        short_name: '春日小筑',
         description: '藏尽春日好物，聚齐实用与欢喜 — 一个治愈系数字角落',
         lang: 'zh-CN',
         theme_color: '#3f6751',

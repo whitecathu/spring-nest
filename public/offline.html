@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>春日小筑 - 离线</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #FFF9F2;
+      color: #3f6751;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container {
+      text-align: center;
+      max-width: 400px;
+    }
+    .icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #3f6751;
+    }
+    p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #6b8f7b;
+      margin-bottom: 32px;
+    }
+    button {
+      background-color: #3f6751;
+      color: #FFF9F2;
+      border: none;
+      padding: 12px 36px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #2d4e3b;
+    }
+    button:active {
+      background-color: #1f3829;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">&#127793;</div>
+    <h1>你当前处于离线状态</h1>
+    <p>已缓存的工具和小游戏仍可继续使用。请检查网络连接后重试。</p>
+    <button onclick="window.location.reload()">重试</button>
+  </div>
+</body>
+</html>

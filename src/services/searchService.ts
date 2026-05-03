@@ -1,4 +1,4 @@
-import type { AppItem } from '../types/app';
+import type { AppItem, AppItemType } from '../types/app';
 import { games } from '../data/games';
 import { tools } from '../data/tools';
 
@@ -9,13 +9,16 @@ export interface SearchResult {
   score: number;
 }
 
-export function search(query: string): SearchResult[] {
+export function search(query: string, typeFilter?: AppItemType): SearchResult[] {
   if (!query || !query.trim()) return [];
 
   const q = query.trim().toLowerCase();
   const results: SearchResult[] = [];
 
   for (const item of allItems) {
+    // Apply type filter if provided
+    if (typeFilter && item.type !== typeFilter) continue;
+
     let score = 0;
     const titleLower = item.title.toLowerCase();
     const titleEnLower = item.titleEn.toLowerCase();
@@ -37,6 +40,16 @@ export function search(query: string): SearchResult[] {
       else if (tag.includes(q)) score += 15;
     }
 
+    // Also search in features
+    if (item.features) {
+      for (const f of item.features) {
+        if (f.toLowerCase().includes(q)) score += 8;
+      }
+    }
+
+    // Also search in instructions
+    if (item.instructions && item.instructions.toLowerCase().includes(q)) score += 5;
+
     if (score > 0) {
       results.push({ item, score });
     }
@@ -44,6 +57,13 @@ export function search(query: string): SearchResult[] {
 
   results.sort((a, b) => b.score - a.score);
   return results;
+}
+
+export function searchByType(query: string): { results: SearchResult[]; toolCount: number; gameCount: number } {
+  const all = search(query);
+  const toolCount = all.filter((r) => r.item.type === 'tool').length;
+  const gameCount = all.filter((r) => r.item.type === 'game').length;
+  return { results: all, toolCount, gameCount };
 }
 
 export function getAllItems(): AppItem[] {

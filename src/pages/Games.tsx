@@ -5,12 +5,21 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { games } from '../data/games';
+import SEO from '../components/SEO';
+import { trackGameStart } from '../lib/analytics';
+import { recordVisit } from '../lib/recent';
 
 const Game2048 = lazy(() => import('./games/Game2048'));
 const MemoryGame = lazy(() => import('./games/MemoryGame'));
 const WhackAMole = lazy(() => import('./games/WhackAMole'));
 const ColorMerge = lazy(() => import('./games/ColorMerge'));
 const ForestWalk = lazy(() => import('./games/ForestWalk'));
+const Snake = lazy(() => import('./games/Snake'));
+const ReactionTest = lazy(() => import('./games/ReactionTest'));
+const NumberPuzzle = lazy(() => import('./games/NumberPuzzle'));
+const TicTacToe = lazy(() => import('./games/TicTacToe'));
+const TypingChallenge = lazy(() => import('./games/TypingChallenge'));
+const ColorStroop = lazy(() => import('./games/ColorStroop'));
 
 const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'game-1': Game2048,
@@ -18,6 +27,12 @@ const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'game-3': WhackAMole,
   'game-4': ColorMerge,
   'game-5': ForestWalk,
+  'game-6': Snake,
+  'game-7': ReactionTest,
+  'game-8': NumberPuzzle,
+  'game-9': TicTacToe,
+  'game-10': TypingChallenge,
+  'game-11': ColorStroop,
 };
 
 export default function Games() {
@@ -75,10 +90,19 @@ export default function Games() {
     navigate('/games');
   };
 
+  // Track game open
+  useEffect(() => {
+    if (activeGame) {
+      trackGameStart(activeGame.id);
+      recordVisit('game', activeGame.id);
+    }
+  }, [activeGame]);
+
   if (activeGame && gameComponents[activeGame.id]) {
     const GameComponent = gameComponents[activeGame.id];
     return (
       <Suspense fallback={<div className="flex-grow flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+        <SEO title={`${t(activeGame.title, activeGame.titleEn)} - Spring Nest`} description={t(activeGame.description, activeGame.descriptionEn)} type="game" />
         <GameComponent onBack={handleBack} />
       </Suspense>
     );
@@ -97,6 +121,7 @@ export default function Games() {
 
   return (
     <div className="flex-grow flex flex-col items-center w-full max-w-[1200px] mx-auto px-6 py-10 relative">
+      <SEO title={t('休闲小游戏合集 - Spring Nest 春日小筑', 'Casual Games Collection - Spring Nest')} description={t('Spring Nest 提供多款轻松有趣的休闲小游戏，包括 2048、记忆翻牌、打地鼠等。', 'Spring Nest offers fun casual games including 2048, Memory Match, Whack-A-Mole, and more.')} />
       <motion.div
         animate={{ y: [0, -20, 0], rotate: [0, 5, -5, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}

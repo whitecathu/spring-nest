@@ -29,13 +29,13 @@ describe('searchService', () => {
 
   describe('search by category', () => {
     it('should find items by Chinese category', () => {
-      const results = search('休闲益智');
+      const results = search('益智解谜');
       expect(results.length).toBeGreaterThan(0);
-      expect(results.every(r => r.item.category === '休闲益智')).toBe(true);
+      expect(results.every(r => r.item.category === '益智解谜')).toBe(true);
     });
 
     it('should find items by English category', () => {
-      const results = search('Productivity');
+      const results = search('Daily Utility');
       expect(results.length).toBeGreaterThan(0);
     });
   });

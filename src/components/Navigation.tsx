@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, type FormEvent } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, User, Leaf, X, Trophy, Shield, Menu, Gamepad2, Wrench, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -50,8 +50,9 @@ export default function Navigation() {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
-  const handleSearchInput = (value: string) => {
-    setSearchQuery(value);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const performSearch = useCallback((value: string) => {
     if (value.trim()) {
       setSearchResults(search(value));
       setHasSearched(true);
@@ -59,6 +60,12 @@ export default function Navigation() {
       setSearchResults([]);
       setHasSearched(false);
     }
+  }, []);
+
+  const handleSearchInput = (value: string) => {
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => performSearch(value), 300);
   };
 
   const handleSearchSubmit = (e: FormEvent) => {
@@ -137,6 +144,7 @@ export default function Navigation() {
                     <input
                       type="text"
                       placeholder={t('搜索游戏、工具...', 'Search games, tools...')}
+                      aria-label={t('搜索游戏、工具', 'Search games and tools')}
                       value={searchQuery}
                       onChange={(e) => handleSearchInput(e.target.value)}
                       className="outline-none bg-transparent text-base w-full text-on-surface font-sans"
@@ -194,7 +202,7 @@ export default function Navigation() {
             </Link>
           </motion.div>
 
-          <nav className="hidden md:flex gap-10 items-center">
+          <nav className="hidden md:flex gap-10 items-center" aria-label={t('主导航', 'Main navigation')}>
             {navItems.map((item) => (
               <Link
                 key={item.id}
@@ -322,7 +330,7 @@ export default function Navigation() {
             transition={{ duration: 0.2 }}
             className="fixed top-[72px] left-0 right-0 z-40 bg-[#FFF9F2]/95 dark:bg-surface/95 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden"
           >
-            <nav className="flex flex-col p-4 gap-2">
+            <nav className="flex flex-col p-4 gap-2" aria-label={t('移动端导航', 'Mobile navigation')}>
               {navItems.map((item) => (
                 <Link
                   key={item.id}
