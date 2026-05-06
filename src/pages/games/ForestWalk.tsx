@@ -27,12 +27,44 @@ interface Animal {
   visible: boolean;
 }
 
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  emoji: string;
+  angle: number;
+  distance: number;
+}
+
 function loadBestScore(): number {
   try { return JSON.parse(localStorage.getItem('spring_nest_forest_best') || '0'); } catch { return 0; }
 }
 function saveBestScore(score: number) {
   localStorage.setItem('spring_nest_forest_best', JSON.stringify(score));
 }
+
+const SPARKLE_POOL = ['✨', '🌸', '💫'];
+const CELEBRATION_POOL = ['🌟', '🎉', '✨', '🌸', '💫'];
+
+const FLOATING_DECOR = [
+  { emoji: '☁️', top: '8%', delay: 0, duration: 18, opacity: 0.3 },
+  { emoji: '☁️', top: '18%', delay: 4, duration: 22, opacity: 0.2 },
+  { emoji: '🦋', top: '25%', delay: 2, duration: 14, opacity: 0.4 },
+  { emoji: '☁️', top: '12%', delay: 9, duration: 20, opacity: 0.25 },
+  { emoji: '🦋', top: '35%', delay: 7, duration: 12, opacity: 0.35 },
+  { emoji: '🐦', top: '15%', delay: 11, duration: 16, opacity: 0.3 },
+];
+
+const TREE_LAYOUT = [
+  { emoji: '🌳', size: 'text-6xl', mb: -12 },
+  { emoji: '🌲', size: 'text-5xl', mb: -8 },
+  { emoji: '🌳', size: 'text-7xl', mb: -14 },
+  { emoji: '🌴', size: 'text-4xl', mb: -6 },
+  { emoji: '🌲', size: 'text-6xl', mb: -10 },
+  { emoji: '🌳', size: 'text-5xl', mb: -8 },
+  { emoji: '🌲', size: 'text-7xl', mb: -14 },
+  { emoji: '🌴', size: 'text-5xl', mb: -8 },
+];
 
 export default function ForestWalk({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
@@ -44,6 +76,8 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
   const [items, setItems] = useState<FallingItem[]>([]);
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [hitEffect, setHitEffect] = useState<{ id: number; x: number; y: number; text: string } | null>(null);
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [branchShake, setBranchShake] = useState(false);
   const [combo, setCombo] = useState(0);
   const nextIdRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -88,6 +122,21 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
     }, 3000);
   }, []);
 
+  const emitParticles = useCallback((x: number, y: number, pool: string[], count: number) => {
+    const newParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
+      id: Date.now() + i + Math.random(),
+      x,
+      y,
+      emoji: pool[Math.floor(Math.random() * pool.length)],
+      angle: (360 / count) * i + Math.random() * 30,
+      distance: 30 + Math.random() * 40,
+    }));
+    setParticles(prev => [...prev, ...newParticles]);
+    setTimeout(() => {
+      setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
+    }, 700);
+  }, []);
+
   const startGame = useCallback(() => {
     clearAllTimers();
     setScore(0);
@@ -97,6 +146,8 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
     setAnimals([]);
     setCombo(0);
     setHitEffect(null);
+    setParticles([]);
+    setBranchShake(false);
     setPlaying(true);
 
     timerRef.current = setInterval(() => {
@@ -137,6 +188,8 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
       setScore(s => Math.max(0, s - 2));
       setCombo(0);
       setHitEffect({ id: item.id, x: item.x, y: item.y, text: '-2' });
+      setBranchShake(true);
+      setTimeout(() => setBranchShake(false), 400);
     } else {
       const comboBonus = combo >= 3 ? 2 : combo >= 2 ? 1 : 0;
       const points = 1 + comboBonus;
@@ -150,11 +203,12 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         return newScore;
       });
       setHitEffect({ id: item.id, x: item.x, y: item.y, text: comboBonus > 0 ? `+${points} 🔥` : `+${points}` });
+      emitParticles(item.x, item.y, SPARKLE_POOL, 4);
     }
 
     setItems(prev => prev.filter(i => i.id !== item.id));
     setTimeout(() => setHitEffect(null), 600);
-  }, [playing, gameOver, combo, bestScore]);
+  }, [playing, gameOver, combo, bestScore, emitParticles]);
 
   const catchAnimal = useCallback((animal: Animal) => {
     if (!playing || gameOver) return;
@@ -168,9 +222,10 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
       return newScore;
     });
     setHitEffect({ id: animal.id, x: animal.x, y: animal.y, text: `+${bonus} ✨` });
+    emitParticles(animal.x, animal.y, CELEBRATION_POOL, 6);
     setAnimals(prev => prev.map(a => a.id === animal.id ? { ...a, visible: false } : a));
     setTimeout(() => setHitEffect(null), 600);
-  }, [playing, gameOver, bestScore]);
+  }, [playing, gameOver, bestScore, emitParticles]);
 
   const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
@@ -206,29 +261,89 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         <AnimatePresence>
           {combo >= 2 && playing && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
+              initial={{ opacity: 0, scale: 0.3, rotate: -15 }}
+              animate={{
+                opacity: 1,
+                scale: [0.3, 1.2, 1],
+                rotate: [15, -5, 0],
+              }}
+              exit={{ opacity: 0, scale: 0.3, rotate: 15 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 12 }}
               className="text-center mb-2"
             >
-              <span className="text-sm font-bold text-orange-500">
-                {combo >= 5 ? `🔥 ${t('超级连击', 'Super Combo')} x${combo}` : combo >= 3 ? `🔥 ${t('连击', 'Combo')} x${combo}` : `✨ x${combo}`}
-              </span>
+              <motion.span
+                animate={combo >= 5 ? {
+                  scale: [1, 1.15, 1],
+                  rotate: [0, -3, 3, 0],
+                } : {}}
+                transition={{ repeat: Infinity, duration: 0.8 }}
+                className={`inline-block text-sm font-black drop-shadow-lg ${
+                  combo >= 5
+                    ? 'text-2xl bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400 bg-clip-text text-transparent'
+                    : combo >= 3
+                    ? 'text-lg text-orange-500'
+                    : 'text-amber-500'
+                }`}
+              >
+                {combo >= 5 ? `🔥 ${t('超级连击', 'Super Combo')} x${combo} 🔥` : combo >= 3 ? `🔥 ${t('连击', 'Combo')} x${combo}` : `✨ x${combo}`}
+              </motion.span>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div
+        <motion.div
           ref={gameAreaRef}
-          className="relative bg-gradient-to-b from-green-100/60 via-green-200/40 to-green-300/50 dark:from-green-900/30 dark:via-green-800/20 dark:to-green-700/30 rounded-3xl overflow-hidden mb-4 border-2 border-green-300/30 dark:border-green-700/30"
+          animate={branchShake ? {
+            x: [0, -8, 8, -6, 6, -3, 3, 0],
+            transition: { duration: 0.4 },
+          } : { x: 0 }}
+          className={`relative bg-gradient-to-b from-green-100/60 via-green-200/40 to-green-300/50 dark:from-green-900/30 dark:via-green-800/20 dark:to-green-700/30 rounded-3xl overflow-hidden mb-4 border-2 border-green-300/30 dark:border-green-700/30 ${
+            branchShake ? 'ring-2 ring-red-400/60' : ''
+          }`}
           style={{ height: '400px' }}
         >
+          {/* Branch hit red flash overlay */}
+          <AnimatePresence>
+            {branchShake && (
+              <motion.div
+                initial={{ opacity: 0.35 }}
+                animate={{ opacity: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="absolute inset-0 bg-red-500/20 pointer-events-none z-30 rounded-3xl"
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Floating background decorations (parallax) */}
+          {FLOATING_DECOR.map((decor, i) => (
+            <motion.div
+              key={`decor-${i}`}
+              className="absolute pointer-events-none select-none"
+              style={{ top: decor.top, opacity: decor.opacity, fontSize: '1.5rem' }}
+              initial={{ left: '-10%' }}
+              animate={{ left: ['110%', '-10%'] }}
+              transition={{
+                duration: decor.duration,
+                repeat: Infinity,
+                delay: decor.delay,
+                ease: 'linear',
+              }}
+            >
+              {decor.emoji}
+            </motion.div>
+          ))}
+
+          {/* Tree silhouettes at the bottom */}
           <div className="absolute bottom-0 left-0 right-0 flex justify-around items-end pointer-events-none opacity-40">
-            {TREE_EMOJIS.map((tree, i) => (
-              <span key={i} className="text-5xl" style={{ marginBottom: '-10px' }}>{tree}</span>
-            ))}
-            {TREE_EMOJIS.map((tree, i) => (
-              <span key={`b-${i}`} className="text-4xl" style={{ marginBottom: '-5px' }}>{tree}</span>
+            {TREE_LAYOUT.map((tree, i) => (
+              <span
+                key={i}
+                className={tree.size}
+                style={{ marginBottom: `${tree.mb}px`, filter: 'drop-shadow(0 -2px 4px rgba(0,80,0,0.15))' }}
+              >
+                {tree.emoji}
+              </span>
             ))}
           </div>
 
@@ -275,25 +390,61 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
             ))}
           </AnimatePresence>
 
+          {/* Score popups with better styling */}
           <AnimatePresence>
             {hitEffect && (
               <motion.div
                 key={hitEffect.id}
-                initial={{ opacity: 1, y: 0, scale: 1 }}
-                animate={{ opacity: 0, y: -40, scale: 1.5 }}
+                initial={{ opacity: 1, y: 0, scale: 0.6 }}
+                animate={{ opacity: 0, y: -50, scale: 1.4 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.6 }}
-                className="absolute pointer-events-none font-bold text-lg"
+                transition={{ duration: 0.7, ease: 'easeOut' }}
+                className="absolute pointer-events-none z-20"
                 style={{
                   left: `${hitEffect.x}%`,
                   top: `${hitEffect.y}%`,
                   transform: 'translate(-50%, -50%)',
-                  color: hitEffect.text.startsWith('-') ? '#ef4444' : '#22c55e',
                 }}
               >
-                {hitEffect.text}
+                <span
+                  className="font-black text-xl drop-shadow-lg"
+                  style={{
+                    color: hitEffect.text.startsWith('-') ? '#ef4444' : '#16a34a',
+                    textShadow: hitEffect.text.startsWith('-')
+                      ? '0 0 8px rgba(239,68,68,0.6)'
+                      : '0 0 8px rgba(34,197,94,0.6)',
+                  }}
+                >
+                  {hitEffect.text}
+                </span>
               </motion.div>
             )}
+          </AnimatePresence>
+
+          {/* Sparkle / celebration particles */}
+          <AnimatePresence>
+            {particles.map(p => {
+              const rad = (p.angle * Math.PI) / 180;
+              const tx = Math.cos(rad) * p.distance;
+              const ty = Math.sin(rad) * p.distance;
+              return (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                  animate={{ opacity: 0, x: tx, y: ty, scale: 0.3 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="absolute pointer-events-none text-sm z-20"
+                  style={{
+                    left: `${p.x}%`,
+                    top: `${p.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  {p.emoji}
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
 
           {!playing && !gameOver && (
@@ -317,7 +468,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
               </motion.div>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {(playing || gameOver) && (
           <div className="flex justify-center">
@@ -334,18 +485,48 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         <AnimatePresence>
           {gameOver && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="mt-6 p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/30 rounded-2xl text-center"
+              initial={{ opacity: 0, scale: 0.8, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 30 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="mt-6 p-6 rounded-2xl text-center border"
+              style={{
+                background: 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.15), rgba(52,211,153,0.08))',
+                borderColor: 'rgba(34,197,94,0.25)',
+              }}
             >
-              <p className="text-2xl mb-2">🌿</p>
-              <p className="text-xl font-bold text-green-600 dark:text-green-400 mb-2">{t('漫步结束！', 'Walk Complete!')}</p>
-              <p className="text-sm text-green-500 dark:text-green-400 mb-1">{t('得分', 'Score')}: {score}</p>
-              {score > 0 && score >= bestScore && <p className="text-sm text-green-500 mb-4">🏆 {t('新纪录！', 'New Record!')}</p>}
-              <button onClick={startGame} className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors">
+              <motion.p
+                className="text-5xl mb-3"
+                initial={{ scale: 0 }}
+                animate={{ scale: [0, 1.3, 1] }}
+                transition={{ delay: 0.15, type: 'spring', stiffness: 400, damping: 10 }}
+              >
+                🌿
+              </motion.p>
+              <p className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent dark:from-green-400 dark:to-emerald-300 mb-2">
+                {t('漫步结束！', 'Walk Complete!')}
+              </p>
+              <p className="text-base text-green-600 dark:text-green-400 mb-1 font-semibold">
+                {t('得分', 'Score')}: <span className="text-xl">{score}</span>
+              </p>
+              {score > 0 && score >= bestScore && (
+                <motion.p
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 10, delay: 0.3 }}
+                  className="text-base text-amber-500 font-bold mb-2"
+                >
+                  🏆 {t('新纪录！', 'New Record!')} 🏆
+                </motion.p>
+              )}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={startGame}
+                className="mt-3 px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-shadow"
+              >
                 {t('再来一局', 'Play Again')}
-              </button>
+              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>

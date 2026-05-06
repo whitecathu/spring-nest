@@ -52,6 +52,25 @@ function saveBestScore(score: number) {
   localStorage.setItem('spring_nest_snake_best', JSON.stringify(score));
 }
 
+// ── Particle burst for eating food ──
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  emoji: string;
+  size: number;
+}
+
+interface ScorePopup {
+  id: number;
+  cellX: number;
+  cellY: number;
+}
+
+const EAT_EMOJIS = ['✨', '🍎', '⭐', '💫', '🌟'];
+
 export default function Snake({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [playing, setPlaying] = useState(false);
@@ -63,6 +82,12 @@ export default function Snake({ onBack }: { onBack: () => void }) {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const difficultyRef = useRef<Difficulty>('easy');
 
+  // Animation states
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [scorePopups, setScorePopups] = useState<ScorePopup[]>([]);
+  const [deadSnake, setDeadSnake] = useState(false);
+  const [shakeBoard, setShakeBoard] = useState(false);
+
   const directionRef = useRef<Direction>('right');
   const nextDirectionRef = useRef<Direction>('right');
   const snakeRef = useRef<Point[]>([{ x: 5, y: 5 }]);
@@ -72,12 +97,46 @@ export default function Snake({ onBack }: { onBack: () => void }) {
   const gameOverRef = useRef(false);
   const gameLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const particleIdRef = useRef(0);
+  const popupIdRef = useRef(0);
 
   const clearLoop = useCallback(() => {
     if (gameLoopRef.current) {
       clearTimeout(gameLoopRef.current);
       gameLoopRef.current = null;
     }
+  }, []);
+
+  // Spawn particle burst at grid cell position
+  const spawnParticles = useCallback((cellX: number, cellY: number) => {
+    const newParticles: Particle[] = [];
+    const count = 3;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
+      const speed = 1.5 + Math.random() * 2;
+      newParticles.push({
+        id: particleIdRef.current++,
+        x: cellX,
+        y: cellY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.5,
+        emoji: EAT_EMOJIS[Math.floor(Math.random() * EAT_EMOJIS.length)],
+        size: 10 + Math.random() * 6,
+      });
+    }
+    setParticles(prev => [...prev, ...newParticles]);
+    setTimeout(() => {
+      setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
+    }, 800);
+  }, []);
+
+  // Spawn floating "+1" score popup
+  const spawnScorePopup = useCallback((cellX: number, cellY: number) => {
+    const id = popupIdRef.current++;
+    setScorePopups(prev => [...prev, { id, cellX, cellY }]);
+    setTimeout(() => {
+      setScorePopups(prev => prev.filter(p => p.id !== id));
+    }, 1000);
   }, []);
 
   const tick = useCallback(() => {
@@ -97,7 +156,10 @@ export default function Snake({ onBack }: { onBack: () => void }) {
       playingRef.current = false;
       gameOverRef.current = true;
       setPlaying(false);
+      setDeadSnake(true);
       setGameOver(true);
+      setShakeBoard(true);
+      setTimeout(() => setShakeBoard(false), 500);
       clearLoop();
       return;
     }
@@ -107,7 +169,10 @@ export default function Snake({ onBack }: { onBack: () => void }) {
       playingRef.current = false;
       gameOverRef.current = true;
       setPlaying(false);
+      setDeadSnake(true);
       setGameOver(true);
+      setShakeBoard(true);
+      setTimeout(() => setShakeBoard(false), 500);
       clearLoop();
       return;
     }
@@ -127,6 +192,10 @@ export default function Snake({ onBack }: { onBack: () => void }) {
       const nf = randomFood(newSnake);
       foodRef.current = nf;
       setFood(nf);
+
+      // Particle burst + score popup at the eaten food location
+      spawnParticles(currentFood.x, currentFood.y);
+      spawnScorePopup(currentFood.x, currentFood.y);
     } else {
       newSnake.pop();
     }
@@ -137,7 +206,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
     if (playingRef.current && !gameOverRef.current) {
       gameLoopRef.current = setTimeout(tick, getSpeed(difficultyRef.current, scoreRef.current));
     }
-  }, [clearLoop]);
+  }, [clearLoop, spawnParticles, spawnScorePopup]);
 
   const startGame = useCallback(() => {
     clearLoop();
@@ -155,6 +224,9 @@ export default function Snake({ onBack }: { onBack: () => void }) {
     setScore(0);
     setPlaying(true);
     setGameOver(false);
+    setDeadSnake(false);
+    setParticles([]);
+    setScorePopups([]);
     gameLoopRef.current = setTimeout(tick, getSpeed(difficultyRef.current, 0));
   }, [clearLoop, tick]);
 
@@ -221,6 +293,15 @@ export default function Snake({ onBack }: { onBack: () => void }) {
     }
   }, []);
 
+  // Board shake animation keyframes
+  const boardShakeVariants = {
+    shaking: {
+      x: [0, -6, 6, -4, 4, -2, 0],
+      transition: { duration: 0.4, ease: 'easeInOut' },
+    },
+    still: { x: 0 },
+  };
+
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
       <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2">
@@ -236,23 +317,33 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             <p className="text-sm text-secondary">{t('吃掉食物，不断成长！', 'Eat food and keep growing!')}</p>
           </div>
           <div className="flex gap-2">
-            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <div className="text-xl font-bold text-primary tabular-nums">{score}</div>
-            </div>
-            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+              <motion.div
+                key={score}
+                initial={{ scale: 1.4 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 600, damping: 12 }}
+                className="text-xl font-bold text-primary tabular-nums"
+              >
+                {score}
+              </motion.div>
+            </motion.div>
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
               <div className="text-xl font-bold text-tertiary tabular-nums">{bestScore}</div>
-            </div>
+            </motion.div>
           </div>
         </div>
 
         {/* Game Board */}
-        <div
+        <motion.div
           ref={boardRef}
-          className="bg-surface-container-high rounded-2xl p-2 mb-4 touch-none select-none"
+          className="relative bg-surface-container-high rounded-2xl p-2 mb-4 touch-none select-none overflow-hidden"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
+          variants={boardShakeVariants}
+          animate={shakeBoard ? 'shaking' : 'still'}
         >
           <div
             className="grid gap-0.5"
@@ -261,27 +352,49 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
               const x = i % GRID_SIZE;
               const y = Math.floor(i / GRID_SIZE);
-              const isSnake = snake.some(p => p.x === x && p.y === y);
+              const snakeIndex = snake.findIndex(p => p.x === x && p.y === y);
+              const isSnake = snakeIndex >= 0;
               const isHead = snake[0]?.x === x && snake[0]?.y === y;
               const isFood = food.x === x && food.y === y;
+
+              // Checkerboard background
+              const isCheckerLight = (x + y) % 2 === 0;
+
+              let cellBg: string;
+              if (isFood) {
+                cellBg = 'bg-orange-100 dark:bg-orange-900/30';
+              } else if (isHead) {
+                cellBg = deadSnake ? 'bg-red-500' : 'bg-emerald-600';
+              } else if (isSnake) {
+                cellBg = deadSnake
+                  ? 'bg-red-400'
+                  : isCheckerLight
+                    ? 'bg-emerald-400'
+                    : 'bg-emerald-500';
+              } else {
+                cellBg = isCheckerLight
+                  ? 'bg-surface-container-lowest/40'
+                  : 'bg-surface-container-lowest/60';
+              }
 
               return (
                 <div
                   key={i}
-                  className={`aspect-square rounded-sm flex items-center justify-center text-xs ${
-                    isFood
-                      ? 'bg-orange-100'
-                      : isHead
-                        ? 'bg-emerald-500'
-                        : isSnake
-                          ? 'bg-emerald-400'
-                          : 'bg-surface-container-lowest/50'
-                  }`}
+                  className={`aspect-square rounded-sm flex items-center justify-center text-xs ${cellBg}`}
                 >
+                  {isHead && (
+                    <motion.div
+                      className="w-[85%] h-[85%] rounded-sm"
+                      initial={false}
+                      animate={deadSnake ? { scale: [1, 1.2, 0.8], rotate: [0, -10, 10, 0] } : { scale: 1 }}
+                      transition={deadSnake ? { duration: 0.4 } : { type: 'spring', stiffness: 300, damping: 15 }}
+                    />
+                  )}
                   {isFood && (
                     <motion.span
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                      animate={{ scale: [1, 1.35, 1] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="drop-shadow-sm"
                     >
                       🍎
                     </motion.span>
@@ -290,7 +403,57 @@ export default function Snake({ onBack }: { onBack: () => void }) {
               );
             })}
           </div>
-        </div>
+
+          {/* Particle layer */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {particles.map(p => {
+              const cellPercent = 100 / GRID_SIZE;
+              const px = (p.x + 0.5) * cellPercent;
+              const py = (p.y + 0.5) * cellPercent;
+              return (
+                <motion.div
+                  key={p.id}
+                  initial={{ x: `${px}%`, y: `${py}%`, scale: 1, opacity: 1 }}
+                  animate={{
+                    x: `${px + p.vx * 6}%`,
+                    y: `${py + p.vy * 6}%`,
+                    scale: 0,
+                    opacity: 0,
+                  }}
+                  transition={{ duration: 0.7, ease: 'easeOut' }}
+                  className="absolute text-center"
+                  style={{ fontSize: `${p.size}px` }}
+                >
+                  {p.emoji}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Score popup layer */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <AnimatePresence>
+              {scorePopups.map(p => {
+                const cellPercent = 100 / GRID_SIZE;
+                const px = (p.cellX + 0.5) * cellPercent;
+                const py = (p.cellY + 0.5) * cellPercent;
+                return (
+                  <motion.div
+                    key={p.id}
+                    initial={{ x: `${px}%`, y: `${py}%`, scale: 0.5, opacity: 0 }}
+                    animate={{ y: `${py - 15}%`, scale: 1.2, opacity: 1 }}
+                    exit={{ y: `${py - 30}%`, scale: 0.8, opacity: 0 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute font-black text-lg text-emerald-500 drop-shadow-md"
+                    style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
+                  >
+                    +1
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </motion.div>
 
         {/* D-Pad Controls for mobile */}
         {playing && !gameOver && (
@@ -299,7 +462,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={() => handleDirection('up')}
               whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
-              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px]"
+              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
             >
               ↑
             </motion.button>
@@ -307,15 +470,17 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={() => handleDirection('left')}
               whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
-              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px]"
+              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
             >
               ←
             </motion.button>
-            <div />
+            <div className="flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full bg-surface-variant/40" />
+            </div>
             <motion.button
               onClick={() => handleDirection('right')}
               whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
-              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px]"
+              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
             >
               →
             </motion.button>
@@ -323,7 +488,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={() => handleDirection('down')}
               whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
-              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px]"
+              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
             >
               ↓
             </motion.button>
@@ -386,26 +551,40 @@ export default function Snake({ onBack }: { onBack: () => void }) {
           )}
         </div>
 
+        {/* Game Over Panel - matched to WhackAMole style */}
         <AnimatePresence>
           {gameOver && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="mt-6 p-6 bg-orange-50 border border-orange-200 rounded-2xl text-center"
+              initial={{ opacity: 0, scale: 0.85, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -10 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+              className="mt-6 p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-700/30 rounded-2xl text-center"
             >
-              <p className="text-2xl mb-2">{t('游戏结束', 'Game Over')}</p>
-              <p className="text-xl font-bold text-orange-600 mb-1">{t('得分', 'Score')}: {score}</p>
+              <motion.p
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+                className="text-3xl mb-2"
+              >
+                🐍
+              </motion.p>
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">{t('游戏结束', 'Game Over')}</p>
+              <p className="text-xl font-bold text-orange-500 mb-1">{t('得分', 'Score')}: {score}</p>
               <p className="text-xs text-orange-400 mb-1">{t('难度', 'Difficulty')}: {t(...SPEEDS[difficulty].label)}</p>
               {score > 0 && score === bestScore && (
-                <p className="text-sm text-orange-500 mb-4">🏆 {t('新纪录！', 'New Record!')}</p>
+                <motion.p
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, delay: 0.3 }}
+                  className="text-sm text-orange-500 mb-4"
+                >
+                  🏆 {t('新纪录！', 'New Record!')}
+                </motion.p>
               )}
-              <div className="flex justify-center gap-3">
-                <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[44px]">
-                  {t('再来一局', 'Play Again')}
-                </button>
-              </div>
+              <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[44px]">
+                {t('再来一局', 'Play Again')}
+              </button>
             </motion.div>
           )}
         </AnimatePresence>

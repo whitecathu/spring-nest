@@ -20,6 +20,9 @@ const NumberPuzzle = lazy(() => import('./games/NumberPuzzle'));
 const TicTacToe = lazy(() => import('./games/TicTacToe'));
 const TypingChallenge = lazy(() => import('./games/TypingChallenge'));
 const ColorStroop = lazy(() => import('./games/ColorStroop'));
+const Minesweeper = lazy(() => import('./games/Minesweeper'));
+const FlappyBird = lazy(() => import('./games/FlappyBird'));
+const BrickBreaker = lazy(() => import('./games/BrickBreaker'));
 
 const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'game-1': Game2048,
@@ -33,6 +36,9 @@ const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'game-9': TicTacToe,
   'game-10': TypingChallenge,
   'game-11': ColorStroop,
+  'game-12': Minesweeper,
+  'game-13': FlappyBird,
+  'game-14': BrickBreaker,
 };
 
 export default function Games() {

@@ -26,6 +26,9 @@ const Base64Codec = lazy(() => import('./tools/Base64Codec'));
 const UrlCodec = lazy(() => import('./tools/UrlCodec'));
 const ColorConverter = lazy(() => import('./tools/ColorConverter'));
 const DateCalculator = lazy(() => import('./tools/DateCalculator'));
+const TextDiff = lazy(() => import('./tools/TextDiff'));
+const LoremGenerator = lazy(() => import('./tools/LoremGenerator'));
+const IPLookup = lazy(() => import('./tools/IPLookup'));
 
 const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'tool-1': Calculator,
@@ -45,6 +48,9 @@ const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'tool-15': UrlCodec,
   'tool-16': ColorConverter,
   'tool-17': DateCalculator,
+  'tool-18': TextDiff,
+  'tool-19': LoremGenerator,
+  'tool-20': IPLookup,
 };
 
 export default function Tools() {
