@@ -278,7 +278,14 @@ export default function Snake({ onBack }: { onBack: () => void }) {
                           : 'bg-surface-container-lowest/50'
                   }`}
                 >
-                  {isFood && '🍎'}
+                  {isFood && (
+                    <motion.span
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      🍎
+                    </motion.span>
+                  )}
                 </div>
               );
             })}
@@ -289,33 +296,37 @@ export default function Snake({ onBack }: { onBack: () => void }) {
         {playing && !gameOver && (
           <div className="grid grid-cols-3 gap-2 w-40 mx-auto mb-4">
             <div />
-            <button
+            <motion.button
               onClick={() => handleDirection('up')}
-              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center active:scale-90 transition-transform min-h-[44px]"
+              whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px]"
             >
               ↑
-            </button>
+            </motion.button>
             <div />
-            <button
+            <motion.button
               onClick={() => handleDirection('left')}
-              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center active:scale-90 transition-transform min-h-[44px]"
+              whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px]"
             >
               ←
-            </button>
+            </motion.button>
             <div />
-            <button
+            <motion.button
               onClick={() => handleDirection('right')}
-              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center active:scale-90 transition-transform min-h-[44px]"
+              whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px]"
             >
               →
-            </button>
+            </motion.button>
             <div />
-            <button
+            <motion.button
               onClick={() => handleDirection('down')}
-              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center active:scale-90 transition-transform min-h-[44px]"
+              whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+              className="w-full aspect-square bg-surface-container-high rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px]"
             >
               ↓
-            </button>
+            </motion.button>
             <div />
           </div>
         )}
@@ -325,10 +336,12 @@ export default function Snake({ onBack }: { onBack: () => void }) {
           <p className="text-xs text-secondary text-center mb-2">{t('难度', 'Difficulty')}</p>
           <div className="flex justify-center gap-2">
             {(['easy', 'normal', 'hard'] as Difficulty[]).map(d => (
-              <button
+              <motion.button
                 key={d}
                 onClick={() => handleDifficultyChange(d)}
                 disabled={playing && !gameOver}
+                whileTap={{ scale: 0.93 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className={`px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
                   difficulty === d
                     ? 'bg-primary text-on-primary'
@@ -338,7 +351,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
                 }`}
               >
                 {t(...SPEEDS[d].label)}
-              </button>
+              </motion.button>
             ))}
           </div>
           <p className="text-xs text-secondary text-center mt-1.5">
@@ -349,21 +362,27 @@ export default function Snake({ onBack }: { onBack: () => void }) {
         {/* Controls */}
         <div className="flex justify-center gap-4">
           {!playing && !gameOver && (
-            <button
+            <motion.button
               onClick={startGame}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
               className="px-8 py-4 bg-primary text-on-primary rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all"
             >
               {t('开始游戏', 'Start Game')}
-            </button>
+            </motion.button>
           )}
           {(playing || gameOver) && (
-            <button
+            <motion.button
               onClick={startGame}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
               className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2"
             >
               <RotateCcw className="w-5 h-5" />
               {t('重新开始', 'Restart')}
-            </button>
+            </motion.button>
           )}
         </div>
 
@@ -373,6 +392,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="mt-6 p-6 bg-orange-50 border border-orange-200 rounded-2xl text-center"
             >
               <p className="text-2xl mb-2">{t('游戏结束', 'Game Over')}</p>

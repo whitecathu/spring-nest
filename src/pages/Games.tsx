@@ -120,7 +120,12 @@ export default function Games() {
   }
 
   return (
-    <div className="flex-grow flex flex-col items-center w-full max-w-[1200px] mx-auto px-6 py-10 relative">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="flex-grow flex flex-col items-center w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-10 relative"
+    >
       <SEO title={t('休闲小游戏合集 - Spring Nest 春日小筑', 'Casual Games Collection - Spring Nest')} description={t('Spring Nest 提供多款轻松有趣的休闲小游戏，包括 2048、记忆翻牌、打地鼠等。', 'Spring Nest offers fun casual games including 2048, Memory Match, Whack-A-Mole, and more.')} />
       <motion.div
         animate={{ y: [0, -20, 0], rotate: [0, 5, -5, 0] }}
@@ -143,7 +148,7 @@ export default function Games() {
         transition={{ duration: 0.5 }}
         className="text-center mb-12 relative z-10"
       >
-        <h1 className="font-nunito text-4xl font-bold text-on-surface mb-2 flex items-center justify-center gap-3">
+        <h1 className="font-nunito text-3xl sm:text-4xl font-bold text-on-surface mb-2 flex items-center justify-center gap-3">
           <Gamepad2 className="text-primary w-10 h-10" />
           {t('游戏天堂', 'Game Paradise')}
         </h1>
@@ -157,22 +162,25 @@ export default function Games() {
         className="flex flex-wrap justify-center gap-4 mb-12"
       >
         {categories.map(cat => (
-          <button
+          <motion.button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
             aria-pressed={activeCategory === cat.id}
-            className={`font-semibold text-sm px-6 py-2 rounded-full transition-all duration-300 ${
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+            className={`font-semibold text-sm px-6 py-2 rounded-full transition-colors duration-300 ${
               activeCategory === cat.id
                 ? 'bg-primary-container text-on-primary-container shadow-sm'
                 : 'bg-surface-container-high text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container dark:bg-surface-container dark:hover:bg-primary-container dark:hover:text-on-primary-container'
             }`}
           >
             {cat.label}
-          </button>
+          </motion.button>
         ))}
       </motion.div>
 
-      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full mb-16">
+      <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full mb-16">
         <AnimatePresence>
           {filteredGames.length === 0 && (
             <motion.div
@@ -180,7 +188,12 @@ export default function Games() {
               animate={{ opacity: 1 }}
               className="col-span-full flex flex-col items-center justify-center py-20 text-secondary"
             >
-              <Gamepad2 className="w-16 h-16 text-secondary/30 mb-4" />
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Gamepad2 className="w-16 h-16 text-secondary/30 mb-4" />
+              </motion.div>
               <p className="font-medium text-lg">{t('暂无游戏', 'No games found')}</p>
             </motion.div>
           )}
@@ -192,7 +205,9 @@ export default function Games() {
               exit={{ opacity: 0, scale: 0.9, y: -20 }}
               transition={{ duration: 0.3, delay: i * 0.05, ease: "easeOut" }}
               key={game.id}
-              className="bg-white dark:bg-surface-container-high rounded-xl p-6 shadow-[0_8px_30px_rgba(217,239,224,0.4)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(254,233,239,0.6)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] hover:-translate-y-2 transition-all duration-300 flex flex-col gap-4 group"
+              whileHover={{ y: -8, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+              whileTap={{ scale: 0.97 }}
+              className="bg-white dark:bg-surface-container-high rounded-xl p-6 shadow-[0_8px_30px_rgba(217,239,224,0.4)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(254,233,239,0.6)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-shadow duration-300 flex flex-col gap-4 group"
             >
               {game.image ? (
                 <div className="w-full h-48 rounded-lg overflow-hidden bg-surface-container-low flex items-center justify-center relative">
@@ -205,7 +220,7 @@ export default function Games() {
                 </div>
               )}
               <div className="flex items-start gap-4">
-                <div className={`w-16 h-16 rounded-lg ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-6 transition-transform duration-300 text-2xl`}>
+                <div className={`w-16 h-16 rounded-lg ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 transition-transform duration-300 text-2xl`}>
                   {game.icon || <Gamepad2 className="text-primary w-8 h-8" />}
                 </div>
                 <div className="flex-grow">
@@ -226,18 +241,20 @@ export default function Games() {
                 >
                   <Heart className={`w-5 h-5 ${favoriteIds.includes(game.id) ? 'fill-current' : ''}`} />
                 </button>
-                <button
+                <motion.button
                   onClick={() => handlePlay(game.id)}
-                  className="bg-gradient-to-r from-primary-container to-primary text-on-primary font-semibold text-sm px-6 py-2 rounded-full flex items-center gap-2 hover:shadow-lg transition-all duration-300"
+                  whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                  whileTap={{ scale: 0.93 }}
+                  className="bg-gradient-to-r from-primary-container to-primary text-on-primary font-semibold text-sm px-6 py-2 rounded-full flex items-center gap-2 hover:shadow-lg transition-shadow duration-300"
                 >
                   <Play className="w-4 h-4" />
                   {t('开始游戏', 'Play')}
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           ))}
         </AnimatePresence>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

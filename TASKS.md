@@ -129,3 +129,76 @@
 | T9 | Snake: Difficulty shown in game over panel | DONE | Main |
 | T10 | Build & typecheck | DONE | Main - tsc clean, build 2.27s, 82/82 tests |
 | T11 | Final review | DONE | Main |
+
+---
+
+## Round 7: Font System + Animation Engine [DONE - 2026-05-06]
+**Goal:** Upgrade font stack for Chinese+English, create reusable animation presets, add page transitions.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T1 | Font system: LXGW WenKai + Noto Sans SC + preconnect | DONE | Agent A |
+| T2 | Animation preset library (src/lib/animations.ts) | DONE | Agent B |
+| T3 | Page transition + ScrollReveal + StaggerChildren components | DONE | Agent C |
+
+### Files Created
+- `src/lib/animations.ts` — Spring presets (bouncy/smooth/snappy/gentle), hover/tap presets, page transitions
+- `src/components/PageTransition.tsx` — Fade+slide enter/exit wrapper
+- `src/components/ScrollReveal.tsx` — Directional scroll-triggered reveal
+- `src/components/StaggerChildren.tsx` — Staggered child animations on scroll
+
+### Files Modified
+- `index.html` — Added preconnect + preload for Google Fonts
+- `src/index.css` — New font stack (LXGW WenKai + Noto Sans SC), CSS utilities (reveal-up, scrollbar-hide, page-enter, focus-visible)
+
+---
+
+## Round 8: Three-End Responsive + Page Polish [DONE - 2026-05-06]
+**Goal:** Responsive layouts, bouncy spring animations, micro-interactions across all pages.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T4 | Home page: fluid typography, spring cards, scroll snap | DONE | Agent D |
+| T5 | Games listing: bouncy pills, spring cards, responsive grid | DONE | Agent E |
+| T6 | Tools listing: mobile scrollable categories, spring cards | DONE | Agent F |
+| T7 | Navigation, Footer, About, Favorites, Leaderboard polish | DONE | Agent G |
+
+### Files Modified
+- `src/pages/Home.tsx` — Fluid h1, spring FeaturedCard, bouncy category pills, snap scroll
+- `src/pages/Games.tsx` — Page-enter animation, motion.category pills, spring card hover, responsive grid
+- `src/pages/Tools.tsx` — Responsive title, mobile scrollable categories, spring cards, responsive gap
+- `src/components/Navigation.tsx` — Spring toast, spring search overlay, spring dropdown, mobile menu hover
+- `src/components/Footer.tsx` — Enhanced social link hover springs
+- `src/pages/About.tsx` — Spring stat/tech/contact cards
+- `src/pages/Favorites.tsx` — Spring favorite cards, spring empty-state buttons
+- `src/pages/Leaderboard.tsx` — Spring entries, bouncing crown for rank 1
+
+---
+
+## Round 9: Game & Tool Deep UX [DONE - 2026-05-06]
+**Goal:** Bouncy animations and visual polish for all games and popular tools.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T8 | Game UX: 2048/WhackAMole/Snake/TicTacToe spring polish | DONE | Agent H |
+| T9 | Tool UX: Calculator/Pomodoro/Password/QRCode spring polish | DONE | Agent I |
+
+### Files Modified (Games)
+- `src/pages/games/Game2048.tsx` — Tile rotate+spring, score pulse, spring buttons
+- `src/pages/games/WhackAMole.tsx` — Mole tap spring, combo bounce, stat hover lift
+- `src/pages/games/Snake.tsx` — D-pad spring tap, food pulse, difficulty spring buttons
+- `src/pages/games/TicTacToe.tsx` — Bouncier placement, win celebration pulse, spring mode toggle
+
+### Files Modified (Tools)
+- `src/pages/tools/Calculator.tsx` — Keypad spring taps, display pulse, spring history
+- `src/pages/tools/Pomodoro.tsx` — Timer celebration, spring controls, settings spring
+- `src/pages/tools/PasswordGenerator.tsx` — Password display pulse, spring buttons
+- `src/pages/tools/QRCodeGenerator.tsx` — QR spring appearance, spring generate/download
+
+### Review Results
+- `npm run lint` (tsc --noEmit): PASS
+- `npm run test` (vitest): 82/82 PASS
+- `npm run build` (vite build): PASS (2.14s, 68 precache entries)

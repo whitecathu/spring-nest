@@ -84,7 +84,8 @@ export default function Home() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.45, delay: index * 0.08 }}
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -8, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+      whileTap={{ scale: 0.97, transition: { type: 'spring', stiffness: 500, damping: 20 } }}
       onClick={() => navigate(item.route)}
       className="bg-white dark:bg-surface-container-high rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(184,228,201,0.2)] transition-all duration-300 flex flex-col gap-4 border border-surface-variant/20 cursor-pointer group"
     >
@@ -124,11 +125,11 @@ export default function Home() {
       <SEO />
 
       {/* ========== 1. Hero Section ========== */}
-      <section className="relative w-full pt-32 pb-24 px-6 flex flex-col items-center justify-center text-center overflow-hidden bg-gradient-to-b from-[#E8F5EE] to-[#FFF9F2] dark:from-[#1a2c1f] dark:to-background">
+      <section className="relative w-full pt-20 pb-16 sm:pt-32 sm:pb-24 px-6 flex flex-col items-center justify-center text-center overflow-hidden bg-gradient-to-b from-[#E8F5EE] to-[#FFF9F2] dark:from-[#1a2c1f] dark:to-background">
         {/* Floating decorations */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           <motion.div
-            animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
+            animate={{ y: [0, -25, 0], x: [0, 10, 0] }}
             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
             className="absolute top-20 left-[10%] opacity-40 text-primary-container"
           >
@@ -170,7 +171,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="font-sans font-extrabold text-5xl text-primary mb-3 tracking-tight"
+            className="font-sans font-extrabold text-[clamp(2rem,5vw,3.5rem)] text-primary mb-3 tracking-tight"
           >
             Spring Nest
           </motion.h1>
@@ -236,7 +237,7 @@ export default function Home() {
               </h2>
             </motion.div>
 
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1">
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1 snap-x snap-mandatory">
               {recentItems.map((item, i) => (
                 <motion.div
                   key={`${item.type}-${item.id}`}
@@ -246,7 +247,7 @@ export default function Home() {
                   transition={{ duration: 0.35, delay: i * 0.06 }}
                   whileHover={{ y: -4 }}
                   onClick={() => navigate(item.route)}
-                  className="flex-shrink-0 w-44 bg-white dark:bg-surface-container-high rounded-xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_24px_rgba(184,228,201,0.15)] transition-all duration-300 cursor-pointer border border-surface-variant/20 flex flex-col items-center gap-3 text-center"
+                  className="flex-shrink-0 w-44 bg-white dark:bg-surface-container-high rounded-xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_24px_rgba(184,228,201,0.15)] transition-all duration-300 cursor-pointer border border-surface-variant/20 flex flex-col items-center gap-3 text-center snap-start"
                 >
                   <span className="text-3xl">{item.icon}</span>
                   <span className="font-semibold text-sm text-on-surface truncate w-full">
@@ -283,7 +284,7 @@ export default function Home() {
               </h2>
             </div>
             <motion.button
-              whileHover={{ x: 4 }}
+              whileHover={{ x: 6, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
               onClick={() => navigate('/tools')}
               className="flex items-center gap-1.5 text-primary font-semibold text-sm hover:underline"
             >
@@ -321,7 +322,7 @@ export default function Home() {
               </h2>
             </div>
             <motion.button
-              whileHover={{ x: 4 }}
+              whileHover={{ x: 6, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
               onClick={() => navigate('/games')}
               className="flex items-center gap-1.5 text-primary font-semibold text-sm hover:underline"
             >
@@ -359,7 +360,7 @@ export default function Home() {
               </h2>
             </motion.div>
 
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1">
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1 snap-x snap-mandatory">
               {newItems.map((item, i) => (
                 <motion.div
                   key={item.id}
@@ -369,7 +370,7 @@ export default function Home() {
                   transition={{ duration: 0.35, delay: i * 0.06 }}
                   whileHover={{ y: -4 }}
                   onClick={() => navigate(item.route)}
-                  className="flex-shrink-0 w-48 bg-white dark:bg-surface-container-high rounded-xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_24px_rgba(255,219,205,0.2)] transition-all duration-300 cursor-pointer border border-surface-variant/20 flex flex-col gap-3"
+                  className="flex-shrink-0 w-48 bg-white dark:bg-surface-container-high rounded-xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_24px_rgba(255,219,205,0.2)] transition-all duration-300 cursor-pointer border border-surface-variant/20 flex flex-col gap-3 snap-start"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{item.icon}</span>
@@ -434,8 +435,8 @@ export default function Home() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.08, y: -3, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => navigate('/tools')}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 ${cat.color}`}
                   >
@@ -465,8 +466,8 @@ export default function Home() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.08, y: -3, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => navigate('/games')}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 ${cat.color}`}
                   >

@@ -134,7 +134,7 @@ export default function Tools() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-center mb-20 relative pt-16 pb-8"
+        className="text-center mb-12 sm:mb-16 lg:mb-20 relative pt-16 pb-8"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-primary-container/20 to-transparent -z-10 rounded-3xl blur-2xl"></div>
         <div className="absolute top-0 left-[10%] w-24 h-24 bg-tertiary-container/40 rounded-full blur-2xl animate-float pointer-events-none"></div>
@@ -147,8 +147,8 @@ export default function Tools() {
           <BookOpen className="absolute bottom-8 left-[20%] text-tertiary/20 w-8 h-8 pointer-events-none" />
         </motion.div>
 
-        <h1 className="font-nunito font-extrabold text-5xl text-[#274e3a] dark:text-primary mb-6 flex items-center justify-center gap-4">
-          {t('实用小筑', 'Practical Tools')} <span className="text-5xl animate-float inline-block">🛠️</span>
+        <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#274e3a] dark:text-primary mb-6 flex items-center justify-center gap-4">
+          {t('实用小筑', 'Practical Tools')} <span className="text-3xl sm:text-4xl lg:text-5xl animate-float inline-block">🛠️</span>
         </h1>
         <p className="font-sans text-lg font-medium text-on-surface-variant max-w-2xl mx-auto">
           {t('实用小工具，便捷你的每一天', 'Practical small utilities designed to make your day easier.')}
@@ -159,25 +159,28 @@ export default function Tools() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="flex flex-wrap justify-center gap-4 mb-16"
+        className="flex overflow-x-auto flex-nowrap sm:flex-wrap scrollbar-hide justify-center gap-4 mb-16"
       >
         {categories.map(cat => (
-          <button
+          <motion.button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
             aria-pressed={activeCategory === cat.id}
-            className={`px-8 py-3 rounded-full font-semibold text-sm transition-all duration-300 hover:scale-105 ${
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+            className={`shrink-0 px-8 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
               activeCategory === cat.id
-                ? 'bg-primary text-on-primary shadow-lg shadow-primary/20'
+                ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 shadow-[0_0_15px_rgba(var(--color-primary),0.3)]'
                 : 'glass-pill text-on-surface-variant hover:bg-surface-container-highest'
             }`}
           >
             {cat.label}
-          </button>
+          </motion.button>
         ))}
       </motion.div>
 
-      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-20">
         <AnimatePresence>
           {filteredTools.length === 0 && (
             <motion.div
@@ -195,12 +198,14 @@ export default function Tools() {
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -30 }}
+              whileHover={{ y: -6, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+              whileTap={{ scale: 0.97 }}
               transition={{ duration: 0.4, delay: i * 0.05, ease: "easeOut" }}
               key={tool.id}
               className="glass-card rounded-3xl p-8 transition-all duration-500 hover-glow group"
             >
               <div className="flex flex-col items-center text-center gap-6 mb-6">
-                <div className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner group-hover:-translate-y-3 group-hover:rotate-6 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 relative text-4xl`}>
+                <div className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 relative text-4xl`}>
                   {tool.image ? (
                     <>
                       <img src={tool.image} alt={tool.title} loading="lazy" className="w-full h-full object-cover" />
@@ -232,13 +237,15 @@ export default function Tools() {
                 >
                   <Heart className={`w-5 h-5 ${favoriteIds.includes(tool.id) ? 'fill-current' : ''}`} />
                 </button>
-                <button
+                <motion.button
                   onClick={() => handleOpen(tool.id)}
+                  whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                  whileTap={{ scale: 0.93 }}
                   className="py-4 px-8 rounded-xl btn-gradient text-on-primary font-semibold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all"
                 >
                   <Play className="w-4 h-4" />
                   {t('打开工具', 'Open Tool')}
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           ))}

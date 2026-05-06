@@ -63,6 +63,8 @@ export default function Favorites() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: -20 }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
+                    whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                    whileTap={{ scale: 0.97 }}
                     key={item.id}
                     className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
                   >
@@ -124,6 +126,8 @@ export default function Favorites() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: -20 }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
+                    whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                    whileTap={{ scale: 0.97 }}
                     key={item.id}
                     className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
                   >
@@ -182,18 +186,22 @@ export default function Favorites() {
             <p className="font-medium text-lg">{t('暂无收藏内容', 'No favorites yet')}</p>
             <p className="text-sm text-secondary/50 mb-6">{t('快去探索游戏和工具，收藏你喜欢的吧', 'Explore games and tools and add your favorites')}</p>
             <div className="flex gap-4">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/games')}
                 className="px-6 py-3 bg-primary-container text-on-primary-container rounded-full font-semibold text-sm hover:bg-primary-container/80 transition-colors"
               >
                 {t('探索游戏', 'Explore Games')}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/tools')}
                 className="px-6 py-3 bg-tertiary-container text-on-tertiary-container rounded-full font-semibold text-sm hover:bg-tertiary-container/80 transition-colors"
               >
                 {t('探索工具', 'Explore Tools')}
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         )}

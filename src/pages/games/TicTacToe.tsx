@@ -204,24 +204,28 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
 
         {/* Mode Toggle */}
         <div className="flex justify-center gap-2 mb-4">
-          <button
+          <motion.button
             onClick={() => handleModeChange('pvp')}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
               mode === 'pvp' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface'
             }`}
           >
             <Users className="w-4 h-4" />
             {t('双人对战', 'PvP')}
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => handleModeChange('ai')}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
               mode === 'ai' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface'
             }`}
           >
             <Bot className="w-4 h-4" />
             {t('人机对战', 'vs AI')}
-          </button>
+          </motion.button>
         </div>
 
         {/* Score Display */}
@@ -267,6 +271,8 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
                 <motion.button
                   key={i}
                   whileTap={{ scale: cell ? 1 : 0.9 }}
+                  animate={isWinCell ? { scale: [1, 1.1, 1] } : undefined}
+                  transition={isWinCell ? { duration: 0.5, repeat: 2 } : undefined}
                   onClick={() => handleCellClick(i)}
                   disabled={!!cell || !!winner || isDraw || (mode === 'ai' && currentPlayer === 'O')}
                   className={`aspect-square rounded-xl text-4xl sm:text-5xl font-black flex items-center justify-center transition-colors min-h-[48px] min-w-[48px] ${
@@ -283,7 +289,7 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
                         key={cell}
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 12 }}
                       >
                         {cell}
                       </motion.span>
@@ -313,6 +319,7 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="mt-6 p-6 bg-green-50 border border-green-200 rounded-2xl text-center"
             >
               {winner && (

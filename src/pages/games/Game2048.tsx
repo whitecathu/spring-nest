@@ -187,10 +187,10 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm">
+      <motion.button onClick={onBack} whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm">
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
-      </button>
+      </motion.button>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         {/* Header */}
@@ -202,7 +202,7 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <div className="text-xl font-bold text-primary">{score}</div>
+              <motion.div key={score} initial={{ scale: 1.3 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }} className="text-xl font-bold text-primary">{score}</motion.div>
             </div>
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
@@ -221,8 +221,9 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
             {grid.flat().map((val, i) => (
               <motion.div
                 key={`${i}-${val}`}
-                initial={val ? { scale: 0 } : false}
-                animate={{ scale: 1 }}
+                initial={val ? { scale: 0, rotate: -10 } : false}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className={`aspect-square rounded-xl flex items-center justify-center font-extrabold text-2xl sm:text-3xl ${
                   tileColors[val] || 'bg-surface-container-lowest/50'
                 }`}
@@ -235,21 +236,27 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
 
         {/* Controls */}
         <div className="flex justify-center gap-4">
-          <button
+          <motion.button
             onClick={reset}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2"
           >
             <RotateCcw className="w-5 h-5" />
             {t('重新开始', 'Restart')}
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={undo}
             disabled={!prevGrid}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Undo2 className="w-5 h-5" />
             {t('撤回', 'Undo')}
-          </button>
+          </motion.button>
         </div>
 
         <AnimatePresence>
@@ -258,6 +265,7 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="mt-6 p-6 bg-red-50 border border-red-200 rounded-2xl text-center"
             >
               <p className="text-xl font-bold text-red-500 mb-2">{t('游戏结束', 'Game Over')}</p>

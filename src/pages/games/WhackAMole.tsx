@@ -156,22 +156,22 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
             <p className="text-sm text-secondary">{t('快速点击冒出的地鼠！', 'Whack the moles quickly!')}</p>
           </div>
           <div className="flex gap-2">
-            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1"><Clock className="w-3 h-3" />{t('时间', 'Time')}</div>
               <div className={`text-xl font-bold ${timeLeft <= 5 ? 'text-red-500' : 'text-primary'} tabular-nums`}>{timeLeft}s</div>
-            </div>
-            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            </motion.div>
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
               <div className="text-xl font-bold text-primary">{score}</div>
-            </div>
-            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            </motion.div>
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
               <div className="text-xl font-bold text-tertiary">{bestScore}</div>
-            </div>
-            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            </motion.div>
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium">🔥 {t('最佳连击', 'Best Combo')}</div>
               <div className="text-xl font-bold text-tertiary">{bestCombo}</div>
-            </div>
+            </motion.div>
           </div>
         </div>
 
@@ -205,8 +205,9 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                           animate={{ y: 0, scale: 1 }}
                           exit={{ y: 60, scale: 0.8 }}
                           transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                          whileTap={{ scale: 0.7, transition: { type: 'spring', stiffness: 600, damping: 15 } }}
                           onClick={(e) => { e.stopPropagation(); whack(i); }}
-                          className={`absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 cursor-pointer active:scale-90 transition-transform ${
+                          className={`absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 cursor-pointer ${
                             wasHit ? 'opacity-50' : ''
                           }`}
                         >
@@ -229,7 +230,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 1.5, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 10 }}
               className="text-center mb-4"
             >
               <span className={`font-black ${
@@ -247,12 +248,15 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
         {/* Controls */}
         <div className="flex justify-center gap-4">
           {!playing && !gameOver && (
-            <button
+            <motion.button
               onClick={startGame}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
               className="px-8 py-4 bg-primary text-on-primary rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all"
             >
               {t('开始游戏', 'Start Game')}
-            </button>
+            </motion.button>
           )}
           {(playing || gameOver) && (
             <button
@@ -271,6 +275,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="mt-6 p-6 bg-orange-50 border border-orange-200 rounded-2xl text-center"
             >
               <p className="text-2xl mb-2">{t('时间到！', "Time's up!")}</p>

@@ -111,9 +111,10 @@ export default function Navigation() {
       <AnimatePresence>
         {toastMessage && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]"
           >
             <div className="bg-surface-container-high text-on-surface px-6 py-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] font-sans text-sm font-medium border border-surface-variant flex items-center gap-3">
@@ -133,6 +134,7 @@ export default function Navigation() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 className="absolute inset-x-4 inset-y-0 flex items-center bg-[#FFF9F2]/90 dark:bg-surface/95 backdrop-blur-xl z-50"
               >
                 <div className="flex-grow flex flex-col">
@@ -287,7 +289,12 @@ export default function Navigation() {
                   </div>
                 </motion.button>
 
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right scale-95 group-hover:scale-100 flex flex-col p-2 z-50">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  className="absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right flex flex-col p-2 z-50"
+                >
                   <Link to="/profile" className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('个人中心', 'Profile')}</Link>
                   <Link to="/favorites" className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('我的收藏', 'Favorites')}</Link>
                   <Link to="/admin" className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors flex items-center gap-2">
@@ -303,7 +310,7 @@ export default function Navigation() {
                     }}
                     className="text-left px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                   >{t('退出登录', 'Log Out')}</button>
-                </div>
+                </motion.div>
               </div>
             ) : (
               <motion.button
@@ -332,23 +339,28 @@ export default function Navigation() {
           >
             <nav className="flex flex-col p-4 gap-2" aria-label={t('移动端导航', 'Mobile navigation')}>
               {navItems.map((item) => (
-                <Link
+                <motion.div
                   key={item.id}
-                  to={item.path}
-                  onClick={() => setShowMobileMenu(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all ${
-                    isActive(item.path)
-                      ? 'bg-primary-container/30 text-primary'
-                      : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container'
-                  }`}
+                  whileHover={{ x: 4 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
-                  {item.id === 'home' && <Leaf className="w-5 h-5" />}
-                  {item.id === 'games' && <Gamepad2 className="w-5 h-5" />}
-                  {item.id === 'tools' && <Wrench className="w-5 h-5" />}
-                  {item.id === 'leaderboard' && <Trophy className="w-5 h-5" />}
-                  {item.id === 'about' && <Heart className="w-5 h-5" />}
-                  {isEn ? item.enLabel : item.label}
-                </Link>
+                  <Link
+                    to={item.path}
+                    onClick={() => setShowMobileMenu(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all ${
+                      isActive(item.path)
+                        ? 'bg-primary-container/30 text-primary'
+                        : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container'
+                    }`}
+                  >
+                    {item.id === 'home' && <Leaf className="w-5 h-5" />}
+                    {item.id === 'games' && <Gamepad2 className="w-5 h-5" />}
+                    {item.id === 'tools' && <Wrench className="w-5 h-5" />}
+                    {item.id === 'leaderboard' && <Trophy className="w-5 h-5" />}
+                    {item.id === 'about' && <Heart className="w-5 h-5" />}
+                    {isEn ? item.enLabel : item.label}
+                  </Link>
+                </motion.div>
               ))}
             </nav>
           </motion.div>

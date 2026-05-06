@@ -1,0 +1,78 @@
+/**
+ * Centralized animation presets for Spring Nest.
+ * "Q弹丝滑" = bouncy springs + silky smooth transitions.
+ */
+
+// ── Spring Presets ──────────────────────────────────────────
+/** Bouncy spring — playful, elastic feedback (buttons, cards) */
+export const springBouncy = { type: 'spring' as const, stiffness: 400, damping: 15, mass: 0.8 };
+
+/** Smooth spring — elegant, controlled (page elements, modals) */
+export const springSmooth = { type: 'spring' as const, stiffness: 300, damping: 30, mass: 1 };
+
+/** Snappy spring — fast, responsive (hover, focus) */
+export const springSnappy = { type: 'spring' as const, stiffness: 500, damping: 25, mass: 0.6 };
+
+/** Gentle spring — soft, dreamy (decorative, background) */
+export const springGentle = { type: 'spring' as const, stiffness: 200, damping: 20, mass: 1.2 };
+
+// ── Transition Presets ──────────────────────────────────────
+/** Standard fade-in-up for scroll reveals */
+export const fadeInUp = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+};
+
+/** Stagger container — add to parent, children use fadeInUp */
+export const staggerContainer = {
+  initial: {},
+  animate: { transition: { staggerChildren: 0.08 } },
+};
+
+/** Scale-in for cards and modals */
+export const scaleIn = {
+  initial: { opacity: 0, scale: 0.92 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.92 },
+  transition: springSmooth,
+};
+
+/** Slide-in from left */
+export const slideInLeft = {
+  initial: { opacity: 0, x: -30 },
+  animate: { opacity: 1, x: 0 },
+  transition: springSmooth,
+};
+
+/** Slide-in from right */
+export const slideInRight = {
+  initial: { opacity: 0, x: 30 },
+  animate: { opacity: 1, x: 0 },
+  transition: springSmooth,
+};
+
+// ── Hover/Interaction Presets ───────────────────────────────
+/** Card hover — lift + subtle scale */
+export const hoverLift = {
+  whileHover: { y: -8, scale: 1.02, transition: springBouncy },
+  whileTap: { scale: 0.97, transition: springSnappy },
+};
+
+/** Button press — satisfying squish */
+export const buttonPress = {
+  whileHover: { scale: 1.05, transition: springBouncy },
+  whileTap: { scale: 0.93, transition: { ...springBouncy, stiffness: 600 } },
+};
+
+/** Icon wiggle on hover */
+export const iconWiggle = {
+  whileHover: { rotate: [0, -10, 10, -5, 0], transition: { duration: 0.5 } },
+};
+
+// ── Page Transition ─────────────────────────────────────────
+export const pageTransition = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+  exit: { opacity: 0, y: -12, transition: { duration: 0.25 } },
+};

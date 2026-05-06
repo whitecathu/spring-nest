@@ -95,6 +95,7 @@ export default function About() {
               key={i}
               variants={itemVariants}
               whileHover={{ y: -5, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               className="glass-card rounded-[32px] p-8 text-center"
             >
               <div className={`w-16 h-16 ${stat.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
@@ -134,7 +135,7 @@ export default function About() {
             <motion.div
               key={i}
               variants={itemVariants}
-              whileHover={{ y: -3 }}
+              whileHover={{ y: -5, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
               className="bg-surface-container-high rounded-2xl p-5 text-center"
             >
               <p className="font-bold text-on-surface mb-1">{tech.name}</p>
@@ -243,17 +244,17 @@ export default function About() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-10">
-              <motion.a 
-                whileHover={{ y: -5, scale: 1.02 }}
+              <motion.a
+                whileHover={{ y: -5, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
                 whileTap={{ scale: 0.98 }}
-                href="mailto:hello@springnest.com" 
+                href="mailto:hello@springnest.com"
                 className="flex items-center gap-4 bg-white/50 backdrop-blur px-8 py-5 rounded-3xl border border-white shadow-sm hover:shadow-lg transition-all cursor-pointer"
               >
                 <Mail className="text-primary w-6 h-6" />
                 <span className="font-semibold text-on-surface">hello@springnest.com</span>
               </motion.a>
-              <motion.div 
-                whileHover={{ y: -5, scale: 1.02 }}
+              <motion.div
+                whileHover={{ y: -5, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   navigator.clipboard.writeText('SpringNest_App');
@@ -267,8 +268,8 @@ export default function About() {
               </motion.div>
             </div>
             
-            <motion.a 
-              whileHover={{ scale: 1.05 }}
+            <motion.a
+              whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
               whileTap={{ scale: 0.95 }}
               href="mailto:hello@springnest.com"
               target="_blank"

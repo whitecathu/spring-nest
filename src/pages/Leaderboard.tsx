@@ -14,9 +14,21 @@ const GAME_TABS: { id: GameTab; label: string; labelEn: string; icon: string }[]
 ];
 
 function getRankIcon(rank: number) {
-  if (rank === 1) return <Crown className="w-5 h-5 text-yellow-500" />;
-  if (rank === 2) return <Medal className="w-5 h-5 text-gray-400" />;
-  if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
+  if (rank === 1) return (
+    <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+      <Crown className="w-5 h-5 text-yellow-500" />
+    </motion.div>
+  );
+  if (rank === 2) return (
+    <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2.5, repeat: Infinity }}>
+      <Medal className="w-5 h-5 text-gray-400" />
+    </motion.div>
+  );
+  if (rank === 3) return (
+    <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity }}>
+      <Medal className="w-5 h-5 text-amber-600" />
+    </motion.div>
+  );
   return <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-secondary">{rank}</span>;
 }
 
@@ -98,7 +110,7 @@ export default function Leaderboard() {
           <motion.button
             key={tab.id}
             whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.93, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition-all ${
               activeTab === tab.id
@@ -156,7 +168,7 @@ export default function Leaderboard() {
                   key={`${entry.username}-${rank}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.05 }}
                   className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${getRankBg(rank)}`}
                 >
                   <div className="w-10 h-10 flex items-center justify-center">

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Nunito:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=LXGW+WenKai+Screen:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700;800&family=Nunito:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -31,8 +31,9 @@
   --color-surface-container-high: #e8e8e5;
   --color-surface-container-lowest: #ffffff;
 
-  --font-sans: 'Plus Jakarta Sans', 'Nunito', 'M PLUS Rounded 1c', sans-serif;
-  --font-nunito: 'Nunito', 'M PLUS Rounded 1c', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif;
+  --font-nunito: 'Nunito', 'Noto Sans SC', 'LXGW WenKai Screen', sans-serif;
+  --font-display: 'LXGW WenKai Screen', 'Noto Sans SC', serif;
 
   --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-float: float 6s ease-in-out infinite;
@@ -134,4 +135,43 @@ body {
 .btn-gradient {
   background: linear-gradient(135deg, var(--color-primary-container) 0%, var(--color-primary) 100%);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Scroll-triggered reveal utilities ── */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-up.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Stagger delay utilities ── */
+.stagger-1 { transition-delay: 0.05s; }
+.stagger-2 { transition-delay: 0.1s; }
+.stagger-3 { transition-delay: 0.15s; }
+.stagger-4 { transition-delay: 0.2s; }
+.stagger-5 { transition-delay: 0.25s; }
+.stagger-6 { transition-delay: 0.3s; }
+
+/* ── Smooth scrollbar ── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Page transition wrapper ── */
+.page-enter {
+  animation: page-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Focus ring — accessible + pretty ── */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 8px;
 }

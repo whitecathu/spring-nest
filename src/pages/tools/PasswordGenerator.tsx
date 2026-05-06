@@ -74,23 +74,23 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <motion.button onClick={onBack} whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
-      </button>
+      </motion.button>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('密码生成器', 'Password Generator')}</h2>
 
         {/* Generated Password Display */}
         <div className="bg-surface-container-low rounded-2xl p-4 mb-4 flex items-center gap-3">
-          <span className="flex-1 font-mono text-lg text-on-surface break-all select-all">{displayPwd}</span>
-          <button onClick={handleCopy} className={`p-2 rounded-xl transition-all shrink-0 ${copied ? 'bg-green-100 text-green-600' : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'}`}>
+          <motion.span key={displayPwd} initial={{ scale: 1.05, opacity: 0.7 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 20 }} className="flex-1 font-mono text-lg text-on-surface break-all select-all">{displayPwd}</motion.span>
+          <motion.button whileTap={{ scale: 0.9 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }} onClick={handleCopy} className={`p-2 rounded-xl transition-all shrink-0 ${copied ? 'bg-green-100 text-green-600' : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'}`}>
             {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-          </button>
-          <button onClick={regenerate} className="p-2 rounded-xl bg-white text-secondary hover:text-primary hover:bg-primary-container/20 transition-all shrink-0">
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }} onClick={regenerate} className="p-2 rounded-xl bg-white text-secondary hover:text-primary hover:bg-primary-container/20 transition-all shrink-0">
             <RefreshCw className="w-5 h-5" />
-          </button>
+          </motion.button>
         </div>
 
         {/* Strength Indicator */}

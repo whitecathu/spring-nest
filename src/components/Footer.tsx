@@ -53,7 +53,7 @@ export default function Footer() {
           className="flex items-center gap-6 text-primary/60"
         >
           <motion.a
-            whileHover={{ y: -5, scale: 1.1 }}
+            whileHover={{ y: -8, scale: 1.15, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
             whileTap={{ scale: 0.9 }}
             href="https://github.com"
             target="_blank"
@@ -64,7 +64,7 @@ export default function Footer() {
             <Github className="w-5 h-5" />
           </motion.a>
           <motion.a
-            whileHover={{ y: -5, scale: 1.1 }}
+            whileHover={{ y: -8, scale: 1.15, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
             whileTap={{ scale: 0.9 }}
             href="mailto:hello@springnest.com"
             className="p-3 bg-white/50 rounded-full hover:bg-primary border border-transparent hover:border-primary-container hover:text-white transition-all duration-300 shadow-sm"
