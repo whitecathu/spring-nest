@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, memo } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Eraser, Lightbulb } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
@@ -89,10 +89,16 @@ function saveBestTime(d: Difficulty, time: number) {
   localStorage.setItem(`spring_nest_sudoku_best_${d}`, JSON.stringify(time));
 }
 
+function formatTime(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
 const SudokuCell = memo(function SudokuCell({
-  value, isOriginal, isSelected, isError, isHighlight, onClick, isHint
+  value, isOriginal, isSelected, isError, isHighlight, onClick, isHint, isCorrectBrief
 }: {
-  value: number; isOriginal: boolean; isSelected: boolean; isError: boolean; isHighlight: boolean; onClick: () => void; isHint: boolean;
+  value: number; isOriginal: boolean; isSelected: boolean; isError: boolean; isHighlight: boolean; onClick: () => void; isHint: boolean; isCorrectBrief: boolean;
 }) {
   return (
     <motion.button
@@ -117,6 +123,18 @@ const SudokuCell = memo(function SudokuCell({
           transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
         />
       )}
+      {/* Green glow on correct placement */}
+      <AnimatePresence>
+        {isCorrectBrief && (
+          <motion.div
+            className="absolute inset-0 rounded bg-green-400/25 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.6, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          />
+        )}
+      </AnimatePresence>
       {/* Number with scale-from-zero entrance */}
       <AnimatePresence mode="wait">
         {value !== 0 && (
@@ -146,17 +164,19 @@ const SudokuCell = memo(function SudokuCell({
 
 // Simple confetti particles for win celebration
 function WinConfetti() {
-  const colors = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#ec4899'];
-  const particles = Array.from({ length: 30 }, (_, i) => ({
-    id: i,
-    x: (Math.random() - 0.5) * 500,
-    y: Math.random() * -350 - 50,
-    rotate: Math.random() * 720 - 360,
-    color: colors[i % colors.length],
-    delay: Math.random() * 0.4,
-    size: Math.random() * 8 + 4,
-    duration: 1.2 + Math.random() * 0.8,
-  }));
+  const particles = useMemo(() => {
+    const colors = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#ec4899'];
+    return Array.from({ length: 18 }, (_, i) => ({
+      id: i,
+      x: (Math.random() - 0.5) * 500,
+      y: Math.random() * -350 - 50,
+      rotate: Math.random() * 720 - 360,
+      color: colors[i % colors.length],
+      delay: Math.random() * 0.4,
+      size: Math.random() * 8 + 4,
+      duration: 1.2 + Math.random() * 0.8,
+    }));
+  }, []);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
@@ -202,10 +222,12 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
   const [bestTime, setBestTime] = useState(() => loadBestTime(difficulty));
   const [hints, setHints] = useState(3);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const timeRef = useRef(0);
 
   // Animation states
   const [hintCells, setHintCells] = useState<Set<string>>(new Set());
+  const [correctCells, setCorrectCells] = useState<Set<string>>(new Set());
   const [mistakeCount, setMistakeCount] = useState(0);
   const [isNewRecord, setIsNewRecord] = useState(false);
 
@@ -213,7 +235,11 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   }, []);
 
-  useEffect(() => () => clearTimer(), [clearTimer]);
+  useEffect(() => () => {
+    clearTimer();
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+  }, [clearTimer]);
 
   const startGame = useCallback(() => {
     clearTimer();
@@ -229,6 +255,7 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     setHints(3);
     setBestTime(loadBestTime(difficulty));
     setHintCells(new Set());
+    setCorrectCells(new Set());
     setMistakeCount(0);
     setIsNewRecord(false);
     timerRef.current = setInterval(() => {
@@ -280,8 +307,17 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
         setMistakeCount(prev => prev + 1);
       }
       newErrors.add(key);
+      setCorrectCells(prev => { const next = new Set(prev); next.delete(key); return next; });
     } else {
       newErrors.delete(key);
+      if (num !== 0 && num === solution[r][c]) {
+        // Brief green glow on correct placement
+        setCorrectCells(prev => new Set(prev).add(key));
+        const glowTimeout = setTimeout(() => {
+          setCorrectCells(prev => { const next = new Set(prev); next.delete(key); return next; });
+        }, 500);
+        timeoutsRef.current.push(glowTimeout);
+      }
     }
     setErrors(newErrors);
 
@@ -331,12 +367,6 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [gameState, selected, handleNumber, handleErase]);
-
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, '0')}`;
-  };
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
@@ -446,6 +476,8 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                     const borderRight = (c + 1) % 3 === 0 && c < 8 ? 'border-r-2 border-on-surface/20' : 'border-r border-on-surface/10';
                     const borderBottom = (r + 1) % 3 === 0 && r < 8 ? 'border-b-2 border-on-surface/20' : 'border-b border-on-surface/10';
 
+                    const isCorrectBrief = correctCells.has(`${r}-${c}`);
+
                     return (
                       <div key={`${r}-${c}`} className={`${borderRight} ${borderBottom}`}>
                         <SudokuCell
@@ -455,6 +487,7 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                           isError={isError}
                           isHighlight={isHighlight && !isSelected}
                           isHint={isHint}
+                          isCorrectBrief={isCorrectBrief}
                           onClick={() => handleCellClick(r, c)}
                         />
                       </div>
@@ -498,17 +531,19 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
             </div>
 
             {/* Number Pad */}
-            <div className="grid grid-cols-9 gap-1.5">
+            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+            <div className="grid grid-cols-9 gap-1.5 min-w-[320px]">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                 <motion.button
                   key={num}
                   onClick={() => handleNumber(num)}
                   whileTap={{ scale: 0.85 }}
-                  className="aspect-square rounded-lg bg-primary text-on-primary font-bold text-lg flex items-center justify-center min-h-[44px]"
+                  className="aspect-square rounded-lg bg-primary text-on-primary font-bold text-lg flex items-center justify-center min-h-[48px]"
                 >
                   {num}
                 </motion.button>
               ))}
+            </div>
             </div>
           </motion.div>
         )}

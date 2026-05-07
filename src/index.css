@@ -162,7 +162,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, var(--color-surface-container-high), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-surface-container-high) 40%, transparent), transparent);
   transform: translateX(-100%);
   animation: shimmer-transform 1.5s infinite ease-in-out;
   will-change: transform;

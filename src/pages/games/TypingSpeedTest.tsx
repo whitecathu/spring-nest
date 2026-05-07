@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, Trophy, Zap, Clock } from 'lucide-react';
+import { ArrowLeft, Trophy, Zap, Clock } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { springBouncy, springSmooth } from '../../lib/animations';
 
@@ -61,19 +61,25 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
   const [streak, setStreak] = useState(0);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const startTimeRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [wordResults, setWordResults] = useState<Map<number, 'correct' | 'wrong'>>(new Map());
   const [wordFlash, setWordFlash] = useState<'correct' | 'wrong' | null>(null);
   const [streakLost, setStreakLost] = useState(false);
+  const [completedWordIndex, setCompletedWordIndex] = useState<number | null>(null);
   const prevStreakRef = useRef(0);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   }, []);
 
-  useEffect(() => () => clearTimer(), [clearTimer]);
+  useEffect(() => () => {
+    clearTimer();
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+  }, [clearTimer]);
 
   const startGame = useCallback(() => {
     clearTimer();
@@ -90,6 +96,7 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
     setWordResults(new Map());
     setWordFlash(null);
     setStreakLost(false);
+    setCompletedWordIndex(null);
     prevStreakRef.current = 0;
 
     if (mode === 'time30' || mode === 'time60') {
@@ -118,7 +125,8 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
       }, 1000);
     }
 
-    setTimeout(() => inputRef.current?.focus(), 100);
+    const focusTimeout = setTimeout(() => inputRef.current?.focus(), 100);
+    timeoutsRef.current.push(focusTimeout);
   }, [mode, clearTimer]);
 
   const finishGame = useCallback(() => {
@@ -147,22 +155,30 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
         setWrongCount(w => w + 1);
         setStreak(0);
         // Streak break animation
-        if (prevStreakRef.current >= 5) {
+        if (prevStreakRef.current >= 3) {
           setStreakLost(true);
-          setTimeout(() => setStreakLost(false), 1500);
+          const streakTimeout = setTimeout(() => setStreakLost(false), 1500);
+          timeoutsRef.current.push(streakTimeout);
         }
         prevStreakRef.current = 0;
         setWordResults(prev => new Map(prev).set(currentIndex, 'wrong'));
         setWordFlash('wrong');
       }
-      setTimeout(() => setWordFlash(null), 300);
+      const flashTimeout = setTimeout(() => setWordFlash(null), 300);
+      timeoutsRef.current.push(flashTimeout);
+
+      // Word completion bounce
+      setCompletedWordIndex(currentIndex);
+      const bounceTimeout = setTimeout(() => setCompletedWordIndex(null), 400);
+      timeoutsRef.current.push(bounceTimeout);
 
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       setCurrentInput('');
 
       if ((mode === 'words25' && nextIndex >= 25) || (mode === 'words50' && nextIndex >= 50)) {
-        setTimeout(() => finishGame(), 50);
+        const finishTimeout = setTimeout(() => finishGame(), 50);
+        timeoutsRef.current.push(finishTimeout);
       }
     }
   }, [gameState, words, currentIndex, mode, finishGame]);
@@ -209,8 +225,8 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
                 <div className="text-xs text-secondary font-medium flex items-center gap-1"><Clock className="w-3 h-3" />{t('剩余', 'Left')}</div>
                 <motion.div
                   key={timeLeft}
-                  animate={timeLeft <= 5 ? { scale: [1, 1.15, 1], color: '#ef4444' } : {}}
-                  className="text-xl font-bold text-primary tabular-nums"
+                  animate={timeLeft <= 5 ? { scale: [1, 1.15, 1] } : {}}
+                  className={`text-xl font-bold tabular-nums ${timeLeft <= 5 ? 'text-red-500' : 'text-primary'}`}
                 >
                   {timeLeft}s
                 </motion.div>
@@ -293,17 +309,28 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
                   return (
                     <span key={i} className="font-bold text-lg relative">
                       {word.split('').map((char, ci) => {
+                        const isTyped = ci < currentInput.length;
+                        const isCorrectChar = isTyped && currentInput[ci] === char;
+                        const isWrongChar = isTyped && currentInput[ci] !== char;
+                        const isLatest = ci === currentInput.length - 1;
                         let charClass = 'text-on-surface';
-                        if (ci < currentInput.length) {
-                          charClass = currentInput[ci] === char ? 'text-green-500' : 'text-red-500';
-                        }
+                        if (isCorrectChar) charClass = 'text-green-500';
+                        if (isWrongChar) charClass = 'text-red-500';
                         return (
                           <motion.span
                             key={ci}
                             className={charClass}
-                            initial={ci === currentInput.length - 1 ? { scale: 1.2 } : false}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.1 }}
+                            initial={isLatest ? { scale: 1.3 } : false}
+                            animate={
+                              isLatest && isWrongChar
+                                ? { scale: 1, x: [0, -2, 2, -2, 0] }
+                                : { scale: 1 }
+                            }
+                            transition={
+                              isLatest && isWrongChar
+                                ? { duration: 0.3 }
+                                : { duration: 0.15, type: 'spring', stiffness: 500, damping: 20 }
+                            }
                           >
                             {char}
                           </motion.span>
@@ -321,9 +348,15 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
                 }
 
                 return (
-                  <span key={i} className={`${wordClass} transition-colors duration-150`}>
+                  <motion.span
+                    key={i}
+                    className={wordClass}
+                    initial={completedWordIndex === i ? { scale: 1.15 } : false}
+                    animate={{ scale: 1 }}
+                    transition={completedWordIndex === i ? springBouncy : { duration: 0.15 }}
+                  >
                     {word}
-                  </span>
+                  </motion.span>
                 );
               })}
             </div>
@@ -351,7 +384,7 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
 
             {/* Streak indicator with exit animation */}
             <AnimatePresence>
-              {streak >= 5 && !streakLost && (
+              {streak >= 3 && !streakLost && (
                 <motion.div
                   key="streak"
                   initial={{ opacity: 0, scale: 0.8 }}

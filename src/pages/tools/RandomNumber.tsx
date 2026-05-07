@@ -1,8 +1,19 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Dice6, Copy, Check, History, Trash2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { springBouncy, springSmooth, springSnappy } from '../../lib/animations';
+import { springBouncy, springSmooth, springSnappy, toolPageEnter } from '../../lib/animations';
+
+interface ConfettiParticle {
+  id: number;
+  x: number;
+  y: number;
+  rotation: number;
+  color: string;
+  delay: number;
+}
+
+const CONFETTI_COLORS = ['#6750A4', '#625B71', '#7D5260', '#B58DAE', '#E8DEF8', '#FFD8E4'];
 
 export default function RandomNumber({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
@@ -14,10 +25,29 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generation, setGeneration] = useState(0);
+  const [confetti, setConfetti] = useState<ConfettiParticle[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const confettiTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const spawnConfetti = useCallback(() => {
+    const particles: ConfettiParticle[] = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: -10 - Math.random() * 20,
+      rotation: Math.random() * 720 - 360,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      delay: Math.random() * 0.3,
+    }));
+    setConfetti(particles);
+    clearTimeout(confettiTimeoutRef.current);
+    confettiTimeoutRef.current = setTimeout(() => setConfetti([]), 1500);
+  }, []);
 
   useEffect(() => () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
+    clearTimeout(copiedTimeoutRef.current);
+    clearTimeout(confettiTimeoutRef.current);
   }, []);
 
   const minMaxInvalid = parseInt(min) > parseInt(max);
@@ -38,6 +68,8 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
     setGeneration(g => g + 1);
     setResults([]);
 
+    if (countVal >= 10) spawnConfetti();
+
     // Animate generation
     const newResults: number[] = [];
     for (let i = 0; i < countVal; i++) {
@@ -56,23 +88,24 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
       }
     }, Math.max(30, 300 / countVal));
     intervalRef.current = interval;
-  }, [min, max, count]);
+  }, [min, max, count, spawnConfetti]);
 
   const handleCopy = useCallback(async () => {
     if (results.length === 0) return;
     try {
       await navigator.clipboard.writeText(results.join(', '));
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {}
   }, [results]);
 
-  const quickPresets = [
+  const quickPresets = useMemo(() => [
     { label: '1-10', min: '1', max: '10' },
     { label: '1-100', min: '1', max: '100' },
     { label: '1-1000', min: '1', max: '1000' },
     { label: '🎲 ' + t('骰子', 'Dice'), min: '1', max: '6' },
-  ];
+  ], [t]);
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
@@ -81,16 +114,12 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -12, transition: { duration: 0.25 } }}
-      >
+      <motion.div {...toolPageEnter}>
         <div className="mb-6">
           <h1 className="text-3xl font-black text-on-surface flex items-center gap-3">
             <motion.span
-              animate={isGenerating ? { rotate: [0, -20, 20, -15, 15, -5, 0] } : {}}
-              transition={isGenerating ? { duration: 0.5, repeat: Infinity, repeatDelay: 0.2 } : {}}
+              animate={isGenerating ? { rotate: [0, -25, 25, -15, 15, -5, 0], scale: [1, 1.2, 0.8, 1.15, 0.9, 1.05, 1] } : {}}
+              transition={isGenerating ? { duration: 0.6, repeat: Infinity, repeatDelay: 0.15 } : {}}
               className="inline-flex"
             >
               <Dice6 className="w-8 h-8 text-primary" />
@@ -109,7 +138,7 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.93 }}
               transition={springSnappy}
-              className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[44px] transition-colors ${
+              className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[48px] transition-colors ${
                 isPresetActive(p)
                   ? 'bg-primary text-on-primary'
                   : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
@@ -208,7 +237,7 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
                 <motion.button
                   onClick={handleCopy}
                   whileTap={{ scale: 0.9 }}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[36px]"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[48px]"
                 >
                   {copied ? <><Check className="w-3 h-3" /> {t('已复制', 'Copied')}</> : <><Copy className="w-3 h-3" /> {t('复制', 'Copy')}</>}
                 </motion.button>
@@ -247,6 +276,25 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
           )}
         </AnimatePresence>
 
+        {/* Confetti overlay */}
+        <AnimatePresence>
+          {confetti.length > 0 && (
+            <div className="fixed inset-0 pointer-events-none z-50">
+              {confetti.map(p => (
+                <motion.div
+                  key={p.id}
+                  className="absolute w-2 h-2 rounded-full"
+                  style={{ left: `${p.x}%`, top: `${p.y}%`, backgroundColor: p.color }}
+                  initial={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                  animate={{ opacity: 0, y: 200, scale: 0.5, rotate: p.rotation }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.2, delay: p.delay, ease: 'easeOut' }}
+                />
+              ))}
+            </div>
+          )}
+        </AnimatePresence>
+
         {/* History */}
         <AnimatePresence>
           {history.length > 0 && (
@@ -267,7 +315,7 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.9 }}
                   transition={springSnappy}
-                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-secondary hover:text-error hover:bg-error/10 transition-colors min-h-[32px]"
+                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-secondary hover:text-error hover:bg-error/10 transition-colors min-h-[48px]"
                 >
                   <Trash2 className="w-3 h-3" />
                   {t('清除', 'Clear')}

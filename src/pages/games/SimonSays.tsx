@@ -36,6 +36,8 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
   const [showScorePopup, setShowScorePopup] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [shakeGrid, setShakeGrid] = useState(false);
+  const [levelUpFlash, setLevelUpFlash] = useState(false);
+  const prevSpeedRef = useRef(600);
 
   const clearTimer = useCallback(() => {
     if (timeoutRef.current) {
@@ -86,6 +88,8 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
     setIsNewRecord(false);
     setShowScorePopup(false);
     setShakeGrid(false);
+    setLevelUpFlash(false);
+    prevSpeedRef.current = 600;
     setGameState('idle_next');
     timeoutRef.current = setTimeout(() => playSequence(seq, 600), 500);
   }, [clearTimer, playSequence]);
@@ -138,6 +142,12 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
 
       // Speed up every 3 rounds
       const newSpeed = Math.max(250, 600 - Math.floor(newScore / 3) * 40);
+      if (newSpeed < prevSpeedRef.current) {
+        setLevelUpFlash(true);
+        const tFlash = setTimeout(() => setLevelUpFlash(false), 600);
+        timeoutsRef.current.push(tFlash);
+      }
+      prevSpeedRef.current = newSpeed;
       setSpeed(newSpeed);
 
       // Add next color to sequence
@@ -153,7 +163,7 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
     }
   }, [gameState, playerIndex, score, clearTimer, playSequence]);
 
-  const formatRound = (n: number) => t(`第 ${n} 轮`, `Round ${n}`);
+  const formatRound = useCallback((n: number) => t(`第 ${n} 轮`, `Round ${n}`), [t]);
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
@@ -181,18 +191,40 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
               >
                 {score}
               </motion.div>
-              {/* +1 floating text */}
+              {/* +1 floating text with particle dots */}
               <AnimatePresence>
                 {showScorePopup && (
-                  <motion.div
-                    className="absolute -top-6 left-1/2 -translate-x-1/2 text-green-500 font-bold text-lg pointer-events-none whitespace-nowrap"
-                    initial={{ opacity: 1, y: 0 }}
-                    animate={{ opacity: 0, y: -20 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                  >
-                    +1
-                  </motion.div>
+                  <>
+                    <motion.div
+                      className="absolute -top-6 left-1/2 -translate-x-1/2 text-green-500 font-bold text-lg pointer-events-none whitespace-nowrap z-20"
+                      initial={{ opacity: 1, y: 0 }}
+                      animate={{ opacity: 0, y: -20 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                    >
+                      +1
+                    </motion.div>
+                    {/* Particle dots flying outward */}
+                    {[0, 1, 2, 3, 4, 5].map(i => {
+                      const angle = (i / 6) * Math.PI * 2;
+                      const dist = 28 + Math.random() * 12;
+                      return (
+                        <motion.span
+                          key={`particle-${i}`}
+                          className="absolute left-1/2 top-1/2 w-1.5 h-1.5 rounded-full bg-green-400 pointer-events-none z-20"
+                          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+                          animate={{
+                            x: Math.cos(angle) * dist,
+                            y: Math.sin(angle) * dist - 10,
+                            opacity: 0,
+                            scale: 0.3,
+                          }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.6, ease: 'easeOut' }}
+                        />
+                      );
+                    })}
+                  </>
                 )}
               </AnimatePresence>
             </div>
@@ -251,10 +283,17 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8, y: -10 }}
               transition={springSnappy}
-              className="flex items-center justify-center gap-1 mb-3"
+              className="flex items-center justify-center gap-1 mb-3 relative"
             >
-              <Zap className="w-4 h-4 text-amber-500" />
-              <span className="text-sm font-bold text-amber-500">{combo}x {t('连击', 'Combo')}</span>
+              {/* Glow pulse behind combo text */}
+              <motion.span
+                className="absolute inset-0 rounded-full -mx-2 -my-1"
+                style={{ boxShadow: '0 0 16px 4px rgba(245,158,11,0.35)' }}
+                animate={{ opacity: [0.4, 1, 0.4], scale: [0.95, 1.05, 0.95] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <Zap className="w-4 h-4 text-amber-500 relative z-10" />
+              <span className="text-sm font-bold text-amber-500 relative z-10">{combo}x {t('连击', 'Combo')}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -288,7 +327,6 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         )}
 
         {/* Color Grid */}
-        <AnimatePresence>
           <motion.div
             className="grid grid-cols-2 gap-4 max-w-[320px] mx-auto mb-6 relative"
             animate={shakeGrid ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
@@ -306,6 +344,19 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
                 />
               )}
             </AnimatePresence>
+            {/* Golden flash on level up / speed increase */}
+            <AnimatePresence>
+              {levelUpFlash && (
+                <motion.div
+                  className="absolute -inset-1 rounded-3xl pointer-events-none z-10"
+                  style={{ boxShadow: '0 0 20px 4px rgba(234,179,8,0.5), inset 0 0 20px 4px rgba(234,179,8,0.15)' }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 1, 0] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                />
+              )}
+            </AnimatePresence>
             {COLORS.map((color) => (
               <motion.button
                 key={color.id}
@@ -313,17 +364,19 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
                 disabled={gameState !== 'input'}
                 animate={{
                   scale: activeColor === color.id ? [1, 1.08, 1] : 1,
+                }}
+                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                whileTap={gameState === 'input' ? { scale: 0.92 } : {}}
+                className={`rounded-2xl aspect-square min-h-[120px] flex items-center justify-center cursor-pointer disabled:cursor-default ${
+                  gameState === 'showing' ? 'opacity-50' : ''
+                }`}
+                style={{
                   backgroundColor: activeColor === color.id ? color.active : color.bg,
                   boxShadow: activeColor === color.id
                     ? `0 0 30px ${color.bg}80, 0 0 60px ${color.bg}40`
                     : `0 4px 12px ${color.bg}40`,
+                  transition: 'background-color 0.15s ease, box-shadow 0.15s ease, opacity 0.3s ease',
                 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                whileTap={gameState === 'input' ? { scale: 0.92 } : {}}
-                className={`rounded-2xl aspect-square min-h-[120px] flex items-center justify-center cursor-pointer disabled:cursor-default transition-opacity ${
-                  gameState === 'showing' ? 'opacity-50' : ''
-                }`}
-                style={{ backgroundColor: color.bg }}
               >
                 <span className="text-white font-bold text-lg drop-shadow-md">
                   {t(...color.name)}
@@ -331,7 +384,6 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
               </motion.button>
             ))}
           </motion.div>
-        </AnimatePresence>
 
         {/* Controls */}
         <AnimatePresence mode="wait">

@@ -6,7 +6,7 @@ import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { useReducedMotion, particleFloat, progressSlide } from './lib/animations';
+import { useReducedMotion } from './lib/animations';
 import { Leaf } from 'lucide-react';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -32,26 +32,53 @@ const particles = [
   { x: -20, y: 35, delay: 1.2, size: 3 },
 ];
 
+const softEase = [0.25, 0.1, 0.25, 1] as const;
+
 const LoadingFallback = () => {
   const reducedMotion = useReducedMotion();
 
   return (
-    <div className="flex-grow flex items-center justify-center min-h-[50vh] bg-gradient-to-b from-[#E8F5EE]/40 to-[#FFF9F2]/40 dark:from-[#1a2c1f]/40 dark:to-background/40">
+    <motion.div
+      className="flex-grow flex items-center justify-center min-h-[50vh] bg-gradient-to-b from-[#E8F5EE]/40 to-[#FFF9F2]/40 dark:from-[#1a2c1f]/40 dark:to-background/40"
+      animate={
+        reducedMotion
+          ? {}
+          : {
+              background: [
+                'linear-gradient(to bottom, rgba(232,245,238,0.4), rgba(255,249,242,0.4))',
+                'linear-gradient(to bottom, rgba(220,240,230,0.4), rgba(245,240,235,0.4))',
+                'linear-gradient(to bottom, rgba(232,245,238,0.4), rgba(255,249,242,0.4))',
+              ],
+            }
+      }
+      transition={{ duration: 8, repeat: Infinity, ease: softEase }}
+    >
       <div className="flex flex-col items-center gap-6">
         <div className="relative">
-          {/* Floating particles */}
+          {/* Floating particles — softer easing curves */}
           {!reducedMotion && particles.map((p, i) => (
             <motion.div
               key={i}
               className="absolute rounded-full bg-primary/20"
-              style={{ width: p.size, height: p.size, left: '50%', top: '50%' }}
-              {...particleFloat(p.x, p.y, p.delay)}
+              style={{ width: p.size, height: p.size, left: '50%', top: '50%', willChange: 'transform, opacity' }}
+              animate={{
+                x: [0, p.x, 0],
+                y: [0, p.y, 0],
+                opacity: [0, 0.55, 0],
+                scale: [0.5, 1, 0.5],
+              }}
+              transition={{
+                duration: 3.5,
+                repeat: Infinity,
+                delay: p.delay,
+                ease: softEase,
+              }}
             />
           ))}
           {/* Pulsing logo */}
           <motion.div
             animate={reducedMotion ? {} : { y: [0, -8, 0], scale: [1, 1.05, 1] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: softEase }}
           >
             <Leaf className="w-12 h-12 text-primary fill-primary/30" />
           </motion.div>
@@ -59,22 +86,23 @@ const LoadingFallback = () => {
         <motion.span
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: 0.3, ease: softEase }}
           className="font-nunito font-bold text-lg text-primary"
         >
           Spring Nest
         </motion.span>
-        {/* Animated progress bar */}
+        {/* Animated progress bar — organic cubic-bezier easing */}
         {!reducedMotion && (
           <div className="loading-progress">
             <motion.div
               className="h-full bg-primary/60 rounded-full"
-              {...progressSlide}
+              animate={{ x: ['-100%', '100%'] }}
+              transition={{ duration: 2, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
             />
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

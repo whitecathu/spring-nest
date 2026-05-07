@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Calculator, Users, Percent } from 'lucide-react';
+import { ArrowLeft, Calculator, Users, Percent, Check } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { springBouncy, springSmooth, springSnappy } from '../../lib/animations';
+import { springBouncy, springSmooth, springSnappy, toolPageEnter } from '../../lib/animations';
 
 const TIP_PRESETS = [10, 15, 18, 20, 25];
 
@@ -12,6 +12,10 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
   const [tipPercent, setTipPercent] = useState(15);
   const [customTip, setCustomTip] = useState('');
   const [splitCount, setSplitCount] = useState(1);
+  const [toastVisible, setToastVisible] = useState(false);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => { clearTimeout(toastTimeoutRef.current); }, []);
 
   const bill = parseFloat(billAmount) || 0;
   const tip = customTip ? parseFloat(customTip) || 0 : tipPercent;
@@ -25,6 +29,14 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
 
   const formatCurrency = (n: number) => `¥${n.toFixed(2)}`;
 
+  const showToast = useCallback(() => {
+    const text = `${t('小费', 'Tip')}: ${formatCurrency(calculations.tipAmount)} | ${t('总计', 'Total')}: ${formatCurrency(calculations.total)}${splitCount > 1 ? ` | ${t('每人', 'Per Person')}: ${formatCurrency(calculations.perPerson)}` : ''}`;
+    navigator.clipboard?.writeText(text).catch(() => {});
+    setToastVisible(true);
+    clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => setToastVisible(false), 1500);
+  }, [calculations, splitCount, t]);
+
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
       <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
@@ -32,11 +44,7 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -12, transition: { duration: 0.25 } }}
-      >
+      <motion.div {...toolPageEnter}>
         <div className="mb-6">
           <h1 className="text-3xl font-black text-on-surface flex items-center gap-3">
             <Calculator className="w-8 h-8 text-primary" />
@@ -76,7 +84,7 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
                 whileTap={{ scale: 0.9 }}
                 animate={tipPercent === p && !customTip ? { scale: 1.06 } : { scale: 1 }}
                 transition={springBouncy}
-                className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[44px] transition-colors ${
+                className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[48px] transition-colors ${
                   tipPercent === p && !customTip
                     ? 'bg-primary text-on-primary'
                     : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
@@ -106,8 +114,8 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={() => setSplitCount(Math.max(1, splitCount - 1))}
               whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.85 }}
-              transition={springSnappy}
+              whileTap={{ scale: 0.75 }}
+              transition={springBouncy}
               className="w-12 h-12 rounded-full bg-surface-container-high text-on-surface font-bold text-xl flex items-center justify-center"
             >
               -
@@ -124,8 +132,8 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={() => setSplitCount(Math.min(20, splitCount + 1))}
               whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.85 }}
-              transition={springSnappy}
+              whileTap={{ scale: 0.75 }}
+              transition={springBouncy}
               className="w-12 h-12 rounded-full bg-surface-container-high text-on-surface font-bold text-xl flex items-center justify-center"
             >
               +
@@ -142,8 +150,17 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
               transition={springSmooth}
-              className="bg-gradient-to-br from-primary-container/50 to-primary/10 rounded-2xl p-6 space-y-3"
+              onClick={showToast}
+              className="relative bg-gradient-to-br from-primary-container/50 to-primary/10 rounded-2xl p-6 space-y-3 cursor-pointer"
             >
+              {/* Gradient shift overlay on value change */}
+              <motion.div
+                key={`${calculations.tipAmount}-${calculations.total}-${calculations.perPerson}`}
+                initial={{ opacity: 0.3 }}
+                animate={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0 bg-gradient-to-br from-primary/15 to-tertiary/10 rounded-2xl pointer-events-none"
+              />
               {/* Tip Amount - staggered row 1 */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
@@ -154,9 +171,9 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
                 <span className="text-secondary font-medium">{t('小费金额', 'Tip Amount')}</span>
                 <motion.span
                   key={formatCurrency(calculations.tipAmount)}
-                  initial={{ scale: 1.15, opacity: 0.7 }}
+                  initial={{ scale: 1.25, opacity: 0.6 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={springBouncy}
+                  transition={{ ...springBouncy, damping: 12, stiffness: 300 }}
                   className="text-xl font-bold text-on-surface"
                 >
                   {formatCurrency(calculations.tipAmount)}
@@ -173,9 +190,9 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
                 <span className="text-secondary font-medium">{t('总计', 'Total')}</span>
                 <motion.span
                   key={formatCurrency(calculations.total)}
-                  initial={{ scale: 1.2, opacity: 0.7 }}
+                  initial={{ scale: 1.3, opacity: 0.5 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={springBouncy}
+                  transition={{ ...springBouncy, damping: 10, stiffness: 280 }}
                   className="text-2xl font-black text-primary"
                 >
                   {formatCurrency(calculations.total)}
@@ -196,9 +213,9 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
                       <span className="text-secondary font-medium">{t('每人', 'Per Person')}</span>
                       <motion.span
                         key={formatCurrency(calculations.perPerson)}
-                        initial={{ scale: 1.2, opacity: 0.7 }}
+                        initial={{ scale: 1.3, opacity: 0.5 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={springBouncy}
+                        transition={{ ...springBouncy, damping: 10, stiffness: 280 }}
                         className="text-2xl font-black text-tertiary"
                       >
                         {formatCurrency(calculations.perPerson)}
@@ -217,10 +234,31 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
               transition={{ duration: 0.2 }}
               className="bg-surface-container rounded-2xl p-8 text-center"
             >
-              <Calculator className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Calculator className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
+              </motion.div>
               <p className="text-sm text-secondary/50">
                 {t('输入账单金额查看结果', 'Enter bill amount to see results')}
               </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Copied toast */}
+        <AnimatePresence>
+          {toastVisible && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.9 }}
+              transition={springBouncy}
+              className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-on-surface text-surface px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-lg z-50"
+            >
+              <Check className="w-4 h-4" />
+              {t('已复制结果', 'Copied!')}
             </motion.div>
           )}
         </AnimatePresence>

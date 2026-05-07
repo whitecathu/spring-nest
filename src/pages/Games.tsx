@@ -1,6 +1,6 @@
 import { Gamepad2, Heart, Play, Flower2, Cloud } from 'lucide-react';
-import { useState, useMemo, lazy, Suspense, useEffect, useRef, type ComponentType, type LazyExoticComponent } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useState, useMemo, lazy, Suspense, useEffect, useRef, useCallback, type ComponentType, type LazyExoticComponent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
@@ -8,9 +8,8 @@ import { games } from '../data/games';
 import SEO from '../components/SEO';
 import { trackGameStart } from '../lib/analytics';
 import { recordVisit } from '../lib/recent';
-import { springBouncy } from '../lib/animations';
+import { springBouncy, useReducedMotion } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
-import SkeletonCard from '../components/SkeletonCard';
 
 const Game2048 = lazy(() => import('./games/Game2048'));
 const MemoryGame = lazy(() => import('./games/MemoryGame'));
@@ -50,27 +49,26 @@ const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'game-17': TypingSpeedTest,
 };
 
-
-
 /** Staggered container variants for the game grid */
 const containerVariants = {
   initial: {},
   animate: {
     transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.05,
+      staggerChildren: 0.04,
+      delayChildren: 0.02,
     },
   },
   exit: {
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: 0.03,
+      staggerDirection: 1,
     },
   },
 };
 
-/** Card entrance/exit variants — bouncy in, snappy out */
+/** Card entrance/exit variants — bouncy in, snappy out (GPU-accelerated only) */
 const cardVariants = {
-  initial: { opacity: 0, scale: 0.92, y: 24 },
+  initial: { opacity: 0, scale: 0.92, y: 20 },
   animate: {
     opacity: 1,
     scale: 1,
@@ -79,9 +77,9 @@ const cardVariants = {
   },
   exit: {
     opacity: 0,
-    scale: 0.88,
-    y: 20,
-    transition: { duration: 0.15, ease: [0.4, 0, 1, 1] as const },
+    scale: 0.9,
+    y: -10,
+    transition: { duration: 0.1, ease: [0.4, 0, 1, 1] as const },
   },
 };
 
@@ -91,8 +89,8 @@ export default function Games() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const [activeCategory, setActiveCategory] = useState('all');
-  const [isSwitching, setIsSwitching] = useState(false);
   const pillContainerRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
 
   // Find game by route slug
   const activeGameBySlug = useMemo(() => {
@@ -136,21 +134,20 @@ export default function Games() {
     [activeGameId]
   );
 
-  const handlePlay = (gameId: string) => {
+  const handlePlay = useCallback((gameId: string) => {
     const game = games.find(g => g.id === gameId);
     if (game) {
       const gameSlug = game.route.split('/').pop();
       navigate(`/games/${gameSlug}`);
     }
-  };
+  }, [navigate]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     navigate('/games');
-  };
+  }, [navigate]);
 
-  const handleCategorySwitch = (catId: string) => {
-    if (catId === activeCategory || isSwitching) return;
-    setIsSwitching(true);
+  const handleCategorySwitch = useCallback((catId: string) => {
+    if (catId === activeCategory) return;
     setActiveCategory(catId);
 
     // Scroll active pill into view
@@ -160,15 +157,7 @@ export default function Games() {
       const activePill = container.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
       activePill?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
     });
-  };
-
-  // Auto-clear switching state after shimmer period
-  useEffect(() => {
-    if (isSwitching) {
-      const timer = setTimeout(() => setIsSwitching(false), 180);
-      return () => clearTimeout(timer);
-    }
-  }, [isSwitching]);
+  }, [activeCategory]);
 
   // Track game open
   useEffect(() => {
@@ -192,7 +181,7 @@ export default function Games() {
     return (
       <div className="flex-grow flex flex-col items-center justify-center py-20">
         <p className="text-xl text-secondary mb-4">{t('此游戏正在开发中，敬请期待', 'This game is under development. Stay tuned.')}</p>
-        <button onClick={handleBack} className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold">
+        <button onClick={handleBack} className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]">
           {t('返回游戏列表', 'Back to Games')}
         </button>
       </div>
@@ -208,15 +197,19 @@ export default function Games() {
     >
       <SEO title={t('休闲小游戏合集 - Spring Nest 春日小筑', 'Casual Games Collection - Spring Nest')} description={t('Spring Nest 提供多款轻松有趣的休闲小游戏，包括 2048、记忆翻牌、打地鼠等。', 'Spring Nest offers fun casual games including 2048, Memory Match, Whack-A-Mole, and more.')} />
       <motion.div
-        animate={{ y: [0, -20, 0], rotate: [0, 5, -5, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        {...(!reducedMotion && {
+          animate: { y: [0, -20, 0], rotate: [0, 5, -5, 0] },
+          transition: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+        })}
         className="absolute top-10 left-10 text-primary-fixed-dim opacity-40 select-none pointer-events-none"
       >
         <Flower2 className="w-12 h-12" />
       </motion.div>
       <motion.div
-        animate={{ x: [0, 15, 0], y: [0, 10, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        {...(!reducedMotion && {
+          animate: { x: [0, 15, 0], y: [0, 10, 0] },
+          transition: { duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 },
+        })}
         className="absolute top-40 right-10 text-tertiary-fixed-dim opacity-40 select-none pointer-events-none"
       >
         <Cloud className="w-10 h-10" />
@@ -249,8 +242,8 @@ export default function Games() {
             aria-pressed={activeCategory === cat.id}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            className={`shrink-0 font-semibold text-sm px-6 py-2 rounded-full transition-colors duration-300 ${
+            transition={springBouncy}
+            className={`shrink-0 font-semibold text-sm px-6 py-2 min-h-[48px] rounded-full transition-colors duration-300 ${
               activeCategory === cat.id
                 ? 'bg-primary-container text-on-primary-container shadow-sm'
                 : 'bg-surface-container-high text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container dark:bg-surface-container dark:hover:bg-primary-container dark:hover:text-on-primary-container'
@@ -262,98 +255,83 @@ export default function Games() {
       </motion.div>
 
       <AnimatePresence mode="wait">
-        {isSwitching ? (
-          <motion.div
-            key="skeleton"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full mb-16"
-          >
-            {Array.from({ length: 6 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </motion.div>
-        ) : (
-          <motion.div
-            key={`grid-${activeCategory}`}
-            variants={containerVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full mb-16"
-          >
-            {filteredGames.length === 0 ? (
+        <motion.div
+          key={`grid-${activeCategory}`}
+          variants={containerVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full mb-16"
+        >
+          {filteredGames.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="col-span-full flex flex-col items-center justify-center py-20 text-secondary"
+            >
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="col-span-full flex flex-col items-center justify-center py-20 text-secondary"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
-                <motion.div
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Gamepad2 className="w-16 h-16 text-secondary/30 mb-4" />
-                </motion.div>
-                <p className="font-medium text-lg">{t('暂无游戏', 'No games found')}</p>
+                <Gamepad2 className="w-16 h-16 text-secondary/30 mb-4" />
               </motion.div>
-            ) : (
-              filteredGames.map((game) => (
-                <motion.div
-                  key={game.id}
-                  variants={cardVariants}
-                  whileHover={{ y: -8, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
-                  whileTap={{ scale: 0.97 }}
-                  className="bg-white dark:bg-surface-container-high rounded-xl p-6 shadow-[0_8px_30px_rgba(217,239,224,0.4)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(254,233,239,0.6)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-shadow duration-300 flex flex-col gap-4 group"
-                >
-                  {game.image ? (
-                    <div className="w-full h-48 rounded-lg overflow-hidden bg-surface-container-low flex items-center justify-center relative">
-                      <img src={game.image} alt={game.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300"></div>
-                    </div>
-                  ) : (
-                    <div className={`w-full h-48 rounded-lg ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center text-6xl`}>
-                      {game.icon}
-                    </div>
-                  )}
-                  <div className="flex items-start gap-4">
-                    <div className={`w-16 h-16 rounded-lg ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 transition-transform duration-300 text-2xl`}>
-                      {game.icon || <Gamepad2 className="text-primary w-8 h-8" />}
-                    </div>
-                    <div className="flex-grow">
-                      <h2 className="font-sans text-lg text-on-surface font-bold group-hover:text-primary transition-colors">{t(game.title, game.titleEn)}</h2>
-                      <p className="font-sans text-sm font-semibold text-on-surface-variant opacity-70">{game.category}</p>
-                    </div>
+              <p className="font-medium text-lg">{t('暂无游戏', 'No games found')}</p>
+            </motion.div>
+          ) : (
+            filteredGames.map((game) => (
+              <motion.div
+                key={game.id}
+                variants={cardVariants}
+                whileHover={{ y: -8, transition: springBouncy }}
+                whileTap={{ scale: 0.97 }}
+                className="bg-white dark:bg-surface-container-high rounded-xl p-6 shadow-[0_8px_30px_rgba(217,239,224,0.4)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(254,233,239,0.6)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-shadow duration-300 flex flex-col gap-4 group"
+              >
+                {game.image ? (
+                  <div className="w-full h-48 rounded-lg overflow-hidden bg-surface-container-low flex items-center justify-center relative">
+                    <img src={game.image} alt={game.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300"></div>
                   </div>
-                  <p className="font-sans text-base text-on-surface-variant line-clamp-2 mt-2">{t(game.description, game.descriptionEn)}</p>
-                  <div className="mt-auto pt-4 flex justify-between items-center">
-                    <button
-                      onClick={() => toggle(game.id)}
-                      className={`p-2 rounded-full transition-all ${
-                        favoriteIds.includes(game.id)
-                          ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
-                          : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
-                      }`}
-                      aria-label={favoriteIds.includes(game.id) ? t('取消收藏', 'Remove favorite') : t('收藏', 'Add favorite')}
-                    >
-                      <Heart className={`w-5 h-5 ${favoriteIds.includes(game.id) ? 'fill-current' : ''}`} />
-                    </button>
-                    <motion.button
-                      onClick={() => handlePlay(game.id)}
-                      whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
-                      whileTap={{ scale: 0.93 }}
-                      className="bg-gradient-to-r from-primary-container to-primary text-on-primary font-semibold text-sm px-6 py-2 rounded-full flex items-center gap-2 hover:shadow-lg transition-shadow duration-300"
-                    >
-                      <Play className="w-4 h-4" />
-                      {t('开始游戏', 'Play')}
-                    </motion.button>
+                ) : (
+                  <div className={`w-full h-48 rounded-lg ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center text-6xl`}>
+                    {game.icon}
                   </div>
-                </motion.div>
-              ))
-            )}
-          </motion.div>
-        )}
+                )}
+                <div className="flex items-start gap-4">
+                  <div className={`w-16 h-16 rounded-lg ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 transition-transform duration-300 text-2xl`}>
+                    {game.icon || <Gamepad2 className="text-primary w-8 h-8" />}
+                  </div>
+                  <div className="flex-grow">
+                    <h2 className="font-sans text-lg text-on-surface font-bold group-hover:text-primary transition-colors">{t(game.title, game.titleEn)}</h2>
+                    <p className="font-sans text-sm font-semibold text-on-surface-variant opacity-70">{game.category}</p>
+                  </div>
+                </div>
+                <p className="font-sans text-base text-on-surface-variant line-clamp-2 mt-2">{t(game.description, game.descriptionEn)}</p>
+                <div className="mt-auto pt-4 flex justify-between items-center">
+                  <button
+                    onClick={() => toggle(game.id)}
+                    className={`p-2 min-h-[48px] min-w-[48px] rounded-full transition-all ${
+                      favoriteIds.includes(game.id)
+                        ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
+                        : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
+                    }`}
+                    aria-label={favoriteIds.includes(game.id) ? t('取消收藏', 'Remove favorite') : t('收藏', 'Add favorite')}
+                  >
+                    <Heart className={`w-5 h-5 ${favoriteIds.includes(game.id) ? 'fill-current' : ''}`} />
+                  </button>
+                  <motion.button
+                    onClick={() => handlePlay(game.id)}
+                    whileHover={{ scale: 1.05, transition: springBouncy }}
+                    whileTap={{ scale: 0.93 }}
+                    className="bg-gradient-to-r from-primary-container to-primary text-on-primary font-semibold text-sm px-6 py-2 min-h-[48px] rounded-full flex items-center gap-2 hover:shadow-lg transition-shadow duration-300"
+                  >
+                    <Play className="w-4 h-4" />
+                    {t('开始游戏', 'Play')}
+                  </motion.button>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </motion.div>
       </AnimatePresence>
     </motion.div>
   );

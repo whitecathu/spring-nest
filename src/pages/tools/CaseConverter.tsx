@@ -1,8 +1,8 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Copy, Check, Type, X } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { springBouncy, springSmooth, springSnappy } from '../../lib/animations';
+import { springBouncy, springSmooth, springSnappy, toolPageEnter } from '../../lib/animations';
 
 type CaseType = 'upper' | 'lower' | 'title' | 'sentence' | 'toggle' | 'reverse';
 
@@ -32,15 +32,39 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
   const [input, setInput] = useState('');
   const [activeCase, setActiveCase] = useState<CaseType>('upper');
   const [copied, setCopied] = useState(false);
+  const [shaking, setShaking] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const shakeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => {
+    clearTimeout(shakeTimeoutRef.current);
+    clearTimeout(copiedTimeoutRef.current);
+  }, []);
+
+  const handleCaseSwitch = useCallback((id: CaseType) => {
+    if (!input.trim()) {
+      setShaking(true);
+      clearTimeout(shakeTimeoutRef.current);
+      shakeTimeoutRef.current = setTimeout(() => setShaking(false), 500);
+      textareaRef.current?.focus();
+      return;
+    }
+    setActiveCase(id);
+  }, [input]);
 
   const output = useMemo(() => convertCase(input, activeCase), [input, activeCase]);
 
   const handleCopy = useCallback(async () => {
     if (!output) return;
+    const startCopiedTimer = () => {
+      setCopied(true);
+      clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
+    };
     try {
       await navigator.clipboard.writeText(output);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      startCopiedTimer();
     } catch {
       const ta = document.createElement('textarea');
       ta.value = output;
@@ -48,8 +72,7 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
       ta.select();
       document.execCommand('copy');
       document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      startCopiedTimer();
     }
   }, [output]);
 
@@ -64,11 +87,7 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -12, transition: { duration: 0.25 } }}
-      >
+      <motion.div {...toolPageEnter}>
         <div className="mb-6">
           <h1 className="text-3xl font-black text-on-surface flex items-center gap-3">
             <Type className="w-8 h-8 text-primary" />
@@ -81,10 +100,25 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <label className="text-sm font-semibold text-secondary">{t('输入文本', 'Input Text')}</label>
-            <span className="text-xs text-secondary">{charCount} {t('字符', 'chars')} · {wordCount} {t('词', 'words')} · {lineCount} {t('行', 'lines')}</span>
+            <span className="text-xs text-secondary">
+              <motion.span
+                key={charCount}
+                initial={{ scale: 1.3, opacity: 0.7 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={springBouncy}
+                className="inline-block"
+              >
+                {charCount}
+              </motion.span>
+              {' '}{t('字符', 'chars')} · {wordCount} {t('词', 'words')} · {lineCount} {t('行', 'lines')}</span>
           </div>
-          <div className="relative">
+          <motion.div
+            animate={shaking ? { x: [0, -6, 6, -4, 4, -2, 2, 0] } : {}}
+            transition={{ duration: 0.4 }}
+            className="relative"
+          >
             <textarea
+              ref={textareaRef}
               spellCheck="false"
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -101,14 +135,14 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
                   whileTap={{ scale: 0.9 }}
                   transition={springSnappy}
                   onClick={() => setInput('')}
-                  className="absolute top-3 right-3 w-7 h-7 rounded-full bg-surface-container-high text-secondary flex items-center justify-center hover:text-on-surface transition-colors"
+                  className="absolute top-3 right-3 min-w-[48px] min-h-[48px] rounded-full bg-surface-container-high text-secondary flex items-center justify-center hover:text-on-surface transition-colors"
                   aria-label={t('清除输入', 'Clear input')}
                 >
                   <X className="w-4 h-4" />
                 </motion.button>
               )}
             </AnimatePresence>
-          </div>
+          </motion.div>
         </div>
 
         {/* Case Buttons with sliding layoutId highlight */}
@@ -116,11 +150,11 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
           {CASES.map(c => (
             <motion.button
               key={c.id}
-              onClick={() => setActiveCase(c.id)}
+              onClick={() => handleCaseSwitch(c.id)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.93 }}
               transition={springSnappy}
-              className={`relative px-4 py-2 rounded-full font-semibold text-sm min-h-[44px] ${
+              className={`relative px-4 py-2 rounded-full font-semibold text-sm min-h-[48px] ${
                 activeCase === c.id
                   ? 'text-on-primary'
                   : 'text-on-surface hover:bg-surface-variant'
@@ -130,7 +164,7 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
                 <motion.div
                   layoutId="case-active-bg"
                   className="absolute inset-0 bg-primary rounded-full -z-10"
-                  transition={springBouncy}
+                  transition={{ ...springBouncy, damping: 12, stiffness: 350, mass: 0.8 }}
                 />
               )}
               <span className="relative z-10">{t(...c.label)}</span>
@@ -142,10 +176,10 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
         <AnimatePresence mode="wait">
           {input ? (
             <motion.div
-              key="output"
-              initial={{ opacity: 0, y: 10 }}
+              key={`output-${activeCase}`}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
+              exit={{ opacity: 0, y: -12, transition: { duration: 0.2 } }}
               transition={springSmooth}
               className="mb-4"
             >
@@ -154,11 +188,11 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
                 <motion.button
                   onClick={handleCopy}
                   whileTap={{ scale: 0.9 }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[36px]"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[48px]"
                 >
                   <AnimatePresence mode="wait">
                     {copied ? (
-                      <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={springBouncy} className="flex items-center gap-1">
+                      <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }} transition={{ duration: 0.4, times: [0, 0.6, 1] }} className="flex items-center gap-1 text-green-600 dark:text-green-400">
                         <Check className="w-3 h-3" /> {t('已复制', 'Copied')}
                       </motion.span>
                     ) : (
