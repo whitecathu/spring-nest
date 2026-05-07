@@ -238,7 +238,7 @@
 
 ---
 
-## Round 11: Game Deep Polish — FlappyBird + Minesweeper + BrickBreaker [IN PROGRESS - 2026-05-07]
+## Round 11: Game Deep Polish — FlappyBird + Minesweeper + BrickBreaker [DONE - 2026-05-07]
 **Goal:** Deep UX polish for three games based on mobile game best practices research.
 
 ### Task Breakdown
@@ -248,4 +248,4 @@
 | T8 | Minesweeper: flag toggle button, cell reveal cascade, game over ripple, win detection fix, touch targets | PENDING | Agent B |
 | T9 | BrickBreaker: ball trail, better particles, screen shake, speed progression, angle clamp, touch targets | PENDING | Agent C |
 | T10 | Build + lint + test + review | DONE | Main - lint PASS, 82/82 tests PASS, build PASS (2.20s, 74 precache) |
-| T11 | GitHub push + Cloudflare deploy | IN PROGRESS | Main |
+| T11 | GitHub push + Cloudflare deploy | DONE | Main - pushed to master, deployed to https://master.spring-nest.pages.dev |
