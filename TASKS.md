@@ -336,3 +336,44 @@
 - `src/pages/tools/TipCalculator.tsx` — AnimatePresence results, staggered result rows, value bounce on change, per-person AnimatePresence, empty state, inputMode
 - `src/pages/tools/CaseConverter.tsx` — layoutId sliding indicator, clear X button, output AnimatePresence, fade gradient, useMemo output+stats, spellCheck=false
 - `src/pages/tools/RandomNumber.tsx` — Dice wiggle animation, preset active state, input shake on min>max, result chip exit, history stagger+exit, clear history button, interval cleanup
+
+---
+
+## Round 15: Animation Polish + Category Transitions + Micro-Interactions + Mobile UX [DONE - 2026-05-07]
+**Goal:** Smooth category switching (no skeleton flash), micro-interactions for new games/tools, loading animation polish, mobile touch targets, simplify review.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T1 | Games.tsx: remove skeleton flash, smooth crossfade with staggered card exit/enter | DONE | Agent A (sonnet) |
+| T2 | Tools.tsx: remove skeleton flash, smooth crossfade, staggered cards | DONE | Agent B (sonnet) |
+| T3 | Animation engine: toolPageEnter preset (consolidated from inline configs) | DONE | Agent C (sonnet) |
+| T4 | SimonSays: combo glow, level-up golden flash, score particles | DONE | Agent D (sonnet) |
+| T5 | Sudoku: correct-cell green glow, win confetti, timeout cleanup | DONE | Agent D |
+| T6 | TypingSpeedTest: char flash/shake, word bounce, streak ≥3, timeout tracking | DONE | Agent D |
+| T7 | TipCalculator: gradient shift on value change, toast copy, floating empty icon, timeout cleanup | DONE | Agent E (sonnet) |
+| T8 | CaseConverter: input shake, copy checkmark, output fade, timeout cleanup | DONE | Agent E |
+| T9 | RandomNumber: dice wobble, confetti overlay, batch reveal, timeout cleanup | DONE | Agent E |
+| T10 | SkeletonCard: scale pulse, reduced-motion opacity pulse, softer shimmer | DONE | Agent F (sonnet) |
+| T11 | GameToolLoading: orbit dots, smoother progress bar, loading text fade-in | DONE | Agent F |
+| T12 | App LoadingFallback: softer easing, background gradient shift, organic progress bar | DONE | Agent F |
+| T13 | Mobile UX: all touch targets ≥48px, inputMode attributes, Sudoku number pad scrollable | DONE | Agent G (sonnet) |
+| T14 | Simplify review: remove unused imports, fix memory leaks, consolidate animation configs | DONE | 3 parallel agents |
+| T15 | Build + lint + test + Playwright E2E | DONE | Main — TypeScript PASS, build PASS (2.43s), 82/82 tests PASS, 10/13 E2E PASS |
+| T16 | GitHub push + Cloudflare deploy | DONE | Main — pushed to master, deployed to https://master.spring-nest.pages.dev |
+
+### Files Modified
+- `src/pages/Games.tsx` — Removed skeleton flash, AnimatePresence mode="wait" with staggered card exit/enter (opacity+scale+y), removed isSwitching state
+- `src/pages/Tools.tsx` — Same crossfade approach, kept sliding pill indicator, removed skeleton flash
+- `src/lib/animations.ts` — Consolidated to springBouncy/springSmooth/springSnappy + toolPageEnter + useReducedMotion
+- `src/pages/games/SimonSays.tsx` — Combo glow (boxShadow pulse), level-up golden flash (prevSpeedRef), 6 score particles (cos/sin spread), GPU-only scale animation on color buttons
+- `src/pages/games/SudokuGame.tsx` — correctCells Set with 500ms green glow, timeout cleanup, formatTime moved to module scope, memoized WinConfetti
+- `src/pages/games/TypingSpeedTest.tsx` — Char flash (green/red + scale), word completion bounce, streak threshold ≥3, timeoutsRef for all 5 timeouts, removed color animation (CSS class instead)
+- `src/pages/tools/TipCalculator.tsx` — Gradient shift overlay on value change, toast with toastTimeoutRef, floating Calculator icon in empty state, toolPageEnter
+- `src/pages/tools/CaseConverter.tsx` — Input shake on empty, copy checkmark (scale 0→1.2→1), output AnimatePresence fade, shakeTimeoutRef+copiedTimeoutRef cleanup, toolPageEnter
+- `src/pages/tools/RandomNumber.tsx` — Dice wobble (rotate+scale keyframes), confetti overlay (30 particles), batch reveal animation, CONFETTI_COLORS to module scope, useMemo quickPresets, copiedTimeoutRef+confettiTimeoutRef cleanup, toolPageEnter
+- `src/components/SkeletonCard.tsx` — Scale pulse (0.98→1, 2.4s), reduced-motion opacity pulse (0.6→1→0.6), will-change:transform
+- `src/components/GameToolLoading.tsx` — 4 orbit dots (cos/sin, 4s cycle), wider gradient progress bar, "Loading" text fade-in
+- `src/App.tsx` — Softer easing [0.25,0.1,0.25,1], background gradient shift (8s), organic progress bar easing [0.45,0.05,0.55,0.95], will-change on particles
+- `src/index.css` — Softer shimmer gradient (color-mix 40%)
+- `playwright.config.ts` — Reverted to port 3000 after testing
