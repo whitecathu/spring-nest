@@ -246,6 +246,17 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     return true;
   }, []);
 
+  const handleWin = useCallback(() => {
+    clearTimer();
+    setGameState('won');
+    const bt = loadBestTime(difficulty);
+    if (bt === 0 || timeRef.current < bt) {
+      saveBestTime(difficulty, timeRef.current);
+      setBestTime(timeRef.current);
+      setIsNewRecord(true);
+    }
+  }, [clearTimer, difficulty]);
+
   const handleCellClick = useCallback((r: number, c: number) => {
     if (gameState !== 'playing') return;
     if (puzzle[r][c] !== 0) return; // Can't select original cells
@@ -274,18 +285,8 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     }
     setErrors(newErrors);
 
-    // Check win
-    if (checkWin(newBoard) && newErrors.size === 0) {
-      clearTimer();
-      setGameState('won');
-      const bt = loadBestTime(difficulty);
-      if (bt === 0 || timeRef.current < bt) {
-        saveBestTime(difficulty, timeRef.current);
-        setBestTime(timeRef.current);
-        setIsNewRecord(true);
-      }
-    }
-  }, [selected, gameState, puzzle, board, solution, errors, checkWin, clearTimer, difficulty]);
+    if (checkWin(newBoard) && newErrors.size === 0) handleWin();
+  }, [selected, gameState, puzzle, board, solution, errors, checkWin, handleWin]);
 
   const handleErase = useCallback(() => {
     if (!selected || gameState !== 'playing') return;
@@ -312,17 +313,8 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     newErrors.delete(`${r}-${c}`);
     setErrors(newErrors);
 
-    if (checkWin(newBoard) && newErrors.size === 0) {
-      clearTimer();
-      setGameState('won');
-      const bt = loadBestTime(difficulty);
-      if (bt === 0 || timeRef.current < bt) {
-        saveBestTime(difficulty, timeRef.current);
-        setBestTime(timeRef.current);
-        setIsNewRecord(true);
-      }
-    }
-  }, [selected, gameState, hints, puzzle, board, solution, errors, checkWin, clearTimer, difficulty]);
+    if (checkWin(newBoard) && newErrors.size === 0) handleWin();
+  }, [selected, gameState, hints, puzzle, board, solution, errors, checkWin, handleWin]);
 
   // Keyboard input
   useEffect(() => {

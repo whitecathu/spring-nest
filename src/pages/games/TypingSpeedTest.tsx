@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Zap, Clock } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
@@ -187,6 +187,8 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
     }
   }, [gameState, wpm, mode]);
 
+  const displayWords = useMemo(() => words.slice(0, Math.min(words.length, 60)), [words]);
+
   return (
     <div className="flex-grow max-w-2xl mx-auto w-full px-4 py-8">
       <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
@@ -277,7 +279,7 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
                   />
                 )}
               </AnimatePresence>
-              {words.slice(0, Math.min(words.length, 60)).map((word, i) => {
+              {displayWords.map((word, i) => {
                 const result = i < currentIndex ? wordResults.get(i) : undefined;
                 let wordClass = 'text-on-surface-variant';
                 if (i < currentIndex) {

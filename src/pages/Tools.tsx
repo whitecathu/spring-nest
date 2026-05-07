@@ -77,9 +77,7 @@ export default function Tools() {
     if (catId === activeCategory || isSwitching) return;
     setIsSwitching(true);
     setActiveCategory(catId);
-    setTimeout(() => setIsSwitching(false), 200);
 
-    // Scroll active pill into view
     requestAnimationFrame(() => {
       const container = pillContainerRef.current;
       if (!container) return;
@@ -87,6 +85,13 @@ export default function Tools() {
       activePill?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
     });
   };
+
+  useEffect(() => {
+    if (isSwitching) {
+      const timer = setTimeout(() => setIsSwitching(false), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isSwitching]);
 
   // Track active pill position for sliding indicator (useLayoutEffect avoids zero-width flash)
   const updatePillLayout = () => {
