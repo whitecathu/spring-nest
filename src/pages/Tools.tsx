@@ -1,5 +1,5 @@
 import { Wrench, Heart, Play, BookOpen } from 'lucide-react';
-import { useState, useMemo, lazy, Suspense, useEffect, type ComponentType, type LazyExoticComponent } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect, useRef, type ComponentType, type LazyExoticComponent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
@@ -8,6 +8,8 @@ import { tools } from '../data/tools';
 import SEO from '../components/SEO';
 import { trackToolOpen } from '../lib/analytics';
 import { recordVisit } from '../lib/recent';
+import { springSmooth, springBouncy, springSnappy } from '../lib/animations';
+import GameToolLoading from '../components/GameToolLoading';
 
 const Calculator = lazy(() => import('./tools/Calculator'));
 const Pomodoro = lazy(() => import('./tools/Pomodoro'));
@@ -29,6 +31,9 @@ const DateCalculator = lazy(() => import('./tools/DateCalculator'));
 const TextDiff = lazy(() => import('./tools/TextDiff'));
 const LoremGenerator = lazy(() => import('./tools/LoremGenerator'));
 const IPLookup = lazy(() => import('./tools/IPLookup'));
+const TipCalculator = lazy(() => import('./tools/TipCalculator'));
+const CaseConverter = lazy(() => import('./tools/CaseConverter'));
+const RandomNumber = lazy(() => import('./tools/RandomNumber'));
 
 const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'tool-1': Calculator,
@@ -51,6 +56,9 @@ const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'tool-18': TextDiff,
   'tool-19': LoremGenerator,
   'tool-20': IPLookup,
+  'tool-21': TipCalculator,
+  'tool-22': CaseConverter,
+  'tool-23': RandomNumber,
 };
 
 export default function Tools() {
@@ -59,6 +67,32 @@ export default function Tools() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const [activeCategory, setActiveCategory] = useState('all');
+  const [isSwitching, setIsSwitching] = useState(false);
+  const pillContainerRef = useRef<HTMLDivElement>(null);
+  const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+
+  // Category switch handler with shimmer
+  const handleCategorySwitch = (catId: string) => {
+    if (catId === activeCategory || isSwitching) return;
+    setIsSwitching(true);
+    setActiveCategory(catId);
+    setTimeout(() => setIsSwitching(false), 200);
+  };
+
+  // Track active pill position for sliding indicator
+  useEffect(() => {
+    const container = pillContainerRef.current;
+    if (!container) return;
+    const activePill = container.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
+    if (activePill) {
+      const containerRect = container.getBoundingClientRect();
+      const pillRect = activePill.getBoundingClientRect();
+      setPillLayout({
+        left: pillRect.left - containerRect.left + container.scrollLeft,
+        width: pillRect.width,
+      });
+    }
+  }, [activeCategory]);
 
   const activeToolBySlug = useMemo(() => {
     if (!slug) return null;
@@ -115,7 +149,7 @@ export default function Tools() {
   if (activeTool && toolComponents[activeTool.id]) {
     const ToolComponent = toolComponents[activeTool.id];
     return (
-      <Suspense fallback={<div className="flex-grow flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+      <Suspense fallback={<GameToolLoading />}>
         <SEO title={`${t(activeTool.title, activeTool.titleEn)} - Spring Nest`} description={t(activeTool.description, activeTool.descriptionEn)} type="website" />
         <ToolComponent onBack={handleBack} />
       </Suspense>
@@ -162,22 +196,30 @@ export default function Tools() {
       </motion.header>
 
       <motion.div
+        ref={pillContainerRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="flex overflow-x-auto flex-nowrap sm:flex-wrap scrollbar-hide justify-center gap-4 mb-16"
+        className="flex overflow-x-auto flex-nowrap sm:flex-wrap scrollbar-hide justify-center gap-4 mb-16 relative"
       >
+        {/* Sliding indicator behind active pill */}
+        <motion.div
+          className="absolute top-0 h-full bg-primary rounded-full shadow-lg shadow-primary/30 pointer-events-none"
+          animate={{ left: pillLayout.left, width: pillLayout.width }}
+          transition={springSmooth}
+          style={{ zIndex: 0 }}
+        />
         {categories.map(cat => (
           <motion.button
             key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
+            onClick={() => handleCategorySwitch(cat.id)}
             aria-pressed={activeCategory === cat.id}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            className={`shrink-0 px-8 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
+            transition={springSnappy}
+            className={`shrink-0 px-8 py-3 rounded-full font-semibold text-sm relative z-[1] transition-colors duration-300 ${
               activeCategory === cat.id
-                ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 shadow-[0_0_15px_rgba(var(--color-primary),0.3)]'
+                ? 'text-on-primary'
                 : 'glass-pill text-on-surface-variant hover:bg-surface-container-highest'
             }`}
           >
@@ -186,77 +228,119 @@ export default function Tools() {
         ))}
       </motion.div>
 
-      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-20">
-        <AnimatePresence>
-          {filteredTools.length === 0 && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-20">
+        {/* Shimmer loading state during category switch */}
+        <AnimatePresence mode="sync">
+          {isSwitching && Array.from({ length: 6 }).map((_, i) => (
+            <motion.div
+              key={`shimmer-${i}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="glass-card rounded-3xl p-8"
+            >
+              <div className="flex flex-col items-center gap-6 mb-6">
+                <div className="w-24 h-24 rounded-2xl bg-surface-container-highest/60 animate-pulse" />
+                <div className="flex flex-col items-center gap-2 w-full">
+                  <div className="h-6 w-2/3 rounded-full bg-surface-container-highest/60 animate-pulse" />
+                  <div className="h-5 w-1/3 rounded-full bg-surface-container-highest/40 animate-pulse" />
+                </div>
+              </div>
+              <div className="space-y-2 mb-8">
+                <div className="h-4 w-full rounded bg-surface-container-highest/40 animate-pulse" />
+                <div className="h-4 w-4/5 rounded bg-surface-container-highest/40 animate-pulse" />
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="w-9 h-9 rounded-full bg-surface-container-highest/40 animate-pulse" />
+                <div className="w-28 h-11 rounded-xl bg-surface-container-highest/40 animate-pulse" />
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Tool cards with staggered animations */}
+        <AnimatePresence mode="popLayout">
+          {!isSwitching && filteredTools.length === 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="col-span-full flex flex-col items-center justify-center py-20 text-secondary"
             >
               <Wrench className="w-16 h-16 text-secondary/30 mb-4" />
               <p className="font-medium text-lg">{t('暂无工具', 'No tools found')}</p>
             </motion.div>
           )}
-          {filteredTools.map((tool, i) => (
+          {!isSwitching && filteredTools.map((tool, i) => (
             <motion.div
               layout
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -30 }}
-              whileHover={{ y: -6, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.4, delay: i * 0.05, ease: "easeOut" }}
               key={tool.id}
+              initial={{ opacity: 0, scale: 0.85, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              whileHover={{ y: -6, transition: springBouncy }}
+              whileTap={{ scale: 0.97 }}
+              transition={springSmooth}
+              style={{ animationDelay: `${i * 0.04}s` }}
               className="glass-card rounded-3xl p-8 transition-all duration-500 hover-glow group"
             >
-              <div className="flex flex-col items-center text-center gap-6 mb-6">
-                <div className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 relative text-4xl`}>
-                  {tool.image ? (
-                    <>
-                      <img src={tool.image} alt={tool.title} loading="lazy" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-overlay"></div>
-                    </>
-                  ) : (
-                    <span>{tool.icon}</span>
-                  )}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.85, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  ...springSmooth,
+                  delay: i * 0.04,
+                }}
+              >
+                <div className="flex flex-col items-center text-center gap-6 mb-6">
+                  <div className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 relative text-4xl`}>
+                    {tool.image ? (
+                      <>
+                        <img src={tool.image} alt={tool.title} loading="lazy" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-overlay"></div>
+                      </>
+                    ) : (
+                      <span>{tool.icon}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="font-nunito font-bold text-2xl text-on-background mb-3 group-hover:text-primary transition-colors">{t(tool.title, tool.titleEn)}</h2>
+                    <span className="inline-block px-3 py-1.5 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-primary-container/30 text-on-primary-container">
+                      {tool.category}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-nunito font-bold text-2xl text-on-background mb-3 group-hover:text-primary transition-colors">{t(tool.title, tool.titleEn)}</h2>
-                  <span className="inline-block px-3 py-1.5 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-primary-container/30 text-on-primary-container">
-                    {tool.category}
-                  </span>
+                <p className="font-sans text-base text-on-surface-variant mb-8 line-clamp-3 text-center">
+                  {t(tool.description, tool.descriptionEn)}
+                </p>
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() => toggle(tool.id)}
+                    className={`p-2 rounded-full transition-all ${
+                      favoriteIds.includes(tool.id)
+                        ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
+                        : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
+                    }`}
+                    aria-label={favoriteIds.includes(tool.id) ? t('取消收藏', 'Remove favorite') : t('收藏', 'Add favorite')}
+                  >
+                    <Heart className={`w-5 h-5 ${favoriteIds.includes(tool.id) ? 'fill-current' : ''}`} />
+                  </button>
+                  <motion.button
+                    onClick={() => handleOpen(tool.id)}
+                    whileHover={{ scale: 1.05, transition: springBouncy }}
+                    whileTap={{ scale: 0.93 }}
+                    className="py-4 px-8 rounded-xl btn-gradient text-on-primary font-semibold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all"
+                  >
+                    <Play className="w-4 h-4" />
+                    {t('打开工具', 'Open Tool')}
+                  </motion.button>
                 </div>
-              </div>
-              <p className="font-sans text-base text-on-surface-variant mb-8 line-clamp-3 text-center">
-                {t(tool.description, tool.descriptionEn)}
-              </p>
-              <div className="flex justify-between items-center">
-                <button
-                  onClick={() => toggle(tool.id)}
-                  className={`p-2 rounded-full transition-all ${
-                    favoriteIds.includes(tool.id)
-                      ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
-                      : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
-                  }`}
-                  aria-label={favoriteIds.includes(tool.id) ? t('取消收藏', 'Remove favorite') : t('收藏', 'Add favorite')}
-                >
-                  <Heart className={`w-5 h-5 ${favoriteIds.includes(tool.id) ? 'fill-current' : ''}`} />
-                </button>
-                <motion.button
-                  onClick={() => handleOpen(tool.id)}
-                  whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
-                  whileTap={{ scale: 0.93 }}
-                  className="py-4 px-8 rounded-xl btn-gradient text-on-primary font-semibold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all"
-                >
-                  <Play className="w-4 h-4" />
-                  {t('打开工具', 'Open Tool')}
-                </motion.button>
-              </div>
+              </motion.div>
             </motion.div>
           ))}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -8,12 +8,12 @@ const GAME_WIDTH = 400;
 const GAME_HEIGHT = 600;
 const BIRD_SIZE = 32;
 const BIRD_X = 80;
-const GRAVITY = 0.48;
-const JUMP_FORCE = -9;
+const GRAVITY = 0.38;
+const JUMP_FORCE = -7.5;
 const PIPE_WIDTH = 56;
-const PIPE_GAP = 150;
-const PIPE_SPEED = 2.5;
-const PIPE_SPAWN_INTERVAL = 1600; // ms
+const PIPE_GAP = 170;
+const PIPE_SPEED = 2.2;
+const PIPE_SPAWN_INTERVAL = 1800; // ms
 const GROUND_HEIGHT = 20;
 const CLOUD_COUNT = 5;
 
@@ -38,6 +38,12 @@ interface Cloud {
   width: number;
   speed: number;
   opacity: number;
+}
+
+interface ScorePopup {
+  id: number;
+  x: number;
+  y: number;
 }
 
 let particleIdCounter = 0;
@@ -68,7 +74,7 @@ function createClouds(): Cloud[] {
 
 export default function FlappyBird({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
-  const [gameState, setGameState] = useState<'idle' | 'playing' | 'over'>('idle');
+  const [gameState, setGameState] = useState<'idle' | 'ready' | 'playing' | 'over'>('idle');
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(loadBestScore);
 
@@ -96,6 +102,9 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   const [tapPulse, setTapPulse] = useState(false);
   const [deathFlash, setDeathFlash] = useState(false);
   const [milestoneCombo, setMilestoneCombo] = useState<number | null>(null);
+  const [readyCountdown, setReadyCountdown] = useState(3);
+  const [scorePopups, setScorePopups] = useState<ScorePopup[]>([]);
+  const scorePopupIdRef = useRef(0);
 
   const [gameScale, setGameScale] = useState(1);
   const [deathShake, setDeathShake] = useState(false);
@@ -129,9 +138,9 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
     setTimeout(() => setTapPulse(false), 150);
   }, []);
 
-  const startGame = useCallback(() => {
+  const beginPlaying = useCallback(() => {
     birdYRef.current = GAME_HEIGHT / 2;
-    birdVelRef.current = 0;
+    birdVelRef.current = -3; // slight upward velocity so bird doesn't immediately fall
     birdRotationRef.current = 0;
     groundScrollRef.current = 0;
     pipesRef.current = [];
@@ -144,11 +153,28 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
     setGroundScroll(0);
     setPipes([]);
     setScore(0);
+    setScorePopups([]);
     setGameState('playing');
     setDeathShake(false);
     setDeathParticles([]);
     setDeathFlash(false);
     setMilestoneCombo(null);
+  }, []);
+
+  const startGame = useCallback(() => {
+    setReadyCountdown(3);
+    setGameState('ready');
+    setBirdY(GAME_HEIGHT / 2);
+    setBirdRotation(0);
+    setDeathShake(false);
+    setDeathParticles([]);
+    setDeathFlash(false);
+    setMilestoneCombo(null);
+    setScorePopups([]);
+    birdYRef.current = GAME_HEIGHT / 2;
+    birdVelRef.current = 0;
+    birdRotationRef.current = 0;
+    playingRef.current = false;
   }, []);
 
   // Spawn death particles at a given bird position
@@ -216,7 +242,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
     };
     requestAnimationFrame(deathLoop);
 
-    // Show game over after bird falls
+    // Show game over after bird falls (shorter, snappier)
     setTimeout(() => {
       playingRef.current = false;
       setGameState('over');
@@ -226,8 +252,33 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         saveBestScore(s);
         setBestScore(s);
       }
-    }, 800);
+    }, 500);
   }, [spawnDeathParticles]);
+
+  // Ready countdown timer
+  useEffect(() => {
+    if (gameState !== 'ready') return;
+    const interval = setInterval(() => {
+      setReadyCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          beginPlaying();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 700);
+    return () => clearInterval(interval);
+  }, [gameState, beginPlaying]);
+
+  // Clean up score popups
+  useEffect(() => {
+    if (scorePopups.length === 0) return;
+    const timeout = setTimeout(() => {
+      setScorePopups(prev => prev.slice(1));
+    }, 800);
+    return () => clearTimeout(timeout);
+  }, [scorePopups]);
 
   // Game loop
   useEffect(() => {
@@ -246,10 +297,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
       birdYRef.current += birdVelRef.current;
 
       // Smooth rotation with velocity-dependent lerp:
-      // Rising (negative vel) = slower rotation for snappy feel
-      // Falling (positive vel) = faster rotation for dramatic nosedive
-      const targetRotation = Math.min(70, Math.max(-30, birdVelRef.current * 5));
-      const lerpFactor = birdVelRef.current > 0 ? 0.25 : 0.1;
+      // Rising (negative vel) = tilt up more naturally
+      // Falling (positive vel) = tilt down more gradually
+      const targetRotation = Math.min(60, Math.max(-25, birdVelRef.current * 4.5));
+      const lerpFactor = birdVelRef.current > 0 ? 0.15 : 0.08;
       birdRotationRef.current += (targetRotation - birdRotationRef.current) * lerpFactor;
 
       // Bird bounds
@@ -288,6 +339,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         setScore(scoreRef.current);
         setScorePulse(true);
         setTimeout(() => setScorePulse(false), 200);
+
+        // Score popup (+1 animation)
+        const popupId = scorePopupIdRef.current++;
+        setScorePopups(prev => [...prev, { id: popupId, x: BIRD_X + BIRD_SIZE, y: birdYRef.current - 10 }]);
 
         // Milestone combo indicator every 5 points
         if (scoreRef.current > 0 && scoreRef.current % 5 === 0) {
@@ -355,9 +410,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         e.preventDefault();
         if (gameState === 'idle' || gameState === 'over') {
           startGame();
-        } else {
+        } else if (gameState === 'playing') {
           jump();
         }
+        // Ignore during 'ready' countdown
       }
     };
     window.addEventListener('keydown', handleKey);
@@ -371,9 +427,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
     if (gameState === 'idle' || gameState === 'over') {
       startGame();
-    } else {
+    } else if (gameState === 'playing') {
       jump();
     }
+    // Ignore during 'ready' countdown
   }, [gameState, jump, startGame]);
 
   // Touch handler with passive: false via ref attachment
@@ -440,6 +497,27 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         @keyframes tap-pulse {
           0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
           100% { box-shadow: 0 0 0 20px rgba(255,255,255,0); }
+        }
+        @keyframes score-popup {
+          0% { transform: translateY(0) scale(0.5); opacity: 0; }
+          20% { transform: translateY(-8px) scale(1.2); opacity: 1; }
+          60% { transform: translateY(-20px) scale(1); opacity: 1; }
+          100% { transform: translateY(-40px) scale(0.8); opacity: 0; }
+        }
+        @keyframes countdown-pop {
+          0% { transform: scale(0.3); opacity: 0; }
+          40% { transform: scale(1.3); opacity: 1; }
+          70% { transform: scale(0.95); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes countdown-fade {
+          0% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes ready-bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
         }
       `}</style>
 
@@ -656,7 +734,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
             ))}
 
             {/* Bird — idle bobbing with breathing glow */}
-            {gameState === 'idle' && (
+            {(gameState === 'idle' || gameState === 'ready') && (
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -668,7 +746,8 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   height: BIRD_SIZE * gameScale,
                   fontSize: BIRD_SIZE * gameScale,
                   lineHeight: 1,
-                  animation: 'bird-breathing 2s ease-in-out infinite',
+                  transform: 'scaleX(-1)',
+                  animation: gameState === 'ready' ? 'ready-bounce 0.6s ease-in-out infinite, bird-breathing 2s ease-in-out infinite' : 'bird-breathing 2s ease-in-out infinite',
                 }}
               >
                 🐦
@@ -702,7 +781,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     height: BIRD_SIZE * gameScale,
                     fontSize: BIRD_SIZE * gameScale,
                     lineHeight: 1,
-                    transform: `rotate(${birdRotation}deg)`,
+                    transform: `scaleX(-1) rotate(${birdRotation}deg)`,
                     animation: `bird-flap 0.3s ease-in-out infinite, bird-breathing 2s ease-in-out infinite${jumpSquash ? ', jump-squash 0.12s ease-out' : ''}`,
                   }}
                 >
@@ -722,7 +801,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   height: BIRD_SIZE * gameScale,
                   fontSize: BIRD_SIZE * gameScale,
                   lineHeight: 1,
-                  transform: `rotate(${birdRotation}deg)`,
+                  transform: `scaleX(-1) rotate(${birdRotation}deg)`,
                 }}
               >
                 🐦
@@ -764,6 +843,24 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
               />
             )}
 
+            {/* Score popups (+1) */}
+            {scorePopups.map((popup) => (
+              <div
+                key={popup.id}
+                className="absolute pointer-events-none font-black text-yellow-300"
+                style={{
+                  left: popup.x * gameScale,
+                  top: popup.y * gameScale,
+                  fontSize: 18 * gameScale,
+                  textShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                  animation: 'score-popup 0.8s ease-out forwards',
+                  zIndex: 25,
+                }}
+              >
+                +1
+              </div>
+            ))}
+
             {/* Milestone combo indicator */}
             <AnimatePresence>
               {milestoneCombo !== null && (
@@ -794,7 +891,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
               )}
             </AnimatePresence>
 
-            {/* Idle / Game Over Overlay */}
+            {/* Idle / Ready / Game Over Overlay */}
             {gameState !== 'playing' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 z-10">
                 {gameState === 'idle' && (
@@ -805,7 +902,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     onClick={(e) => { e.stopPropagation(); startGame(); }}
                   >
                     <p className="text-5xl mb-3"
-                      style={{ animation: 'bird-breathing 2s ease-in-out infinite' }}
+                      style={{ animation: 'bird-breathing 2s ease-in-out infinite', transform: 'scaleX(-1)' }}
                     >🐦</p>
                     <p
                       className="text-xl font-bold text-white drop-shadow-lg mb-2"
@@ -813,8 +910,34 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     >
                       {t('点击开始', 'Tap to Start')}
                     </p>
-                    <p className="text-sm text-white/80 drop-shadow">
-                      {t('点击屏幕让小鸟飞翔', 'Tap to make the bird fly')}
+                    <p className="text-sm text-white/80 drop-shadow mb-1">
+                      {t('点击屏幕或按空格键让小鸟飞翔', 'Tap screen or press Space to fly')}
+                    </p>
+                    <p className="text-xs text-white/60 drop-shadow">
+                      {t('躲避管道，飞得越远越好！', 'Dodge pipes, fly as far as you can!')}
+                    </p>
+                  </motion.div>
+                )}
+                {gameState === 'ready' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={springBouncy}
+                    className="text-center"
+                  >
+                    <p
+                      className="text-8xl font-black text-white drop-shadow-lg"
+                      style={{
+                        animation: 'countdown-pop 0.6s ease-out, countdown-fade 0.7s ease-in forwards',
+                        textShadow: '0 0 30px rgba(251, 191, 36, 0.6), 0 4px 12px rgba(0,0,0,0.3)',
+                        color: '#fbbf24',
+                      }}
+                      key={readyCountdown}
+                    >
+                      {readyCountdown}
+                    </p>
+                    <p className="text-lg font-bold text-white/90 drop-shadow mt-2">
+                      {t('准备好了吗？', 'Get Ready!')}
                     </p>
                   </motion.div>
                 )}
@@ -878,7 +1001,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Controls */}
-        {gameState !== 'idle' && (
+        {(gameState === 'playing' || gameState === 'over') && (
           <div className="flex justify-center gap-4">
             <motion.button
               onClick={startGame}

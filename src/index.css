@@ -40,7 +40,7 @@
   --animate-float-slow: float 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   --animate-float-slower: float 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   --animate-float-petal: float-petal 15s linear infinite;
-  --animate-shimmer: shimmer 2s infinite linear;
+  --animate-shimmer: shimmer-transform 1.5s infinite ease-in-out;
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
 
   @keyframes fade-in-up {
@@ -57,9 +57,9 @@
     0% { transform: translateY(-10vh) rotate(0deg) translateX(0); }
     100% { transform: translateY(110vh) rotate(360deg) translateX(50px); }
   }
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+  @keyframes shimmer-transform {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
   }
   @keyframes pulse-glow {
     0%, 100% { box-shadow: 0 0 0 0 rgba(184, 228, 201, 0.4); }
@@ -152,11 +152,61 @@ body {
   }
 }
 
-/* Shimmer skeleton utility */
+/* Shimmer skeleton utility — GPU-accelerated via transform */
 .skeleton-shimmer {
-  background: linear-gradient(90deg, var(--color-surface-container) 25%, var(--color-surface-container-high) 50%, var(--color-surface-container) 75%);
-  background-size: 200% 100%;
-  animation: var(--animate-shimmer);
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-container);
+}
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--color-surface-container-high), transparent);
+  transform: translateX(-100%);
+  animation: shimmer-transform 1.5s infinite ease-in-out;
+  will-change: transform;
+}
+
+/* Skeleton card placeholders */
+.skeleton-card {
+  border-radius: 0.75rem;
+  background: var(--color-surface-container-low);
+}
+.skeleton-card-image {
+  width: 100%;
+  height: 12rem;
+  border-radius: 0.5rem;
+}
+.skeleton-card-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.5rem;
+}
+.skeleton-card-title {
+  height: 1.25rem;
+  width: 60%;
+  border-radius: 0.375rem;
+}
+.skeleton-card-text {
+  height: 0.875rem;
+  width: 80%;
+  border-radius: 0.25rem;
+}
+.skeleton-card-text-short {
+  height: 0.875rem;
+  width: 50%;
+  border-radius: 0.25rem;
+}
+
+/* Loading progress bar (track) — animated bar is a motion.div child */
+.loading-progress {
+  position: relative;
+  overflow: hidden;
+  width: 8rem;
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--color-surface-container-high);
 }
 
 .glass-card {
@@ -265,6 +315,12 @@ body {
 
 /* ── BrickBreaker starfield twinkle ── */
 @keyframes bb-twinkle {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.55; }
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.75; }
+}
+
+/* ── BrickBreaker combo timeout bar ── */
+@keyframes combo-bar-shrink {
+  from { width: 100%; }
+  to { width: 0%; }
 }

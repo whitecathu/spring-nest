@@ -7,6 +7,7 @@ const GAME_WIDTH = 400;
 const GAME_HEIGHT = 600;
 const PADDLE_HEIGHT = 14;
 const PADDLE_WIDTH = 80;
+const PADDLE_WIDTH_MOBILE = 100;
 const BALL_SIZE = 12;
 const BRICK_ROWS = 6;
 const BRICK_COLS = 8;
@@ -23,6 +24,9 @@ interface Brick {
   col: number;
   alive: boolean;
   color: BrickColor;
+  hits: number;
+  maxHits: number;
+  shaking: boolean;
 }
 
 interface Star {
@@ -50,6 +54,20 @@ interface BrickFlash {
   id: number;
 }
 
+interface ScorePopup {
+  x: number;
+  y: number;
+  text: string;
+  id: number;
+  color: string;
+}
+
+interface CollisionFlash {
+  x: number;
+  y: number;
+  id: number;
+}
+
 const ROW_COLORS: BrickColor[] = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
 const COLOR_CLASSES: Record<BrickColor, string> = {
   red: 'bg-red-400 border-red-500',
@@ -71,14 +89,54 @@ const COLOR_POINTS: Record<BrickColor, number> = {
   red: 60, orange: 50, yellow: 40, green: 30, blue: 20, purple: 10,
 };
 
+// Level patterns: 2 = hard brick, 1 = normal brick, 0 = empty
+const LEVEL_PATTERNS: number[][][] = [
+  // Level 1: full grid (all normal)
+  [
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+  ],
+  // Level 2: hard row at top, rest normal
+  [
+    [2,2,2,2,2,2,2,2],
+    [1,1,1,1,1,1,1,1],
+    [1,0,1,1,1,1,0,1],
+    [1,1,1,1,1,1,1,1],
+    [0,1,1,0,0,1,1,0],
+    [1,1,0,1,1,0,1,1],
+  ],
+  // Level 3: diamond with hard bricks
+  [
+    [0,0,0,2,2,0,0,0],
+    [0,0,2,1,1,2,0,0],
+    [0,2,1,1,1,1,2,0],
+    [2,1,1,1,1,1,1,2],
+    [0,2,1,1,1,1,2,0],
+    [0,0,2,1,1,2,0,0],
+  ],
+  // Level 4: checkerboard with hard bricks
+  [
+    [2,0,2,0,2,0,2,0],
+    [0,1,0,1,0,1,0,1],
+    [2,0,2,0,2,0,2,0],
+    [0,1,0,1,0,1,0,1],
+    [2,0,2,0,2,0,2,0],
+    [0,1,0,1,0,1,0,1],
+  ],
+];
+
 function generateStars(): Star[] {
   const stars: Star[] = [];
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 60; i++) {
     stars.push({
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: 1 + Math.random() * 2,
-      opacity: 0.15 + Math.random() * 0.4,
+      size: 1 + Math.random() * 2.5,
+      opacity: 0.2 + Math.random() * 0.5,
       animDelay: Math.random() * 4,
     });
   }
@@ -93,15 +151,23 @@ function saveBestScore(score: number) {
   localStorage.setItem('spring_nest_brickbreaker_best', JSON.stringify(score));
 }
 
-function createBricks(): Brick[] {
+function createBricks(level: number = 1): Brick[] {
   const bricks: Brick[] = [];
+  const patternIdx = Math.min(level - 1, LEVEL_PATTERNS.length - 1);
+  const pattern = LEVEL_PATTERNS[patternIdx];
   for (let r = 0; r < BRICK_ROWS; r++) {
     for (let c = 0; c < BRICK_COLS; c++) {
+      const cell = pattern[r]?.[c] ?? 1;
+      if (cell === 0) continue;
+      const isHard = cell === 2;
       bricks.push({
         row: r,
         col: c,
         alive: true,
         color: ROW_COLORS[r % ROW_COLORS.length],
+        hits: isHard ? 2 : 1,
+        maxHits: isHard ? 2 : 1,
+        shaking: false,
       });
     }
   }
@@ -177,6 +243,26 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
   // Touch state
   const [touchActive, setTouchActive] = useState(false);
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Paddle movement trail
+  const [paddleMoving, setPaddleMoving] = useState(false);
+  const paddleMovingRef = useRef(false);
+  const paddleMoveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevPaddleXRef = useRef((GAME_WIDTH - PADDLE_WIDTH) / 2);
+
+  // Score popups
+  const [scorePopups, setScorePopups] = useState<ScorePopup[]>([]);
+  const popupIdRef = useRef(0);
+
+  // Collision flash
+  const [collisionFlashes, setCollisionFlashes] = useState<CollisionFlash[]>([]);
+  const collFlashIdRef = useRef(0);
+
+  // Combo timeout bar
+  const comboBarKeyRef = useRef(0);
+
   const triggerShake = useCallback((intensity: number, duration: number) => {
     if (intensity > shakeIntensityRef.current) {
       shakeIntensityRef.current = intensity;
@@ -203,21 +289,31 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
 
+  // Mobile detection
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const launchBall = useCallback(() => {
     const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.8;
     ballVxRef.current = BALL_SPEED * Math.cos(angle);
     ballVyRef.current = BALL_SPEED * Math.sin(angle);
-    ballXRef.current = paddleXRef.current + PADDLE_WIDTH / 2;
+    const lPw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
+    ballXRef.current = paddleXRef.current + lPw / 2;
     ballYRef.current = GAME_HEIGHT - 60;
-  }, []);
+  }, [isMobile]);
 
   const startGame = useCallback(() => {
-    paddleXRef.current = (GAME_WIDTH - PADDLE_WIDTH) / 2;
-    bricksRef.current = createBricks();
+    const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
+    paddleXRef.current = (GAME_WIDTH - pw) / 2;
+    bricksRef.current = createBricks(1);
     scoreRef.current = 0;
     livesRef.current = 3;
     playingRef.current = true;
-    setPaddleX((GAME_WIDTH - PADDLE_WIDTH) / 2);
+    setPaddleX((GAME_WIDTH - pw) / 2);
     setBricks([...bricksRef.current]);
     setScore(0);
     setLives(3);
@@ -237,9 +333,14 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     setLevelFlash(false);
     setBallSquash(false);
     setPaddleHitFlash(false);
+    setScorePopups([]);
+    setCollisionFlashes([]);
+    setPaddleMoving(false);
+    if (paddleMoveTimeoutRef.current) { clearTimeout(paddleMoveTimeoutRef.current); paddleMoveTimeoutRef.current = null; }
+    comboBarKeyRef.current = 0;
     setGameState('playing');
     launchBall();
-  }, [launchBall]);
+  }, [launchBall, isMobile]);
 
   const nextLevel = useCallback(() => {
     const newLevel = level + 1;
@@ -264,21 +365,25 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     }
 
     setTimeout(() => {
-      bricksRef.current = createBricks();
+      bricksRef.current = createBricks(newLevel);
       setBricks([...bricksRef.current]);
       setLevel(newLevel);
-      paddleXRef.current = (GAME_WIDTH - PADDLE_WIDTH) / 2;
-      setPaddleX((GAME_WIDTH - PADDLE_WIDTH) / 2);
+      const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
+      paddleXRef.current = (GAME_WIDTH - pw) / 2;
+      setPaddleX((GAME_WIDTH - pw) / 2);
       trailRef.current = [];
       setTrail([]);
       setParticles([]);
       setComboDisplay(0);
       setBrickFlashes([]);
+      setScorePopups([]);
+      setCollisionFlashes([]);
+      comboBarKeyRef.current = 0;
       playingRef.current = true;
       setGameState('playing');
       launchBall();
     }, 400);
-  }, [launchBall, level]);
+  }, [launchBall, level, isMobile]);
 
   // Paddle positioning helper
   const updatePaddleFromX = useCallback((clientX: number) => {
@@ -289,10 +394,11 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     const rect = containerRectRef.current;
     const x = clientX - rect.left;
     const scaledX = x / gameScale;
-    const newX = Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, scaledX - PADDLE_WIDTH / 2));
+    const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
+    const newX = Math.max(0, Math.min(GAME_WIDTH - pw, scaledX - pw / 2));
     paddleXRef.current = newX;
     setPaddleX(newX);
-  }, [gameScale]);
+  }, [gameScale, isMobile]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -383,7 +489,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         }
 
         // Reset ball position
-        ballXRef.current = paddleXRef.current + PADDLE_WIDTH / 2;
+        const pwReset = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
+        ballXRef.current = paddleXRef.current + pwReset / 2;
         ballYRef.current = GAME_HEIGHT - 60;
         const launchAngle = -Math.PI / 2 + (Math.random() - 0.5) * 0.8;
         ballVxRef.current = BALL_SPEED * Math.cos(launchAngle);
@@ -391,20 +498,24 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
       }
 
       // Paddle collision
+      const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
       const paddleTop = GAME_HEIGHT - PADDLE_HEIGHT - 20;
       if (
         ballYRef.current + BALL_SIZE >= paddleTop &&
         ballYRef.current + BALL_SIZE <= paddleTop + PADDLE_HEIGHT + 4 &&
         ballXRef.current + BALL_SIZE >= paddleXRef.current &&
-        ballXRef.current <= paddleXRef.current + PADDLE_WIDTH &&
+        ballXRef.current <= paddleXRef.current + pw &&
         ballVyRef.current > 0
       ) {
         // Improved bounce angle: more natural and predictable
-        const hitPos = (ballXRef.current + BALL_SIZE / 2 - paddleXRef.current) / PADDLE_WIDTH;
+        const hitPos = (ballXRef.current + BALL_SIZE / 2 - paddleXRef.current) / pw;
         const normalizedHit = hitPos - 0.5; // -0.5 to 0.5
         // Slight quadratic curve for predictable feel near edges
         const curvedHit = normalizedHit * 0.7 + Math.sign(normalizedHit) * normalizedHit * normalizedHit * 0.6;
         let bounceAngle = -Math.PI / 2 + curvedHit * 1.5;
+
+        // Add ±5° randomization to prevent repetitive patterns
+        bounceAngle += (Math.random() - 0.5) * (Math.PI / 180 * 10);
 
         // Clamp angle to prevent near-horizontal or near-vertical bounces
         const MIN_BOUND = 0.3;
@@ -414,7 +525,12 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
           bounceAngle = bounceAngle < -Math.PI / 2 ? -Math.PI / 2 - 0.3 : -Math.PI / 2 + 0.3;
         }
 
-        const speed = Math.sqrt(ballVxRef.current ** 2 + ballVyRef.current ** 2);
+        let speed = Math.sqrt(ballVxRef.current ** 2 + ballVyRef.current ** 2);
+        // Power shot: slight speed boost when hitting paddle center
+        const distFromCenter = Math.abs(normalizedHit);
+        if (distFromCenter < 0.15) {
+          speed *= 1.08;
+        }
         ballVxRef.current = speed * Math.cos(bounceAngle);
         ballVyRef.current = speed * Math.sin(bounceAngle);
         // Enforce minimum vertical speed
@@ -427,13 +543,22 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         }
         ballYRef.current = paddleTop - BALL_SIZE;
 
-        // Squash effect on ball
+        // Squash effect on ball (bigger)
         setBallSquash(true);
         setTimeout(() => setBallSquash(false), 100);
 
-        // Paddle hit flash
+        // Paddle hit flash with bigger squash/stretch
         setPaddleHitFlash(true);
         setTimeout(() => setPaddleHitFlash(false), 120);
+
+        // Collision flash at impact point
+        const flashX = ballXRef.current + BALL_SIZE / 2;
+        const flashY = paddleTop;
+        const cfId = collFlashIdRef.current++;
+        setCollisionFlashes(prev => [...prev, { x: flashX, y: flashY, id: cfId }]);
+        setTimeout(() => {
+          setCollisionFlashes(prev => prev.filter(f => f.id !== cfId));
+        }, 250);
 
         triggerShake(2, 200);
       }
@@ -454,39 +579,91 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
           ballYRef.current + BALL_SIZE > brickY &&
           ballYRef.current < brickY + BRICK_HEIGHT
         ) {
-          brick.alive = false;
+          brick.hits--;
           hitBrick = true;
-          scoreRef.current += COLOR_POINTS[brick.color];
-          setScore(scoreRef.current);
+
+          if (brick.hits <= 0) {
+            brick.alive = false;
+            scoreRef.current += COLOR_POINTS[brick.color];
+            setScore(scoreRef.current);
+
+            // Score popup at brick position
+            const popupX = brickX + BRICK_WIDTH / 2;
+            const popupY = brickY + BRICK_HEIGHT / 2;
+            const baseScore = COLOR_POINTS[brick.color];
+            const comboMult = comboCountRef.current >= 2 ? comboCountRef.current : 1;
+            const popupText = comboMult >= 2 ? `+${baseScore * comboMult}` : `+${baseScore}`;
+            const pId = popupIdRef.current++;
+            setScorePopups(prev => [...prev, {
+              x: popupX,
+              y: popupY,
+              text: popupText,
+              id: pId,
+              color: COLOR_HEX[brick.color],
+            }]);
+            setTimeout(() => {
+              setScorePopups(prev => prev.filter(p => p.id !== pId));
+            }, 1000);
+
+            // Spawn 15-20 particles with varied sizes, vibrant colors, gravity
+            const particleCount = 15 + Math.floor(Math.random() * 6);
+            for (let i = 0; i < particleCount; i++) {
+              const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 1.2;
+              const spd = 2 + Math.random() * 5;
+              const size = 2 + Math.random() * 6;
+              newParticles.push({
+                x: brickX + BRICK_WIDTH / 2 + (Math.random() - 0.5) * BRICK_WIDTH * 0.5,
+                y: brickY + BRICK_HEIGHT / 2 + (Math.random() - 0.5) * BRICK_HEIGHT * 0.5,
+                color: brick.color,
+                id: particleId++,
+                vx: Math.cos(angle) * spd,
+                vy: Math.sin(angle) * spd - 3,
+                size,
+              });
+            }
+
+            // Brighter brick destruction flash
+            newFlashes.push({
+              x: brickX,
+              y: brickY,
+              color: brick.color,
+              id: flashIdRef.current++,
+            });
+          } else {
+            // Hard brick hit but not destroyed: brief shake + smaller particle burst
+            brick.shaking = true;
+            setTimeout(() => { brick.shaking = false; setBricks([...bricksRef.current]); }, 200);
+            setBricks([...bricksRef.current]);
+
+            // Small particle burst for hard brick hit
+            const particleCount = 8;
+            for (let i = 0; i < particleCount; i++) {
+              const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 1.0;
+              const spd = 1.5 + Math.random() * 3;
+              const size = 2 + Math.random() * 4;
+              newParticles.push({
+                x: brickX + BRICK_WIDTH / 2 + (Math.random() - 0.5) * BRICK_WIDTH * 0.3,
+                y: brickY + BRICK_HEIGHT / 2 + (Math.random() - 0.5) * BRICK_HEIGHT * 0.3,
+                color: brick.color,
+                id: particleId++,
+                vx: Math.cos(angle) * spd,
+                vy: Math.sin(angle) * spd - 2,
+                size,
+              });
+            }
+
+            // Brief flash for hard brick hit
+            newFlashes.push({
+              x: brickX,
+              y: brickY,
+              color: brick.color,
+              id: flashIdRef.current++,
+            });
+          }
 
           // Subtle speed increase per brick hit (0.5%)
           ballVxRef.current *= 1.005;
           ballVyRef.current *= 1.005;
-
-          // Spawn 12-16 particles with varied sizes (2-8px), vibrant colors, gravity
-          const particleCount = 12 + Math.floor(Math.random() * 5);
-          for (let i = 0; i < particleCount; i++) {
-            const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 1.2;
-            const spd = 2 + Math.random() * 5;
-            const size = 2 + Math.random() * 6;
-            newParticles.push({
-              x: brickX + BRICK_WIDTH / 2 + (Math.random() - 0.5) * BRICK_WIDTH * 0.5,
-              y: brickY + BRICK_HEIGHT / 2 + (Math.random() - 0.5) * BRICK_HEIGHT * 0.5,
-              color: brick.color,
-              id: particleId++,
-              vx: Math.cos(angle) * spd,
-              vy: Math.sin(angle) * spd - 3,
-              size,
-            });
-          }
-
-          // Brick destruction flash/glow
-          newFlashes.push({
-            x: brickX,
-            y: brickY,
-            color: brick.color,
-            id: flashIdRef.current++,
-          });
 
           // Bounce direction
           const ballCenterX = ballXRef.current + BALL_SIZE / 2;
@@ -521,6 +698,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
         if (comboCountRef.current >= 2) {
           setComboDisplay(comboCountRef.current);
+          comboBarKeyRef.current++;
           if (comboTimeoutRef.current) clearTimeout(comboTimeoutRef.current);
           comboTimeoutRef.current = setTimeout(() => setComboDisplay(0), 1200);
           // Stronger shake for combos
@@ -559,6 +737,20 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         return;
       }
 
+      // Paddle movement detection for glow trail
+      if (Math.abs(paddleXRef.current - prevPaddleXRef.current) > 0.5) {
+        if (!paddleMovingRef.current) {
+          paddleMovingRef.current = true;
+          setPaddleMoving(true);
+        }
+        if (paddleMoveTimeoutRef.current) clearTimeout(paddleMoveTimeoutRef.current);
+        paddleMoveTimeoutRef.current = setTimeout(() => {
+          paddleMovingRef.current = false;
+          setPaddleMoving(false);
+        }, 100);
+      }
+      prevPaddleXRef.current = paddleXRef.current;
+
       // Update render
       setBallPos({ x: ballXRef.current, y: ballYRef.current });
 
@@ -583,10 +775,12 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
       if (shakeTimeoutRef.current) clearTimeout(shakeTimeoutRef.current);
       if (levelBannerTimeoutRef.current) clearTimeout(levelBannerTimeoutRef.current);
       if (comboTimeoutRef.current) clearTimeout(comboTimeoutRef.current);
+      if (paddleMoveTimeoutRef.current) clearTimeout(paddleMoveTimeoutRef.current);
     };
   }, []);
 
   const paddleTop = GAME_HEIGHT - PADDLE_HEIGHT - 20;
+  const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
@@ -624,8 +818,22 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               />
             ))}
           </div>
-          <div className="text-sm font-semibold text-secondary">
-            {t('关卡', 'Level')} {level}
+          <div className="flex flex-col items-end gap-0.5">
+            <div className="text-sm font-semibold text-secondary">
+              {t('关卡', 'Level')} {level}
+            </div>
+            {gameState === 'playing' && (
+              <div className="w-20 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{
+                    width: `${bricks.length > 0
+                      ? ((bricks.filter(b => !b.alive).length) / bricks.length) * 100
+                      : 0}%`,
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -652,19 +860,33 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             onTouchEnd={handleTouchEnd}
             onMouseMove={handleMouseMove}
           >
+            {/* Subtle grid lines */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px)
+                `,
+                backgroundSize: `${30 * gameScale}px ${30 * gameScale}px`,
+              }}
+            />
+
             {/* Starfield background */}
             {stars.map((star, i) => (
               <div
                 key={`star-${i}`}
-                className="absolute rounded-full bg-white pointer-events-none"
+                className="absolute rounded-full pointer-events-none"
                 style={{
                   left: `${star.x}%`,
                   top: `${star.y}%`,
                   width: star.size * gameScale,
                   height: star.size * gameScale,
                   opacity: star.opacity,
-                  animation: `bb-twinkle ${2.5 + star.animDelay}s ease-in-out infinite`,
+                  backgroundColor: i % 5 === 0 ? '#bfdbfe' : '#ffffff',
+                  animation: `bb-twinkle ${2 + star.animDelay * 0.8}s ease-in-out infinite`,
                   animationDelay: `${star.animDelay}s`,
+                  filter: i % 7 === 0 ? 'blur(0.5px)' : 'none',
                 }}
               />
             ))}
@@ -674,6 +896,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               if (!brick.alive) return null;
               const x = brick.col * (BRICK_WIDTH + BRICK_GAP) + BRICK_GAP / 2;
               const y = brick.row * (BRICK_HEIGHT + BRICK_GAP) + BRICK_GAP / 2 + 40;
+              const isHard = brick.maxHits > 1;
               return (
                 <div
                   key={i}
@@ -683,26 +906,34 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                     top: y * gameScale,
                     width: BRICK_WIDTH * gameScale,
                     height: BRICK_HEIGHT * gameScale,
+                    transform: brick.shaking
+                      ? `translate(${(Math.random() - 0.5) * 4 * gameScale}px, ${(Math.random() - 0.5) * 2 * gameScale}px)`
+                      : undefined,
+                    filter: isHard && brick.hits < brick.maxHits ? 'brightness(0.75)' : undefined,
+                    boxShadow: isHard
+                      ? `inset 0 0 6px rgba(255,255,255,0.2), 0 0 4px rgba(255,255,255,0.1)`
+                      : undefined,
                   }}
                 />
               );
             })}
 
-            {/* Brick destruction flash/glow effects */}
+            {/* Brick destruction flash/glow effects - brighter */}
             {brickFlashes.map(flash => (
               <motion.div
                 key={`flash-${flash.id}`}
-                initial={{ opacity: 0.9, scale: 1 }}
-                animate={{ opacity: 0, scale: 2 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                initial={{ opacity: 1, scale: 1 }}
+                animate={{ opacity: 0, scale: 2.5 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
                 className="absolute rounded-md pointer-events-none"
                 style={{
                   left: flash.x * gameScale,
                   top: flash.y * gameScale,
                   width: BRICK_WIDTH * gameScale,
                   height: BRICK_HEIGHT * gameScale,
-                  backgroundColor: COLOR_HEX[flash.color],
-                  boxShadow: `0 0 20px ${COLOR_HEX[flash.color]}, 0 0 40px ${COLOR_HEX[flash.color]}60`,
+                  backgroundColor: 'white',
+                  mixBlendMode: 'screen',
+                  boxShadow: `0 0 30px ${COLOR_HEX[flash.color]}, 0 0 60px ${COLOR_HEX[flash.color]}80, 0 0 90px ${COLOR_HEX[flash.color]}40`,
                 }}
               />
             ))}
@@ -734,21 +965,37 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               );
             })}
 
+            {/* Paddle glow trail when moving */}
+            {paddleMoving && (
+              <div
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  left: (paddleX - 6) * gameScale,
+                  top: (paddleTop - 4) * gameScale,
+                  width: (pw + 12) * gameScale,
+                  height: (PADDLE_HEIGHT + 8) * gameScale,
+                  background: 'radial-gradient(ellipse at center, rgba(96,165,250,0.3) 0%, transparent 70%)',
+                  filter: 'blur(4px)',
+                  transition: 'left 0.05s linear',
+                }}
+              />
+            )}
+
             {/* Paddle with glow and hit response */}
             <motion.div
-              animate={paddleHitFlash ? { scaleX: 1.15, scaleY: 0.85 } : { scaleX: 1, scaleY: 1 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+              animate={paddleHitFlash ? { scaleX: 1.22, scaleY: 0.78 } : { scaleX: 1, scaleY: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 12 }}
               className="absolute rounded-full"
               style={{
                 left: paddleX * gameScale,
                 top: paddleTop * gameScale,
-                width: PADDLE_WIDTH * gameScale,
+                width: pw * gameScale,
                 height: PADDLE_HEIGHT * gameScale,
                 background: paddleHitFlash
-                  ? 'linear-gradient(90deg, #93c5fd, #bfdbfe, #93c5fd)'
+                  ? 'linear-gradient(90deg, #93c5fd, #dbeafe, #93c5fd)'
                   : 'linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6)',
                 boxShadow: paddleHitFlash
-                  ? '0 0 24px rgba(96,165,250,0.8), 0 0 48px rgba(96,165,250,0.4)'
+                  ? '0 0 30px rgba(96,165,250,0.9), 0 0 60px rgba(96,165,250,0.5), 0 0 90px rgba(96,165,250,0.2)'
                   : '0 0 12px rgba(59,130,246,0.4), 0 0 24px rgba(59,130,246,0.2)',
                 transition: 'background 0.12s, box-shadow 0.12s',
                 transformOrigin: 'center center',
@@ -794,6 +1041,46 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               }}
             />
 
+            {/* Collision flash at paddle/ball impact */}
+            {collisionFlashes.map(flash => (
+              <motion.div
+                key={`cf-${flash.id}`}
+                initial={{ opacity: 0.9, scale: 0.3 }}
+                animate={{ opacity: 0, scale: 1.5 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  left: (flash.x - 15) * gameScale,
+                  top: (flash.y - 15) * gameScale,
+                  width: 30 * gameScale,
+                  height: 30 * gameScale,
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(96,165,250,0.4) 50%, transparent 100%)',
+                  boxShadow: '0 0 20px rgba(96,165,250,0.6)',
+                }}
+              />
+            ))}
+
+            {/* Score popups floating up from broken bricks */}
+            {scorePopups.map(popup => (
+              <motion.div
+                key={`sp-${popup.id}`}
+                initial={{ opacity: 1, y: 0, scale: 0.8 }}
+                animate={{ opacity: 0, y: -60, scale: 1.2 }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+                className="absolute pointer-events-none font-black text-center"
+                style={{
+                  left: (popup.x - 20) * gameScale,
+                  top: popup.y * gameScale,
+                  width: 40 * gameScale,
+                  fontSize: 12 * gameScale,
+                  color: popup.color,
+                  textShadow: `0 0 8px ${popup.color}, 0 0 16px ${popup.color}80`,
+                }}
+              >
+                {popup.text}
+              </motion.div>
+            ))}
+
             {/* Life Lost Flash - dramatic red vignette */}
             {lifeLostFlash && (
               <motion.div
@@ -817,27 +1104,39 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               />
             )}
 
-            {/* Combo counter display */}
+            {/* Combo counter display with scale animation */}
             <AnimatePresence>
               {comboDisplay >= 2 && (
                 <motion.div
                   key="combo"
-                  initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.5, y: -20 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                  className="absolute top-2 right-2 z-30 flex items-center gap-1 px-2 py-1 rounded-full"
+                  initial={{ opacity: 0, scale: 0.3, y: 20 }}
+                  animate={{ opacity: 1, scale: [0.3, 1.3, 1], y: 0 }}
+                  exit={{ opacity: 0, scale: 0.3, y: -20 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 12 }}
+                  className="absolute top-2 right-2 z-30 flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-full"
                   style={{
                     background: comboDisplay >= 4
                       ? 'linear-gradient(135deg, #f97316, #ef4444)'
                       : 'linear-gradient(135deg, #facc15, #f97316)',
                     boxShadow: comboDisplay >= 4
-                      ? '0 0 16px rgba(239,68,68,0.5)'
-                      : '0 0 12px rgba(249,115,22,0.5)',
+                      ? '0 0 20px rgba(239,68,68,0.6), 0 0 40px rgba(239,68,68,0.3)'
+                      : '0 0 16px rgba(249,115,22,0.6), 0 0 32px rgba(249,115,22,0.2)',
                   }}
                 >
-                  <Zap className="w-3 h-3 text-white" />
-                  <span className="text-xs font-black text-white">{comboDisplay}x</span>
+                  <div className="flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 text-white" />
+                    <span className="text-sm font-black text-white">{comboDisplay}x</span>
+                  </div>
+                  {/* Combo timeout bar */}
+                  <div className="w-full h-0.5 bg-white/30 rounded-full overflow-hidden">
+                    <div
+                      key={`combo-bar-${comboBarKeyRef.current}`}
+                      className="h-full bg-white rounded-full"
+                      style={{
+                        animation: 'combo-bar-shrink 1.2s linear forwards',
+                      }}
+                    />
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -875,7 +1174,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                 style={{
                   left: (paddleX - 10) * gameScale,
                   top: (paddleTop - 4) * gameScale,
-                  width: (PADDLE_WIDTH + 20) * gameScale,
+                  width: (pw + 20) * gameScale,
                   height: (PADDLE_HEIGHT + 8) * gameScale,
                   borderRadius: 999,
                   border: '2px solid rgba(96,165,250,0.3)',

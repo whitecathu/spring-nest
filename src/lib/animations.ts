@@ -72,6 +72,29 @@ export const slideUp = {
   exit: { opacity: 0, y: 40, transition: { duration: 0.2 } },
 };
 
+// ── Loading State Presets ────────────────────────────────────
+/** Floating particles around a loading indicator */
+export const particleFloat = (x: number, y: number, delay: number) => ({
+  animate: {
+    x: [0, x, 0],
+    y: [0, y, 0],
+    opacity: [0, 0.6, 0],
+    scale: [0.5, 1, 0.5],
+  },
+  transition: {
+    duration: 3,
+    repeat: Infinity,
+    delay,
+    ease: 'easeInOut' as const,
+  },
+});
+
+/** Progress bar sliding animation */
+export const progressSlide = {
+  animate: { x: ['-100%', '100%'] },
+  transition: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' as const },
+};
+
 // ── Hover/Interaction Presets ───────────────────────────────
 /** Card hover — lift + subtle scale */
 export const hoverLift = {

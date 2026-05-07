@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { useReducedMotion, particleFloat, progressSlide } from './lib/animations';
 import { Leaf } from 'lucide-react';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -22,26 +23,60 @@ const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
-const LoadingFallback = () => (
-  <div className="flex-grow flex items-center justify-center min-h-[50vh] bg-gradient-to-b from-[#E8F5EE]/40 to-[#FFF9F2]/40 dark:from-[#1a2c1f]/40 dark:to-background/40">
-    <div className="flex flex-col items-center gap-4">
-      <motion.div
-        animate={{ y: [0, -8, 0], scale: [1, 1.05, 1] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <Leaf className="w-12 h-12 text-primary fill-primary/30" />
-      </motion.div>
-      <motion.span
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="font-nunito font-bold text-lg text-primary"
-      >
-        Spring Nest
-      </motion.span>
+const particles = [
+  { x: -40, y: -30, delay: 0, size: 4 },
+  { x: 35, y: -25, delay: 0.5, size: 3 },
+  { x: -30, y: 25, delay: 1, size: 5 },
+  { x: 40, y: 20, delay: 1.5, size: 3 },
+  { x: 0, y: -40, delay: 0.8, size: 4 },
+  { x: -20, y: 35, delay: 1.2, size: 3 },
+];
+
+const LoadingFallback = () => {
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <div className="flex-grow flex items-center justify-center min-h-[50vh] bg-gradient-to-b from-[#E8F5EE]/40 to-[#FFF9F2]/40 dark:from-[#1a2c1f]/40 dark:to-background/40">
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative">
+          {/* Floating particles */}
+          {!reducedMotion && particles.map((p, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-primary/20"
+              style={{ width: p.size, height: p.size, left: '50%', top: '50%' }}
+              {...particleFloat(p.x, p.y, p.delay)}
+            />
+          ))}
+          {/* Pulsing logo */}
+          <motion.div
+            animate={reducedMotion ? {} : { y: [0, -8, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Leaf className="w-12 h-12 text-primary fill-primary/30" />
+          </motion.div>
+        </div>
+        <motion.span
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="font-nunito font-bold text-lg text-primary"
+        >
+          Spring Nest
+        </motion.span>
+        {/* Animated progress bar */}
+        {!reducedMotion && (
+          <div className="loading-progress">
+            <motion.div
+              className="h-full bg-primary/60 rounded-full"
+              {...progressSlide}
+            />
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default function App() {
   return (
