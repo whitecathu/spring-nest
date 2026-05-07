@@ -86,7 +86,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
   const [paddleX, setPaddleX] = useState((GAME_WIDTH - PADDLE_WIDTH) / 2);
   const [ballPos, setBallPos] = useState({ x: GAME_WIDTH / 2, y: GAME_HEIGHT - 60 });
   const [bricks, setBricks] = useState<Brick[]>(createBricks());
-  const [particles, setParticles] = useState<{ x: number; y: number; color: string; id: number; vx: number; vy: number }[]>([]);
+  const [particles, setParticles] = useState<{ x: number; y: number; color: string; id: number; vx: number; vy: number; size: number }[]>([]);
 
   const [gameScale, setGameScale] = useState(1);
 
@@ -94,8 +94,22 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
   const trailRef = useRef<{ x: number; y: number }[]>([]);
   const [trail, setTrail] = useState<{ x: number; y: number }[]>([]);
 
-  // Screen shake
-  const [shakeBoard, setShakeBoard] = useState(false);
+  // Screen shake (intensity: 0=none, 1=subtle, 2=medium, 3=strong)
+  const [shakeIntensity, setShakeIntensity] = useState(0);
+  const shakeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shakeIntensityRef = useRef(0);
+
+  const triggerShake = useCallback((intensity: number, duration: number) => {
+    if (intensity > shakeIntensityRef.current) {
+      shakeIntensityRef.current = intensity;
+      setShakeIntensity(intensity);
+    }
+    if (shakeTimeoutRef.current) clearTimeout(shakeTimeoutRef.current);
+    shakeTimeoutRef.current = setTimeout(() => {
+      shakeIntensityRef.current = 0;
+      setShakeIntensity(0);
+    }, duration);
+  }, []);
 
   // Life lost flash
   const [lifeLostFlash, setLifeLostFlash] = useState(false);
@@ -136,7 +150,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     setParticles([]);
     trailRef.current = [];
     setTrail([]);
-    setShakeBoard(false);
+    setShakeIntensity(0);
+    shakeIntensityRef.current = 0;
+    if (shakeTimeoutRef.current) { clearTimeout(shakeTimeoutRef.current); shakeTimeoutRef.current = null; }
     setLifeLostFlash(false);
     setGameState('playing');
     launchBall();
@@ -207,13 +223,23 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
       const dt = Math.min(now - lastTime, 33);
       lastTime = now;
 
+      // Enforce minimum vertical speed to prevent horizontal loops
+      const currentSpeed = Math.sqrt(ballVxRef.current ** 2 + ballVyRef.current ** 2);
+      const MIN_VY_RATIO = 0.25;
+      if (Math.abs(ballVyRef.current) < currentSpeed * MIN_VY_RATIO && currentSpeed > 0) {
+        const minVy = currentSpeed * MIN_VY_RATIO;
+        ballVyRef.current = ballVyRef.current < 0 ? -minVy : minVy;
+        const remainingVx = Math.sqrt(currentSpeed ** 2 - minVy ** 2);
+        ballVxRef.current = ballVxRef.current < 0 ? -remainingVx : remainingVx;
+      }
+
       // Update ball
       ballXRef.current += ballVxRef.current;
       ballYRef.current += ballVyRef.current;
 
       // Update trail
       trailRef.current.push({ x: ballXRef.current, y: ballYRef.current });
-      if (trailRef.current.length > 8) trailRef.current.shift();
+      if (trailRef.current.length > 10) trailRef.current.shift();
       setTrail([...trailRef.current]);
 
       // Wall collisions
@@ -234,9 +260,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
       if (ballYRef.current >= GAME_HEIGHT - BALL_SIZE) {
         livesRef.current--;
         setLives(livesRef.current);
-        setShakeBoard(true);
+        triggerShake(3, 350);
         setLifeLostFlash(true);
-        setTimeout(() => setShakeBoard(false), 300);
         setTimeout(() => setLifeLostFlash(false), 300);
 
         if (livesRef.current <= 0) {
@@ -271,21 +296,34 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         // Calculate bounce angle based on where ball hit paddle
         const hitPos = (ballXRef.current + BALL_SIZE / 2 - paddleXRef.current) / PADDLE_WIDTH;
         let angle = -Math.PI / 2 + (hitPos - 0.5) * 1.2;
-        // Clamp angle: prevent too horizontal or too vertical bounces
-        if (angle > -0.15 && angle < 0.15) angle = angle < 0 ? -0.35 : 0.35;
-        if (Math.abs(angle) < 0.3) angle = angle < 0 ? -0.5 : 0.5;
-        if (angle > -Math.PI / 2 - 0.25 && angle < -Math.PI / 2 + 0.25) {
-          angle = angle < -Math.PI / 2 ? -Math.PI / 2 - 0.4 : -Math.PI / 2 + 0.4;
+        // Clamp angle: prevent too horizontal bounces and ensure vertical component
+        // Push angles near horizontal (0 or PI) away to ensure vertical movement
+        if (Math.abs(angle) < 0.35) angle = angle < 0 ? -0.35 : 0.35;
+        if (Math.abs(angle) > Math.PI - 0.35) angle = angle < 0 ? -(Math.PI - 0.35) : (Math.PI - 0.35);
+        // Prevent near-vertical bounces that cause stuck loops
+        if (angle > -Math.PI / 2 - 0.2 && angle < -Math.PI / 2 + 0.2) {
+          angle = angle < -Math.PI / 2 ? -Math.PI / 2 - 0.35 : -Math.PI / 2 + 0.35;
         }
+        // Enforce minimum vertical speed component
+        const MIN_VERTICAL_RATIO = 0.3;
         const speed = Math.sqrt(ballVxRef.current ** 2 + ballVyRef.current ** 2);
         ballVxRef.current = speed * Math.cos(angle);
         ballVyRef.current = speed * Math.sin(angle);
+        // Enforce minimum vertical speed to prevent horizontal loops
+        const minVy = speed * MIN_VERTICAL_RATIO;
+        if (Math.abs(ballVyRef.current) < minVy) {
+          ballVyRef.current = ballVyRef.current < 0 ? -minVy : minVy;
+          const remainingVx = Math.sqrt(speed ** 2 - minVy ** 2);
+          ballVxRef.current = ballVxRef.current < 0 ? -remainingVx : remainingVx;
+        }
         ballYRef.current = paddleTop - BALL_SIZE;
+        // Paddle hit shake
+        triggerShake(2, 200);
       }
 
       // Brick collisions
       let hitBrick = false;
-      const newParticles: { x: number; y: number; color: string; id: number; vx: number; vy: number }[] = [];
+      const newParticles: { x: number; y: number; color: string; id: number; vx: number; vy: number; size: number }[] = [];
       for (const brick of bricksRef.current) {
         if (!brick.alive) continue;
 
@@ -303,17 +341,20 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
           scoreRef.current += COLOR_POINTS[brick.color];
           setScore(scoreRef.current);
 
-          // Spawn particles
-          for (let i = 0; i < 6; i++) {
-            const angle = (Math.PI * 2 * i) / 6 + (Math.random() - 0.5) * 0.8;
-            const spd = 2 + Math.random() * 3;
+          // Spawn particles with varied sizes and gravity
+          const particleCount = 8 + Math.floor(Math.random() * 4);
+          for (let i = 0; i < particleCount; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 1.0;
+            const spd = 1.5 + Math.random() * 4;
+            const size = 2 + Math.random() * 4; // 2-6px
             newParticles.push({
-              x: brickX + BRICK_WIDTH / 2,
-              y: brickY + BRICK_HEIGHT / 2,
+              x: brickX + BRICK_WIDTH / 2 + (Math.random() - 0.5) * BRICK_WIDTH * 0.5,
+              y: brickY + BRICK_HEIGHT / 2 + (Math.random() - 0.5) * BRICK_HEIGHT * 0.5,
               color: brick.color,
               id: particleId++,
               vx: Math.cos(angle) * spd,
-              vy: Math.sin(angle) * spd - 2,
+              vy: Math.sin(angle) * spd - 3,
+              size,
             });
           }
 
@@ -338,6 +379,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
       if (hitBrick) {
         setBricks([...bricksRef.current]);
+        // Subtle shake on brick hit
+        triggerShake(1, 120);
       }
 
       if (newParticles.length > 0) {
@@ -345,7 +388,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         // Remove particles after animation
         setTimeout(() => {
           setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
-        }, 600);
+        }, 900);
       }
 
       // Check win
@@ -383,6 +426,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
       playingRef.current = false;
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
+      }
+      if (shakeTimeoutRef.current) {
+        clearTimeout(shakeTimeoutRef.current);
       }
     };
   }, []);
@@ -433,8 +479,13 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         {/* Game Area */}
         <div ref={containerRef} className="flex justify-center mb-4">
           <motion.div
-            animate={shakeBoard ? { x: [0, -5, 5, -3, 3, 0] } : {}}
-            transition={{ duration: 0.3 }}
+            animate={shakeIntensity > 0 ? {
+              x: shakeIntensity >= 3 ? [0, -8, 8, -6, 6, -3, 3, 0] :
+                 shakeIntensity >= 2 ? [0, -4, 4, -2, 2, 0] :
+                 [0, -2, 2, -1, 1, 0],
+              y: shakeIntensity >= 3 ? [0, 3, -3, 2, -2, 0] : [0, 0, 0, 0, 0, 0],
+            } : {}}
+            transition={{ duration: shakeIntensity >= 3 ? 0.35 : 0.2 }}
             className="relative overflow-hidden rounded-2xl bg-gray-900 dark:bg-gray-950 cursor-none select-none touch-none"
             style={{
               width: GAME_WIDTH * gameScale,
@@ -468,12 +519,14 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               <motion.div
                 key={p.id}
                 initial={{ opacity: 1, scale: 1 }}
-                animate={{ opacity: 0, scale: 0, x: p.vx * 15, y: p.vy * 15 }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-                className={`absolute w-2 h-2 rounded-full ${COLOR_CLASSES[p.color]?.split(' ')[0] || 'bg-white'}`}
+                animate={{ opacity: 0, scale: 0.2, x: p.vx * 18, y: p.vy * 18 + 60 }}
+                transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className={`absolute rounded-full ${COLOR_CLASSES[p.color]?.split(' ')[0] || 'bg-white'}`}
                 style={{
                   left: p.x * gameScale,
                   top: p.y * gameScale,
+                  width: p.size * gameScale,
+                  height: p.size * gameScale,
                 }}
               />
             ))}
@@ -490,19 +543,24 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             />
 
             {/* Ball Trail */}
-            {trail.map((pos, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full bg-white/20"
-                style={{
-                  left: (pos.x + BALL_SIZE / 2 - (BALL_SIZE * (0.3 + i * 0.06)) / 2) * gameScale,
-                  top: (pos.y + BALL_SIZE / 2 - (BALL_SIZE * (0.3 + i * 0.06)) / 2) * gameScale,
-                  width: BALL_SIZE * (0.3 + i * 0.06) * gameScale,
-                  height: BALL_SIZE * (0.3 + i * 0.06) * gameScale,
-                  opacity: (i + 1) / trail.length * 0.4,
-                }}
-              />
-            ))}
+            {trail.map((pos, i) => {
+              const t = trail.length > 1 ? i / (trail.length - 1) : 0;
+              const size = BALL_SIZE * (0.25 + t * 0.75);
+              const opacity = t * 0.5 + 0.05;
+              return (
+                <div
+                  key={i}
+                  className="absolute rounded-full"
+                  style={{
+                    left: (pos.x + BALL_SIZE / 2 - size / 2) * gameScale,
+                    top: (pos.y + BALL_SIZE / 2 - size / 2) * gameScale,
+                    width: size * gameScale,
+                    height: size * gameScale,
+                    background: `radial-gradient(circle, rgba(255,255,255,${opacity}) 0%, rgba(147,197,253,${opacity * 0.5}) 100%)`,
+                  }}
+                />
+              );
+            })}
 
             {/* Ball */}
             <div
@@ -527,7 +585,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center"
+                    className="text-center cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); startGame(); }}
+                    onTouchStart={(e) => { e.stopPropagation(); startGame(); }}
                   >
                     <p className="text-5xl mb-3">🧱</p>
                     <p className="text-xl font-bold text-white mb-2">

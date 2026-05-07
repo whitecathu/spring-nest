@@ -94,8 +94,10 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
   const boardCreatedRef = useRef(false);
   const [flagMode, setFlagMode] = useState<'reveal' | 'flag'>('reveal');
   const timeRef = useRef(0);
-  const [animatingCells, setAnimatingCells] = useState<Set<string>>(new Set());
+  const [cellAnimDelays, setCellAnimDelays] = useState<Map<string, number>>(new Map());
   const [boardShake, setBoardShake] = useState(false);
+  const [boomCell, setBoomCell] = useState<{ r: number; c: number } | null>(null);
+  const [confetti, setConfetti] = useState<{ id: number; x: number; color: string; delay: number }[]>([]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -122,8 +124,10 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
     boardCreatedRef.current = false;
     setFlagMode('reveal');
     timeRef.current = 0;
-    setAnimatingCells(new Set());
+    setCellAnimDelays(new Map());
     setBoardShake(false);
+    setBoomCell(null);
+    setConfetti([]);
     setBestTime(loadBestTime(difficulty));
   }, [difficulty, clearTimer]);
 
@@ -155,10 +159,13 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
       const newBoard = currentBoard.map(row => row.map(cell => ({ ...cell })));
 
       if (newBoard[r][c].mine) {
-        // Triggered mine gets immediate red
+        // Triggered mine gets immediate red with flash
         newBoard[r][c].revealed = true;
+        setBoomCell({ r, c });
         setBoardShake(true);
-        setTimeout(() => setBoardShake(false), 400);
+        // More dramatic shake: two phases - big shake then settle
+        setTimeout(() => setBoardShake(false), 600);
+        setTimeout(() => setBoomCell(null), 500);
 
         // Collect all other mines with distance from triggered mine
         const mines: { r: number; c: number; dist: number }[] = [];
@@ -180,33 +187,46 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
               nb[m.r][m.c].revealed = true;
               return nb;
             });
-          }, (i + 1) * 60);
+          }, (i + 1) * 50);
         });
 
         clearTimer();
-        setTimeout(() => setGameState('lost'), mines.length * 60 + 400);
+        setTimeout(() => setGameState('lost'), mines.length * 50 + 600);
         return newBoard;
       }
 
       floodFill(newBoard, r, c);
 
-      // Track newly revealed cells for cascade animation
-      const newlyRevealed = new Set<string>();
+      // Track newly revealed cells for wave-like cascade animation
+      const newlyRevealed = new Map<string, number>();
       for (let ri = 0; ri < newBoard.length; ri++) {
         for (let ci = 0; ci < newBoard[ri].length; ci++) {
           if (newBoard[ri][ci].revealed && !prev[ri]?.[ci]?.revealed) {
-            newlyRevealed.add(`${ri}-${ci}`);
+            const dist = Math.abs(ri - r) + Math.abs(ci - c);
+            newlyRevealed.set(`${ri}-${ci}`, dist * 25);
           }
         }
       }
       if (newlyRevealed.size > 0) {
-        setAnimatingCells(newlyRevealed);
-        setTimeout(() => setAnimatingCells(new Set()), 500);
+        setCellAnimDelays(newlyRevealed);
+        const maxDelay = Math.max(...newlyRevealed.values());
+        setTimeout(() => setCellAnimDelays(new Map()), maxDelay + 400);
       }
 
       if (checkWin(newBoard)) {
         clearTimer();
         setGameState('won');
+        // Spawn confetti particles
+        const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7', '#ec4899', '#14b8a6'];
+        const particles = Array.from({ length: 30 }, (_, i) => ({
+          id: i,
+          x: 10 + Math.random() * 80,
+          color: colors[i % colors.length],
+          delay: Math.random() * 0.5,
+        }));
+        setConfetti(particles);
+        setTimeout(() => setConfetti([]), 3000);
+
         const bt = loadBestTime(difficulty);
         const currentTime = timeRef.current;
         if (bt === 0 || currentTime < bt) {
@@ -308,7 +328,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                 disabled={gameState === 'playing'}
                 whileTap={{ scale: 0.93 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                className={`px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
+                className={`px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[48px] ${
                   difficulty === d
                     ? 'bg-primary text-on-primary'
                     : gameState === 'playing'
@@ -335,7 +355,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={startGame}
               whileTap={{ scale: 0.9 }}
-              className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5 min-h-[44px]"
+              className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5 min-h-[48px]"
             >
               <RotateCcw className="w-4 h-4 text-on-surface" />
               <span className="text-sm font-semibold text-on-surface">
@@ -361,7 +381,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         {/* Game Board */}
         <div className="flex justify-center overflow-x-auto">
           <motion.div
-            animate={boardShake ? { x: [0, -4, 4, -3, 3, -1, 0] } : {}}
+            animate={boardShake ? { x: [0, -8, 10, -8, 8, -4, 4, -2, 0], rotate: [0, -1, 1, -0.5, 0.5, 0] } : {}}
             transition={{ duration: 0.4 }}
             className="inline-grid gap-0.5 p-2 bg-surface-container-high rounded-2xl select-none touch-none"
             style={{ gridTemplateColumns: `repeat(${cfg.cols}, minmax(0, 1fr))` }}
@@ -389,7 +409,9 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                   bgClass = 'bg-yellow-100 hover:bg-yellow-200';
                 }
 
-                const isAnimating = animatingCells.has(`${r}-${c}`);
+                const isAnimating = cellAnimDelays.has(`${r}-${c}`);
+                const animDelay = cellAnimDelays.get(`${r}-${c}`) ?? 0;
+                const isBoom = boomCell?.r === r && boomCell?.c === c;
 
                 return (
                   <motion.button
@@ -399,7 +421,22 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                     onClick={() => handleCellClick(r, c)}
                     onContextMenu={(e) => handleRightClick(r, c, e)}
                     whileTap={{ scale: 0.9 }}
-                    className={`${cellSize} rounded flex items-center justify-center font-bold transition-colors ${bgClass} ${contentClass} ${isAnimating ? 'animate-cell-reveal' : ''}`}
+                    initial={isAnimating ? { scale: 0.3, opacity: 0 } : false}
+                    animate={
+                      isAnimating
+                        ? { scale: 1, opacity: 1 }
+                        : isBoom
+                          ? { backgroundColor: ['#ffffff', '#fca5a5', '#fecaca'] }
+                          : {}
+                    }
+                    transition={
+                      isAnimating
+                        ? { delay: animDelay / 1000, type: 'spring', stiffness: 500, damping: 18 }
+                        : isBoom
+                          ? { duration: 0.4, times: [0, 0.3, 1] }
+                          : { type: 'spring', stiffness: 500, damping: 15 }
+                    }
+                    className={`${cellSize} rounded flex items-center justify-center font-bold transition-colors ${bgClass} ${contentClass}`}
                   >
                     {content}
                   </motion.button>
@@ -413,21 +450,57 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         <div className="flex justify-center gap-3 mt-3">
           <motion.button
             onClick={() => setFlagMode(m => m === 'reveal' ? 'flag' : 'reveal')}
-            whileTap={{ scale: 0.93 }}
-            className={`px-6 py-3 rounded-full font-semibold text-sm flex items-center gap-2 min-h-[48px] transition-all ${
+            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            layout
+            className={`px-6 py-3 rounded-full font-semibold text-sm flex items-center gap-2 min-h-[48px] transition-colors ${
               flagMode === 'flag'
                 ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
                 : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
             }`}
           >
-            <Flag className="w-4 h-4" />
-            {flagMode === 'flag' ? t('标旗模式', 'Flag Mode') : t('揭开模式', 'Reveal Mode')}
+            <motion.span
+              key={flagMode}
+              initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+              animate={{ rotate: 0, opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+              className="flex items-center gap-2"
+            >
+              <Flag className="w-4 h-4" />
+              {flagMode === 'flag' ? t('标旗模式', 'Flag Mode') : t('揭开模式', 'Reveal Mode')}
+            </motion.span>
           </motion.button>
         </div>
 
         {/* Instructions */}
         <div className="text-center mt-4 text-xs text-secondary/50">
           {t('点击揭开格子，长按/右键标旗', 'Tap to reveal, long-press / right-click to flag')}
+        </div>
+
+        {/* Confetti Particles */}
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          <AnimatePresence>
+            {confetti.map((p) => (
+              <motion.div
+                key={p.id}
+                initial={{ x: `${p.x}vw`, y: -20, opacity: 1, scale: 1, rotate: 0 }}
+                animate={{
+                  y: '110vh',
+                  opacity: [1, 1, 0],
+                  scale: [1, 1.2, 0.8],
+                  rotate: Math.random() > 0.5 ? 720 : -720,
+                }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  duration: 2 + Math.random(),
+                  delay: p.delay,
+                  ease: 'easeIn',
+                }}
+                className="absolute w-3 h-3 rounded-sm"
+                style={{ backgroundColor: p.color }}
+              />
+            ))}
+          </AnimatePresence>
         </div>
 
         {/* Game Over Overlay */}
@@ -446,21 +519,63 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
             >
               {gameState === 'won' ? (
                 <>
-                  <p className="text-2xl mb-1">{t('恭喜通关！', 'You Win!')}</p>
-                  <p className="text-4xl mb-3">🎉</p>
-                  <p className="text-lg font-bold text-green-600 mb-1">{t('用时', 'Time')}: {formatTime(time)}</p>
+                  <motion.p
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+                    className="text-2xl mb-1"
+                  >
+                    {t('恭喜通关！', 'You Win!')}
+                  </motion.p>
+                  <motion.p
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 10, delay: 0.2 }}
+                    className="text-4xl mb-3"
+                  >
+                    🎉
+                  </motion.p>
+                  <motion.p
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-lg font-bold text-green-600 mb-1"
+                  >
+                    {t('用时', 'Time')}: {formatTime(time)}
+                  </motion.p>
                   {time > 0 && time <= bestTime && (
-                    <p className="text-sm text-green-500 mb-2">🏆 {t('新纪录！', 'New Record!')}</p>
+                    <motion.p
+                      initial={{ scale: 0 }}
+                      animate={{ scale: [0, 1.3, 1] }}
+                      transition={{ delay: 0.5, duration: 0.4 }}
+                      className="text-sm text-green-500 mb-2"
+                    >
+                      🏆 {t('新纪录！', 'New Record!')}
+                    </motion.p>
                   )}
                 </>
               ) : (
                 <>
-                  <p className="text-2xl mb-1">{t('踩到地雷！', 'Boom! Game Over')}</p>
-                  <p className="text-4xl mb-3">💥</p>
+                  <motion.p
+                    initial={{ x: -10 }}
+                    animate={{ x: [0, -5, 5, -3, 3, 0] }}
+                    transition={{ duration: 0.4 }}
+                    className="text-2xl mb-1"
+                  >
+                    {t('踩到地雷！', 'Boom! Game Over')}
+                  </motion.p>
+                  <motion.p
+                    initial={{ scale: 3, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+                    className="text-4xl mb-3"
+                  >
+                    💥
+                  </motion.p>
                 </>
               )}
               <div className="flex justify-center gap-3">
-                <button onClick={startGame} className={`px-6 py-3 rounded-full font-semibold text-white min-h-[44px] transition-colors ${
+                <button onClick={startGame} className={`px-6 py-3 rounded-full font-semibold text-white min-h-[48px] transition-colors ${
                   gameState === 'won' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
                 }`}>
                   {t('再来一局', 'Play Again')}

@@ -7,8 +7,8 @@ const GAME_WIDTH = 400;
 const GAME_HEIGHT = 600;
 const BIRD_SIZE = 32;
 const BIRD_X = 80;
-const GRAVITY = 0.45;
-const JUMP_FORCE = -7.5;
+const GRAVITY = 0.52;
+const JUMP_FORCE = -8.5;
 const PIPE_WIDTH = 56;
 const PIPE_GAP = 150;
 const PIPE_SPEED = 2.5;
@@ -19,6 +19,17 @@ interface Pipe {
   gapY: number;
   passed: boolean;
 }
+
+interface DeathParticle {
+  id: number;
+  vx: number;
+  vy: number;
+  color: string;
+  size: number;
+  duration: number;
+}
+
+let particleIdCounter = 0;
 
 function loadBestScore(): number {
   try { return JSON.parse(localStorage.getItem('spring_nest_flappy_best') || '0'); } catch { return 0; }
@@ -54,6 +65,8 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   const [groundScroll, setGroundScroll] = useState(0);
 
   const [gameScale, setGameScale] = useState(1);
+  const [deathShake, setDeathShake] = useState(false);
+  const [deathParticles, setDeathParticles] = useState<DeathParticle[]>([]);
 
   // Responsive scaling
   useEffect(() => {
@@ -88,11 +101,38 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
     setPipes([]);
     setScore(0);
     setGameState('playing');
+    setDeathShake(false);
+    setDeathParticles([]);
+  }, []);
+
+  // Spawn death particles at a given bird position
+  const spawnDeathParticles = useCallback((y: number) => {
+    const colors = ['#fbbf24', '#f59e0b', '#ef4444', '#fb923c', '#f87171', '#ffffff'];
+    const newParticles: DeathParticle[] = Array.from({ length: 6 }, () => ({
+      id: particleIdCounter++,
+      vx: (Math.random() - 0.5) * 160,
+      vy: -Math.random() * 120 - 40,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 4 + 3,
+      duration: Math.random() * 0.4 + 0.4,
+    }));
+    setDeathParticles(prev => [...prev, ...newParticles]);
+    // Clean up after animation completes
+    setTimeout(() => {
+      setDeathParticles(prev => prev.filter(p => !newParticles.includes(p)));
+    }, 1000);
   }, []);
 
   const gameOver = useCallback(() => {
     // Death pop: bird goes up briefly
     birdVelRef.current = -6;
+
+    // Brief flash/shake effect
+    setDeathShake(true);
+    setTimeout(() => setDeathShake(false), 300);
+
+    // Initial burst of particles
+    spawnDeathParticles(birdYRef.current);
 
     // Stop main game loop but keep rendering for death animation
     if (animFrameRef.current) {
@@ -100,11 +140,23 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
       animFrameRef.current = 0;
     }
 
+    // Track death time for accelerating rotation
+    const deathStartTime = performance.now();
+
     // Continue rendering for death animation
     const deathLoop = () => {
       birdVelRef.current += GRAVITY * 1.3; // faster gravity during death
       birdYRef.current += birdVelRef.current;
-      birdRotationRef.current += (90 - birdRotationRef.current) * 0.1; // rotate to nose-down
+
+      // Accelerating rotation: speed increases the longer the bird has been falling
+      const elapsed = (performance.now() - deathStartTime) / 1000;
+      const rotSpeed = 3 + elapsed * 4; // starts at 3 deg/frame, accelerates
+      birdRotationRef.current = Math.min(90, birdRotationRef.current + rotSpeed);
+
+      // Spawn trailing particles during fall
+      if (Math.random() < 0.3) {
+        spawnDeathParticles(birdYRef.current);
+      }
 
       setBirdY(birdYRef.current);
       setBirdRotation(birdRotationRef.current);
@@ -126,7 +178,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         setBestScore(s);
       }
     }, 800);
-  }, []);
+  }, [spawnDeathParticles]);
 
   // Game loop
   useEffect(() => {
@@ -144,9 +196,12 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
       birdVelRef.current += GRAVITY;
       birdYRef.current += birdVelRef.current;
 
-      // Smooth rotation: lerp toward target based on velocity
+      // Smooth rotation with velocity-dependent lerp:
+      // Rising (negative vel) = slower rotation for snappy feel
+      // Falling (positive vel) = faster rotation for dramatic nosedive
       const targetRotation = Math.min(70, Math.max(-30, birdVelRef.current * 5));
-      birdRotationRef.current += (targetRotation - birdRotationRef.current) * 0.15;
+      const lerpFactor = birdVelRef.current > 0 ? 0.25 : 0.1;
+      birdRotationRef.current += (targetRotation - birdRotationRef.current) * lerpFactor;
 
       // Bird bounds
       if (birdYRef.current < 0 || birdYRef.current > GAME_HEIGHT - BIRD_SIZE) {
@@ -252,6 +307,20 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
+      <style>{`
+        @keyframes flappy-shake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-4px); }
+          40% { transform: translateX(4px); }
+          60% { transform: translateX(-3px); }
+          80% { transform: translateX(3px); }
+        }
+        @keyframes particle-fly {
+          from { transform: translate(0, 0); opacity: 1; }
+          to { transform: translate(var(--px), var(--py)); opacity: 0; }
+        }
+      `}</style>
+
       <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
@@ -269,10 +338,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
               <motion.div
                 key={score}
-                initial={{ scale: 1.4 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 600, damping: 12 }}
-                className="text-xl font-bold text-primary tabular-nums"
+                initial={{ scale: 1.6, color: '#fbbf24' }}
+                animate={{ scale: 1, color: 'var(--color-primary)' }}
+                transition={{ type: 'spring', stiffness: 800, damping: 10 }}
+                className="text-xl font-bold tabular-nums"
               >
                 {score}
               </motion.div>
@@ -291,17 +360,29 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
             style={{
               width: GAME_WIDTH * gameScale,
               height: GAME_HEIGHT * gameScale,
+              animation: deathShake ? 'flappy-shake 0.3s ease-in-out' : 'none',
             }}
             onClick={handleTap}
             onTouchStart={(e) => { e.preventDefault(); handleTap(); }}
           >
-            {/* Ground */}
+            {/* Ground with texture */}
             <div
-              className="absolute bottom-0 left-0 bg-green-400 dark:bg-green-700"
+              className="absolute bottom-0 left-0"
               style={{
                 height: 20 * gameScale,
                 width: (GAME_WIDTH + 80) * gameScale,
                 transform: `translateX(-${groundScroll * gameScale}px)`,
+                background: `
+                  linear-gradient(to bottom, #4ade80, #16a34a),
+                  repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent ${12 * gameScale}px,
+                    rgba(0,0,0,0.08) ${12 * gameScale}px,
+                    rgba(0,0,0,0.08) ${14 * gameScale}px
+                  )
+                `,
+                backgroundBlendMode: 'multiply',
               }}
             />
 
@@ -384,6 +465,27 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
               </div>
             )}
 
+            {/* Death particles */}
+            <AnimatePresence>
+              {deathParticles.map((particle) => (
+                <div
+                  key={particle.id}
+                  className="absolute rounded-full pointer-events-none"
+                  style={{
+                    left: (BIRD_X + BIRD_SIZE / 2) * gameScale,
+                    top: birdY * gameScale,
+                    width: particle.size * gameScale,
+                    height: particle.size * gameScale,
+                    backgroundColor: particle.color,
+                    animation: `particle-fly ${particle.duration}s ease-out forwards`,
+                    willChange: 'transform, opacity',
+                    ['--px' as string]: `${particle.vx * gameScale}px`,
+                    ['--py' as string]: `${particle.vy * gameScale}px`,
+                  }}
+                />
+              ))}
+            </AnimatePresence>
+
             {/* Idle / Game Over Overlay */}
             {gameState !== 'playing' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 z-10">
@@ -391,7 +493,9 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center"
+                    className="text-center cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); startGame(); }}
+                    onTouchStart={(e) => { e.stopPropagation(); startGame(); }}
                   >
                     <p className="text-5xl mb-3">🐦</p>
                     <p className="text-xl font-bold text-white drop-shadow-lg mb-2">
