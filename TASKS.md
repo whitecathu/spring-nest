@@ -202,3 +202,36 @@
 - `npm run lint` (tsc --noEmit): PASS
 - `npm run test` (vitest): 82/82 PASS
 - `npm run build` (vite build): PASS (2.14s, 68 precache entries)
+
+---
+
+## Round 10: Mobile-First Polish — Touch, Animation, Text, Deploy [IN PROGRESS - 2026-05-07]
+**Goal:** Comprehensive mobile UX optimization: safe areas, touch targets, animation performance, reduced motion, game UX, i18n text fixes, then GitHub + Cloudflare deploy.
+
+### Issues Found (from audit + research)
+| ID | Issue | Priority | Area |
+|----|-------|----------|------|
+| I1 | Missing viewport-fit=cover for safe area insets | P1 | CSS |
+| I2 | No prefers-reduced-motion support | P1 | CSS/Animation |
+| I3 | No overscroll-behavior-y on body (pull-to-refresh conflict) | P2 | CSS |
+| I4 | No -webkit-tap-highlight-color reset | P2 | CSS |
+| I5 | Touch targets too small (p-2 = 40px, need 48px) | P1 | UX |
+| I6 | glass-card blur(12px) expensive on mobile | P2 | Performance |
+| I7 | Home.tsx category labels mismatch (Reflex Challenge vs Action) | P1 | i18n |
+| I8 | Home.tsx game categories (经典休闲/学习练习) don't exist in data | P1 | i18n |
+| I9 | FeaturedCard shows Chinese category in English mode | P1 | i18n |
+| I10 | Games.tsx categories show Chinese only | P2 | i18n |
+| I11 | Game stat headers overflow on small mobile | P2 | Game UX |
+| I12 | Snake D-pad too small on mobile | P2 | Game UX |
+| I13 | No haptic feedback on game interactions | P3 | Game UX |
+| I14 | Particle animations use left/top (D-tier perf) | P2 | Animation |
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T1 | CSS Foundation: viewport-fit, reduced motion, overscroll, tap-highlight, glass-card mobile | DONE | Agent A |
+| T2 | Animation Performance: reduced motion in animations.ts | DONE | Agent B |
+| T3 | Navigation + Home i18n: touch targets, category labels, FeaturedCard i18n | DONE | Agent C |
+| T4 | Game Mobile UX: stat headers, D-pad, touch targets, game-over panels | DONE | Agent D |
+| T5 | Build + lint + test + review + Tools.tsx i18n fix | DONE | Main - lint PASS, 82/82 tests PASS, build PASS (2.42s) |
+| T6 | GitHub push + Cloudflare Pages deploy | IN PROGRESS | Main |

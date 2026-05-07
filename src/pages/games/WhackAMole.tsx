@@ -291,7 +291,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2">
+      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -307,12 +307,12 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
             <h1 className="text-3xl font-black text-on-surface">{t('打地鼠', 'Whack A Mole')}</h1>
             <p className="text-sm text-secondary">{t('快速点击冒出的地鼠！', 'Whack the moles quickly!')}</p>
           </div>
-          <div className="flex gap-2">
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+          <div className="flex flex-wrap gap-2">
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1"><Clock className="w-3 h-3" />{t('时间', 'Time')}</div>
               <div className={`text-xl font-bold ${timeLeft <= 5 ? 'text-red-500' : 'text-primary'} tabular-nums`}>{timeLeft}s</div>
             </motion.div>
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
               <motion.div
                 key={score}
@@ -324,11 +324,11 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                 {score}
               </motion.div>
             </motion.div>
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
               <div className="text-xl font-bold text-tertiary">{bestScore}</div>
             </motion.div>
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
               <div className="text-xs text-secondary font-medium">🔥 {t('最佳连击', 'Best Combo')}</div>
               <div className="text-xl font-bold text-tertiary">{bestCombo}</div>
             </motion.div>
@@ -551,7 +551,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                   🏆 {t('新纪录！', 'New Record!')}
                 </motion.p>
               )}
-              <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[44px]">
+              <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]">
                 {t('再来一局', 'Play Again')}
               </button>
             </motion.div>

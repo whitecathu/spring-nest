@@ -79,7 +79,7 @@ export default function Tools() {
 
   const categories = useMemo(() => {
     const cats = [...new Set(tools.map(t => t.category))];
-    return [{ id: 'all', label: t('全部工具', 'All Tools') }, ...cats.map(c => ({ id: c, label: c }))];
+    return [{ id: 'all', label: t('全部工具', 'All Tools') }, ...cats.map(c => { const tool = tools.find(tl => tl.category === c); return { id: c, label: t(c, tool?.categoryEn || c) }; })];
   }, [t]);
 
   const filteredTools = useMemo(

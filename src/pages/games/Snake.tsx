@@ -297,14 +297,14 @@ export default function Snake({ onBack }: { onBack: () => void }) {
   const boardShakeVariants = {
     shaking: {
       x: [0, -6, 6, -4, 4, -2, 0],
-      transition: { duration: 0.4, ease: 'easeInOut' },
+      transition: { duration: 0.4, ease: 'easeInOut' as const },
     },
     still: { x: 0 },
   };
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2">
+      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -457,12 +457,12 @@ export default function Snake({ onBack }: { onBack: () => void }) {
 
         {/* D-Pad Controls for mobile */}
         {playing && !gameOver && (
-          <div className="grid grid-cols-3 gap-2 w-40 mx-auto mb-4">
+          <div className="grid grid-cols-3 gap-2 w-48 mx-auto mb-4">
             <div />
             <motion.button
               onClick={() => handleDirection('up')}
               whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
-              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
+              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-2xl flex items-center justify-center min-h-[48px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
             >
               ↑
             </motion.button>
@@ -470,7 +470,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={() => handleDirection('left')}
               whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
-              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
+              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-2xl flex items-center justify-center min-h-[48px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
             >
               ←
             </motion.button>
@@ -480,7 +480,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={() => handleDirection('right')}
               whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
-              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
+              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-2xl flex items-center justify-center min-h-[48px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
             >
               →
             </motion.button>
@@ -488,7 +488,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             <motion.button
               onClick={() => handleDirection('down')}
               whileTap={{ scale: 0.85, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
-              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-xl flex items-center justify-center min-h-[44px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
+              className="w-full aspect-square bg-gradient-to-b from-surface-container-high to-surface-container-highest rounded-xl text-on-surface font-bold text-2xl flex items-center justify-center min-h-[48px] shadow-md hover:shadow-lg transition-shadow border border-surface-variant/30"
             >
               ↓
             </motion.button>
@@ -582,7 +582,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
                   🏆 {t('新纪录！', 'New Record!')}
                 </motion.p>
               )}
-              <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[44px]">
+              <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]">
                 {t('再来一局', 'Play Again')}
               </button>
             </motion.div>

@@ -93,10 +93,38 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ── Mobile UX foundations ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+}
+
+/* Safe area padding for fixed/sticky elements */
+.safe-area-top {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+.safe-area-bottom {
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+
 .glass-card {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(4px);
+  }
 }
 
 .dark .glass-card {
@@ -108,6 +136,12 @@ body {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+  .glass-pill {
+    backdrop-filter: blur(3px);
+  }
 }
 
 .dark .glass-pill {

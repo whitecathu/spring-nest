@@ -3,6 +3,8 @@
  * "Q弹丝滑" = bouncy springs + silky smooth transitions.
  */
 
+import { useState, useEffect } from 'react';
+
 // ── Spring Presets ──────────────────────────────────────────
 /** Bouncy spring — playful, elastic feedback (buttons, cards) */
 export const springBouncy = { type: 'spring' as const, stiffness: 400, damping: 15, mass: 0.8 };
@@ -76,3 +78,32 @@ export const pageTransition = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
   exit: { opacity: 0, y: -12, transition: { duration: 0.25 } },
 };
+
+// ── Reduced Motion ─────────────────────────────────────────
+/** Hook that returns true when user prefers reduced motion */
+export function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return reduced;
+}
+
+/** Returns the given motion config, or instant no-op if reduced motion is preferred */
+export function withReducedMotion<T extends Record<string, unknown>>(
+  config: T,
+  reduced: boolean,
+): T | { initial: false; animate: {}; transition: { duration: 0 } } {
+  if (reduced) {
+    return { initial: false, animate: {}, transition: { duration: 0 } };
+  }
+  return config;
+}

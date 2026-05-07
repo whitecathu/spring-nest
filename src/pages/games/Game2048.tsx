@@ -262,7 +262,7 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
   const handleTouchEnd = (e: ReactTouchEvent) => {
     const dx = e.changedTouches[0].clientX - startX.current;
     const dy = e.changedTouches[0].clientY - startY.current;
-    if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+    if (Math.abs(dx) < 40 && Math.abs(dy) < 40) return;
     if (Math.abs(dx) > Math.abs(dy)) {
       handleMove(dx > 0 ? 'right' : 'left');
     } else {
@@ -299,7 +299,7 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button onClick={onBack} whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm">
+      <motion.button onClick={onBack} whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px]">
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </motion.button>

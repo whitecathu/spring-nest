@@ -61,10 +61,9 @@ export default function Home() {
   ];
 
   const gameCategories = [
-    { label: '反应挑战', labelEn: 'Reflex Challenge', icon: Zap, color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+    { label: '反应挑战', labelEn: 'Action', icon: Zap, color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
     { label: '益智解谜', labelEn: 'Puzzle', icon: Brain, color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' },
-    { label: '经典休闲', labelEn: 'Classic Casual', icon: Gamepad, color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' },
-    { label: '学习练习', labelEn: 'Learning Practice', icon: GraduationCap, color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
+    { label: '学习练习', labelEn: 'Educational', icon: GraduationCap, color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
   ];
 
   // --- Shared card component for featured items ---
@@ -74,7 +73,7 @@ export default function Home() {
     actionLabel,
     accentClass,
   }: {
-    item: { id: string; icon?: string; iconBg?: string; title: string; titleEn: string; description: string; descriptionEn: string; category: string; route: string };
+    item: { id: string; icon?: string; iconBg?: string; title: string; titleEn: string; description: string; descriptionEn: string; category: string; categoryEn?: string; route: string };
     index: number;
     actionLabel: string;
     accentClass: string;
@@ -100,7 +99,7 @@ export default function Home() {
             {t(item.title, item.titleEn)}
           </h3>
           <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container/40 text-on-primary-container">
-            {item.category}
+            {item.categoryEn ? t(item.category, item.categoryEn) : item.category}
           </span>
         </div>
       </div>

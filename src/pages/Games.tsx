@@ -71,7 +71,13 @@ export default function Games() {
 
   const categories = useMemo(() => {
     const cats = [...new Set(games.map(g => g.category))];
-    return [{ id: 'all', label: t('全部游戏', 'All Games') }, ...cats.map(c => ({ id: c, label: c }))];
+    return [
+      { id: 'all', label: t('全部游戏', 'All Games') },
+      ...cats.map(c => {
+        const game = games.find(g => g.category === c);
+        return { id: c, label: t(c, game?.categoryEn || c) };
+      }),
+    ];
   }, [t]);
 
   const filteredGames = useMemo(

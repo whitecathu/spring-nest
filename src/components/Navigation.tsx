@@ -155,7 +155,7 @@ export default function Navigation() {
                     <button
                       type="button"
                       onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); setHasSearched(false); }}
-                      className="text-secondary/50 hover:text-primary p-2 shrink-0 transition-colors bg-surface-container-low dark:bg-surface-container rounded-full ml-3"
+                      className="text-secondary/50 hover:text-primary p-2.5 shrink-0 transition-colors bg-surface-container-low dark:bg-surface-container rounded-full ml-3"
                       aria-label={t('关闭搜索', 'Close search')}
                     >
                       <X className="w-5 h-5" />
@@ -234,7 +234,7 @@ export default function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
+              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
               aria-label={t('菜单', 'Menu')}
             >
               <Menu className="w-5 h-5" />
@@ -245,7 +245,7 @@ export default function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={cycleTheme}
-              className="p-2 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
               aria-label={t('切换主题', 'Toggle theme')}
               title={mode === 'light' ? '☀️' : mode === 'dark' ? '🌙' : '🖥️'}
             >
@@ -258,7 +258,7 @@ export default function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowSearch(!showSearch)}
-              className="p-2 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
               aria-label={t('搜索', 'Search')}
             >
               <Search className="w-5 h-5" />
@@ -268,7 +268,7 @@ export default function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/favorites')}
-              className="p-2 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 relative transition-colors"
+              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 relative transition-colors"
               aria-label={t('收藏', 'Favorites')}
             >
               <Bell className="w-5 h-5" />
@@ -317,7 +317,7 @@ export default function Navigation() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowLoginModal(true)}
-                className="p-2 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+                className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
                 aria-label={t('登录', 'Log in')}
               >
                 <User className="w-5 h-5" />
