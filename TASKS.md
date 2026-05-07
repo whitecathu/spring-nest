@@ -303,3 +303,36 @@
 - `src/App.tsx` — Enhanced LoadingFallback with particles + progress bar
 - `src/components/PageTransition.tsx` — Reduced-motion support, reduced y offset
 - `src/index.css` — GPU-accelerated shimmer, skeleton classes, combo-bar keyframe
+
+---
+
+## Round 14: Animation Polish + Micro-Interactions + Category Switch Fixes [DONE - 2026-05-07]
+**Goal:** Fix category switching animations, add micro-interactions to new games/tools, efficiency improvements.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T1 | Games.tsx: exit stagger, exit direction, horizontal scroll pills, scrollIntoView | DONE | Agent A (opus) |
+| T2 | Tools.tsx: consolidate AnimatePresence, remove double animation, useLayoutEffect pill | DONE | Agent A (opus) |
+| T3 | SkeletonCard: remove dual shimmer, CSS-only shimmer | DONE | Agent A |
+| T4 | SimonSays: timeouts cleanup, shake grid, score popup, progress dots, new record | DONE | Agent B (opus) |
+| T5 | Sudoku: number spring animation, error shake, hint glow, win confetti, mistake counter | DONE | Agent B |
+| T6 | TypingTest: char highlighting, wrong word marking, streak break, live WPM | DONE | Agent B |
+| T7 | TipCalculator: staggered results, AnimatePresence, inputMode, empty state | DONE | Agent C (opus) |
+| T8 | CaseConverter: sliding indicator, clear button, useMemo, output gradient | DONE | Agent C |
+| T9 | RandomNumber: dice wiggle, preset active, history animations, interval cleanup | DONE | Agent C |
+| T10 | Simplify review: code reuse, quality, efficiency | DONE | 3 parallel agents |
+| T11 | Review fixes: timeouts tracking, redundant state removal, memoization, shuffle in-place | DONE | Main |
+| T12 | Build + test | DONE | Main — TypeScript PASS, build PASS (2.37s), 82/82 tests PASS |
+
+### Files Modified
+- `src/pages/Games.tsx` — Exit stagger 0.035→0.05, exit y -20→20, skeleton exit 0.1→0.15s, horizontal scroll pills, scrollIntoView
+- `src/pages/Tools.tsx` — Single AnimatePresence mode="wait", removed nested motion.div, removed layout prop, SkeletonCard shimmer, useLayoutEffect pill, ResizeObserver
+- `src/components/SkeletonCard.tsx` — Removed motion import, CSS-only shimmer, aria-label
+- `src/components/GameToolLoading.tsx` — aria-label + role="status"
+- `src/pages/games/SimonSays.tsx` — timeoutsRef tracking, shake grid, score +1 popup, new record glow, progress dots, sequence length display
+- `src/pages/games/SudokuGame.tsx` — Number AnimatePresence placement/erase, hint amber glow, error shake, pulsing selected ring, win confetti (30 particles), mistake counter, shuffleInPlace
+- `src/pages/games/TypingSpeedTest.tsx` — Char-by-char highlighting, wrong word red+strikethrough, streak break animation, live WPM, staggered game-over stats, derived wpm/accuracy, 1s timer interval
+- `src/pages/tools/TipCalculator.tsx` — AnimatePresence results, staggered result rows, value bounce on change, per-person AnimatePresence, empty state, inputMode
+- `src/pages/tools/CaseConverter.tsx` — layoutId sliding indicator, clear X button, output AnimatePresence, fade gradient, useMemo output+stats, spellCheck=false
+- `src/pages/tools/RandomNumber.tsx` — Dice wiggle animation, preset active state, input shake on min>max, result chip exit, history stagger+exit, clear history button, interval cleanup
