@@ -92,6 +92,10 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggeredRef = useRef(false);
   const boardCreatedRef = useRef(false);
+  const [flagMode, setFlagMode] = useState<'reveal' | 'flag'>('reveal');
+  const timeRef = useRef(0);
+  const [animatingCells, setAnimatingCells] = useState<Set<string>>(new Set());
+  const [boardShake, setBoardShake] = useState(false);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -116,6 +120,10 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
     setMinesLeft(cfg.mines);
     setTime(0);
     boardCreatedRef.current = false;
+    setFlagMode('reveal');
+    timeRef.current = 0;
+    setAnimatingCells(new Set());
+    setBoardShake(false);
     setBestTime(loadBestTime(difficulty));
   }, [difficulty, clearTimer]);
 
@@ -139,31 +147,68 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         setGameState('playing');
         clearTimer();
         setTime(0);
-        timerRef.current = setInterval(() => setTime(t => t + 1), 1000);
+        timeRef.current = 0;
+        timerRef.current = setInterval(() => setTime(t => { timeRef.current = t + 1; return t + 1; }), 1000);
       }
 
       // Deep copy
       const newBoard = currentBoard.map(row => row.map(cell => ({ ...cell })));
 
       if (newBoard[r][c].mine) {
-        // Game over - reveal all mines
-        for (const row of newBoard) {
-          for (const c2 of row) {
-            if (c2.mine) c2.revealed = true;
+        // Triggered mine gets immediate red
+        newBoard[r][c].revealed = true;
+        setBoardShake(true);
+        setTimeout(() => setBoardShake(false), 400);
+
+        // Collect all other mines with distance from triggered mine
+        const mines: { r: number; c: number; dist: number }[] = [];
+        for (let ri = 0; ri < newBoard.length; ri++) {
+          for (let ci = 0; ci < newBoard[ri].length; ci++) {
+            if (newBoard[ri][ci].mine && !(ri === r && ci === c)) {
+              const dist = Math.abs(ri - r) + Math.abs(ci - c);
+              mines.push({ r: ri, c: ci, dist });
+            }
           }
         }
+
+        // Sort by distance and reveal with delay (ripple effect)
+        mines.sort((a, b) => a.dist - b.dist);
+        mines.forEach((m, i) => {
+          setTimeout(() => {
+            setBoard(prev => {
+              const nb = prev.map(row => row.map(cell => ({ ...cell })));
+              nb[m.r][m.c].revealed = true;
+              return nb;
+            });
+          }, (i + 1) * 60);
+        });
+
         clearTimer();
-        setGameState('lost');
+        setTimeout(() => setGameState('lost'), mines.length * 60 + 400);
         return newBoard;
       }
 
       floodFill(newBoard, r, c);
 
+      // Track newly revealed cells for cascade animation
+      const newlyRevealed = new Set<string>();
+      for (let ri = 0; ri < newBoard.length; ri++) {
+        for (let ci = 0; ci < newBoard[ri].length; ci++) {
+          if (newBoard[ri][ci].revealed && !prev[ri]?.[ci]?.revealed) {
+            newlyRevealed.add(`${ri}-${ci}`);
+          }
+        }
+      }
+      if (newlyRevealed.size > 0) {
+        setAnimatingCells(newlyRevealed);
+        setTimeout(() => setAnimatingCells(new Set()), 500);
+      }
+
       if (checkWin(newBoard)) {
         clearTimer();
         setGameState('won');
         const bt = loadBestTime(difficulty);
-        const currentTime = time; // Note: time state might not be updated yet
+        const currentTime = timeRef.current;
         if (bt === 0 || currentTime < bt) {
           saveBestTime(difficulty, currentTime);
           setBestTime(currentTime);
@@ -172,7 +217,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
 
       return newBoard;
     });
-  }, [difficulty, clearTimer, time]);
+  }, [difficulty, clearTimer]);
 
   const handleFlag = useCallback((r: number, c: number) => {
     setBoard(prev => {
@@ -202,15 +247,23 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
       longPressTimerRef.current = null;
     }
     if (!longPressTriggeredRef.current) {
-      handleReveal(r, c);
+      if (flagMode === 'flag') {
+        handleFlag(r, c);
+      } else {
+        handleReveal(r, c);
+      }
     }
-  }, [handleReveal]);
+  }, [handleReveal, handleFlag, flagMode]);
 
   const handleCellClick = useCallback((r: number, c: number) => {
     // For non-touch (mouse) clicks
     if (longPressTriggeredRef.current) return;
-    handleReveal(r, c);
-  }, [handleReveal]);
+    if (flagMode === 'flag') {
+      handleFlag(r, c);
+    } else {
+      handleReveal(r, c);
+    }
+  }, [handleReveal, handleFlag, flagMode]);
 
   const handleRightClick = useCallback((r: number, c: number, e: React.MouseEvent) => {
     e.preventDefault();
@@ -228,7 +281,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-4xl mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2">
+      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -307,7 +360,9 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
 
         {/* Game Board */}
         <div className="flex justify-center overflow-x-auto">
-          <div
+          <motion.div
+            animate={boardShake ? { x: [0, -4, 4, -3, 3, -1, 0] } : {}}
+            transition={{ duration: 0.4 }}
             className="inline-grid gap-0.5 p-2 bg-surface-container-high rounded-2xl select-none touch-none"
             style={{ gridTemplateColumns: `repeat(${cfg.cols}, minmax(0, 1fr))` }}
             onContextMenu={(e) => e.preventDefault()}
@@ -334,6 +389,8 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                   bgClass = 'bg-yellow-100 hover:bg-yellow-200';
                 }
 
+                const isAnimating = animatingCells.has(`${r}-${c}`);
+
                 return (
                   <motion.button
                     key={`${r}-${c}`}
@@ -342,14 +399,30 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                     onClick={() => handleCellClick(r, c)}
                     onContextMenu={(e) => handleRightClick(r, c, e)}
                     whileTap={{ scale: 0.9 }}
-                    className={`${cellSize} rounded flex items-center justify-center font-bold transition-colors ${bgClass} ${contentClass}`}
+                    className={`${cellSize} rounded flex items-center justify-center font-bold transition-colors ${bgClass} ${contentClass} ${isAnimating ? 'animate-cell-reveal' : ''}`}
                   >
                     {content}
                   </motion.button>
                 );
               })
             )}
-          </div>
+          </motion.div>
+        </div>
+
+        {/* Bottom Controls - Flag Toggle */}
+        <div className="flex justify-center gap-3 mt-3">
+          <motion.button
+            onClick={() => setFlagMode(m => m === 'reveal' ? 'flag' : 'reveal')}
+            whileTap={{ scale: 0.93 }}
+            className={`px-6 py-3 rounded-full font-semibold text-sm flex items-center gap-2 min-h-[48px] transition-all ${
+              flagMode === 'flag'
+                ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
+            }`}
+          >
+            <Flag className="w-4 h-4" />
+            {flagMode === 'flag' ? t('标旗模式', 'Flag Mode') : t('揭开模式', 'Reveal Mode')}
+          </motion.button>
         </div>
 
         {/* Instructions */}

@@ -209,3 +209,12 @@ body {
   outline-offset: 2px;
   border-radius: 8px;
 }
+
+/* ── Minesweeper cell reveal animation ── */
+@keyframes cell-reveal {
+  from { transform: scale(0.7); opacity: 0.5; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-cell-reveal {
+  animation: cell-reveal 0.2s ease-out;
+}

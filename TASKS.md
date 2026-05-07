@@ -234,4 +234,18 @@
 | T3 | Navigation + Home i18n: touch targets, category labels, FeaturedCard i18n | DONE | Agent C |
 | T4 | Game Mobile UX: stat headers, D-pad, touch targets, game-over panels | DONE | Agent D |
 | T5 | Build + lint + test + review + Tools.tsx i18n fix | DONE | Main - lint PASS, 82/82 tests PASS, build PASS (2.42s) |
-| T6 | GitHub push + Cloudflare Pages deploy | IN PROGRESS | Main |
+| T6 | GitHub push + Cloudflare Pages deploy | DONE | Main - pushed to master, deployed to https://master.spring-nest.pages.dev |
+
+---
+
+## Round 11: Game Deep Polish — FlappyBird + Minesweeper + BrickBreaker [IN PROGRESS - 2026-05-07]
+**Goal:** Deep UX polish for three games based on mobile game best practices research.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T7 | FlappyBird: fix flap velocity, smooth rotation, death animation, score pulse, ground scroll, touch targets | PENDING | Agent A |
+| T8 | Minesweeper: flag toggle button, cell reveal cascade, game over ripple, win detection fix, touch targets | PENDING | Agent B |
+| T9 | BrickBreaker: ball trail, better particles, screen shake, speed progression, angle clamp, touch targets | PENDING | Agent C |
+| T10 | Build + lint + test + review | DONE | Main - lint PASS, 82/82 tests PASS, build PASS (2.20s, 74 precache) |
+| T11 | GitHub push + Cloudflare deploy | IN PROGRESS | Main |
