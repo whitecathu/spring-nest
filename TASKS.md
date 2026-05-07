@@ -261,3 +261,45 @@
 - `src/pages/games/FlappyBird.tsx` — JUMP_FORCE -7.5→-8.5, GRAVITY 0.45→0.52, velocity-dependent rotation, death shake+particles, score pulse 1.6x, ground texture
 - `src/pages/games/Minesweeper.tsx` — flag toggle spring animation, cell reveal wave cascade (25ms/unit Manhattan distance), dramatic game over shake+rotation+boom flash, win confetti (30 particles), all touch targets 48px
 - `src/pages/games/BrickBreaker.tsx` — idle overlay onClick/onTouchStart fix, ball trail radial gradient (10 points), particles 8-12 with size variation+gravity, intensity-based screen shake, angle clamp+minimum vertical speed, all touch targets 48px
+
+---
+
+## Round 13: Animation Polish + Category Transitions + 3 New Games + 3 New Tools [DONE - 2026-05-07]
+**Goal:** Smooth category switching animations, loading polish, game improvements, new content.
+
+### Task Breakdown
+| ID | Task | Status | Agent |
+|----|------|--------|-------|
+| T1 | Games.tsx: skeleton shimmer + staggered card entrance/exit on category switch | DONE | Agent A |
+| T2 | Tools.tsx: sliding pill indicator + shimmer loading + popLayout transitions | DONE | Agent B |
+| T3 | FlappyBird: fix bird direction, tune difficulty, add countdown + score popups | DONE | Agent C |
+| T4 | Minesweeper: enhanced reveal cascade, debris particles, flag toggle UI | DONE | Agent D |
+| T5 | BrickBreaker: paddle glow, hard bricks, combo bar, brick patterns per level | DONE | Agent E |
+| T6 | Loading animations: shared GameToolLoading, SkeletonCard, App.tsx loading fallback | DONE | Agent F |
+| T7 | New games: SimonSays, SudokuGame, TypingSpeedTest | DONE | Main |
+| T8 | New tools: TipCalculator, CaseConverter, RandomNumber | DONE | Main |
+| T9 | Simplify review: code reuse, quality, efficiency | DONE | 3 parallel agents |
+| T10 | Build + lint + test | DONE | Main — TypeScript PASS, build PASS (2.62s), 82/82 tests PASS |
+
+### Files Created
+- `src/components/GameToolLoading.tsx` — Shared loading component with pulsing leaf + progress bar
+- `src/components/SkeletonCard.tsx` — Reusable skeleton card with GPU-accelerated shimmer
+- `src/pages/games/SimonSays.tsx` — Pattern memory game (4 colors, combo system)
+- `src/pages/games/SudokuGame.tsx` — Classic 9×9 Sudoku (3 difficulties, hints, keyboard nav)
+- `src/pages/games/TypingSpeedTest.tsx` — English typing speed test (WPM, accuracy, streaks)
+- `src/pages/tools/CaseConverter.tsx` — 6 case modes + character/word count
+- `src/pages/tools/RandomNumber.tsx` — Custom range, batch generation, history
+- `src/pages/tools/TipCalculator.tsx` — Bill splitting with tip presets
+
+### Files Modified
+- `src/pages/Games.tsx` — AnimatePresence mode="wait", skeleton shimmer on switch, containerVariants + cardVariants with springBouncy
+- `src/pages/Tools.tsx` — Sliding pill indicator, shimmer loading, AnimatePresence mode="popLayout"
+- `src/pages/games/FlappyBird.tsx` — Bird scaleX(-1), GRAVITY 0.38, JUMP_FORCE -7.5, PIPE_GAP 170, countdown 3-2-1, score popups
+- `src/pages/games/Minesweeper.tsx` — Cascade delay 35ms, multi-bounce reveal, white+red flash, 24 debris particles, flag segmented control
+- `src/pages/games/BrickBreaker.tsx` — Paddle glow trail, hard bricks, combo timeout bar, brick patterns, mobile paddle 100px
+- `src/data/games.ts` — +3 game entries (SimonSays, Sudoku, TypingSpeedTest)
+- `src/data/tools.ts` — +3 tool entries (TipCalculator, CaseConverter, RandomNumber)
+- `src/lib/animations.ts` — Added particleFloat, progressSlide; removed dead code
+- `src/App.tsx` — Enhanced LoadingFallback with particles + progress bar
+- `src/components/PageTransition.tsx` — Reduced-motion support, reduced y offset
+- `src/index.css` — GPU-accelerated shimmer, skeleton classes, combo-bar keyframe
