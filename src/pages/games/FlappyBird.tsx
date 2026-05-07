@@ -1,18 +1,21 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, Trophy } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Trophy, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { springBouncy, springSmooth } from '../../lib/animations';
 
 const GAME_WIDTH = 400;
 const GAME_HEIGHT = 600;
 const BIRD_SIZE = 32;
 const BIRD_X = 80;
-const GRAVITY = 0.52;
-const JUMP_FORCE = -8.5;
+const GRAVITY = 0.48;
+const JUMP_FORCE = -9;
 const PIPE_WIDTH = 56;
 const PIPE_GAP = 150;
 const PIPE_SPEED = 2.5;
 const PIPE_SPAWN_INTERVAL = 1600; // ms
+const GROUND_HEIGHT = 20;
+const CLOUD_COUNT = 5;
 
 interface Pipe {
   x: number;
@@ -29,6 +32,14 @@ interface DeathParticle {
   duration: number;
 }
 
+interface Cloud {
+  x: number;
+  y: number;
+  width: number;
+  speed: number;
+  opacity: number;
+}
+
 let particleIdCounter = 0;
 
 function loadBestScore(): number {
@@ -37,6 +48,22 @@ function loadBestScore(): number {
 
 function saveBestScore(score: number) {
   localStorage.setItem('spring_nest_flappy_best', JSON.stringify(score));
+}
+
+const GRASS_TUFTS = Array.from({ length: 20 }, (_, i) => ({
+  x: i * 20 + Math.sin(i * 1.7) * 6,
+  height: 4 + Math.sin(i * 2.3) * 2,
+  shade: i % 3 === 0 ? '#22c55e' : i % 3 === 1 ? '#16a34a' : '#15803d',
+}));
+
+function createClouds(): Cloud[] {
+  return Array.from({ length: CLOUD_COUNT }, (_, i) => ({
+    x: (GAME_WIDTH / CLOUD_COUNT) * i + Math.random() * 60,
+    y: 20 + Math.random() * 120,
+    width: 40 + Math.random() * 50,
+    speed: 0.3 + Math.random() * 0.4,
+    opacity: 0.15 + Math.random() * 0.2,
+  }));
 }
 
 export default function FlappyBird({ onBack }: { onBack: () => void }) {
@@ -56,6 +83,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   const animFrameRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const groundScrollRef = useRef(0);
+  const cloudsRef = useRef<Cloud[]>(createClouds());
 
   // Render state (updated from refs in rAF)
   const [birdY, setBirdY] = useState(GAME_HEIGHT / 2);
@@ -63,6 +91,11 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   const [pipes, setPipes] = useState<Pipe[]>([]);
   const [scorePulse, setScorePulse] = useState(false);
   const [groundScroll, setGroundScroll] = useState(0);
+  const [clouds, setClouds] = useState<Cloud[]>(createClouds());
+  const [jumpSquash, setJumpSquash] = useState(false);
+  const [tapPulse, setTapPulse] = useState(false);
+  const [deathFlash, setDeathFlash] = useState(false);
+  const [milestoneCombo, setMilestoneCombo] = useState<number | null>(null);
 
   const [gameScale, setGameScale] = useState(1);
   const [deathShake, setDeathShake] = useState(false);
@@ -84,6 +117,16 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   const jump = useCallback(() => {
     if (!playingRef.current) return;
     birdVelRef.current = JUMP_FORCE;
+
+    // Squash effect on jump
+    setJumpSquash(true);
+    setTimeout(() => {
+      setJumpSquash(false);
+    }, 100);
+
+    // Haptic feedback hint: visual tap pulse
+    setTapPulse(true);
+    setTimeout(() => setTapPulse(false), 150);
   }, []);
 
   const startGame = useCallback(() => {
@@ -95,6 +138,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
     scoreRef.current = 0;
     lastPipeSpawnRef.current = 0;
     playingRef.current = true;
+    cloudsRef.current = createClouds();
     setBirdY(GAME_HEIGHT / 2);
     setBirdRotation(0);
     setGroundScroll(0);
@@ -103,24 +147,27 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
     setGameState('playing');
     setDeathShake(false);
     setDeathParticles([]);
+    setDeathFlash(false);
+    setMilestoneCombo(null);
   }, []);
 
   // Spawn death particles at a given bird position
   const spawnDeathParticles = useCallback((y: number) => {
-    const colors = ['#fbbf24', '#f59e0b', '#ef4444', '#fb923c', '#f87171', '#ffffff'];
-    const newParticles: DeathParticle[] = Array.from({ length: 6 }, () => ({
+    const colors = ['#fbbf24', '#f59e0b', '#ef4444', '#fb923c', '#f87171', '#ffffff', '#ff6b6b', '#ffd93d', '#ff8a5c', '#a855f7'];
+    const count = 10 + Math.floor(Math.random() * 3); // 10-12 particles
+    const newParticles: DeathParticle[] = Array.from({ length: count }, () => ({
       id: particleIdCounter++,
-      vx: (Math.random() - 0.5) * 160,
-      vy: -Math.random() * 120 - 40,
+      vx: (Math.random() - 0.5) * 200,
+      vy: -Math.random() * 150 - 30,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: Math.random() * 4 + 3,
-      duration: Math.random() * 0.4 + 0.4,
+      size: Math.random() * 6 + 2,
+      duration: Math.random() * 0.5 + 0.3,
     }));
     setDeathParticles(prev => [...prev, ...newParticles]);
     // Clean up after animation completes
     setTimeout(() => {
       setDeathParticles(prev => prev.filter(p => !newParticles.includes(p)));
-    }, 1000);
+    }, 1200);
   }, []);
 
   const gameOver = useCallback(() => {
@@ -129,7 +176,9 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
     // Brief flash/shake effect
     setDeathShake(true);
+    setDeathFlash(true);
     setTimeout(() => setDeathShake(false), 300);
+    setTimeout(() => setDeathFlash(false), 200);
 
     // Initial burst of particles
     spawnDeathParticles(birdYRef.current);
@@ -148,13 +197,13 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
       birdVelRef.current += GRAVITY * 1.3; // faster gravity during death
       birdYRef.current += birdVelRef.current;
 
-      // Accelerating rotation: speed increases the longer the bird has been falling
+      // Dramatic accelerating rotation during death
       const elapsed = (performance.now() - deathStartTime) / 1000;
-      const rotSpeed = 3 + elapsed * 4; // starts at 3 deg/frame, accelerates
-      birdRotationRef.current = Math.min(90, birdRotationRef.current + rotSpeed);
+      const rotSpeed = 5 + elapsed * 6; // more dramatic: starts at 5, accelerates faster
+      birdRotationRef.current = Math.min(360, birdRotationRef.current + rotSpeed); // allow full spin
 
       // Spawn trailing particles during fall
-      if (Math.random() < 0.3) {
+      if (Math.random() < 0.4) {
         spawnDeathParticles(birdYRef.current);
       }
 
@@ -239,6 +288,12 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         setScore(scoreRef.current);
         setScorePulse(true);
         setTimeout(() => setScorePulse(false), 200);
+
+        // Milestone combo indicator every 5 points
+        if (scoreRef.current > 0 && scoreRef.current % 5 === 0) {
+          setMilestoneCombo(scoreRef.current);
+          setTimeout(() => setMilestoneCombo(null), 1200);
+        }
       }
 
       // Collision detection
@@ -263,10 +318,22 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
       // Update render state
       groundScrollRef.current = (groundScrollRef.current + PIPE_SPEED) % 40;
+
+      // Update clouds (parallax: slower than pipes)
+      const updatedClouds = cloudsRef.current.map(cloud => {
+        let newX = cloud.x - cloud.speed;
+        if (newX + cloud.width < 0) {
+          newX = GAME_WIDTH + Math.random() * 40;
+        }
+        return { ...cloud, x: newX };
+      });
+      cloudsRef.current = updatedClouds;
+
       setBirdY(birdYRef.current);
       setBirdRotation(birdRotationRef.current);
       setGroundScroll(groundScrollRef.current);
       setPipes([...newPipes]);
+      setClouds([...updatedClouds]);
 
       animFrameRef.current = requestAnimationFrame(loop);
     };
@@ -298,12 +365,29 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   }, [gameState, jump, startGame]);
 
   const handleTap = useCallback(() => {
+    // Haptic feedback hint: visual tap pulse
+    setTapPulse(true);
+    setTimeout(() => setTapPulse(false), 150);
+
     if (gameState === 'idle' || gameState === 'over') {
       startGame();
     } else {
       jump();
     }
   }, [gameState, jump, startGame]);
+
+  // Touch handler with passive: false via ref attachment
+  const gameAreaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = gameAreaRef.current;
+    if (!el) return;
+    const handler = (e: TouchEvent) => {
+      e.preventDefault();
+      handleTap();
+    };
+    el.addEventListener('touchstart', handler, { passive: false });
+    return () => el.removeEventListener('touchstart', handler);
+  }, [handleTap]);
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
@@ -318,6 +402,44 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         @keyframes particle-fly {
           from { transform: translate(0, 0); opacity: 1; }
           to { transform: translate(var(--px), var(--py)); opacity: 0; }
+        }
+        @keyframes bird-flap {
+          0%, 100% { transform: translateY(0px) scaleY(1); }
+          25% { transform: translateY(-2px) scaleY(0.92); }
+          50% { transform: translateY(0px) scaleY(1.04); }
+          75% { transform: translateY(1px) scaleY(0.96); }
+        }
+        @keyframes bird-breathing {
+          0%, 100% { filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.3)); }
+          50% { filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.6)); }
+        }
+        @keyframes bird-shadow {
+          0%, 100% { transform: scaleX(1); opacity: 0.2; }
+          50% { transform: scaleX(0.8); opacity: 0.12; }
+        }
+        @keyframes jump-squash {
+          0% { transform: scaleY(1) scaleX(1); }
+          30% { transform: scaleY(0.78) scaleX(1.12); }
+          60% { transform: scaleY(1.08) scaleX(0.95); }
+          100% { transform: scaleY(1) scaleX(1); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { text-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 16px rgba(255,255,255,0.1); }
+          50% { text-shadow: 0 0 16px rgba(255,255,255,0.8), 0 0 32px rgba(255,255,255,0.3); }
+        }
+        @keyframes milestone-pop {
+          0% { transform: scale(0.5) translateY(0); opacity: 0; }
+          30% { transform: scale(1.3) translateY(-8px); opacity: 1; }
+          70% { transform: scale(1) translateY(-16px); opacity: 1; }
+          100% { transform: scale(0.9) translateY(-30px); opacity: 0; }
+        }
+        @keyframes score-breakdown {
+          from { transform: translateX(-20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes tap-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+          100% { box-shadow: 0 0 0 20px rgba(255,255,255,0); }
         }
       `}</style>
 
@@ -356,20 +478,70 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         {/* Game Area */}
         <div ref={containerRef} className="flex justify-center mb-4">
           <div
+            ref={gameAreaRef}
             className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-sky-200 to-sky-100 dark:from-sky-900 dark:to-sky-800 cursor-pointer select-none touch-none"
             style={{
               width: GAME_WIDTH * gameScale,
               height: GAME_HEIGHT * gameScale,
-              animation: deathShake ? 'flappy-shake 0.3s ease-in-out' : 'none',
+              animation: deathShake ? 'flappy-shake 0.3s ease-in-out' : (tapPulse ? 'tap-pulse 0.15s ease-out' : 'none'),
             }}
             onClick={handleTap}
-            onTouchStart={(e) => { e.preventDefault(); handleTap(); }}
           >
+            {/* Parallax clouds */}
+            {gameState !== 'idle' && clouds.map((cloud, i) => (
+              <div
+                key={`cloud-${i}`}
+                className="absolute pointer-events-none"
+                style={{
+                  left: cloud.x * gameScale,
+                  top: cloud.y * gameScale,
+                  width: cloud.width * gameScale,
+                  height: (cloud.width * 0.4) * gameScale,
+                  opacity: cloud.opacity,
+                }}
+              >
+                <div
+                  className="w-full h-full rounded-full bg-white dark:bg-white/20"
+                  style={{
+                    filter: 'blur(2px)',
+                  }}
+                />
+                <div
+                  className="absolute rounded-full bg-white dark:bg-white/20"
+                  style={{
+                    width: '60%',
+                    height: '70%',
+                    top: '-30%',
+                    left: '20%',
+                    filter: 'blur(2px)',
+                  }}
+                />
+              </div>
+            ))}
+
+            {/* Top gradient overlay for depth */}
+            <div
+              className="absolute top-0 left-0 right-0 pointer-events-none"
+              style={{
+                height: 60 * gameScale,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.08), transparent)',
+              }}
+            />
+            {/* Bottom gradient overlay for depth */}
+            <div
+              className="absolute left-0 right-0 pointer-events-none"
+              style={{
+                bottom: GROUND_HEIGHT * gameScale,
+                height: 40 * gameScale,
+                background: 'linear-gradient(to top, rgba(0,0,0,0.06), transparent)',
+              }}
+            />
+
             {/* Ground with texture */}
             <div
               className="absolute bottom-0 left-0"
               style={{
-                height: 20 * gameScale,
+                height: GROUND_HEIGHT * gameScale,
                 width: (GAME_WIDTH + 80) * gameScale,
                 transform: `translateX(-${groundScroll * gameScale}px)`,
                 background: `
@@ -384,7 +556,24 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                 `,
                 backgroundBlendMode: 'multiply',
               }}
-            />
+            >
+              {/* Grass tufts */}
+              {GRASS_TUFTS.map((tuft, i) => (
+                <div
+                  key={`tuft-${i}`}
+                  className="absolute"
+                  style={{
+                    left: tuft.x * gameScale,
+                    top: -tuft.height * gameScale,
+                    width: 3 * gameScale,
+                    height: tuft.height * gameScale,
+                    backgroundColor: tuft.shade,
+                    borderRadius: '50% 50% 0 0',
+                    opacity: 0.7,
+                  }}
+                />
+              ))}
+            </div>
 
             {/* Pipes */}
             {pipes.map((pipe, i) => (
@@ -399,13 +588,32 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     height: pipe.gapY * gameScale,
                   }}
                 >
+                  {/* Shine highlight stripe */}
+                  <div
+                    className="absolute top-0 bg-white/20 dark:bg-white/10"
+                    style={{
+                      left: 6 * gameScale,
+                      width: 8 * gameScale,
+                      height: '100%',
+                      borderRadius: 2 * gameScale,
+                    }}
+                  />
                   <div
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-green-600 dark:bg-green-700 border-2 border-green-700 dark:border-green-800 rounded"
                     style={{
                       width: (PIPE_WIDTH + 12) * gameScale,
                       height: 20 * gameScale,
                     }}
-                  />
+                  >
+                    {/* Cap shine */}
+                    <div
+                      className="absolute top-1 left-1/4 bg-white/15 rounded"
+                      style={{
+                        width: '50%',
+                        height: 4 * gameScale,
+                      }}
+                    />
+                  </div>
                 </div>
                 {/* Bottom pipe */}
                 <div
@@ -414,21 +622,40 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     left: pipe.x * gameScale,
                     top: (pipe.gapY + PIPE_GAP) * gameScale,
                     width: PIPE_WIDTH * gameScale,
-                    bottom: 20 * gameScale,
+                    bottom: GROUND_HEIGHT * gameScale,
                   }}
                 >
+                  {/* Shine highlight stripe */}
+                  <div
+                    className="absolute top-0 bg-white/20 dark:bg-white/10"
+                    style={{
+                      left: 6 * gameScale,
+                      width: 8 * gameScale,
+                      height: '100%',
+                      borderRadius: 2 * gameScale,
+                    }}
+                  />
                   <div
                     className="absolute top-0 left-1/2 -translate-x-1/2 bg-green-600 dark:bg-green-700 border-2 border-green-700 dark:border-green-800 rounded"
                     style={{
                       width: (PIPE_WIDTH + 12) * gameScale,
                       height: 20 * gameScale,
                     }}
-                  />
+                  >
+                    {/* Cap shine */}
+                    <div
+                      className="absolute top-1 left-1/4 bg-white/15 rounded"
+                      style={{
+                        width: '50%',
+                        height: 4 * gameScale,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             ))}
 
-            {/* Bird — idle bobbing */}
+            {/* Bird — idle bobbing with breathing glow */}
             {gameState === 'idle' && (
               <motion.div
                 animate={{ y: [0, -8, 0] }}
@@ -441,14 +668,51 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   height: BIRD_SIZE * gameScale,
                   fontSize: BIRD_SIZE * gameScale,
                   lineHeight: 1,
+                  animation: 'bird-breathing 2s ease-in-out infinite',
                 }}
               >
                 🐦
               </motion.div>
             )}
 
-            {/* Bird — playing / over */}
-            {gameState !== 'idle' && (
+            {/* Bird — playing */}
+            {gameState === 'playing' && (
+              <>
+                {/* Bird shadow */}
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: (BIRD_X + BIRD_SIZE / 2 - 10) * gameScale,
+                    top: (GAME_HEIGHT - GROUND_HEIGHT - 4) * gameScale,
+                    width: 20 * gameScale,
+                    height: 4 * gameScale,
+                    backgroundColor: 'rgba(0,0,0,0.15)',
+                    borderRadius: '50%',
+                    transform: `scaleX(${1 - Math.min(0.5, Math.abs(birdVelRef.current) * 0.02)})`,
+                    opacity: Math.max(0.05, 0.2 - (GAME_HEIGHT - GROUND_HEIGHT - birdY) * 0.0005),
+                    animation: 'bird-shadow 1.5s ease-in-out infinite',
+                  }}
+                />
+                <div
+                  className="absolute select-none"
+                  style={{
+                    left: BIRD_X * gameScale,
+                    top: birdY * gameScale,
+                    width: BIRD_SIZE * gameScale,
+                    height: BIRD_SIZE * gameScale,
+                    fontSize: BIRD_SIZE * gameScale,
+                    lineHeight: 1,
+                    transform: `rotate(${birdRotation}deg)`,
+                    animation: `bird-flap 0.3s ease-in-out infinite, bird-breathing 2s ease-in-out infinite${jumpSquash ? ', jump-squash 0.12s ease-out' : ''}`,
+                  }}
+                >
+                  🐦
+                </div>
+              </>
+            )}
+
+            {/* Bird — over (death) */}
+            {gameState === 'over' && (
               <div
                 className="absolute select-none"
                 style={{
@@ -486,6 +750,50 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
               ))}
             </AnimatePresence>
 
+            {/* Death white flash overlay */}
+            {deathFlash && (
+              <div
+                className="absolute inset-0 pointer-events-none z-20"
+                style={{
+                  backgroundColor: 'white',
+                  opacity: 0.6,
+                  animation: 'particle-fly 0.2s ease-out forwards',
+                  ['--px' as string]: '0px',
+                  ['--py' as string]: '0px',
+                }}
+              />
+            )}
+
+            {/* Milestone combo indicator */}
+            <AnimatePresence>
+              {milestoneCombo !== null && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5, y: 0 }}
+                  animate={{ opacity: 1, scale: 1.2, y: -40 }}
+                  exit={{ opacity: 0, y: -70 }}
+                  transition={{ ...springBouncy, duration: 0.8 }}
+                  className="absolute z-30 pointer-events-none flex items-center gap-2"
+                  style={{
+                    left: (GAME_WIDTH / 2) * gameScale,
+                    top: (GAME_HEIGHT / 2 - 60) * gameScale,
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  <div
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-lg"
+                    style={{
+                      background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                      color: '#78350f',
+                      boxShadow: '0 0 20px rgba(251, 191, 36, 0.5), 0 4px 12px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    <Zap className="w-4 h-4" />
+                    {milestoneCombo}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Idle / Game Over Overlay */}
             {gameState !== 'playing' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 z-10">
@@ -495,10 +803,14 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     animate={{ opacity: 1 }}
                     className="text-center cursor-pointer"
                     onClick={(e) => { e.stopPropagation(); startGame(); }}
-                    onTouchStart={(e) => { e.stopPropagation(); startGame(); }}
                   >
-                    <p className="text-5xl mb-3">🐦</p>
-                    <p className="text-xl font-bold text-white drop-shadow-lg mb-2">
+                    <p className="text-5xl mb-3"
+                      style={{ animation: 'bird-breathing 2s ease-in-out infinite' }}
+                    >🐦</p>
+                    <p
+                      className="text-xl font-bold text-white drop-shadow-lg mb-2"
+                      style={{ animation: 'pulse-glow 2s ease-in-out infinite' }}
+                    >
                       {t('点击开始', 'Tap to Start')}
                     </p>
                     <p className="text-sm text-white/80 drop-shadow">
@@ -510,22 +822,54 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    transition={springSmooth}
                     className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4"
                   >
                     <p className="text-2xl font-bold text-on-surface mb-2">{t('游戏结束', 'Game Over')}</p>
                     <p className="text-5xl mb-3">💀</p>
-                    <p className="text-3xl font-black text-primary mb-1">{score}</p>
-                    <p className="text-sm text-secondary mb-1">{t('得分', 'Score')}</p>
+
+                    {/* Score breakdown animation */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2, ...springSmooth }}
+                    >
+                      <p className="text-3xl font-black text-primary mb-1">{score}</p>
+                      <p className="text-sm text-secondary mb-1">{t('得分', 'Score')}</p>
+                    </motion.div>
+
                     {score > 0 && score === bestScore && (
-                      <p className="text-sm text-green-500 mb-3">🏆 {t('新纪录！', 'New Record!')}</p>
+                      <motion.p
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4, ...springBouncy }}
+                        className="text-sm text-green-500 mb-3"
+                      >
+                        {t('新纪录！', 'New Record!')}
+                      </motion.p>
                     )}
-                    <button
+
+                    {score > 0 && score % 5 === 0 && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="text-xs text-amber-500 mb-2 flex items-center justify-center gap-1"
+                      >
+                        <Zap className="w-3 h-3" />
+                        {t('完美里程碑！', 'Perfect Milestone!')}
+                      </motion.p>
+                    )}
+
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6, ...springSmooth }}
                       onClick={(e) => { e.stopPropagation(); startGame(); }}
                       className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]"
                     >
                       {t('再来一局', 'Play Again')}
-                    </button>
+                    </motion.button>
                   </motion.div>
                 )}
               </div>
@@ -540,7 +884,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
               onClick={startGame}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.93 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+              transition={springBouncy}
               className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2 min-h-[48px]"
             >
               <RotateCcw className="w-5 h-5" />

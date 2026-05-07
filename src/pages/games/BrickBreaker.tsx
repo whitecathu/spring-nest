@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, Trophy, Heart } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Trophy, Heart, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
 const GAME_WIDTH = 400;
@@ -14,8 +14,41 @@ const BRICK_WIDTH = GAME_WIDTH / BRICK_COLS - 4;
 const BRICK_HEIGHT = 22;
 const BRICK_GAP = 4;
 const BALL_SPEED = 4.5;
+const TRAIL_LENGTH = 15;
 
 type BrickColor = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple';
+
+interface Brick {
+  row: number;
+  col: number;
+  alive: boolean;
+  color: BrickColor;
+}
+
+interface Star {
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  animDelay: number;
+}
+
+interface Particle {
+  x: number;
+  y: number;
+  color: string;
+  id: number;
+  vx: number;
+  vy: number;
+  size: number;
+}
+
+interface BrickFlash {
+  x: number;
+  y: number;
+  color: BrickColor;
+  id: number;
+}
 
 const ROW_COLORS: BrickColor[] = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
 const COLOR_CLASSES: Record<BrickColor, string> = {
@@ -26,15 +59,30 @@ const COLOR_CLASSES: Record<BrickColor, string> = {
   blue: 'bg-blue-400 border-blue-500',
   purple: 'bg-purple-400 border-purple-500',
 };
+const COLOR_HEX: Record<BrickColor, string> = {
+  red: '#f87171',
+  orange: '#fb923c',
+  yellow: '#facc15',
+  green: '#4ade80',
+  blue: '#60a5fa',
+  purple: '#c084fc',
+};
 const COLOR_POINTS: Record<BrickColor, number> = {
   red: 60, orange: 50, yellow: 40, green: 30, blue: 20, purple: 10,
 };
 
-interface Brick {
-  row: number;
-  col: number;
-  alive: boolean;
-  color: BrickColor;
+function generateStars(): Star[] {
+  const stars: Star[] = [];
+  for (let i = 0; i < 50; i++) {
+    stars.push({
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 1 + Math.random() * 2,
+      opacity: 0.15 + Math.random() * 0.4,
+      animDelay: Math.random() * 4,
+    });
+  }
+  return stars;
 }
 
 function loadBestScore(): number {
@@ -86,18 +134,48 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
   const [paddleX, setPaddleX] = useState((GAME_WIDTH - PADDLE_WIDTH) / 2);
   const [ballPos, setBallPos] = useState({ x: GAME_WIDTH / 2, y: GAME_HEIGHT - 60 });
   const [bricks, setBricks] = useState<Brick[]>(createBricks());
-  const [particles, setParticles] = useState<{ x: number; y: number; color: string; id: number; vx: number; vy: number; size: number }[]>([]);
-
+  const [particles, setParticles] = useState<Particle[]>([]);
   const [gameScale, setGameScale] = useState(1);
 
   // Ball trail
   const trailRef = useRef<{ x: number; y: number }[]>([]);
   const [trail, setTrail] = useState<{ x: number; y: number }[]>([]);
 
-  // Screen shake (intensity: 0=none, 1=subtle, 2=medium, 3=strong)
+  // Ball visual
+  const ballRotationRef = useRef(0);
+  const [ballSquash, setBallSquash] = useState(false);
+
+  // Paddle visual
+  const [paddleHitFlash, setPaddleHitFlash] = useState(false);
+
+  // Screen shake
   const [shakeIntensity, setShakeIntensity] = useState(0);
   const shakeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shakeIntensityRef = useRef(0);
+
+  // Life lost flash
+  const [lifeLostFlash, setLifeLostFlash] = useState(false);
+
+  // Level banner & transition
+  const [levelBannerLevel, setLevelBannerLevel] = useState<number | null>(null);
+  const levelBannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [levelFlash, setLevelFlash] = useState(false);
+
+  // Combo tracking
+  const lastBrickHitTimeRef = useRef(0);
+  const comboCountRef = useRef(0);
+  const [comboDisplay, setComboDisplay] = useState(0);
+  const comboTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Brick flash effects
+  const [brickFlashes, setBrickFlashes] = useState<BrickFlash[]>([]);
+  const flashIdRef = useRef(0);
+
+  // Stars background
+  const [stars] = useState<Star[]>(generateStars);
+
+  // Touch state
+  const [touchActive, setTouchActive] = useState(false);
 
   const triggerShake = useCallback((intensity: number, duration: number) => {
     if (intensity > shakeIntensityRef.current) {
@@ -110,9 +188,6 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
       setShakeIntensity(0);
     }, duration);
   }, []);
-
-  // Life lost flash
-  const [lifeLostFlash, setLifeLostFlash] = useState(false);
 
   // Responsive scaling
   useEffect(() => {
@@ -154,61 +229,89 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     shakeIntensityRef.current = 0;
     if (shakeTimeoutRef.current) { clearTimeout(shakeTimeoutRef.current); shakeTimeoutRef.current = null; }
     setLifeLostFlash(false);
+    setComboDisplay(0);
+    comboCountRef.current = 0;
+    lastBrickHitTimeRef.current = 0;
+    setBrickFlashes([]);
+    setLevelBannerLevel(null);
+    setLevelFlash(false);
+    setBallSquash(false);
+    setPaddleHitFlash(false);
     setGameState('playing');
     launchBall();
   }, [launchBall]);
 
   const nextLevel = useCallback(() => {
-    bricksRef.current = createBricks();
-    setBricks([...bricksRef.current]);
-    setLevel(l => {
-      const newLevel = l + 1;
-      // Increase ball speed by 8% per level
-      const speedMult = 1 + (newLevel - 1) * 0.08;
-      const currentSpeed = Math.sqrt(ballVxRef.current ** 2 + ballVyRef.current ** 2);
-      const targetSpeed = BALL_SPEED * speedMult;
-      if (currentSpeed > 0) {
-        const ratio = targetSpeed / currentSpeed;
-        ballVxRef.current *= ratio;
-        ballVyRef.current *= ratio;
-      }
-      return newLevel;
-    });
-    paddleXRef.current = (GAME_WIDTH - PADDLE_WIDTH) / 2;
-    setPaddleX((GAME_WIDTH - PADDLE_WIDTH) / 2);
-    trailRef.current = [];
-    setTrail([]);
-    launchBall();
-  }, [launchBall]);
+    const newLevel = level + 1;
 
-  // Touch drag for paddle
+    // Level transition sequence: flash then delayed brick setup
+    setLevelFlash(true);
+    setTimeout(() => setLevelFlash(false), 300);
+
+    // Show level banner
+    setLevelBannerLevel(newLevel);
+    if (levelBannerTimeoutRef.current) clearTimeout(levelBannerTimeoutRef.current);
+    levelBannerTimeoutRef.current = setTimeout(() => setLevelBannerLevel(null), 1500);
+
+    // Increase ball speed by 12% per level (more noticeable)
+    const speedMult = 1 + (newLevel - 1) * 0.12;
+    const currentSpeed = Math.sqrt(ballVxRef.current ** 2 + ballVyRef.current ** 2);
+    const targetSpeed = BALL_SPEED * speedMult;
+    if (currentSpeed > 0) {
+      const ratio = targetSpeed / currentSpeed;
+      ballVxRef.current *= ratio;
+      ballVyRef.current *= ratio;
+    }
+
+    setTimeout(() => {
+      bricksRef.current = createBricks();
+      setBricks([...bricksRef.current]);
+      setLevel(newLevel);
+      paddleXRef.current = (GAME_WIDTH - PADDLE_WIDTH) / 2;
+      setPaddleX((GAME_WIDTH - PADDLE_WIDTH) / 2);
+      trailRef.current = [];
+      setTrail([]);
+      setParticles([]);
+      setComboDisplay(0);
+      setBrickFlashes([]);
+      playingRef.current = true;
+      setGameState('playing');
+      launchBall();
+    }, 400);
+  }, [launchBall, level]);
+
+  // Paddle positioning helper
+  const updatePaddleFromX = useCallback((clientX: number) => {
+    if (!containerRef.current) return;
+    if (!containerRectRef.current) {
+      containerRectRef.current = containerRef.current.getBoundingClientRect();
+    }
+    const rect = containerRectRef.current;
+    const x = clientX - rect.left;
+    const scaledX = x / gameScale;
+    const newX = Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, scaledX - PADDLE_WIDTH / 2));
+    paddleXRef.current = newX;
+    setPaddleX(newX);
+  }, [gameScale]);
+
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
-    if (!containerRef.current) return;
-    if (!containerRectRef.current) {
-      containerRectRef.current = containerRef.current.getBoundingClientRect();
-    }
-    const rect = containerRectRef.current;
-    const touchX = e.touches[0].clientX - rect.left;
-    const scaledX = touchX / gameScale;
-    const newX = Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, scaledX - PADDLE_WIDTH / 2));
-    paddleXRef.current = newX;
-    setPaddleX(newX);
-  }, [gameScale]);
+    updatePaddleFromX(e.touches[0].clientX);
+  }, [updatePaddleFromX]);
 
-  // Mouse move for paddle
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setTouchActive(true);
+    e.preventDefault();
+    updatePaddleFromX(e.touches[0].clientX);
+  }, [updatePaddleFromX]);
+
+  const handleTouchEnd = useCallback(() => {
+    setTouchActive(false);
+  }, []);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    if (!containerRectRef.current) {
-      containerRectRef.current = containerRef.current.getBoundingClientRect();
-    }
-    const rect = containerRectRef.current;
-    const mouseX = e.clientX - rect.left;
-    const scaledX = mouseX / gameScale;
-    const newX = Math.max(0, Math.min(GAME_WIDTH - PADDLE_WIDTH, scaledX - PADDLE_WIDTH / 2));
-    paddleXRef.current = newX;
-    setPaddleX(newX);
-  }, [gameScale]);
+    updatePaddleFromX(e.clientX);
+  }, [updatePaddleFromX]);
 
   // Game loop
   useEffect(() => {
@@ -237,9 +340,12 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
       ballXRef.current += ballVxRef.current;
       ballYRef.current += ballVyRef.current;
 
+      // Update ball rotation based on speed
+      ballRotationRef.current = (ballRotationRef.current + currentSpeed * 4) % 360;
+
       // Update trail
       trailRef.current.push({ x: ballXRef.current, y: ballYRef.current });
-      if (trailRef.current.length > 10) trailRef.current.shift();
+      if (trailRef.current.length > TRAIL_LENGTH) trailRef.current.shift();
       setTrail([...trailRef.current]);
 
       // Wall collisions
@@ -262,7 +368,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         setLives(livesRef.current);
         triggerShake(3, 350);
         setLifeLostFlash(true);
-        setTimeout(() => setLifeLostFlash(false), 300);
+        setTimeout(() => setLifeLostFlash(false), 400);
 
         if (livesRef.current <= 0) {
           playingRef.current = false;
@@ -279,9 +385,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         // Reset ball position
         ballXRef.current = paddleXRef.current + PADDLE_WIDTH / 2;
         ballYRef.current = GAME_HEIGHT - 60;
-        const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.8;
-        ballVxRef.current = BALL_SPEED * Math.cos(angle);
-        ballVyRef.current = BALL_SPEED * Math.sin(angle);
+        const launchAngle = -Math.PI / 2 + (Math.random() - 0.5) * 0.8;
+        ballVxRef.current = BALL_SPEED * Math.cos(launchAngle);
+        ballVyRef.current = BALL_SPEED * Math.sin(launchAngle);
       }
 
       // Paddle collision
@@ -293,23 +399,26 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         ballXRef.current <= paddleXRef.current + PADDLE_WIDTH &&
         ballVyRef.current > 0
       ) {
-        // Calculate bounce angle based on where ball hit paddle
+        // Improved bounce angle: more natural and predictable
         const hitPos = (ballXRef.current + BALL_SIZE / 2 - paddleXRef.current) / PADDLE_WIDTH;
-        let angle = -Math.PI / 2 + (hitPos - 0.5) * 1.2;
-        // Clamp angle: prevent too horizontal bounces and ensure vertical component
-        // Push angles near horizontal (0 or PI) away to ensure vertical movement
-        if (Math.abs(angle) < 0.35) angle = angle < 0 ? -0.35 : 0.35;
-        if (Math.abs(angle) > Math.PI - 0.35) angle = angle < 0 ? -(Math.PI - 0.35) : (Math.PI - 0.35);
-        // Prevent near-vertical bounces that cause stuck loops
-        if (angle > -Math.PI / 2 - 0.2 && angle < -Math.PI / 2 + 0.2) {
-          angle = angle < -Math.PI / 2 ? -Math.PI / 2 - 0.35 : -Math.PI / 2 + 0.35;
+        const normalizedHit = hitPos - 0.5; // -0.5 to 0.5
+        // Slight quadratic curve for predictable feel near edges
+        const curvedHit = normalizedHit * 0.7 + Math.sign(normalizedHit) * normalizedHit * normalizedHit * 0.6;
+        let bounceAngle = -Math.PI / 2 + curvedHit * 1.5;
+
+        // Clamp angle to prevent near-horizontal or near-vertical bounces
+        const MIN_BOUND = 0.3;
+        if (bounceAngle > -MIN_BOUND) bounceAngle = -MIN_BOUND;
+        if (bounceAngle < -Math.PI + MIN_BOUND) bounceAngle = -Math.PI + MIN_BOUND;
+        if (bounceAngle > -Math.PI / 2 - 0.15 && bounceAngle < -Math.PI / 2 + 0.15) {
+          bounceAngle = bounceAngle < -Math.PI / 2 ? -Math.PI / 2 - 0.3 : -Math.PI / 2 + 0.3;
         }
-        // Enforce minimum vertical speed component
-        const MIN_VERTICAL_RATIO = 0.3;
+
         const speed = Math.sqrt(ballVxRef.current ** 2 + ballVyRef.current ** 2);
-        ballVxRef.current = speed * Math.cos(angle);
-        ballVyRef.current = speed * Math.sin(angle);
-        // Enforce minimum vertical speed to prevent horizontal loops
+        ballVxRef.current = speed * Math.cos(bounceAngle);
+        ballVyRef.current = speed * Math.sin(bounceAngle);
+        // Enforce minimum vertical speed
+        const MIN_VERTICAL_RATIO = 0.3;
         const minVy = speed * MIN_VERTICAL_RATIO;
         if (Math.abs(ballVyRef.current) < minVy) {
           ballVyRef.current = ballVyRef.current < 0 ? -minVy : minVy;
@@ -317,13 +426,22 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
           ballVxRef.current = ballVxRef.current < 0 ? -remainingVx : remainingVx;
         }
         ballYRef.current = paddleTop - BALL_SIZE;
-        // Paddle hit shake
+
+        // Squash effect on ball
+        setBallSquash(true);
+        setTimeout(() => setBallSquash(false), 100);
+
+        // Paddle hit flash
+        setPaddleHitFlash(true);
+        setTimeout(() => setPaddleHitFlash(false), 120);
+
         triggerShake(2, 200);
       }
 
       // Brick collisions
       let hitBrick = false;
-      const newParticles: { x: number; y: number; color: string; id: number; vx: number; vy: number; size: number }[] = [];
+      const newParticles: Particle[] = [];
+      const newFlashes: BrickFlash[] = [];
       for (const brick of bricksRef.current) {
         if (!brick.alive) continue;
 
@@ -341,12 +459,16 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
           scoreRef.current += COLOR_POINTS[brick.color];
           setScore(scoreRef.current);
 
-          // Spawn particles with varied sizes and gravity
-          const particleCount = 8 + Math.floor(Math.random() * 4);
+          // Subtle speed increase per brick hit (0.5%)
+          ballVxRef.current *= 1.005;
+          ballVyRef.current *= 1.005;
+
+          // Spawn 12-16 particles with varied sizes (2-8px), vibrant colors, gravity
+          const particleCount = 12 + Math.floor(Math.random() * 5);
           for (let i = 0; i < particleCount; i++) {
-            const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 1.0;
-            const spd = 1.5 + Math.random() * 4;
-            const size = 2 + Math.random() * 4; // 2-6px
+            const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 1.2;
+            const spd = 2 + Math.random() * 5;
+            const size = 2 + Math.random() * 6;
             newParticles.push({
               x: brickX + BRICK_WIDTH / 2 + (Math.random() - 0.5) * BRICK_WIDTH * 0.5,
               y: brickY + BRICK_HEIGHT / 2 + (Math.random() - 0.5) * BRICK_HEIGHT * 0.5,
@@ -358,7 +480,15 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             });
           }
 
-          // Determine bounce direction
+          // Brick destruction flash/glow
+          newFlashes.push({
+            x: brickX,
+            y: brickY,
+            color: brick.color,
+            id: flashIdRef.current++,
+          });
+
+          // Bounce direction
           const ballCenterX = ballXRef.current + BALL_SIZE / 2;
           const ballCenterY = ballYRef.current + BALL_SIZE / 2;
           const brickCenterX = brickX + BRICK_WIDTH / 2;
@@ -379,16 +509,41 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
       if (hitBrick) {
         setBricks([...bricksRef.current]);
-        // Subtle shake on brick hit
-        triggerShake(1, 120);
+
+        // Combo tracking
+        const timeSinceLastHit = now - lastBrickHitTimeRef.current;
+        if (timeSinceLastHit < 600 && timeSinceLastHit > 0) {
+          comboCountRef.current++;
+        } else {
+          comboCountRef.current = 1;
+        }
+        lastBrickHitTimeRef.current = now;
+
+        if (comboCountRef.current >= 2) {
+          setComboDisplay(comboCountRef.current);
+          if (comboTimeoutRef.current) clearTimeout(comboTimeoutRef.current);
+          comboTimeoutRef.current = setTimeout(() => setComboDisplay(0), 1200);
+          // Stronger shake for combos
+          triggerShake(comboCountRef.current >= 4 ? 3 : 2, 200);
+        } else {
+          triggerShake(1, 120);
+        }
       }
 
       if (newParticles.length > 0) {
+        const newIds = new Set(newParticles.map(p => p.id));
         setParticles(prev => [...prev, ...newParticles]);
-        // Remove particles after animation
         setTimeout(() => {
-          setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
-        }, 900);
+          setParticles(prev => prev.filter(p => !newIds.has(p.id)));
+        }, 1100);
+      }
+
+      if (newFlashes.length > 0) {
+        const newFlashIds = new Set(newFlashes.map(f => f.id));
+        setBrickFlashes(prev => [...prev, ...newFlashes]);
+        setTimeout(() => {
+          setBrickFlashes(prev => prev.filter(f => !newFlashIds.has(f.id)));
+        }, 300);
       }
 
       // Check win
@@ -424,12 +579,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     return () => {
       playingRef.current = false;
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
-      if (shakeTimeoutRef.current) {
-        clearTimeout(shakeTimeoutRef.current);
-      }
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (shakeTimeoutRef.current) clearTimeout(shakeTimeoutRef.current);
+      if (levelBannerTimeoutRef.current) clearTimeout(levelBannerTimeoutRef.current);
+      if (comboTimeoutRef.current) clearTimeout(comboTimeoutRef.current);
     };
   }, []);
 
@@ -486,15 +639,36 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               y: shakeIntensity >= 3 ? [0, 3, -3, 2, -2, 0] : [0, 0, 0, 0, 0, 0],
             } : {}}
             transition={{ duration: shakeIntensity >= 3 ? 0.35 : 0.2 }}
-            className="relative overflow-hidden rounded-2xl bg-gray-900 dark:bg-gray-950 cursor-none select-none touch-none"
+            className="relative overflow-hidden rounded-2xl select-none touch-none"
             style={{
               width: GAME_WIDTH * gameScale,
               height: GAME_HEIGHT * gameScale,
+              background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
+              boxShadow: '0 0 20px rgba(99,102,241,0.2), 0 0 40px rgba(99,102,241,0.1), inset 0 0 20px rgba(99,102,241,0.05)',
+              cursor: touchActive ? 'none' : 'default',
             }}
             onTouchMove={handleTouchMove}
-            onTouchStart={handleTouchMove}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
             onMouseMove={handleMouseMove}
           >
+            {/* Starfield background */}
+            {stars.map((star, i) => (
+              <div
+                key={`star-${i}`}
+                className="absolute rounded-full bg-white pointer-events-none"
+                style={{
+                  left: `${star.x}%`,
+                  top: `${star.y}%`,
+                  width: star.size * gameScale,
+                  height: star.size * gameScale,
+                  opacity: star.opacity,
+                  animation: `bb-twinkle ${2.5 + star.animDelay}s ease-in-out infinite`,
+                  animationDelay: `${star.animDelay}s`,
+                }}
+              />
+            ))}
+
             {/* Bricks */}
             {bricks.map((brick, i) => {
               if (!brick.alive) return null;
@@ -514,68 +688,199 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               );
             })}
 
-            {/* Particles */}
-            {particles.map(p => (
+            {/* Brick destruction flash/glow effects */}
+            {brickFlashes.map(flash => (
               <motion.div
-                key={p.id}
-                initial={{ opacity: 1, scale: 1 }}
-                animate={{ opacity: 0, scale: 0.2, x: p.vx * 18, y: p.vy * 18 + 60 }}
-                transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className={`absolute rounded-full ${COLOR_CLASSES[p.color]?.split(' ')[0] || 'bg-white'}`}
+                key={`flash-${flash.id}`}
+                initial={{ opacity: 0.9, scale: 1 }}
+                animate={{ opacity: 0, scale: 2 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="absolute rounded-md pointer-events-none"
                 style={{
-                  left: p.x * gameScale,
-                  top: p.y * gameScale,
-                  width: p.size * gameScale,
-                  height: p.size * gameScale,
+                  left: flash.x * gameScale,
+                  top: flash.y * gameScale,
+                  width: BRICK_WIDTH * gameScale,
+                  height: BRICK_HEIGHT * gameScale,
+                  backgroundColor: COLOR_HEX[flash.color],
+                  boxShadow: `0 0 20px ${COLOR_HEX[flash.color]}, 0 0 40px ${COLOR_HEX[flash.color]}60`,
                 }}
               />
             ))}
 
-            {/* Paddle */}
-            <div
-              className="absolute bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"
-              style={{
-                left: paddleX * gameScale,
-                top: paddleTop * gameScale,
-                width: PADDLE_WIDTH * gameScale,
-                height: PADDLE_HEIGHT * gameScale,
-              }}
-            />
-
-            {/* Ball Trail */}
-            {trail.map((pos, i) => {
-              const t = trail.length > 1 ? i / (trail.length - 1) : 0;
-              const size = BALL_SIZE * (0.25 + t * 0.75);
-              const opacity = t * 0.5 + 0.05;
+            {/* Particles with gravity and vibrant colors */}
+            {particles.map(p => {
+              const particleColor = COLOR_HEX[p.color as BrickColor] || '#ffffff';
               return (
-                <div
-                  key={i}
-                  className="absolute rounded-full"
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                  animate={{
+                    opacity: [1, 0.8, 0],
+                    scale: [1, 0.7, 0.1],
+                    x: [0, p.vx * 10, p.vx * 18],
+                    y: [0, p.vy * 6, p.vy * 18 + 90],
+                  }}
+                  transition={{ duration: 1.1, ease: 'easeOut' }}
+                  className="absolute rounded-full pointer-events-none"
                   style={{
-                    left: (pos.x + BALL_SIZE / 2 - size / 2) * gameScale,
-                    top: (pos.y + BALL_SIZE / 2 - size / 2) * gameScale,
-                    width: size * gameScale,
-                    height: size * gameScale,
-                    background: `radial-gradient(circle, rgba(255,255,255,${opacity}) 0%, rgba(147,197,253,${opacity * 0.5}) 100%)`,
+                    left: p.x * gameScale,
+                    top: p.y * gameScale,
+                    width: p.size * gameScale,
+                    height: p.size * gameScale,
+                    backgroundColor: particleColor,
+                    boxShadow: `0 0 ${Math.max(4, p.size * 0.8)}px ${particleColor}`,
                   }}
                 />
               );
             })}
 
-            {/* Ball */}
+            {/* Paddle with glow and hit response */}
+            <motion.div
+              animate={paddleHitFlash ? { scaleX: 1.15, scaleY: 0.85 } : { scaleX: 1, scaleY: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+              className="absolute rounded-full"
+              style={{
+                left: paddleX * gameScale,
+                top: paddleTop * gameScale,
+                width: PADDLE_WIDTH * gameScale,
+                height: PADDLE_HEIGHT * gameScale,
+                background: paddleHitFlash
+                  ? 'linear-gradient(90deg, #93c5fd, #bfdbfe, #93c5fd)'
+                  : 'linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6)',
+                boxShadow: paddleHitFlash
+                  ? '0 0 24px rgba(96,165,250,0.8), 0 0 48px rgba(96,165,250,0.4)'
+                  : '0 0 12px rgba(59,130,246,0.4), 0 0 24px rgba(59,130,246,0.2)',
+                transition: 'background 0.12s, box-shadow 0.12s',
+                transformOrigin: 'center center',
+              }}
+            />
+
+            {/* Ball trail with color gradient (white to blue) */}
+            {trail.map((pos, i) => {
+              const ratio = trail.length > 1 ? i / (trail.length - 1) : 0;
+              const size = BALL_SIZE * (0.15 + ratio * 0.85);
+              const opacity = ratio * 0.55 + 0.02;
+              const r = Math.round(255 - ratio * 95);
+              const g = Math.round(255 - ratio * 58);
+              const b = 255;
+              return (
+                <div
+                  key={i}
+                  className="absolute rounded-full pointer-events-none"
+                  style={{
+                    left: (pos.x + BALL_SIZE / 2 - size / 2) * gameScale,
+                    top: (pos.y + BALL_SIZE / 2 - size / 2) * gameScale,
+                    width: size * gameScale,
+                    height: size * gameScale,
+                    background: `radial-gradient(circle, rgba(${r},${g},${b},${opacity}) 0%, rgba(96,165,250,${opacity * 0.3}) 100%)`,
+                  }}
+                />
+              );
+            })}
+
+            {/* Ball with spin and squash effects */}
             <div
-              className="absolute bg-white rounded-full shadow-lg shadow-white/30"
+              className="absolute rounded-full pointer-events-none"
               style={{
                 left: ballPos.x * gameScale,
                 top: ballPos.y * gameScale,
                 width: BALL_SIZE * gameScale,
                 height: BALL_SIZE * gameScale,
+                background: 'radial-gradient(circle at 35% 35%, #ffffff, #e0e7ff)',
+                boxShadow: '0 0 8px rgba(255,255,255,0.5), 0 0 16px rgba(147,197,253,0.3)',
+                transform: `rotate(${ballRotationRef.current}deg) scale(${ballSquash ? 1.3 : 1}, ${ballSquash ? 0.7 : 1})`,
+                transition: ballSquash ? 'transform 0.04s ease-out' : 'transform 0.12s ease-out',
+                willChange: 'transform',
               }}
             />
 
-            {/* Life Lost Flash */}
+            {/* Life Lost Flash - dramatic red vignette */}
             {lifeLostFlash && (
-              <div className="absolute inset-0 bg-red-500/30 pointer-events-none z-5 animate-pulse" />
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.12 }}
+                className="absolute inset-0 pointer-events-none z-50"
+                style={{
+                  background: 'radial-gradient(ellipse at center, transparent 15%, rgba(239,68,68,0.65) 100%)',
+                }}
+              />
+            )}
+
+            {/* Level transition flash */}
+            {levelFlash && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.85, 0] }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 bg-white pointer-events-none z-50"
+              />
+            )}
+
+            {/* Combo counter display */}
+            <AnimatePresence>
+              {comboDisplay >= 2 && (
+                <motion.div
+                  key="combo"
+                  initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.5, y: -20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  className="absolute top-2 right-2 z-30 flex items-center gap-1 px-2 py-1 rounded-full"
+                  style={{
+                    background: comboDisplay >= 4
+                      ? 'linear-gradient(135deg, #f97316, #ef4444)'
+                      : 'linear-gradient(135deg, #facc15, #f97316)',
+                    boxShadow: comboDisplay >= 4
+                      ? '0 0 16px rgba(239,68,68,0.5)'
+                      : '0 0 12px rgba(249,115,22,0.5)',
+                  }}
+                >
+                  <Zap className="w-3 h-3 text-white" />
+                  <span className="text-xs font-black text-white">{comboDisplay}x</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Level banner */}
+            <AnimatePresence>
+              {levelBannerLevel !== null && (
+                <motion.div
+                  key={`level-${levelBannerLevel}`}
+                  initial={{ opacity: 0, scale: 0.3, y: 30 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 1.2, y: -30 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none"
+                >
+                  <div
+                    className="px-8 py-4 rounded-2xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(99,102,241,0.9), rgba(139,92,246,0.9))',
+                      boxShadow: '0 0 30px rgba(99,102,241,0.5), 0 0 60px rgba(99,102,241,0.2)',
+                    }}
+                  >
+                    <p className="text-3xl font-black text-white text-center">
+                      {t('关卡', 'Level')} {levelBannerLevel}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Mobile touch indicator */}
+            {touchActive && gameState === 'playing' && (
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  left: (paddleX - 10) * gameScale,
+                  top: (paddleTop - 4) * gameScale,
+                  width: (PADDLE_WIDTH + 20) * gameScale,
+                  height: (PADDLE_HEIGHT + 8) * gameScale,
+                  borderRadius: 999,
+                  border: '2px solid rgba(96,165,250,0.3)',
+                }}
+              />
             )}
 
             {/* Idle / Game Over Overlay */}
@@ -675,6 +980,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
           {t('在游戏区域内滑动或移动鼠标来控制挡板', 'Swipe or move mouse within the game area to control the paddle')}
         </div>
       </motion.div>
+
     </div>
   );
 }

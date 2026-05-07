@@ -6,7 +6,7 @@ import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { Loader2 } from 'lucide-react';
+import { Leaf } from 'lucide-react';
 
 const Home = lazy(() => import('./pages/Home'));
 const Games = lazy(() => import('./pages/Games'));
@@ -23,8 +23,23 @@ const Terms = lazy(() => import('./pages/Terms'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 const LoadingFallback = () => (
-  <div className="flex-grow flex items-center justify-center min-h-[50vh]">
-    <Loader2 className="w-8 h-8 text-primary animate-spin" />
+  <div className="flex-grow flex items-center justify-center min-h-[50vh] bg-gradient-to-b from-[#E8F5EE]/40 to-[#FFF9F2]/40 dark:from-[#1a2c1f]/40 dark:to-background/40">
+    <div className="flex flex-col items-center gap-4">
+      <motion.div
+        animate={{ y: [0, -8, 0], scale: [1, 1.05, 1] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <Leaf className="w-12 h-12 text-primary fill-primary/30" />
+      </motion.div>
+      <motion.span
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="font-nunito font-bold text-lg text-primary"
+      >
+        Spring Nest
+      </motion.span>
+    </div>
   </div>
 );
 

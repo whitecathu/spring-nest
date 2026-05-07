@@ -18,6 +18,9 @@ export const springSnappy = { type: 'spring' as const, stiffness: 500, damping: 
 /** Gentle spring — soft, dreamy (decorative, background) */
 export const springGentle = { type: 'spring' as const, stiffness: 200, damping: 20, mass: 1.2 };
 
+/** Quick spring — fast micro-interactions (tooltips, ripples, badges) */
+export const springQuick = { type: 'spring' as const, stiffness: 600, damping: 30, mass: 0.5 };
+
 // ── Transition Presets ──────────────────────────────────────
 /** Standard fade-in-up for scroll reveals */
 export const fadeInUp = {
@@ -52,6 +55,21 @@ export const slideInRight = {
   initial: { opacity: 0, x: 30 },
   animate: { opacity: 1, x: 0 },
   transition: springSmooth,
+};
+
+/** Fade + scale-in for micro-interactions (badges, tooltips, small UI) */
+export const fadeScaleIn = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 },
+  transition: springQuick,
+};
+
+/** Slide-up with spring physics (modals, bottom sheets) */
+export const slideUp = {
+  initial: { opacity: 0, y: 40 },
+  animate: { opacity: 1, y: 0, transition: springSmooth },
+  exit: { opacity: 0, y: 40, transition: { duration: 0.2 } },
 };
 
 // ── Hover/Interaction Presets ───────────────────────────────

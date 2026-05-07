@@ -289,10 +289,7 @@ export default function Navigation() {
                   </div>
                 </motion.button>
 
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                <div
                   className="absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right flex flex-col p-2 z-50"
                 >
                   <Link to="/profile" className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('个人中心', 'Profile')}</Link>
@@ -310,7 +307,7 @@ export default function Navigation() {
                     }}
                     className="text-left px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                   >{t('退出登录', 'Log Out')}</button>
-                </motion.div>
+                </div>
               </div>
             ) : (
               <motion.button
@@ -330,40 +327,53 @@ export default function Navigation() {
       {/* Mobile Menu */}
       <AnimatePresence>
         {showMobileMenu && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-[72px] left-0 right-0 z-40 bg-[#FFF9F2]/95 dark:bg-surface/95 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden"
-          >
-            <nav className="flex flex-col p-4 gap-2" aria-label={t('移动端导航', 'Mobile navigation')}>
-              {navItems.map((item) => (
-                <motion.div
-                  key={item.id}
-                  whileHover={{ x: 4 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                >
-                  <Link
-                    to={item.path}
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all ${
-                      isActive(item.path)
-                        ? 'bg-primary-container/30 text-primary'
-                        : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container'
-                    }`}
+          <>
+            {/* Backdrop with blur */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden"
+              onClick={() => setShowMobileMenu(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed top-[72px] left-0 right-0 z-40 bg-[#FFF9F2]/95 dark:bg-surface/95 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden"
+            >
+              <nav className="flex flex-col p-4 gap-2" aria-label={t('移动端导航', 'Mobile navigation')}>
+                {navItems.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                    whileHover={{ x: 4 }}
                   >
-                    {item.id === 'home' && <Leaf className="w-5 h-5" />}
-                    {item.id === 'games' && <Gamepad2 className="w-5 h-5" />}
-                    {item.id === 'tools' && <Wrench className="w-5 h-5" />}
-                    {item.id === 'leaderboard' && <Trophy className="w-5 h-5" />}
-                    {item.id === 'about' && <Heart className="w-5 h-5" />}
-                    {isEn ? item.enLabel : item.label}
-                  </Link>
-                </motion.div>
-              ))}
-            </nav>
-          </motion.div>
+                    <Link
+                      to={item.path}
+                      onClick={() => setShowMobileMenu(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all min-h-[48px] ${
+                        isActive(item.path)
+                          ? 'bg-primary-container/30 text-primary border-l-[3px] border-primary'
+                          : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container border-l-[3px] border-transparent'
+                      }`}
+                    >
+                      {item.id === 'home' && <Leaf className="w-5 h-5" />}
+                      {item.id === 'games' && <Gamepad2 className="w-5 h-5" />}
+                      {item.id === 'tools' && <Wrench className="w-5 h-5" />}
+                      {item.id === 'leaderboard' && <Trophy className="w-5 h-5" />}
+                      {item.id === 'about' && <Heart className="w-5 h-5" />}
+                      {isEn ? item.enLabel : item.label}
+                    </Link>
+                  </motion.div>
+                ))}
+              </nav>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

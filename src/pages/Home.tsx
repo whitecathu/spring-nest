@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, useScroll, useTransform } from 'motion/react';
 import {
   Gamepad2,
   Wrench,
@@ -14,7 +14,6 @@ import {
   Timer,
   Code2,
   Shield,
-  Gamepad,
   Brain,
   GraduationCap,
 } from 'lucide-react';
@@ -25,9 +24,74 @@ import { getRecentItems } from '../lib/recent';
 import { getNewItems } from '../lib/recommendations';
 import SEO from '../components/SEO';
 
+// --- Shared card component for featured items (extracted for stable identity) ---
+function FeaturedCard({
+  item,
+  index,
+  actionLabel,
+  accentClass,
+  onNavigate,
+  t,
+}: {
+  item: { id: string; icon?: string; iconBg?: string; title: string; titleEn: string; description: string; descriptionEn: string; category: string; categoryEn?: string; route: string };
+  index: number;
+  actionLabel: string;
+  accentClass: string;
+  onNavigate: (route: string) => void;
+  t: (zh: string, en: string) => string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.45, delay: index * 0.08 }}
+      whileHover={{ y: -10, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+      whileTap={{ scale: 0.97, transition: { type: 'spring', stiffness: 500, damping: 20 } }}
+      onClick={() => onNavigate(item.route)}
+      className="bg-white dark:bg-surface-container-high rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(184,228,201,0.2)] transition-all duration-300 flex flex-col gap-4 border border-surface-variant/20 hover:border-primary/20 cursor-pointer group relative overflow-hidden"
+    >
+      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(184,228,201,0.15), rgba(255,208,189,0.1))' }} />
+      <div className="flex items-start gap-4">
+        <div
+          className={`w-14 h-14 rounded-xl ${item.iconBg || 'bg-surface-container'} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-300`}
+        >
+          <span className="text-2xl">{item.icon}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-nunito font-bold text-lg text-on-surface group-hover:text-primary transition-colors truncate">
+            {t(item.title, item.titleEn)}
+          </h3>
+          <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container/40 text-on-primary-container">
+            {item.categoryEn ? t(item.category, item.categoryEn) : item.category}
+          </span>
+        </div>
+      </div>
+      <p className="text-sm text-secondary line-clamp-2 leading-relaxed">
+        {t(item.description, item.descriptionEn)}
+      </p>
+      <div className="mt-auto pt-2">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className={`inline-flex items-center gap-2 px-5 py-2 ${accentClass} rounded-full font-bold text-sm shadow-sm hover:shadow-md transition-all`}
+        >
+          {actionLabel}
+          <ArrowRight className="w-3.5 h-3.5" />
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const { t } = useUser();
   const navigate = useNavigate();
+
+  // Parallax for hero clouds
+  const { scrollY } = useScroll();
+  const cloudY1 = useTransform(scrollY, [0, 500], [0, -60]);
+  const cloudY2 = useTransform(scrollY, [0, 500], [0, -40]);
 
   // --- Data ---
   const recentItems = useMemo(() => getRecentItems(6), []);
@@ -66,59 +130,6 @@ export default function Home() {
     { label: '学习练习', labelEn: 'Educational', icon: GraduationCap, color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
   ];
 
-  // --- Shared card component for featured items ---
-  const FeaturedCard = ({
-    item,
-    index,
-    actionLabel,
-    accentClass,
-  }: {
-    item: { id: string; icon?: string; iconBg?: string; title: string; titleEn: string; description: string; descriptionEn: string; category: string; categoryEn?: string; route: string };
-    index: number;
-    actionLabel: string;
-    accentClass: string;
-  }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.45, delay: index * 0.08 }}
-      whileHover={{ y: -8, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
-      whileTap={{ scale: 0.97, transition: { type: 'spring', stiffness: 500, damping: 20 } }}
-      onClick={() => navigate(item.route)}
-      className="bg-white dark:bg-surface-container-high rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(184,228,201,0.2)] transition-all duration-300 flex flex-col gap-4 border border-surface-variant/20 cursor-pointer group"
-    >
-      <div className="flex items-start gap-4">
-        <div
-          className={`w-14 h-14 rounded-xl ${item.iconBg || 'bg-surface-container'} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-300`}
-        >
-          <span className="text-2xl">{item.icon}</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-nunito font-bold text-lg text-on-surface group-hover:text-primary transition-colors truncate">
-            {t(item.title, item.titleEn)}
-          </h3>
-          <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container/40 text-on-primary-container">
-            {item.categoryEn ? t(item.category, item.categoryEn) : item.category}
-          </span>
-        </div>
-      </div>
-      <p className="text-sm text-secondary line-clamp-2 leading-relaxed">
-        {t(item.description, item.descriptionEn)}
-      </p>
-      <div className="mt-auto pt-2">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className={`inline-flex items-center gap-2 px-5 py-2 ${accentClass} rounded-full font-bold text-sm shadow-sm hover:shadow-md transition-all`}
-        >
-          {actionLabel}
-          <ArrowRight className="w-3.5 h-3.5" />
-        </motion.button>
-      </div>
-    </motion.div>
-  );
-
   return (
     <div className="flex-grow">
       <SEO />
@@ -126,25 +137,34 @@ export default function Home() {
       {/* ========== 1. Hero Section ========== */}
       <section className="relative w-full pt-20 pb-16 sm:pt-32 sm:pb-24 px-6 flex flex-col items-center justify-center text-center overflow-hidden bg-gradient-to-b from-[#E8F5EE] to-[#FFF9F2] dark:from-[#1a2c1f] dark:to-background">
         {/* Floating decorations */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" style={{ willChange: 'transform' }}>
           <motion.div
-            animate={{ y: [0, -25, 0], x: [0, 10, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ y: cloudY1 }}
             className="absolute top-20 left-[10%] opacity-40 text-primary-container"
           >
-            <Cloud className="w-20 h-20 fill-primary-container" />
+            <motion.div
+              animate={{ y: [0, -25, 0], x: [0, 10, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Cloud className="w-20 h-20 fill-primary-container" />
+            </motion.div>
           </motion.div>
           <motion.div
-            animate={{ y: [0, 30, 0], x: [0, -15, 0] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+            style={{ y: cloudY2 }}
             className="absolute top-40 right-[15%] opacity-30"
           >
-            <Cloud className="w-24 h-24 fill-primary-container text-primary-container" />
+            <motion.div
+              animate={{ y: [0, 30, 0], x: [0, -15, 0] }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+            >
+              <Cloud className="w-24 h-24 fill-primary-container text-primary-container" />
+            </motion.div>
           </motion.div>
           <motion.div
             animate={{ rotate: 360, scale: [1, 1.1, 1] }}
             transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
             className="absolute top-[30%] left-[25%] opacity-60 text-tertiary-container"
+            style={{ willChange: 'transform' }}
           >
             <Flower2 className="w-10 h-10 fill-tertiary-container" />
           </motion.div>
@@ -152,6 +172,7 @@ export default function Home() {
             animate={{ rotate: -360, scale: [1, 1.2, 1] }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
             className="absolute bottom-[20%] right-[25%] opacity-50 text-tertiary-container"
+            style={{ willChange: 'transform' }}
           >
             <Flower2 className="w-12 h-12 fill-tertiary-container" />
           </motion.div>
@@ -159,6 +180,7 @@ export default function Home() {
             animate={{ y: [0, -15, 0], rotate: [0, 10, -10, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
             className="absolute top-[10%] right-[30%] opacity-40 text-tertiary-container"
+            style={{ willChange: 'transform' }}
           >
             <Flower2 className="w-8 h-8 fill-tertiary-container" />
           </motion.div>
@@ -300,6 +322,8 @@ export default function Home() {
                 index={i}
                 actionLabel={t('打开工具', 'Open Tool')}
                 accentClass="bg-primary-container text-on-primary-container"
+                onNavigate={navigate}
+                t={t}
               />
             ))}
           </div>
@@ -338,6 +362,8 @@ export default function Home() {
                 index={i}
                 actionLabel={t('开始游戏', 'Play')}
                 accentClass="bg-tertiary-container text-on-tertiary-container"
+                onNavigate={navigate}
+                t={t}
               />
             ))}
           </div>
