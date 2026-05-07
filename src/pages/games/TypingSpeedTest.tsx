@@ -35,6 +35,17 @@ function shuffleWords(pool: string[], count: number): string[] {
   return words;
 }
 
+function formatElapsed(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+const statItemVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+};
+
 export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [mode, setMode] = useState<Mode>('time30');
@@ -47,13 +58,16 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
   const [timeLeft, setTimeLeft] = useState(30);
   const [elapsed, setElapsed] = useState(0);
   const [bestWPM, setBestWPM] = useState(0);
-  const [wpm, setWpm] = useState(0);
-  const [accuracy, setAccuracy] = useState(100);
   const [streak, setStreak] = useState(0);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [wordResults, setWordResults] = useState<Map<number, 'correct' | 'wrong'>>(new Map());
+  const [wordFlash, setWordFlash] = useState<'correct' | 'wrong' | null>(null);
+  const [streakLost, setStreakLost] = useState(false);
+  const prevStreakRef = useRef(0);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
@@ -71,10 +85,12 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
     setCorrectCount(0);
     setWrongCount(0);
     setElapsed(0);
-    setWpm(0);
-    setAccuracy(100);
     setStreak(0);
     setBestWPM(loadBestWPM(mode));
+    setWordResults(new Map());
+    setWordFlash(null);
+    setStreakLost(false);
+    prevStreakRef.current = 0;
 
     if (mode === 'time30' || mode === 'time60') {
       const limit = mode === 'time30' ? 30 : 60;
@@ -92,14 +108,14 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
         } else {
           setTimeLeft(remaining);
         }
-      }, 200);
+      }, 1000);
     } else {
       setTimeLeft(0);
       startTimeRef.current = Date.now();
       setGameState('playing');
       timerRef.current = setInterval(() => {
         setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
-      }, 500);
+      }, 1000);
     }
 
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -108,18 +124,7 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
   const finishGame = useCallback(() => {
     clearTimer();
     setGameState('over');
-    const totalTyped = correctCount + wrongCount;
-    const acc = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 0;
-    setAccuracy(acc);
-    const minutes = elapsed / 60;
-    const wordsPerMin = minutes > 0 ? Math.round(correctCount / minutes) : 0;
-    setWpm(wordsPerMin);
-    const best = loadBestWPM(mode);
-    if (wordsPerMin > best) {
-      saveBestWPM(mode, wordsPerMin);
-      setBestWPM(wordsPerMin);
-    }
-  }, [clearTimer, correctCount, wrongCount, elapsed, mode]);
+  }, [clearTimer]);
 
   const handleInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (gameState !== 'playing') return;
@@ -130,26 +135,34 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
     if (value.endsWith(' ')) {
       const typed = value.trim();
       const expected = words[currentIndex];
+      const isCorrect = typed === expected;
 
-      if (typed === expected) {
+      if (isCorrect) {
         setCorrectCount(c => c + 1);
         setStreak(s => s + 1);
+        prevStreakRef.current = prevStreakRef.current + 1;
+        setWordResults(prev => new Map(prev).set(currentIndex, 'correct'));
+        setWordFlash('correct');
       } else {
         setWrongCount(w => w + 1);
         setStreak(0);
+        // Streak break animation
+        if (prevStreakRef.current >= 5) {
+          setStreakLost(true);
+          setTimeout(() => setStreakLost(false), 1500);
+        }
+        prevStreakRef.current = 0;
+        setWordResults(prev => new Map(prev).set(currentIndex, 'wrong'));
+        setWordFlash('wrong');
       }
+      setTimeout(() => setWordFlash(null), 300);
 
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       setCurrentInput('');
 
-      // Check if word-mode game is complete
       if ((mode === 'words25' && nextIndex >= 25) || (mode === 'words50' && nextIndex >= 50)) {
-        setCorrectCount(c => {
-          // Use current correct count
-          setTimeout(() => finishGame(), 50);
-          return c;
-        });
+        setTimeout(() => finishGame(), 50);
       }
     }
   }, [gameState, words, currentIndex, mode, finishGame]);
@@ -157,6 +170,22 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
   const currentWord = words[currentIndex] || '';
   const isCorrect = currentInput.length > 0 && currentWord.startsWith(currentInput);
   const isWrong = currentInput.length > 0 && !currentWord.startsWith(currentInput);
+
+  const liveWpm = gameState === 'playing' && elapsed > 0 ? Math.round(correctCount / (elapsed / 60)) : 0;
+
+  const totalTyped = correctCount + wrongCount;
+  const accuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 0;
+  const wpm = elapsed > 0 ? Math.round(correctCount / (elapsed / 60)) : 0;
+
+  useEffect(() => {
+    if (gameState === 'over' && wpm > 0) {
+      const best = loadBestWPM(mode);
+      if (wpm > best) {
+        saveBestWPM(mode, wpm);
+        setBestWPM(wpm);
+      }
+    }
+  }, [gameState, wpm, mode]);
 
   return (
     <div className="flex-grow max-w-2xl mx-auto w-full px-4 py-8">
@@ -185,6 +214,21 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
                 </motion.div>
               </div>
             )}
+            {/* Live WPM during gameplay */}
+            {gameState === 'playing' && (
+              <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center">
+                <div className="text-xs text-secondary font-medium">{t('WPM', 'WPM')}</div>
+                <motion.div
+                  key={liveWpm}
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: 1 }}
+                  transition={springSmooth}
+                  className="text-xl font-bold text-primary tabular-nums"
+                >
+                  {liveWpm}
+                </motion.div>
+              </div>
+            )}
             {bestWPM > 0 && (
               <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center">
                 <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
@@ -202,6 +246,9 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
                 key={m}
                 onClick={() => setMode(m)}
                 whileTap={{ scale: 0.93 }}
+                whileHover={{ scale: 1.05 }}
+                animate={mode === m ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                transition={springBouncy}
                 className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[48px] transition-all ${
                   mode === m ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
                 }`}
@@ -215,18 +262,65 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
         {/* Word Display */}
         {gameState !== 'idle' && (
           <div className="mb-6">
-            <div className="bg-surface-container rounded-2xl p-6 min-h-[120px] flex flex-wrap gap-x-2 gap-y-1 items-start content-start">
+            <div className="relative bg-surface-container rounded-2xl p-6 min-h-[120px] flex flex-wrap gap-x-2 gap-y-1 items-start content-start">
+              {/* Word flash overlay */}
+              <AnimatePresence>
+                {wordFlash && (
+                  <motion.div
+                    className={`absolute inset-0 rounded-2xl pointer-events-none z-10 ${
+                      wordFlash === 'correct' ? 'bg-green-400/15' : 'bg-red-400/15'
+                    }`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 1, 0] }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+              </AnimatePresence>
               {words.slice(0, Math.min(words.length, 60)).map((word, i) => {
+                const result = i < currentIndex ? wordResults.get(i) : undefined;
                 let wordClass = 'text-on-surface-variant';
                 if (i < currentIndex) {
-                  wordClass = 'text-green-500 opacity-60';
-                } else if (i === currentIndex) {
-                  wordClass = 'font-bold text-on-surface text-lg';
+                  wordClass = result === 'wrong'
+                    ? 'text-red-500 opacity-60 line-through'
+                    : 'text-green-500 opacity-60';
                 }
+
+                // Current word: character-by-character highlighting
+                if (i === currentIndex) {
+                  return (
+                    <span key={i} className="font-bold text-lg relative">
+                      {word.split('').map((char, ci) => {
+                        let charClass = 'text-on-surface';
+                        if (ci < currentInput.length) {
+                          charClass = currentInput[ci] === char ? 'text-green-500' : 'text-red-500';
+                        }
+                        return (
+                          <motion.span
+                            key={ci}
+                            className={charClass}
+                            initial={ci === currentInput.length - 1 ? { scale: 1.2 } : false}
+                            animate={{ scale: 1 }}
+                            transition={{ duration: 0.1 }}
+                          >
+                            {char}
+                          </motion.span>
+                        );
+                      })}
+                      {/* Extra characters typed beyond word length */}
+                      {currentInput.length > word.length && (
+                        <span className="text-red-500 bg-red-100 dark:bg-red-900/30 rounded px-0.5">
+                          {currentInput.slice(word.length)}
+                        </span>
+                      )}
+                      <span className="inline-block w-0.5 h-5 bg-primary ml-0.5 animate-pulse" />
+                    </span>
+                  );
+                }
+
                 return (
                   <span key={i} className={`${wordClass} transition-colors duration-150`}>
                     {word}
-                    {i === currentIndex && <span className="inline-block w-0.5 h-5 bg-primary ml-0.5 animate-pulse" />}
                   </span>
                 );
               })}
@@ -253,17 +347,38 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
               />
             </div>
 
-            {/* Streak indicator */}
-            {streak >= 5 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-1 mt-2 justify-center"
-              >
-                <Zap className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-bold text-amber-500">{streak}x {t('连击', 'Streak')}</span>
-              </motion.div>
-            )}
+            {/* Streak indicator with exit animation */}
+            <AnimatePresence>
+              {streak >= 5 && !streakLost && (
+                <motion.div
+                  key="streak"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                  transition={springBouncy}
+                  className="flex items-center gap-1 mt-2 justify-center"
+                >
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  <span className="text-sm font-bold text-amber-500">{streak}x {t('连击', 'Streak')}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Streak break animation */}
+            <AnimatePresence>
+              {streakLost && (
+                <motion.div
+                  key="streak-lost"
+                  initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                  transition={springBouncy}
+                  className="flex items-center justify-center gap-1 mt-2"
+                >
+                  <span className="text-sm font-bold text-red-500">💥 {t('连击中断！', 'Streak Lost!')}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
@@ -285,32 +400,45 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
             className="bg-surface-container rounded-2xl p-6 text-center"
           >
             <p className="text-4xl mb-2">⌨️</p>
-            <p className="text-2xl font-bold text-on-surface mb-4">{t('测试完成！', 'Test Complete!')}
-
-            </p>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div>
+            <p className="text-2xl font-bold text-on-surface mb-4">{t('测试完成！', 'Test Complete!')}</p>
+            <motion.div
+              className="grid grid-cols-3 gap-4 mb-4"
+              initial="initial"
+              animate="animate"
+              transition={{ staggerChildren: 0.15 }}
+            >
+              <motion.div variants={statItemVariants} transition={springSmooth}>
                 <p className="text-3xl font-black text-primary">{wpm}</p>
                 <p className="text-xs text-secondary">{t('WPM', 'WPM')}</p>
-              </div>
-              <div>
+              </motion.div>
+              <motion.div variants={statItemVariants} transition={springSmooth}>
                 <p className="text-3xl font-black text-green-500">{accuracy}%</p>
                 <p className="text-xs text-secondary">{t('准确率', 'Accuracy')}</p>
-              </div>
-              <div>
-                <p className="text-3xl font-black text-blue-500">{elapsed}s</p>
+              </motion.div>
+              <motion.div variants={statItemVariants} transition={springSmooth}>
+                <p className="text-3xl font-black text-blue-500">{formatElapsed(elapsed)}</p>
                 <p className="text-xs text-secondary">{t('用时', 'Time')}</p>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
             {wpm > 0 && wpm >= bestWPM && (
-              <p className="text-sm text-green-500 font-bold mb-2">🏆 {t('新纪录！', 'New Record!')}</p>
+              <motion.p
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: [1, 1.15, 1] }}
+                transition={{ duration: 0.6, ...springBouncy }}
+                className="text-sm text-green-500 font-bold mb-2"
+              >
+                🏆 {t('新纪录！', 'New Record!')}
+              </motion.p>
             )}
-            <button
+            <motion.button
               onClick={startGame}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.93 }}
+              transition={springBouncy}
               className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]"
             >
               {t('再来一次', 'Try Again')}
-            </button>
+            </motion.button>
           </motion.div>
         )}
 

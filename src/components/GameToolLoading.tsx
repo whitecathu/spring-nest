@@ -6,7 +6,7 @@ import { useReducedMotion } from '../lib/animations';
 export default function GameToolLoading() {
   const reducedMotion = useReducedMotion();
   return (
-    <div className="flex-grow flex items-center justify-center min-h-[50vh]">
+    <div className="flex-grow flex items-center justify-center min-h-[50vh]" role="status" aria-label="Loading">
       <div className="flex flex-col items-center gap-5">
         <motion.div
           animate={reducedMotion ? {} : { y: [0, -6, 0], scale: [1, 1.05, 1] }}

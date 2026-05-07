@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Copy, Check, Type } from 'lucide-react';
+import { ArrowLeft, Copy, Check, Type, X } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { springBouncy } from '../../lib/animations';
+import { springBouncy, springSmooth, springSnappy } from '../../lib/animations';
 
 type CaseType = 'upper' | 'lower' | 'title' | 'sentence' | 'toggle' | 'reverse';
 
@@ -33,7 +33,7 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
   const [activeCase, setActiveCase] = useState<CaseType>('upper');
   const [copied, setCopied] = useState(false);
 
-  const output = convertCase(input, activeCase);
+  const output = useMemo(() => convertCase(input, activeCase), [input, activeCase]);
 
   const handleCopy = useCallback(async () => {
     if (!output) return;
@@ -42,7 +42,6 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const ta = document.createElement('textarea');
       ta.value = output;
       document.body.appendChild(ta);
@@ -55,8 +54,8 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
   }, [output]);
 
   const charCount = input.length;
-  const wordCount = input.trim() ? input.trim().split(/\s+/).length : 0;
-  const lineCount = input ? input.split('\n').length : 0;
+  const wordCount = useMemo(() => input.trim() ? input.trim().split(/\s+/).length : 0, [input]);
+  const lineCount = useMemo(() => input ? input.split('\n').length : 0, [input]);
 
   return (
     <div className="flex-grow max-w-2xl mx-auto w-full px-4 py-8">
@@ -65,7 +64,11 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12, transition: { duration: 0.25 } }}
+      >
         <div className="mb-6">
           <h1 className="text-3xl font-black text-on-surface flex items-center gap-3">
             <Type className="w-8 h-8 text-primary" />
@@ -80,60 +83,121 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
             <label className="text-sm font-semibold text-secondary">{t('输入文本', 'Input Text')}</label>
             <span className="text-xs text-secondary">{charCount} {t('字符', 'chars')} · {wordCount} {t('词', 'words')} · {lineCount} {t('行', 'lines')}</span>
           </div>
-          <textarea
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder={t('在此输入或粘贴文本...', 'Type or paste text here...')}
-            className="w-full h-40 px-4 py-3 bg-surface-container rounded-xl outline-none focus:ring-2 focus:ring-primary text-on-surface resize-none"
-          />
+          <div className="relative">
+            <textarea
+              spellCheck="false"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder={t('在此输入或粘贴文本...', 'Type or paste text here...')}
+              className="w-full h-40 px-4 py-3 bg-surface-container rounded-xl outline-none focus:ring-2 focus:ring-primary text-on-surface resize-none"
+            />
+            <AnimatePresence>
+              {input && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={springSnappy}
+                  onClick={() => setInput('')}
+                  className="absolute top-3 right-3 w-7 h-7 rounded-full bg-surface-container-high text-secondary flex items-center justify-center hover:text-on-surface transition-colors"
+                  aria-label={t('清除输入', 'Clear input')}
+                >
+                  <X className="w-4 h-4" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Case Buttons */}
+        {/* Case Buttons with sliding layoutId highlight */}
         <div className="flex flex-wrap gap-2 mb-4">
           {CASES.map(c => (
             <motion.button
               key={c.id}
               onClick={() => setActiveCase(c.id)}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.93 }}
-              className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[44px] transition-all ${
+              transition={springSnappy}
+              className={`relative px-4 py-2 rounded-full font-semibold text-sm min-h-[44px] ${
                 activeCase === c.id
-                  ? 'bg-primary text-on-primary'
-                  : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
+                  ? 'text-on-primary'
+                  : 'text-on-surface hover:bg-surface-variant'
               }`}
             >
-              {t(...c.label)}
+              {activeCase === c.id && (
+                <motion.div
+                  layoutId="case-active-bg"
+                  className="absolute inset-0 bg-primary rounded-full -z-10"
+                  transition={springBouncy}
+                />
+              )}
+              <span className="relative z-10">{t(...c.label)}</span>
             </motion.button>
           ))}
         </div>
 
-        {/* Output */}
-        {input && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-semibold text-secondary">{t('转换结果', 'Result')}</label>
-              <motion.button
-                onClick={handleCopy}
-                whileTap={{ scale: 0.9 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[36px]"
-              >
-                <AnimatePresence mode="wait">
-                  {copied ? (
-                    <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-1">
-                      <Check className="w-3 h-3" /> {t('已复制', 'Copied')}
-                    </motion.span>
-                  ) : (
-                    <motion.span key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-1">
-                      <Copy className="w-3 h-3" /> {t('复制', 'Copy')}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </div>
-            <div className="w-full h-40 px-4 py-3 bg-surface-container-low rounded-xl text-on-surface overflow-auto whitespace-pre-wrap">
-              {output}
-            </div>
-          </motion.div>
-        )}
+        {/* Output with AnimatePresence */}
+        <AnimatePresence mode="wait">
+          {input ? (
+            <motion.div
+              key="output"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
+              transition={springSmooth}
+              className="mb-4"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-secondary">{t('转换结果', 'Result')}</label>
+                <motion.button
+                  onClick={handleCopy}
+                  whileTap={{ scale: 0.9 }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[36px]"
+                >
+                  <AnimatePresence mode="wait">
+                    {copied ? (
+                      <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={springBouncy} className="flex items-center gap-1">
+                        <Check className="w-3 h-3" /> {t('已复制', 'Copied')}
+                      </motion.span>
+                    ) : (
+                      <motion.span key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={springBouncy} className="flex items-center gap-1">
+                        <Copy className="w-3 h-3" /> {t('复制', 'Copy')}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              </div>
+              <div className="relative">
+                <motion.div
+                  key={output}
+                  initial={{ opacity: 0.7 }}
+                  animate={{ opacity: 1 }}
+                  transition={springBouncy}
+                  className="w-full h-40 px-4 py-3 bg-surface-container-low rounded-xl text-on-surface overflow-auto whitespace-pre-wrap"
+                >
+                  {output}
+                </motion.div>
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-surface-container-low to-transparent rounded-b-xl pointer-events-none" />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty-output"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mb-4 bg-surface-container rounded-2xl p-8 text-center"
+            >
+              <Type className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
+              <p className="text-sm text-secondary/50">
+                {t('结果将显示在此处', 'Results will appear here')}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('选择转换类型，结果实时更新', 'Select a conversion type, results update in real-time')}

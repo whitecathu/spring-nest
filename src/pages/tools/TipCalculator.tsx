@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Calculator, Users, Percent } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { springBouncy } from '../../lib/animations';
+import { springBouncy, springSmooth, springSnappy } from '../../lib/animations';
 
 const TIP_PRESETS = [10, 15, 18, 20, 25];
 
@@ -32,7 +32,11 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12, transition: { duration: 0.25 } }}
+      >
         <div className="mb-6">
           <h1 className="text-3xl font-black text-on-surface flex items-center gap-3">
             <Calculator className="w-8 h-8 text-primary" />
@@ -48,6 +52,7 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-primary">¥</span>
             <input
               type="number"
+              inputMode="decimal"
               value={billAmount}
               onChange={e => setBillAmount(e.target.value)}
               placeholder="0.00"
@@ -67,8 +72,11 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
               <motion.button
                 key={p}
                 onClick={() => { setTipPercent(p); setCustomTip(''); }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.9 }}
-                className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[44px] transition-all ${
+                animate={tipPercent === p && !customTip ? { scale: 1.06 } : { scale: 1 }}
+                transition={springBouncy}
+                className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[44px] transition-colors ${
                   tipPercent === p && !customTip
                     ? 'bg-primary text-on-primary'
                     : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
@@ -80,6 +88,7 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
           </div>
           <input
             type="number"
+            inputMode="numeric"
             value={customTip}
             onChange={e => setCustomTip(e.target.value)}
             placeholder={t('自定义比例...', 'Custom %...')}
@@ -96,7 +105,9 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
           <div className="flex items-center justify-center gap-4">
             <motion.button
               onClick={() => setSplitCount(Math.max(1, splitCount - 1))}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.85 }}
+              transition={springSnappy}
               className="w-12 h-12 rounded-full bg-surface-container-high text-on-surface font-bold text-xl flex items-center justify-center"
             >
               -
@@ -112,7 +123,9 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
             </motion.span>
             <motion.button
               onClick={() => setSplitCount(Math.min(20, splitCount + 1))}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.85 }}
+              transition={springSnappy}
               className="w-12 h-12 rounded-full bg-surface-container-high text-on-surface font-bold text-xl flex items-center justify-center"
             >
               +
@@ -121,28 +134,96 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Results */}
-        {bill > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-primary-container/50 to-primary/10 rounded-2xl p-6 space-y-3"
-          >
-            <div className="flex justify-between items-center">
-              <span className="text-secondary font-medium">{t('小费金额', 'Tip Amount')}</span>
-              <span className="text-xl font-bold text-on-surface">{formatCurrency(calculations.tipAmount)}</span>
-            </div>
-            <div className="flex justify-between items-center border-t border-on-surface/10 pt-3">
-              <span className="text-secondary font-medium">{t('总计', 'Total')}</span>
-              <span className="text-2xl font-black text-primary">{formatCurrency(calculations.total)}</span>
-            </div>
-            {splitCount > 1 && (
-              <div className="flex justify-between items-center border-t border-on-surface/10 pt-3">
-                <span className="text-secondary font-medium">{t('每人', 'Per Person')}</span>
-                <span className="text-2xl font-black text-tertiary">{formatCurrency(calculations.perPerson)}</span>
-              </div>
-            )}
-          </motion.div>
-        )}
+        <AnimatePresence mode="wait">
+          {bill > 0 ? (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
+              transition={springSmooth}
+              className="bg-gradient-to-br from-primary-container/50 to-primary/10 rounded-2xl p-6 space-y-3"
+            >
+              {/* Tip Amount - staggered row 1 */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ ...springSmooth, delay: 0 }}
+                className="flex justify-between items-center"
+              >
+                <span className="text-secondary font-medium">{t('小费金额', 'Tip Amount')}</span>
+                <motion.span
+                  key={formatCurrency(calculations.tipAmount)}
+                  initial={{ scale: 1.15, opacity: 0.7 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={springBouncy}
+                  className="text-xl font-bold text-on-surface"
+                >
+                  {formatCurrency(calculations.tipAmount)}
+                </motion.span>
+              </motion.div>
+
+              {/* Total - staggered row 2 */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ ...springSmooth, delay: 0.08 }}
+                className="flex justify-between items-center border-t border-on-surface/10 pt-3"
+              >
+                <span className="text-secondary font-medium">{t('总计', 'Total')}</span>
+                <motion.span
+                  key={formatCurrency(calculations.total)}
+                  initial={{ scale: 1.2, opacity: 0.7 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={springBouncy}
+                  className="text-2xl font-black text-primary"
+                >
+                  {formatCurrency(calculations.total)}
+                </motion.span>
+              </motion.div>
+
+              {/* Per Person - staggered row 3, AnimatePresence for show/hide */}
+              <AnimatePresence>
+                {splitCount > 1 && (
+                  <motion.div
+                    key="per-person"
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={springSmooth}
+                  >
+                    <div className="flex justify-between items-center border-t border-on-surface/10 pt-3">
+                      <span className="text-secondary font-medium">{t('每人', 'Per Person')}</span>
+                      <motion.span
+                        key={formatCurrency(calculations.perPerson)}
+                        initial={{ scale: 1.2, opacity: 0.7 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={springBouncy}
+                        className="text-2xl font-black text-tertiary"
+                      >
+                        {formatCurrency(calculations.perPerson)}
+                      </motion.span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="bg-surface-container rounded-2xl p-8 text-center"
+            >
+              <Calculator className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
+              <p className="text-sm text-secondary/50">
+                {t('输入账单金额查看结果', 'Enter bill amount to see results')}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('输入账单金额，选择小费比例和分账人数', 'Enter bill amount, select tip % and split count')}

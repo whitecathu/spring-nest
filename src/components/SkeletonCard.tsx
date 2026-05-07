@@ -1,4 +1,3 @@
-import { motion } from 'motion/react';
 import { useReducedMotion } from '../lib/animations';
 
 interface SkeletonCardProps {
@@ -8,75 +7,65 @@ interface SkeletonCardProps {
 
 /**
  * GPU-accelerated skeleton placeholder for game/tool cards.
- * Uses transform-based shimmer (not background-position) for smooth 60fps animation.
+ * Uses CSS ::after shimmer (transform-based) for smooth 60fps animation.
  */
 export default function SkeletonCard({ variant = 'game' }: SkeletonCardProps) {
   const reducedMotion = useReducedMotion();
 
-  const shimmer = reducedMotion
-    ? {}
-    : {
-        animate: { opacity: [0.4, 0.7, 0.4] },
-        transition: { duration: 1.8, repeat: Infinity, ease: 'easeInOut' as const },
-      };
-
   if (variant === 'tool') {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="glass-card rounded-3xl p-8 flex flex-col items-center gap-6"
+      <div
+        role="status"
+        aria-label="Loading"
+        className="glass-card rounded-3xl p-8 flex flex-col items-center gap-6 animate-fade-in"
       >
         {/* Icon placeholder */}
-        <motion.div
-          {...shimmer}
-          className="skeleton-shimmer w-24 h-24 rounded-2xl"
+        <div
+          className={`skeleton-shimmer w-24 h-24 rounded-2xl${reducedMotion ? ' opacity-40' : ''}`}
         />
         {/* Title placeholder */}
         <div className="flex flex-col items-center gap-3 w-full">
-          <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-title mx-auto" />
-          <motion.div {...shimmer} className="skeleton-shimmer h-6 w-20 rounded-full" />
+          <div className={`skeleton-shimmer skeleton-card-title mx-auto${reducedMotion ? ' opacity-40' : ''}`} />
+          <div className={`skeleton-shimmer h-6 w-20 rounded-full${reducedMotion ? ' opacity-40' : ''}`} />
         </div>
         {/* Description placeholders */}
         <div className="flex flex-col items-center gap-2 w-full">
-          <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-text mx-auto" />
-          <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-text mx-auto" />
-          <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-text-short mx-auto" />
+          <div className={`skeleton-shimmer skeleton-card-text mx-auto${reducedMotion ? ' opacity-40' : ''}`} />
+          <div className={`skeleton-shimmer skeleton-card-text mx-auto${reducedMotion ? ' opacity-40' : ''}`} />
+          <div className={`skeleton-shimmer skeleton-card-text-short mx-auto${reducedMotion ? ' opacity-40' : ''}`} />
         </div>
         {/* Button placeholder */}
-        <motion.div {...shimmer} className="skeleton-shimmer h-12 w-32 rounded-xl mt-auto" />
-      </motion.div>
+        <div className={`skeleton-shimmer h-12 w-32 rounded-xl mt-auto${reducedMotion ? ' opacity-40' : ''}`} />
+      </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-surface-container-high rounded-xl p-6 shadow-[0_8px_30px_rgba(217,239,224,0.4)] dark:shadow-none flex flex-col gap-4"
+    <div
+      role="status"
+      aria-label="Loading"
+      className="bg-white dark:bg-surface-container-high rounded-xl p-6 shadow-[0_8px_30px_rgba(217,239,224,0.4)] dark:shadow-none flex flex-col gap-4 animate-fade-in"
     >
       {/* Image placeholder */}
-      <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-image" />
+      <div className={`skeleton-shimmer skeleton-card-image${reducedMotion ? ' opacity-40' : ''}`} />
       {/* Icon + title row */}
       <div className="flex items-start gap-4">
-        <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-icon shrink-0" />
+        <div className={`skeleton-shimmer skeleton-card-icon shrink-0${reducedMotion ? ' opacity-40' : ''}`} />
         <div className="flex-grow flex flex-col gap-2 pt-1">
-          <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-title" />
-          <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-text-short" />
+          <div className={`skeleton-shimmer skeleton-card-title${reducedMotion ? ' opacity-40' : ''}`} />
+          <div className={`skeleton-shimmer skeleton-card-text-short${reducedMotion ? ' opacity-40' : ''}`} />
         </div>
       </div>
       {/* Description */}
       <div className="flex flex-col gap-2 mt-2">
-        <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-text" />
-        <motion.div {...shimmer} className="skeleton-shimmer skeleton-card-text-short" />
+        <div className={`skeleton-shimmer skeleton-card-text${reducedMotion ? ' opacity-40' : ''}`} />
+        <div className={`skeleton-shimmer skeleton-card-text-short${reducedMotion ? ' opacity-40' : ''}`} />
       </div>
       {/* Action row */}
       <div className="mt-auto pt-4 flex justify-between items-center">
-        <motion.div {...shimmer} className="skeleton-shimmer w-9 h-9 rounded-full" />
-        <motion.div {...shimmer} className="skeleton-shimmer h-9 w-28 rounded-full" />
+        <div className={`skeleton-shimmer w-9 h-9 rounded-full${reducedMotion ? ' opacity-40' : ''}`} />
+        <div className={`skeleton-shimmer h-9 w-28 rounded-full${reducedMotion ? ' opacity-40' : ''}`} />
       </div>
-    </motion.div>
+    </div>
   );
 }

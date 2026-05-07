@@ -1,5 +1,5 @@
 import { Gamepad2, Heart, Play, Flower2, Cloud } from 'lucide-react';
-import { useState, useMemo, lazy, Suspense, useEffect, type ComponentType, type LazyExoticComponent } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect, useRef, type ComponentType, type LazyExoticComponent } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
@@ -63,7 +63,7 @@ const containerVariants = {
   },
   exit: {
     transition: {
-      staggerChildren: 0.035,
+      staggerChildren: 0.05,
     },
   },
 };
@@ -80,8 +80,8 @@ const cardVariants = {
   exit: {
     opacity: 0,
     scale: 0.88,
-    y: -20,
-    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] as const },
+    y: 20,
+    transition: { duration: 0.15, ease: [0.4, 0, 1, 1] as const },
   },
 };
 
@@ -92,6 +92,7 @@ export default function Games() {
   const { slug } = useParams<{ slug?: string }>();
   const [activeCategory, setActiveCategory] = useState('all');
   const [isSwitching, setIsSwitching] = useState(false);
+  const pillContainerRef = useRef<HTMLDivElement>(null);
 
   // Find game by route slug
   const activeGameBySlug = useMemo(() => {
@@ -151,6 +152,14 @@ export default function Games() {
     if (catId === activeCategory || isSwitching) return;
     setIsSwitching(true);
     setActiveCategory(catId);
+
+    // Scroll active pill into view
+    requestAnimationFrame(() => {
+      const container = pillContainerRef.current;
+      if (!container) return;
+      const activePill = container.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
+      activePill?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+    });
   };
 
   // Auto-clear switching state after shimmer period
@@ -227,10 +236,11 @@ export default function Games() {
       </motion.div>
 
       <motion.div
+        ref={pillContainerRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="flex flex-wrap justify-center gap-4 mb-12"
+        className="flex overflow-x-auto flex-nowrap scrollbar-hide justify-start sm:justify-center gap-4 mb-12"
       >
         {categories.map(cat => (
           <motion.button
@@ -240,7 +250,7 @@ export default function Games() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            className={`font-semibold text-sm px-6 py-2 rounded-full transition-colors duration-300 ${
+            className={`shrink-0 font-semibold text-sm px-6 py-2 rounded-full transition-colors duration-300 ${
               activeCategory === cat.id
                 ? 'bg-primary-container text-on-primary-container shadow-sm'
                 : 'bg-surface-container-high text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container dark:bg-surface-container dark:hover:bg-primary-container dark:hover:text-on-primary-container'
@@ -258,7 +268,7 @@ export default function Games() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.1 }}
+            transition={{ duration: 0.15 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full mb-16"
           >
             {Array.from({ length: 6 }).map((_, i) => (
