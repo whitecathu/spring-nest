@@ -241,11 +241,23 @@
 ## Round 11: Game Deep Polish — FlappyBird + Minesweeper + BrickBreaker [DONE - 2026-05-07]
 **Goal:** Deep UX polish for three games based on mobile game best practices research.
 
+### Issues Found & Fixed
+| ID | Issue | Priority | Status |
+|----|-------|----------|--------|
+| I1 | BrickBreaker idle overlay blocks start game click | P1 | FIXED |
+| I2 | FlappyBird idle overlay same bug (proactive fix) | P1 | FIXED |
+| I3 | BrickBreaker particle type missing size field | P2 | FIXED |
+
 ### Task Breakdown
 | ID | Task | Status | Agent |
 |----|------|--------|-------|
-| T7 | FlappyBird: fix flap velocity, smooth rotation, death animation, score pulse, ground scroll, touch targets | PENDING | Agent A |
-| T8 | Minesweeper: flag toggle button, cell reveal cascade, game over ripple, win detection fix, touch targets | PENDING | Agent B |
-| T9 | BrickBreaker: ball trail, better particles, screen shake, speed progression, angle clamp, touch targets | PENDING | Agent C |
-| T10 | Build + lint + test + review | DONE | Main - lint PASS, 82/82 tests PASS, build PASS (2.20s, 74 precache) |
+| T7 | FlappyBird: fix flap velocity, smooth rotation, death animation, score pulse, ground scroll, touch targets | DONE | Agent A (sonnet) |
+| T8 | Minesweeper: flag toggle button, cell reveal cascade, game over ripple, win detection fix, touch targets | DONE | Agent B (sonnet) |
+| T9 | BrickBreaker: fix start game bug, ball trail, particles, screen shake, speed progression, angle clamp, touch targets | DONE | Agent C (opus) |
+| T10 | Build + lint + test + review | DONE | Main - lint PASS, 82/82 tests PASS, build PASS (2.28s, 74 precache) |
 | T11 | GitHub push + Cloudflare deploy | DONE | Main - pushed to master, deployed to https://master.spring-nest.pages.dev |
+
+### Files Modified
+- `src/pages/games/FlappyBird.tsx` — JUMP_FORCE -7.5→-8.5, GRAVITY 0.45→0.52, velocity-dependent rotation, death shake+particles, score pulse 1.6x, ground texture
+- `src/pages/games/Minesweeper.tsx` — flag toggle spring animation, cell reveal wave cascade (25ms/unit Manhattan distance), dramatic game over shake+rotation+boom flash, win confetti (30 particles), all touch targets 48px
+- `src/pages/games/BrickBreaker.tsx` — idle overlay onClick/onTouchStart fix, ball trail radial gradient (10 points), particles 8-12 with size variation+gravity, intensity-based screen shake, angle clamp+minimum vertical speed, all touch targets 48px
