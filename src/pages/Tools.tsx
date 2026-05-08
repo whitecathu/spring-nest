@@ -8,7 +8,7 @@ import { tools } from '../data/tools';
 import SEO from '../components/SEO';
 import { trackToolOpen } from '../lib/analytics';
 import { recordVisit } from '../lib/recent';
-import { springSmooth, springBouncy, springSnappy } from '../lib/animations';
+import { springSmooth, springBouncy, springSnappy, gridContainerVariants, gridCardVariants, useReducedMotion } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
 
 const Calculator = lazy(() => import('./tools/Calculator'));
@@ -34,6 +34,8 @@ const IPLookup = lazy(() => import('./tools/IPLookup'));
 const TipCalculator = lazy(() => import('./tools/TipCalculator'));
 const CaseConverter = lazy(() => import('./tools/CaseConverter'));
 const RandomNumber = lazy(() => import('./tools/RandomNumber'));
+const BMICalculator = lazy(() => import('./tools/BMICalculator'));
+const TextToSpeech = lazy(() => import('./tools/TextToSpeech'));
 
 const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'tool-1': Calculator,
@@ -59,6 +61,8 @@ const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'tool-21': TipCalculator,
   'tool-22': CaseConverter,
   'tool-23': RandomNumber,
+  'tool-24': BMICalculator,
+  'tool-25': TextToSpeech,
 };
 
 export default function Tools() {
@@ -69,8 +73,8 @@ export default function Tools() {
   const [activeCategory, setActiveCategory] = useState('all');
   const pillContainerRef = useRef<HTMLDivElement>(null);
   const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+  const reducedMotion = useReducedMotion();
 
-  // Category switch handler
   const handleCategorySwitch = (catId: string) => {
     if (catId === activeCategory) return;
     setActiveCategory(catId);
@@ -83,7 +87,6 @@ export default function Tools() {
     });
   };
 
-  // Track active pill position for sliding indicator (useLayoutEffect avoids zero-width flash)
   const updatePillLayout = () => {
     const container = pillContainerRef.current;
     if (!container) return;
@@ -91,9 +94,11 @@ export default function Tools() {
     if (activePill) {
       const containerRect = container.getBoundingClientRect();
       const pillRect = activePill.getBoundingClientRect();
-      setPillLayout({
-        left: pillRect.left - containerRect.left + container.scrollLeft,
-        width: pillRect.width,
+      const newLeft = pillRect.left - containerRect.left + container.scrollLeft;
+      const newWidth = pillRect.width;
+      setPillLayout(prev => {
+        if (prev.left === newLeft && prev.width === newWidth) return prev;
+        return { left: newLeft, width: newWidth };
       });
     }
   };
@@ -102,7 +107,6 @@ export default function Tools() {
     updatePillLayout();
   }, [activeCategory]);
 
-  // Re-calculate on resize
   useEffect(() => {
     const container = pillContainerRef.current;
     if (!container) return;
@@ -113,7 +117,7 @@ export default function Tools() {
 
   const activeToolBySlug = useMemo(() => {
     if (!slug) return null;
-    return tools.find(t => t.route.endsWith(`/${slug}`)) || null;
+    return tools.find(tl => tl.route.endsWith(`/${slug}`)) || null;
   }, [slug]);
 
   const [internalToolId, setInternalToolId] = useState<string | null>(null);
@@ -155,7 +159,6 @@ export default function Tools() {
     navigate('/tools');
   };
 
-  // Track tool open
   useEffect(() => {
     if (activeTool) {
       trackToolOpen(activeTool.id);
@@ -187,6 +190,13 @@ export default function Tools() {
   return (
     <div className="w-full max-w-[1200px] mx-auto px-6 py-10 relative">
       <SEO title={t('在线实用工具合集 - Spring Nest 春日小筑', 'Online Tools Collection - Spring Nest')} description={t('Spring Nest 提供计算器、番茄钟、单位换算、密码生成器等实用在线工具。', 'Spring Nest offers Calculator, Pomodoro Timer, Unit Converter, Password Generator, and more.')} />
+
+      {/* Background blur orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-0 left-[10%] w-24 h-24 bg-tertiary-container/40 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute top-10 right-[15%] w-32 h-32 bg-primary-container/30 rounded-full blur-3xl animate-float-slow"></div>
+      </div>
+
       <motion.header
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -194,8 +204,6 @@ export default function Tools() {
         className="text-center mb-12 sm:mb-16 lg:mb-20 relative pt-16 pb-8"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-primary-container/20 to-transparent -z-10 rounded-3xl blur-2xl"></div>
-        <div className="absolute top-0 left-[10%] w-24 h-24 bg-tertiary-container/40 rounded-full blur-2xl animate-float pointer-events-none"></div>
-        <div className="absolute top-10 right-[15%] w-32 h-32 bg-primary-container/30 rounded-full blur-3xl animate-float-slow pointer-events-none"></div>
 
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
           <Wrench className="absolute top-4 right-[25%] text-primary/20 w-10 h-10 pointer-events-none" />
@@ -219,7 +227,6 @@ export default function Tools() {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="flex overflow-x-auto flex-nowrap sm:flex-wrap scrollbar-hide justify-center gap-4 mb-16 relative"
       >
-        {/* Sliding indicator behind active pill */}
         <motion.div
           className="absolute top-0 h-full bg-primary rounded-full shadow-lg shadow-primary/30 pointer-events-none"
           animate={{ left: pillLayout.left, width: pillLayout.width }}
@@ -248,10 +255,10 @@ export default function Tools() {
       <AnimatePresence mode="wait">
         <motion.div
           key={`grid-${activeCategory}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          variants={gridContainerVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-20"
         >
           {filteredTools.length === 0 ? (
@@ -265,25 +272,10 @@ export default function Tools() {
               <p className="font-medium text-lg">{t('暂无工具', 'No tools found')}</p>
             </motion.div>
           ) : (
-            filteredTools.map((tool, i) => (
+            filteredTools.map((tool) => (
               <motion.div
                 key={tool.id}
-                initial={{ opacity: 0, y: 24, scale: 0.88 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
-                  transition: {
-                    ...springSmooth,
-                    delay: i * 0.04,
-                  },
-                }}
-                exit={{
-                  opacity: 0,
-                  scale: 0.9,
-                  y: -10,
-                  transition: { duration: 0.1, delay: i * 0.03 },
-                }}
+                variants={gridCardVariants}
                 whileHover={{ y: -6, transition: springBouncy }}
                 whileTap={{ scale: 0.97 }}
                 className="glass-card rounded-3xl p-8 transition-all duration-500 hover-glow group"

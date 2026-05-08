@@ -1,5 +1,5 @@
 import { Gamepad2, Heart, Play, Flower2, Cloud } from 'lucide-react';
-import { useState, useMemo, lazy, Suspense, useEffect, useRef, useCallback, type ComponentType, type LazyExoticComponent } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect, useLayoutEffect, useRef, useCallback, type ComponentType, type LazyExoticComponent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
@@ -8,7 +8,7 @@ import { games } from '../data/games';
 import SEO from '../components/SEO';
 import { trackGameStart } from '../lib/analytics';
 import { recordVisit } from '../lib/recent';
-import { springBouncy, useReducedMotion } from '../lib/animations';
+import { springBouncy, springSmooth, springSnappy, gridContainerVariants, gridCardVariants, useReducedMotion } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
 
 const Game2048 = lazy(() => import('./games/Game2048'));
@@ -28,6 +28,8 @@ const BrickBreaker = lazy(() => import('./games/BrickBreaker'));
 const SimonSays = lazy(() => import('./games/SimonSays'));
 const SudokuGame = lazy(() => import('./games/SudokuGame'));
 const TypingSpeedTest = lazy(() => import('./games/TypingSpeedTest'));
+const WordSearch = lazy(() => import('./games/WordSearch'));
+const BubblePop = lazy(() => import('./games/BubblePop'));
 
 const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
   'game-1': Game2048,
@@ -47,40 +49,8 @@ const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'game-15': SimonSays,
   'game-16': SudokuGame,
   'game-17': TypingSpeedTest,
-};
-
-/** Staggered container variants for the game grid */
-const containerVariants = {
-  initial: {},
-  animate: {
-    transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.02,
-    },
-  },
-  exit: {
-    transition: {
-      staggerChildren: 0.03,
-      staggerDirection: 1,
-    },
-  },
-};
-
-/** Card entrance/exit variants — bouncy in, snappy out (GPU-accelerated only) */
-const cardVariants = {
-  initial: { opacity: 0, scale: 0.92, y: 20 },
-  animate: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: springBouncy,
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.9,
-    y: -10,
-    transition: { duration: 0.1, ease: [0.4, 0, 1, 1] as const },
-  },
+  'game-18': WordSearch,
+  'game-19': BubblePop,
 };
 
 export default function Games() {
@@ -90,6 +60,7 @@ export default function Games() {
   const { slug } = useParams<{ slug?: string }>();
   const [activeCategory, setActiveCategory] = useState('all');
   const pillContainerRef = useRef<HTMLDivElement>(null);
+  const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const reducedMotion = useReducedMotion();
 
   // Find game by route slug
@@ -98,13 +69,9 @@ export default function Games() {
     return games.find(g => g.route.endsWith(`/${slug}`)) || null;
   }, [slug]);
 
-  // Internal state for in-page detail (when no URL slug)
   const [internalGameId, setInternalGameId] = useState<string | null>(null);
-
-  // When navigating via URL, use slug-based game; otherwise use internal state
   const activeGameId = activeGameBySlug?.id || internalGameId;
 
-  // Sync internal state with URL
   useEffect(() => {
     if (slug && activeGameBySlug) {
       setInternalGameId(activeGameBySlug.id);
@@ -146,11 +113,38 @@ export default function Games() {
     navigate('/games');
   }, [navigate]);
 
+  const updatePillLayout = () => {
+    const container = pillContainerRef.current;
+    if (!container) return;
+    const activePill = container.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
+    if (activePill) {
+      const containerRect = container.getBoundingClientRect();
+      const pillRect = activePill.getBoundingClientRect();
+      const newLeft = pillRect.left - containerRect.left + container.scrollLeft;
+      const newWidth = pillRect.width;
+      setPillLayout(prev => {
+        if (prev.left === newLeft && prev.width === newWidth) return prev;
+        return { left: newLeft, width: newWidth };
+      });
+    }
+  };
+
+  useLayoutEffect(() => {
+    updatePillLayout();
+  }, [activeCategory]);
+
+  useEffect(() => {
+    const container = pillContainerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => updatePillLayout());
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
   const handleCategorySwitch = useCallback((catId: string) => {
     if (catId === activeCategory) return;
     setActiveCategory(catId);
 
-    // Scroll active pill into view
     requestAnimationFrame(() => {
       const container = pillContainerRef.current;
       if (!container) return;
@@ -159,7 +153,6 @@ export default function Games() {
     });
   }, [activeCategory]);
 
-  // Track game open
   useEffect(() => {
     if (activeGame) {
       trackGameStart(activeGame.id);
@@ -189,13 +182,10 @@ export default function Games() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="flex-grow flex flex-col items-center w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-10 relative"
-    >
+    <div className="w-full max-w-[1200px] mx-auto px-6 py-10 relative">
       <SEO title={t('休闲小游戏合集 - Spring Nest 春日小筑', 'Casual Games Collection - Spring Nest')} description={t('Spring Nest 提供多款轻松有趣的休闲小游戏，包括 2048、记忆翻牌、打地鼠等。', 'Spring Nest offers fun casual games including 2048, Memory Match, Whack-A-Mole, and more.')} />
+
+      {/* Decorative floating elements */}
       <motion.div
         {...(!reducedMotion && {
           animate: { y: [0, -20, 0], rotate: [0, 5, -5, 0] },
@@ -215,26 +205,43 @@ export default function Games() {
         <Cloud className="w-10 h-10" />
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+      {/* Background blur orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-0 left-[10%] w-24 h-24 bg-tertiary-container/40 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute top-10 right-[15%] w-32 h-32 bg-primary-container/30 rounded-full blur-3xl animate-float-slow"></div>
+      </div>
+
+      {/* Header */}
+      <motion.header
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center mb-12 relative z-10"
+        transition={{ duration: 0.6 }}
+        className="text-center mb-12 sm:mb-16 lg:mb-20 relative pt-8 pb-4"
       >
-        <h1 className="font-nunito text-3xl sm:text-4xl font-bold text-on-surface mb-2 flex items-center justify-center gap-3">
+        <div className="absolute inset-0 bg-gradient-to-b from-tertiary-container/20 to-transparent -z-10 rounded-3xl blur-2xl"></div>
+        <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl text-on-surface mb-6 flex items-center justify-center gap-4">
           <Gamepad2 className="text-primary w-10 h-10" />
           {t('游戏天堂', 'Game Paradise')}
         </h1>
-        <p className="font-sans text-lg font-medium text-on-surface-variant">{t('治愈小游戏，解锁休闲好时光', 'Healing casual games, unlocking good relaxing times')}</p>
-      </motion.div>
+        <p className="font-sans text-lg font-medium text-on-surface-variant max-w-2xl mx-auto">
+          {t('治愈小游戏，解锁休闲好时光', 'Healing casual games, unlocking good relaxing times')}
+        </p>
+      </motion.header>
 
+      {/* Category pills with sliding indicator */}
       <motion.div
         ref={pillContainerRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="flex overflow-x-auto flex-nowrap scrollbar-hide justify-start sm:justify-center gap-4 mb-12"
+        className="flex overflow-x-auto flex-nowrap sm:flex-wrap scrollbar-hide justify-center gap-4 mb-16 relative"
       >
+        <motion.div
+          className="absolute top-0 h-full bg-primary rounded-full shadow-lg shadow-primary/30 pointer-events-none"
+          animate={{ left: pillLayout.left, width: pillLayout.width }}
+          transition={springSmooth}
+          style={{ zIndex: 0 }}
+        />
         {categories.map(cat => (
           <motion.button
             key={cat.id}
@@ -242,11 +249,11 @@ export default function Games() {
             aria-pressed={activeCategory === cat.id}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            transition={springBouncy}
-            className={`shrink-0 font-semibold text-sm px-6 py-2 min-h-[48px] rounded-full transition-colors duration-300 ${
+            transition={springSnappy}
+            className={`shrink-0 px-8 py-3 min-h-[48px] rounded-full font-semibold text-sm relative z-[1] transition-colors duration-300 ${
               activeCategory === cat.id
-                ? 'bg-primary-container text-on-primary-container shadow-sm'
-                : 'bg-surface-container-high text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container dark:bg-surface-container dark:hover:bg-primary-container dark:hover:text-on-primary-container'
+                ? 'text-on-primary'
+                : 'glass-pill text-on-surface-variant hover:bg-surface-container-highest'
             }`}
           >
             {cat.label}
@@ -254,10 +261,11 @@ export default function Games() {
         ))}
       </motion.div>
 
+      {/* Card grid with AnimatePresence */}
       <AnimatePresence mode="wait">
         <motion.div
           key={`grid-${activeCategory}`}
-          variants={containerVariants}
+          variants={gridContainerVariants}
           initial="initial"
           animate="animate"
           exit="exit"
@@ -281,31 +289,33 @@ export default function Games() {
             filteredGames.map((game) => (
               <motion.div
                 key={game.id}
-                variants={cardVariants}
+                variants={gridCardVariants}
                 whileHover={{ y: -8, transition: springBouncy }}
                 whileTap={{ scale: 0.97 }}
-                className="bg-white dark:bg-surface-container-high rounded-xl p-6 shadow-[0_8px_30px_rgba(217,239,224,0.4)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(254,233,239,0.6)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-shadow duration-300 flex flex-col gap-4 group"
+                className="glass-card rounded-3xl p-6 transition-all duration-500 hover-glow group"
               >
                 {game.image ? (
-                  <div className="w-full h-48 rounded-lg overflow-hidden bg-surface-container-low flex items-center justify-center relative">
+                  <div className="w-full h-48 rounded-2xl overflow-hidden bg-surface-container-low flex items-center justify-center relative">
                     <img src={game.image} alt={game.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300"></div>
                   </div>
                 ) : (
-                  <div className={`w-full h-48 rounded-lg ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center text-6xl`}>
+                  <div className={`w-full h-48 rounded-2xl ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center text-6xl`}>
                     {game.icon}
                   </div>
                 )}
-                <div className="flex items-start gap-4">
-                  <div className={`w-16 h-16 rounded-lg ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 transition-transform duration-300 text-2xl`}>
+                <div className="flex items-start gap-4 mt-4">
+                  <div className={`w-16 h-16 rounded-2xl ${game.iconBg || 'bg-surface-container'} flex items-center justify-center shrink-0 shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 text-2xl`}>
                     {game.icon || <Gamepad2 className="text-primary w-8 h-8" />}
                   </div>
                   <div className="flex-grow">
-                    <h2 className="font-sans text-lg text-on-surface font-bold group-hover:text-primary transition-colors">{t(game.title, game.titleEn)}</h2>
-                    <p className="font-sans text-sm font-semibold text-on-surface-variant opacity-70">{game.category}</p>
+                    <h2 className="font-nunito text-lg text-on-surface font-bold group-hover:text-primary transition-colors">{t(game.title, game.titleEn)}</h2>
+                    <span className="inline-block px-3 py-1 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-tertiary-container/30 text-on-tertiary-container">
+                      {game.category}
+                    </span>
                   </div>
                 </div>
-                <p className="font-sans text-base text-on-surface-variant line-clamp-2 mt-2">{t(game.description, game.descriptionEn)}</p>
+                <p className="font-sans text-base text-on-surface-variant line-clamp-2 mt-3">{t(game.description, game.descriptionEn)}</p>
                 <div className="mt-auto pt-4 flex justify-between items-center">
                   <button
                     onClick={() => toggle(game.id)}
@@ -322,7 +332,7 @@ export default function Games() {
                     onClick={() => handlePlay(game.id)}
                     whileHover={{ scale: 1.05, transition: springBouncy }}
                     whileTap={{ scale: 0.93 }}
-                    className="bg-gradient-to-r from-primary-container to-primary text-on-primary font-semibold text-sm px-6 py-2 min-h-[48px] rounded-full flex items-center gap-2 hover:shadow-lg transition-shadow duration-300"
+                    className="py-4 px-8 rounded-xl btn-gradient text-on-primary font-semibold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all"
                   >
                     <Play className="w-4 h-4" />
                     {t('开始游戏', 'Play')}
@@ -333,6 +343,6 @@ export default function Games() {
           )}
         </motion.div>
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }

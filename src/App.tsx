@@ -1,12 +1,12 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { useReducedMotion } from './lib/animations';
+import { useReducedMotion, pageTransitionVariants, softEase, floatingParticles } from './lib/animations';
 import { Leaf } from 'lucide-react';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -22,17 +22,6 @@ const Feedback = lazy(() => import('./pages/Feedback'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-
-const particles = [
-  { x: -40, y: -30, delay: 0, size: 4 },
-  { x: 35, y: -25, delay: 0.5, size: 3 },
-  { x: -30, y: 25, delay: 1, size: 5 },
-  { x: 40, y: 20, delay: 1.5, size: 3 },
-  { x: 0, y: -40, delay: 0.8, size: 4 },
-  { x: -20, y: 35, delay: 1.2, size: 3 },
-];
-
-const softEase = [0.25, 0.1, 0.25, 1] as const;
 
 const LoadingFallback = () => {
   const reducedMotion = useReducedMotion();
@@ -56,7 +45,7 @@ const LoadingFallback = () => {
       <div className="flex flex-col items-center gap-6">
         <div className="relative">
           {/* Floating particles — softer easing curves */}
-          {!reducedMotion && particles.map((p, i) => (
+          {!reducedMotion && floatingParticles.map((p, i) => (
             <motion.div
               key={i}
               className="absolute rounded-full bg-primary/20"
@@ -106,7 +95,24 @@ const LoadingFallback = () => {
   );
 };
 
+function PageWrapper({ children, reducedMotion }: { children: React.ReactNode; reducedMotion: boolean }) {
+  if (reducedMotion) return children;
+  return (
+    <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransitionVariants}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function App() {
+  const location = useLocation();
+  const reducedMotion = useReducedMotion();
+
   return (
     <ThemeProvider>
       <UserProvider>
@@ -115,23 +121,25 @@ export default function App() {
             <Navigation />
             <main className="flex-grow flex flex-col relative overflow-hidden">
               <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/games" element={<Games />} />
-                  <Route path="/games/:slug" element={<Games />} />
-                  <Route path="/tools" element={<Tools />} />
-                  <Route path="/tools/:slug" element={<Tools />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/favorites" element={<Favorites />} />
-                  <Route path="/leaderboard" element={<Leaderboard />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/feedback" element={<Feedback />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/search" element={<SearchResults />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <AnimatePresence mode="wait">
+                  <Routes location={location} key={location.pathname}>
+                    <Route path="/" element={<PageWrapper reducedMotion={reducedMotion}><Home /></PageWrapper>} />
+                    <Route path="/games" element={<PageWrapper reducedMotion={reducedMotion}><Games /></PageWrapper>} />
+                    <Route path="/games/:slug" element={<PageWrapper reducedMotion={reducedMotion}><Games /></PageWrapper>} />
+                    <Route path="/tools" element={<PageWrapper reducedMotion={reducedMotion}><Tools /></PageWrapper>} />
+                    <Route path="/tools/:slug" element={<PageWrapper reducedMotion={reducedMotion}><Tools /></PageWrapper>} />
+                    <Route path="/about" element={<PageWrapper reducedMotion={reducedMotion}><About /></PageWrapper>} />
+                    <Route path="/profile" element={<PageWrapper reducedMotion={reducedMotion}><Profile /></PageWrapper>} />
+                    <Route path="/favorites" element={<PageWrapper reducedMotion={reducedMotion}><Favorites /></PageWrapper>} />
+                    <Route path="/leaderboard" element={<PageWrapper reducedMotion={reducedMotion}><Leaderboard /></PageWrapper>} />
+                    <Route path="/admin" element={<PageWrapper reducedMotion={reducedMotion}><Admin /></PageWrapper>} />
+                    <Route path="/feedback" element={<PageWrapper reducedMotion={reducedMotion}><Feedback /></PageWrapper>} />
+                    <Route path="/privacy" element={<PageWrapper reducedMotion={reducedMotion}><Privacy /></PageWrapper>} />
+                    <Route path="/terms" element={<PageWrapper reducedMotion={reducedMotion}><Terms /></PageWrapper>} />
+                    <Route path="/search" element={<PageWrapper reducedMotion={reducedMotion}><SearchResults /></PageWrapper>} />
+                    <Route path="*" element={<PageWrapper reducedMotion={reducedMotion}><NotFound /></PageWrapper>} />
+                  </Routes>
+                </AnimatePresence>
               </Suspense>
             </main>
             <Footer />

@@ -4,13 +4,30 @@ import { useReducedMotion } from '../lib/animations';
 interface SkeletonCardProps {
   /** Match the layout of game cards or tool cards */
   variant?: 'game' | 'tool';
+  /** Number of skeleton cards to render in a grid matching Games/Tools layout */
+  count?: number;
 }
 
 /**
  * GPU-accelerated skeleton placeholder for game/tool cards.
  * Uses CSS ::after shimmer (transform-based) for smooth 60fps animation.
+ *
+ * Pass `count` to render multiple skeletons in a grid matching the Games/Tools layout.
  */
-export default function SkeletonCard({ variant = 'game' }: SkeletonCardProps) {
+export default function SkeletonCard({ variant = 'game', count }: SkeletonCardProps) {
+  if (count && count > 0) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full">
+        {Array.from({ length: count }, (_, i) => (
+          <SingleSkeletonCard key={i} variant={variant} />
+        ))}
+      </div>
+    );
+  }
+  return <SingleSkeletonCard variant={variant} />;
+}
+
+function SingleSkeletonCard({ variant = 'game' }: Pick<SkeletonCardProps, 'variant'>) {
   const reducedMotion = useReducedMotion();
 
   if (variant === 'tool') {

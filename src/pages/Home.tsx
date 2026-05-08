@@ -117,11 +117,12 @@ export default function Home() {
 
   // --- Category definitions ---
   const toolCategories = [
-    { label: '学习写作', labelEn: 'Study & Writing', icon: BookOpen, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+    { label: '日常实用', labelEn: 'Daily Utility', icon: Zap, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
     { label: '时间效率', labelEn: 'Time & Efficiency', icon: Timer, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
     { label: '开发辅助', labelEn: 'Developer Tools', icon: Code2, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
-    { label: '日常实用', labelEn: 'Daily Utility', icon: Zap, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
+    { label: '学习写作', labelEn: 'Study & Writing', icon: BookOpen, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
     { label: '安全隐私', labelEn: 'Security & Privacy', icon: Shield, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
+    { label: '趣味工具', labelEn: 'Fun Tools', icon: Sparkles, color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
   ];
 
   const gameCategories = [

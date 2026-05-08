@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { Leaf } from 'lucide-react';
-import { useReducedMotion } from '../lib/animations';
+import { useReducedMotion, softEase, floatingParticles } from '../lib/animations';
 
 const orbitDots = [
   { angle: 0, radius: 28, delay: 0, size: 4 },
@@ -13,9 +13,36 @@ const orbitDots = [
 export default function GameToolLoading() {
   const reducedMotion = useReducedMotion();
   return (
-    <div className="flex-grow flex items-center justify-center min-h-[50vh]" role="status" aria-label="Loading">
+    <motion.div
+      className="flex-grow flex items-center justify-center min-h-[50vh]"
+      role="status"
+      aria-label="Loading"
+      initial={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+      animate={reducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: softEase }}
+    >
       <div className="flex flex-col items-center gap-5">
         <div className="relative">
+          {/* Floating particles — softer easing curves */}
+          {!reducedMotion && floatingParticles.map((p, i) => (
+            <motion.div
+              key={`particle-${i}`}
+              className="absolute rounded-full bg-primary/20"
+              style={{ width: p.size, height: p.size, left: '50%', top: '50%', willChange: 'transform, opacity' }}
+              animate={{
+                x: [0, p.x, 0],
+                y: [0, p.y, 0],
+                opacity: [0, 0.55, 0],
+                scale: [0.5, 1, 0.5],
+              }}
+              transition={{
+                duration: 3.5,
+                repeat: Infinity,
+                delay: p.delay,
+                ease: softEase,
+              }}
+            />
+          ))}
           {/* Floating orbit dots */}
           {!reducedMotion && orbitDots.map((dot, i) => {
             const rad = (dot.angle * Math.PI) / 180;
@@ -23,7 +50,7 @@ export default function GameToolLoading() {
             const cy = Math.sin(rad) * dot.radius;
             return (
               <motion.div
-                key={i}
+                key={`orbit-${i}`}
                 className="absolute rounded-full bg-primary/25"
                 style={{
                   width: dot.size,
@@ -50,7 +77,7 @@ export default function GameToolLoading() {
           })}
           <motion.div
             animate={reducedMotion ? {} : { y: [0, -6, 0], scale: [1, 1.05, 1] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: softEase }}
           >
             <Leaf className="w-10 h-10 text-primary fill-primary/30" />
           </motion.div>
@@ -64,19 +91,19 @@ export default function GameToolLoading() {
                 opacity: 0.6,
               }}
               animate={{ x: ['-100%', '100%'] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
             />
           </div>
         )}
         <motion.span
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ duration: 0.5, delay: 0.2, ease: softEase }}
           className="text-sm text-primary/60 font-nunito"
         >
           Loading
         </motion.span>
       </div>
-    </div>
+    </motion.div>
   );
 }
