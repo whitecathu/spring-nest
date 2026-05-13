@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getUserId } from '../services/authService';
 import { getFavorites, toggleFavorite, isFavorited } from '../services/favoriteService';
+import { trackFavorite } from '../lib/analytics';
 
 export function useFavorites() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
@@ -14,6 +15,7 @@ export function useFavorites() {
   const toggle = useCallback((itemId: string): boolean => {
     const userId = getUserId();
     const nowFavorited = toggleFavorite(userId, itemId);
+    trackFavorite(itemId);
     setFavoriteIds(getFavorites(userId));
     return nowFavorited;
   }, []);

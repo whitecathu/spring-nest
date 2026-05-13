@@ -4,6 +4,7 @@ import { Trophy, Medal, Crown, Loader2, CloudOff } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { fetchLeaderboard, type LeaderboardEntry } from '../services/scoreService';
 import { isSupabaseConfigured } from '../lib/supabase';
+import SEO from '../components/SEO';
 
 type GameTab = '2048' | 'memory' | 'whackamole';
 
@@ -67,6 +68,11 @@ export default function Leaderboard() {
   if (!configured) {
     return (
       <div className="flex-grow flex flex-col items-center justify-center py-20 px-6">
+        <SEO
+          title={t('排行榜 - Spring Nest 春日小筑', 'Leaderboard - Spring Nest')}
+          description={t('查看春日小筑小游戏排行榜。未配置云同步时，游戏分数优先保存在浏览器本地。', 'View Spring Nest game leaderboards. Without cloud sync, scores stay in local browser storage first.')}
+          canonical="/leaderboard"
+        />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -88,6 +94,11 @@ export default function Leaderboard() {
 
   return (
     <div className="flex-grow w-full max-w-[800px] mx-auto px-6 py-10">
+      <SEO
+        title={t('排行榜 - Spring Nest 春日小筑', 'Leaderboard - Spring Nest')}
+        description={t('查看春日小筑小游戏排行榜，包含 2048、记忆翻牌和打地鼠等成绩。', 'View Spring Nest game leaderboards, including 2048, Memory Match, and Whack A Mole scores.')}
+        canonical="/leaderboard"
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

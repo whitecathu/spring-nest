@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect, useRef, useCallback, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Search, User, Leaf, X, Trophy, Shield, Menu, Gamepad2, Wrench, Heart } from 'lucide-react';
+import { Bell, Search, User, Leaf, X, Trophy, Shield, Menu, Gamepad2, Wrench, Heart, Moon, Monitor, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import LoginModal from './LoginModal';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { search } from '../services/searchService';
+import { trackSearch } from '../lib/analytics';
 
 export default function Navigation() {
   const [showSearch, setShowSearch] = useState(false);
@@ -15,6 +16,7 @@ export default function Navigation() {
   const [toastMessage, setToastMessage] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const { user, logout, language, t } = useUser();
   const { mode, setMode, resolved } = useTheme();
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ export default function Navigation() {
   // Close mobile menu on route change
   useEffect(() => {
     setShowMobileMenu(false);
+    setShowUserMenu(false);
   }, [location.pathname]);
 
   // Offline status monitoring
@@ -62,6 +65,18 @@ export default function Navigation() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setShowSearch(false);
+      setShowMobileMenu(false);
+      setShowUserMenu(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleSearchInput = (value: string) => {
     setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -70,12 +85,14 @@ export default function Navigation() {
 
   const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    const query = searchQuery.trim();
+    if (!query) return;
+    trackSearch(query);
     setShowSearch(false);
     setSearchQuery('');
     setSearchResults([]);
     setHasSearched(false);
-    navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    navigate(`/search?q=${encodeURIComponent(query)}`);
   };
 
   const handleResultClick = (result: ReturnType<typeof search>[0]) => {
@@ -117,7 +134,7 @@ export default function Navigation() {
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]"
           >
-            <div className="bg-surface-container-high text-on-surface px-6 py-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] font-sans text-sm font-medium border border-surface-variant flex items-center gap-3">
+            <div role="status" aria-live="polite" className="bg-surface-container-high text-on-surface px-6 py-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] font-sans text-sm font-medium border border-surface-variant flex items-center gap-3">
               <Search className="w-4 h-4 text-primary" />
               {toastMessage}
             </div>
@@ -233,10 +250,12 @@ export default function Navigation() {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
-              aria-label={t('菜单', 'Menu')}
-            >
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
+                aria-label={t('菜单', 'Menu')}
+                aria-expanded={showMobileMenu}
+                aria-controls="mobile-navigation"
+              >
               <Menu className="w-5 h-5" />
             </motion.button>
 
@@ -247,11 +266,15 @@ export default function Navigation() {
               onClick={cycleTheme}
               className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
               aria-label={t('切换主题', 'Toggle theme')}
-              title={mode === 'light' ? '☀️' : mode === 'dark' ? '🌙' : '🖥️'}
+              title={mode === 'light' ? t('浅色主题', 'Light theme') : mode === 'dark' ? t('深色主题', 'Dark theme') : t('跟随系统', 'System theme')}
             >
-              <span className="text-sm">
-                {resolved === 'dark' ? '🌙' : '☀️'}
-              </span>
+              {mode === 'system' ? (
+                <Monitor className="h-5 w-5" />
+              ) : resolved === 'dark' ? (
+                <Moon className="h-5 w-5" />
+              ) : (
+                <Sun className="h-5 w-5" />
+              )}
             </motion.button>
 
             <motion.button
@@ -275,13 +298,21 @@ export default function Navigation() {
             </motion.button>
 
             {user ? (
-              <div className="group relative">
+              <div
+                className="relative"
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    setShowUserMenu(false);
+                  }
+                }}
+              >
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowUserMenu(open => !open)}
                   className="flex items-center gap-2 px-2 py-1 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 border border-primary/10 shadow-sm transition-colors"
                   aria-label={t('用户菜单', 'User menu')}
-                  aria-expanded={false}
+                  aria-expanded={showUserMenu}
                   aria-haspopup="true"
                 >
                   <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm">
@@ -290,11 +321,13 @@ export default function Navigation() {
                 </motion.button>
 
                 <div
-                  className="absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right flex flex-col p-2 z-50"
+                  className={`absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 transition-all duration-200 transform origin-top-right flex flex-col p-2 z-50 ${
+                    showUserMenu ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1'
+                  }`}
                 >
-                  <Link to="/profile" className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('个人中心', 'Profile')}</Link>
-                  <Link to="/favorites" className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('我的收藏', 'Favorites')}</Link>
-                  <Link to="/admin" className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors flex items-center gap-2">
+                  <Link to="/profile" onClick={() => setShowUserMenu(false)} className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('个人中心', 'Profile')}</Link>
+                  <Link to="/favorites" onClick={() => setShowUserMenu(false)} className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('我的收藏', 'Favorites')}</Link>
+                  <Link to="/admin" onClick={() => setShowUserMenu(false)} className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors flex items-center gap-2">
                     <Shield className="w-4 h-4" />
                     {t('管理后台', 'Admin')}
                   </Link>
@@ -302,6 +335,7 @@ export default function Navigation() {
                   <button
                     onClick={() => {
                       logout();
+                      setShowUserMenu(false);
                       setToastMessage(t('已退出登录', 'Logged out successfully'));
                       setTimeout(() => setToastMessage(''), 3000);
                     }}
@@ -344,7 +378,7 @@ export default function Navigation() {
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="fixed top-[72px] left-0 right-0 z-40 bg-[#FFF9F2]/95 dark:bg-surface/95 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden"
             >
-              <nav className="flex flex-col p-4 gap-2" aria-label={t('移动端导航', 'Mobile navigation')}>
+              <nav id="mobile-navigation" className="flex flex-col p-4 gap-2" aria-label={t('移动端导航', 'Mobile navigation')}>
                 {navItems.map((item, index) => (
                   <motion.div
                     key={item.id}

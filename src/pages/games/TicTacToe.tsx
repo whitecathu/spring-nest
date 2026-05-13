@@ -274,6 +274,10 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
                   animate={isWinCell ? { scale: [1, 1.1, 1] } : undefined}
                   transition={isWinCell ? { duration: 0.5, repeat: 2 } : undefined}
                   onClick={() => handleCellClick(i)}
+                  aria-label={cell
+                    ? t(`第 ${Math.floor(i / 3) + 1} 行第 ${(i % 3) + 1} 列，${cell}`, `Row ${Math.floor(i / 3) + 1}, column ${(i % 3) + 1}, ${cell}`)
+                    : t(`第 ${Math.floor(i / 3) + 1} 行第 ${(i % 3) + 1} 列，空位，点击落子`, `Row ${Math.floor(i / 3) + 1}, column ${(i % 3) + 1}, empty, place mark`)
+                  }
                   disabled={!!cell || !!winner || isDraw || (mode === 'ai' && currentPlayer === 'O')}
                   className={`aspect-square rounded-xl text-4xl sm:text-5xl font-black flex items-center justify-center transition-colors min-h-[48px] min-w-[48px] ${
                     isWinCell

@@ -2,6 +2,7 @@ import { Shield, Eye, Database, Globe, Cookie, UserCheck, Mail, ChevronDown, Che
 import { useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
+import SEO from '../components/SEO';
 
 interface SectionProps {
   icon: ReactNode;
@@ -73,6 +74,11 @@ export default function Privacy() {
       variants={containerVariants}
       className="max-w-[900px] mx-auto px-6 py-16 w-full"
     >
+      <SEO
+        title={t('隐私政策 - Spring Nest 春日小筑', 'Privacy Policy - Spring Nest')}
+        description={t('了解春日小筑如何以本地优先方式处理收藏、最近使用、游戏分数、反馈入口和联网工具数据。', 'Learn how Spring Nest handles favorites, recent items, game scores, feedback links, and networked tools with a local-first approach.')}
+        canonical="/privacy"
+      />
       {/* Header */}
       <motion.header variants={itemVariants} className="text-center mb-16">
         <div className="w-20 h-20 bg-primary-container/30 rounded-3xl flex items-center justify-center mx-auto mb-6 text-primary">
@@ -82,12 +88,12 @@ export default function Privacy() {
           {t('隐私政策', 'Privacy Policy')}
         </h1>
         <p className="text-secondary text-lg">
-          {t('最后更新: 2025年5月', 'Last updated: May 2025')}
+          {t('最后更新: 2026年5月', 'Last updated: May 2026')}
         </p>
         <p className="text-on-surface-variant mt-4 max-w-2xl mx-auto">
           {t(
-            '春日小筑（以下简称"我们"）深知个人信息对您的重要性，我们将按照法律法规要求，采取相应安全保护措施来保护您的个人信息。',
-            'Spring Nest (hereinafter "we") understands the importance of your personal information and will take appropriate security measures to protect it in accordance with laws and regulations.'
+            '春日小筑以本地优先为原则：大多数工具和小游戏无需登录，收藏、最近使用和游戏分数主要保存在你的浏览器中。',
+            'Spring Nest is local-first: most tools and games do not require sign-in, and favorites, recent items, and game scores are mainly stored in your browser.'
           )}
         </p>
       </motion.header>
@@ -112,7 +118,7 @@ export default function Privacy() {
               </li>
             </ul>
             <p className="text-sm text-secondary mt-4">
-              {t('以上所有数据仅存储在您浏览器的 localStorage 中，不会上传至任何服务器。我们不会收集您的真实姓名、电话号码、地址等敏感个人信息。', 'All of the above data is stored ONLY in your browser\'s localStorage and is not uploaded to any server. We do not collect sensitive personal information such as your real name, phone number, or address.')}
+              {t('默认情况下，这些数据保存在您浏览器的 localStorage 中。若站点管理员显式配置 Supabase，同步类功能才可能把登录资料、收藏、分数或设置同步到对应服务。我们不主动要求真实姓名、电话号码、地址等敏感个人信息。', 'By default, this data is stored in your browser localStorage. If a site owner explicitly configures Supabase, sync features may send login profile data, favorites, scores, or settings to that service. We do not proactively require sensitive personal data such as real name, phone number, or address.')}
             </p>
           </Section>
         </motion.div>
@@ -143,8 +149,8 @@ export default function Privacy() {
           >
             <p>
               {t(
-                '所有数据均存储在您浏览器的 localStorage 中，不会上传至任何服务器。您可以通过清除浏览器存储来删除所有数据。',
-                'All data is stored in your browser\'s localStorage and is not uploaded to any server. You can delete all data by clearing your browser storage.'
+                '收藏、最近使用、本地最高分和偏好设置默认存储在您浏览器的 localStorage 中。您可以通过清除浏览器数据来删除这些本地记录。',
+                'Favorites, recent items, local high scores, and preferences are stored in your browser localStorage by default. You can delete these local records by clearing browser data.'
               )}
             </p>
             <p>{t('我们采取以下安全措施:', 'We take the following security measures:')}</p>
@@ -161,13 +167,22 @@ export default function Privacy() {
             icon={<Globe className="w-5 h-5" />}
             title={t('第三方服务', 'Third-Party Services')}
           >
-            <p>{t('我们目前不使用任何第三方数据处理服务。', 'We currently do not use any third-party data processing services.')}</p>
+            <p>{t('大多数功能不需要第三方处理。少数明确联网的功能会请求外部服务，且仅用于完成当前功能。', 'Most features do not need third-party processing. A few clearly networked features request external services only to complete the current task.')}</p>
             <div className="bg-surface-container-low dark:bg-surface-container rounded-2xl p-4 mt-2">
-              <h4 className="font-bold text-on-surface mb-2">Vercel / Netlify</h4>
+              <h4 className="font-bold text-on-surface mb-2">Cloudflare Pages / Static hosting</h4>
               <p className="text-sm">
                 {t(
                   '仅用于网站托管和部署，不涉及任何用户数据的处理或存储。',
                   'Used only for website hosting and deployment, without any processing or storage of user data.'
+                )}
+              </p>
+            </div>
+            <div className="bg-surface-container-low dark:bg-surface-container rounded-2xl p-4 mt-2">
+              <h4 className="font-bold text-on-surface mb-2">wttr.in / ipapi.co / Google Fonts / Supabase</h4>
+              <p className="text-sm">
+                {t(
+                  '天气工具会请求 wttr.in，IP 查询会请求 ipapi.co，字体可能来自 Google Fonts。Supabase 只有在站点配置了公开环境变量时才启用。',
+                  'Weather requests wttr.in, IP Lookup requests ipapi.co, and fonts may load from Google Fonts. Supabase is enabled only when public environment variables are configured.'
                 )}
               </p>
             </div>

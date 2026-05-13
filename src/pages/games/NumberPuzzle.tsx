@@ -356,6 +356,10 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
                 <motion.button
                   key={`${size}-${i}`}
                   onClick={() => handleTileClick(i)}
+                  aria-label={isEmpty
+                    ? t(`第 ${Math.floor(i / size) + 1} 行第 ${(i % size) + 1} 列，空格`, `Row ${Math.floor(i / size) + 1}, column ${(i % size) + 1}, empty space`)
+                    : t(`数字 ${val}，第 ${Math.floor(i / size) + 1} 行第 ${(i % size) + 1} 列，点击移动`, `Tile ${val}, row ${Math.floor(i / size) + 1}, column ${(i % size) + 1}, move`)
+                  }
                   layout
                   transition={{ type: 'tween', duration: 0.12, ease: 'easeOut' }}
                   whileTap={isEmpty ? {} : { scale: 0.92 }}

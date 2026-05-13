@@ -1,6 +1,6 @@
-import { Wrench, Heart, Play, BookOpen } from 'lucide-react';
+import { ArrowLeft, ArrowUpDown, BookOpen, Heart, Info, Play, Search, Shield, Wrench } from 'lucide-react';
 import { useState, useMemo, lazy, Suspense, useEffect, useLayoutEffect, useRef, type ComponentType, type LazyExoticComponent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
@@ -8,8 +8,11 @@ import { tools } from '../data/tools';
 import SEO from '../components/SEO';
 import { trackToolOpen } from '../lib/analytics';
 import { recordVisit } from '../lib/recent';
-import { springSmooth, springBouncy, springSnappy, gridContainerVariants, gridCardVariants, useReducedMotion } from '../lib/animations';
+import { springSmooth, springBouncy, springSnappy, gridContainerVariants, gridCardVariants } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
+import { getPrimaryToolCategorySlug, getToolCategoryBySlug } from '../lib/catalogRoutes';
+import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
+import type { AppItem } from '../types/app';
 
 const Calculator = lazy(() => import('./tools/Calculator'));
 const Pomodoro = lazy(() => import('./tools/Pomodoro'));
@@ -65,19 +68,70 @@ const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'tool-25': TextToSpeech,
 };
 
+const toolsWithInternalH1 = new Set(['tool-12', 'tool-21', 'tool-22', 'tool-23', 'tool-24', 'tool-25']);
+
+type SortMode = 'popular' | 'new' | 'name';
+
+function matchesCatalogQuery(item: AppItem, query: string) {
+  if (!query.trim()) return true;
+  const q = query.trim().toLowerCase();
+  return [
+    item.title,
+    item.titleEn,
+    item.description,
+    item.descriptionEn,
+    item.category,
+    item.categoryEn,
+    item.instructions ?? '',
+    ...(item.tags ?? []),
+    ...(item.features ?? []),
+  ]
+    .join(' ')
+    .toLowerCase()
+    .includes(q);
+}
+
+function getToolFaq(item: AppItem, t: (zh: string, en: string) => string) {
+  if (item.faq?.length) {
+    return item.faq.map((entry) => ({
+      q: t(entry.q, entry.qEn ?? entry.q),
+      a: t(entry.a, entry.aEn ?? entry.a),
+    }));
+  }
+
+  return [
+    {
+      q: t('这个工具会上传输入内容吗？', 'Does this tool upload my input?'),
+      a: t('不会。除天气、IP 查询等明确需要联网的工具外，输入内容默认只在浏览器本地处理。', 'No. Except tools that clearly need the network, such as weather or IP lookup, inputs are processed locally in your browser.'),
+    },
+    {
+      q: t('是否需要登录？', 'Do I need to sign in?'),
+      a: t('不需要。核心功能可以直接使用，收藏和最近使用会保存在本地浏览器。', 'No. Core features work immediately, while favorites and recent items are saved in local browser storage.'),
+    },
+  ];
+}
+
 export default function Tools() {
   const { t } = useUser();
   const { favoriteIds, toggle } = useFavorites();
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+  const categoryRoute = getToolCategoryBySlug(slug);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [query, setQuery] = useState('');
+  const [sortMode, setSortMode] = useState<SortMode>('popular');
   const pillContainerRef = useRef<HTMLDivElement>(null);
   const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
-  const reducedMotion = useReducedMotion();
 
   const handleCategorySwitch = (catId: string) => {
     if (catId === activeCategory) return;
     setActiveCategory(catId);
+    if (catId === 'all') {
+      navigate('/tools');
+    } else {
+      const routeSlug = getPrimaryToolCategorySlug(catId);
+      navigate(routeSlug ? `/tools/${routeSlug}` : '/tools');
+    }
 
     requestAnimationFrame(() => {
       const container = pillContainerRef.current;
@@ -116,9 +170,9 @@ export default function Tools() {
   }, []);
 
   const activeToolBySlug = useMemo(() => {
-    if (!slug) return null;
+    if (!slug || categoryRoute) return null;
     return tools.find(tl => tl.route.endsWith(`/${slug}`)) || null;
-  }, [slug]);
+  }, [slug, categoryRoute]);
 
   const [internalToolId, setInternalToolId] = useState<string | null>(null);
 
@@ -127,19 +181,40 @@ export default function Tools() {
   useEffect(() => {
     if (slug && activeToolBySlug) {
       setInternalToolId(activeToolBySlug.id);
-    } else if (!slug) {
+    } else if (!slug || categoryRoute) {
       setInternalToolId(null);
     }
-  }, [slug, activeToolBySlug]);
+  }, [slug, activeToolBySlug, categoryRoute]);
 
   const categories = useMemo(() => {
     const cats = [...new Set(tools.map(t => t.category))];
     return [{ id: 'all', label: t('全部工具', 'All Tools') }, ...cats.map(c => { const tool = tools.find(tl => tl.category === c); return { id: c, label: t(c, tool?.categoryEn || c) }; })];
   }, [t]);
 
+  const effectiveCategory = categoryRoute?.category ?? activeCategory;
+
+  useEffect(() => {
+    if (categoryRoute) {
+      setActiveCategory(categoryRoute.category);
+    } else if (!slug) {
+      setActiveCategory('all');
+    }
+  }, [categoryRoute, slug]);
+
   const filteredTools = useMemo(
-    () => activeCategory === 'all' ? tools : tools.filter(t => t.category === activeCategory),
-    [activeCategory]
+    () => {
+      const byCategory = effectiveCategory === 'all'
+        ? tools
+        : tools.filter(tool => tool.category === effectiveCategory);
+      const byQuery = byCategory.filter(tool => matchesCatalogQuery(tool, query));
+
+      return [...byQuery].sort((a, b) => {
+        if (sortMode === 'new') return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew));
+        if (sortMode === 'name') return t(a.title, a.titleEn).localeCompare(t(b.title, b.titleEn), 'zh-Hans-CN');
+        return (b.popularScore ?? 0) - (a.popularScore ?? 0);
+      });
+    },
+    [effectiveCategory, query, sortMode, t],
   );
 
   const activeTool = useMemo(
@@ -168,10 +243,107 @@ export default function Tools() {
 
   if (activeTool && toolComponents[activeTool.id]) {
     const ToolComponent = toolComponents[activeTool.id];
+    const faq = getToolFaq(activeTool, t);
+    const relatedTools = tools.filter(tool => activeTool.related?.includes(tool.id)).slice(0, 3);
+    const jsonLd = [itemJsonLd(activeTool), faqJsonLd(faq)];
+
     return (
       <Suspense fallback={<GameToolLoading />}>
-        <SEO title={`${t(activeTool.title, activeTool.titleEn)} - Spring Nest`} description={t(activeTool.description, activeTool.descriptionEn)} type="website" />
-        <ToolComponent onBack={handleBack} />
+        <SEO
+          title={`${t(activeTool.title, activeTool.titleEn)} - Spring Nest 春日小筑`}
+          description={t(activeTool.description, activeTool.descriptionEn)}
+          canonical={activeTool.route}
+          type="website"
+          jsonLd={jsonLd}
+        />
+        <article className="w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-8">
+          <Link to="/tools" className="mb-5 inline-flex min-h-[48px] items-center gap-2 text-sm font-semibold text-secondary hover:text-primary">
+            <ArrowLeft className="h-4 w-4" />
+            {t('返回工具列表', 'Back to tools')}
+          </Link>
+          <header className="mb-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
+              <span className="rounded-full bg-primary-container/40 px-3 py-1 text-on-primary-container">
+                {t(activeTool.category, activeTool.categoryEn)}
+              </span>
+              <span className="rounded-full bg-surface-container px-3 py-1 text-secondary">
+                {t('免费使用', 'Free to use')}
+              </span>
+            </div>
+            {toolsWithInternalH1.has(activeTool.id) ? (
+              <p className="mb-3 text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
+                {t(activeTool.title, activeTool.titleEn)}
+              </p>
+            ) : (
+              <h1 className="mb-3 text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
+                {t(activeTool.title, activeTool.titleEn)}
+              </h1>
+            )}
+            <p className="max-w-3xl text-base leading-relaxed text-secondary">
+              {t(activeTool.description, activeTool.descriptionEn)}
+            </p>
+            <p className="mt-4 flex items-start gap-2 rounded-xl bg-primary-container/20 p-3 text-sm leading-relaxed text-on-surface-variant">
+              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              {t('隐私提示：输入内容不会上传服务器，除非该工具明确说明需要联网功能。', 'Privacy note: your input is not uploaded to a server unless this tool clearly states that network access is required.')}
+            </p>
+          </header>
+
+          <section aria-label={t('主功能区域', 'Main tool area')}>
+            <ToolComponent onBack={handleBack} />
+          </section>
+
+          <section className="mt-8 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+              <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
+                <Info className="h-5 w-5 text-primary" />
+                {t('使用方法', 'How to use')}
+              </h2>
+              <p className="leading-relaxed text-secondary">
+                {t(activeTool.instructions || '打开工具后按页面提示输入或选择内容，结果会在浏览器本地即时生成。', activeTool.instructionsEn || 'Open the tool, enter or select values as prompted, and results will be generated locally in your browser.')}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+              <h2 className="mb-3 text-xl font-bold text-on-surface">
+                {t('适用场景', 'Best for')}
+              </h2>
+              <ul className="space-y-2 text-sm leading-relaxed text-secondary">
+                {(activeTool.features ?? []).slice(0, 4).map((feature, index) => (
+                  <li key={feature} className="flex gap-2">
+                    <span className="font-bold text-primary">{index + 1}.</span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+            <h2 className="mb-4 text-xl font-bold text-on-surface">FAQ</h2>
+            <div className="space-y-4">
+              {faq.map((entry) => (
+                <div key={entry.q}>
+                  <h3 className="font-semibold text-on-surface">{entry.q}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-secondary">{entry.a}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {relatedTools.length > 0 && (
+            <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+              <h2 className="mb-4 text-xl font-bold text-on-surface">{t('相关工具', 'Related tools')}</h2>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {relatedTools.map((tool) => (
+                  <Link key={tool.id} to={tool.route} className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-primary-container/20">
+                    <span className="text-2xl" aria-hidden="true">{tool.icon}</span>
+                    <h3 className="mt-2 font-bold text-on-surface">{t(tool.title, tool.titleEn)}</h3>
+                    <p className="mt-1 line-clamp-2 text-xs text-secondary">{t(tool.description, tool.descriptionEn)}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </article>
       </Suspense>
     );
   }
@@ -187,9 +359,27 @@ export default function Tools() {
     );
   }
 
+  const pageTitle = categoryRoute
+    ? `${t(categoryRoute.label, categoryRoute.labelEn)} - Spring Nest 春日小筑`
+    : t('在线实用工具合集 - Spring Nest 春日小筑', 'Online Tools Collection - Spring Nest');
+  const pageDescription = categoryRoute
+    ? t(
+        `${categoryRoute.label}收录春日小筑中可直接打开的相关工具，支持搜索、收藏和最近使用。`,
+        `${categoryRoute.labelEn} collects related Spring Nest tools with search, favorites, and recent access.`,
+      )
+    : t(
+        'Spring Nest 提供计算器、番茄钟、单位换算、密码生成器、文本处理、随机工具等在线工具，免费、轻量、无需登录。',
+        'Spring Nest offers calculators, timers, converters, password, text, random, and other online tools, free, lightweight, and ready without sign-in.',
+      );
+
   return (
     <div className="w-full max-w-[1200px] mx-auto px-6 py-10 relative">
-      <SEO title={t('在线实用工具合集 - Spring Nest 春日小筑', 'Online Tools Collection - Spring Nest')} description={t('Spring Nest 提供计算器、番茄钟、单位换算、密码生成器等实用在线工具。', 'Spring Nest offers Calculator, Pomodoro Timer, Unit Converter, Password Generator, and more.')} />
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        canonical={categoryRoute ? `/tools/${categoryRoute.slug}` : '/tools'}
+        jsonLd={collectionJsonLd(pageTitle, pageDescription, categoryRoute ? `/tools/${categoryRoute.slug}` : '/tools', filteredTools)}
+      />
 
       {/* Background blur orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
@@ -213,12 +403,49 @@ export default function Tools() {
         </motion.div>
 
         <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#274e3a] dark:text-primary mb-6 flex items-center justify-center gap-4">
-          {t('实用小筑', 'Practical Tools')} <span className="text-3xl sm:text-4xl lg:text-5xl animate-float inline-block">🛠️</span>
+          {categoryRoute ? t(categoryRoute.label, categoryRoute.labelEn) : t('实用小筑', 'Practical Tools')}
         </h1>
         <p className="font-sans text-lg font-medium text-on-surface-variant max-w-2xl mx-auto">
-          {t('实用小工具，便捷你的每一天', 'Practical small utilities designed to make your day easier.')}
+          {pageDescription}
         </p>
       </motion.header>
+
+      <section className="mb-8 rounded-2xl border border-surface-variant/30 bg-white/70 dark:bg-surface-container-high/60 p-5">
+        <p className="text-sm leading-7 text-secondary">
+          {t(
+            '这里汇总了春日小筑的全部在线工具。你可以按分类筛选，也可以搜索工具名称、说明或标签；收藏和最近使用记录只保存在浏览器本地，不会上传。大多数工具在本机完成处理，适合快速计算、写作整理、开发辅助和日常决策。',
+            'This page collects every Spring Nest online tool. Filter by category or search by name, description, or tag. Favorites and recent items stay in local browser storage. Most tools process data on-device, useful for quick calculations, writing cleanup, developer tasks, and daily decisions.',
+          )}
+        </p>
+      </section>
+
+      <div className="mb-8 grid gap-3 md:grid-cols-[1fr_auto]">
+        <form role="search" onSubmit={(event) => event.preventDefault()} className="relative">
+          <label htmlFor="tools-search" className="sr-only">{t('搜索工具', 'Search tools')}</label>
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary/50" />
+          <input
+            id="tools-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t('搜索名称、说明或标签', 'Search name, description, or tags')}
+            className="min-h-[52px] w-full rounded-2xl border border-surface-variant/40 bg-white/80 py-3 pl-12 pr-4 text-on-surface outline-none transition-colors focus:border-primary dark:bg-surface-container-high/70"
+          />
+        </form>
+        <label className="flex min-h-[52px] items-center gap-2 rounded-2xl border border-surface-variant/40 bg-white/80 px-4 text-sm font-semibold text-secondary dark:bg-surface-container-high/70">
+          <ArrowUpDown className="h-4 w-4" />
+          <span className="sr-only">{t('排序', 'Sort')}</span>
+          <select
+            value={sortMode}
+            onChange={(event) => setSortMode(event.target.value as SortMode)}
+            className="bg-transparent text-on-surface outline-none"
+          >
+            <option value="popular">{t('按热门排序', 'Popular')}</option>
+            <option value="new">{t('最近更新优先', 'Recently updated')}</option>
+            <option value="name">{t('按名称排序', 'Name')}</option>
+          </select>
+        </label>
+      </div>
 
       <motion.div
         ref={pillContainerRef}
@@ -269,7 +496,16 @@ export default function Tools() {
               className="col-span-full flex flex-col items-center justify-center py-20 text-secondary"
             >
               <Wrench className="w-16 h-16 text-secondary/30 mb-4" />
-              <p className="font-medium text-lg">{t('暂无工具', 'No tools found')}</p>
+              <p className="font-medium text-lg">{t('没有找到相关工具', 'No matching tools found')}</p>
+              <button
+                onClick={() => {
+                  setQuery('');
+                  handleCategorySwitch('all');
+                }}
+                className="mt-4 rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary"
+              >
+                {t('清除筛选', 'Clear filters')}
+              </button>
             </motion.div>
           ) : (
             filteredTools.map((tool) => (
@@ -294,7 +530,7 @@ export default function Tools() {
                   <div>
                     <h2 className="font-nunito font-bold text-2xl text-on-background mb-3 group-hover:text-primary transition-colors">{t(tool.title, tool.titleEn)}</h2>
                     <span className="inline-block px-3 py-1.5 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-primary-container/30 text-on-primary-container">
-                      {tool.category}
+                      {t(tool.category, tool.categoryEn)}
                     </span>
                   </div>
                 </div>

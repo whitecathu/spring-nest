@@ -3,14 +3,21 @@ import { motion } from 'motion/react';
 import { Home, Search, ArrowLeft, Leaf, Cloud, Flower2 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import SEO from '../components/SEO';
+import { tools } from '../data/tools';
+import { games } from '../data/games';
 
 export default function NotFound() {
   const { t } = useUser();
   const navigate = useNavigate();
+  const suggestedItems = [...tools.slice(0, 2), ...games.slice(0, 2)];
 
   return (
     <div className="flex-grow flex items-center justify-center px-6 py-20 relative overflow-hidden">
-      <SEO title={t('页面未找到 - Spring Nest', 'Page Not Found - Spring Nest')} />
+      <SEO
+        title={t('页面未找到 - Spring Nest', 'Page Not Found - Spring Nest')}
+        description={t('页面不存在。你可以返回首页、搜索工具和小游戏，或访问推荐内容。', 'This page does not exist. Return home, search tools and games, or visit recommended content.')}
+        noindex
+      />
       {/* Floating background elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
@@ -125,6 +132,23 @@ export default function NotFound() {
             <Search className="w-4 h-4" />
             {t('搜索游戏和工具', 'Search games & tools')}
           </Link>
+
+          <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+            {suggestedItems.map((item) => (
+              <Link
+                key={item.id}
+                to={item.route}
+                className="rounded-2xl border border-surface-variant/50 bg-white/80 dark:bg-surface-container-high px-4 py-3 text-sm text-on-surface transition-colors hover:border-primary/40 hover:bg-primary-container/15"
+              >
+                <span className="block font-semibold">
+                  {t(item.title, item.titleEn)}
+                </span>
+                <span className="mt-1 block text-xs text-secondary line-clamp-2">
+                  {t(item.description, item.descriptionEn)}
+                </span>
+              </Link>
+            ))}
+          </div>
         </motion.div>
       </motion.div>
     </div>

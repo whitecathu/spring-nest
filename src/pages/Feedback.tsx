@@ -1,246 +1,106 @@
-import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { MessageSquare, Bug, Lightbulb, Star, Sparkles, Download, Send, Inbox } from 'lucide-react';
+import { Mail, MessageSquare, ExternalLink, ShieldCheck, Github, Lightbulb } from 'lucide-react';
+import { motion } from 'motion/react';
+import SEO from '../components/SEO';
 import { useUser } from '../contexts/UserContext';
-import {
-  submitFeedback,
-  getAllFeedbacks,
-  exportFeedbacksAsJson,
-  type FeedbackItem,
-} from '../services/feedbackService';
 
-const feedbackTypes = [
-  { key: 'bug' as const, icon: Bug, zh: '问题反馈', en: 'Bug Report' },
-  { key: 'suggestion' as const, icon: Lightbulb, zh: '建议', en: 'Suggestion' },
-  { key: 'experience' as const, icon: Star, zh: '使用体验', en: 'Experience' },
-  { key: 'feature' as const, icon: Sparkles, zh: '功能需求', en: 'Feature Request' },
-];
+const FEEDBACK_EMAIL = 'hello@springnest.com';
+const FEEDBACK_URL = import.meta.env.VITE_FEEDBACK_URL as string | undefined;
 
 export default function Feedback() {
   const { t } = useUser();
-  const [type, setType] = useState<'bug' | 'suggestion' | 'experience' | 'feature'>('bug');
-  const [content, setContent] = useState('');
-  const [contact, setContact] = useState('');
-  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
-  const [toastMessage, setToastMessage] = useState('');
-
-  const loadFeedbacks = useCallback(() => {
-    setFeedbacks(getAllFeedbacks().slice(0, 10));
-  }, []);
-
-  useEffect(() => {
-    loadFeedbacks();
-  }, [loadFeedbacks]);
-
-  const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3000);
-  }, []);
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (content.trim().length < 10) return;
-
-    submitFeedback({ type, content: content.trim(), contact: contact.trim() || undefined });
-    setContent('');
-    setContact('');
-    loadFeedbacks();
-    showToast(t('感谢您的反馈！', 'Thank you for your feedback!'));
-  };
-
-  const typeLabel = (item: FeedbackItem) => {
-    const found = feedbackTypes.find((ft) => ft.key === item.type);
-    return found ? t(found.zh, found.en) : item.type;
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
-  };
+  const mailSubject = encodeURIComponent(t('Spring Nest 反馈建议', 'Spring Nest feedback'));
+  const mailBody = encodeURIComponent(t(
+    '请在这里写下你的反馈。不要发送密码、身份证号、银行卡号或其他敏感信息。',
+    'Please write your feedback here. Do not send passwords, government IDs, card numbers, or other sensitive information.',
+  ));
+  const mailto = `mailto:${FEEDBACK_EMAIL}?subject=${mailSubject}&body=${mailBody}`;
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      className="max-w-[900px] mx-auto px-6 py-16 w-full"
+    <motion.main
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="mx-auto w-full max-w-[900px] px-6 py-16"
     >
-      {/* Toast */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]"
-          >
-            <div className="bg-surface-container-high text-on-surface px-6 py-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] font-sans text-sm font-medium border border-surface-variant flex items-center gap-3">
-              <MessageSquare className="w-4 h-4 text-primary" />
-              {toastMessage}
-            </div>
-          </motion.div>
+      <SEO
+        title={t('反馈建议 - Spring Nest 春日小筑', 'Feedback - Spring Nest')}
+        description={t(
+          '通过邮件或配置的反馈入口联系 Spring Nest。本站不提供假提交表单，也不会在页面内收集反馈正文。',
+          'Contact Spring Nest by email or a configured feedback link. This site does not provide a fake submit form or collect feedback text in-page.',
         )}
-      </AnimatePresence>
+        canonical="/feedback"
+      />
 
-      {/* Header */}
-      <motion.header variants={itemVariants} className="text-center mb-16">
-        <div className="w-20 h-20 bg-primary-container/30 rounded-3xl flex items-center justify-center mx-auto mb-6 text-primary">
-          <MessageSquare className="w-10 h-10" />
+      <header className="mb-10 text-center">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary-container/30 text-primary">
+          <MessageSquare className="h-10 w-10" />
         </div>
-        <h1 className="text-4xl font-black text-on-surface mb-4">
-          {t('意见反馈', 'Feedback')}
+        <h1 className="mb-4 text-4xl font-black text-on-surface">
+          {t('反馈建议', 'Feedback')}
         </h1>
-        <p className="text-on-surface-variant mt-4 max-w-2xl mx-auto">
+        <p className="mx-auto max-w-2xl text-on-surface-variant">
           {t(
-            '您的每一条反馈都是我们前进的动力。无论是问题报告、功能建议还是使用体验，我们都认真倾听。',
-            'Every piece of feedback drives us forward. Whether it\'s a bug report, feature suggestion, or experience sharing, we listen carefully.'
+            '当前没有后端反馈系统，因此这里不会显示“提交成功”的假表单。你可以通过邮件客户端或配置的公开反馈链接发送建议。',
+            'There is no backend feedback system right now, so this page avoids a fake “submitted” form. You can send feedback through your email client or a configured public feedback link.',
           )}
         </p>
-      </motion.header>
+      </header>
 
-      {/* Form */}
-      <motion.section variants={itemVariants} className="mb-16">
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-surface-container-high rounded-3xl shadow-sm border border-surface-variant/30 p-6 space-y-6">
-          {/* Type selector */}
-          <div>
-            <label className="block text-sm font-bold text-on-surface mb-3">
-              {t('反馈类型', 'Feedback Type')}
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {feedbackTypes.map((ft) => {
-                const Icon = ft.icon;
-                const selected = type === ft.key;
-                return (
-                  <button
-                    key={ft.key}
-                    type="button"
-                    onClick={() => setType(ft.key)}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 ${
-                      selected
-                        ? 'border-primary bg-primary-container/20 text-primary shadow-sm'
-                        : 'border-surface-variant/30 text-secondary hover:border-primary/40 hover:bg-surface-container-low/50'
-                    }`}
-                  >
-                    <Icon className="w-6 h-6" />
-                    <span className="text-xs font-semibold">{t(ft.zh, ft.en)}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Content */}
-          <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">
-              {t('反馈内容', 'Feedback Content')} <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder={t('请详细描述您的反馈（至少10个字符）...', 'Please describe your feedback in detail (at least 10 characters)...')}
-              rows={5}
-              className="w-full px-4 py-3 rounded-2xl border border-surface-variant/30 bg-surface-container-low dark:bg-surface-container text-on-surface placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all resize-none"
-            />
-            <p className="text-xs text-secondary mt-1">
-              {content.length} / 10 {t('最少字符', 'min chars')}
-            </p>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">
-              {t('联系方式（可选）', 'Contact (optional)')}
-            </label>
-            <input
-              type="text"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              placeholder={t('邮箱或其他联系方式', 'Email or other contact info')}
-              className="w-full px-4 py-3 rounded-2xl border border-surface-variant/30 bg-surface-container-low dark:bg-surface-container text-on-surface placeholder:text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-            />
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={content.trim().length < 10}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-on-primary font-bold rounded-2xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
-          >
-            <Send className="w-5 h-5" />
-            {t('提交反馈', 'Submit Feedback')}
-          </button>
-        </form>
-      </motion.section>
-
-      {/* Recent feedbacks */}
-      <motion.section variants={itemVariants}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-on-surface flex items-center gap-3">
-            <Inbox className="w-6 h-6 text-primary" />
-            {t('最近反馈', 'Recent Feedbacks')}
+      <section className="grid gap-4 md:grid-cols-2">
+        <a
+          href={mailto}
+          className="rounded-2xl border border-surface-variant/30 bg-white p-6 transition-colors hover:border-primary/40 hover:bg-primary-container/10 dark:bg-surface-container-high"
+        >
+          <Mail className="mb-4 h-7 w-7 text-primary" />
+          <h2 className="mb-2 text-xl font-bold text-on-surface">
+            {t('发送邮件', 'Send email')}
           </h2>
-          {feedbacks.length > 0 && (
-            <button
-              onClick={exportFeedbacksAsJson}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary bg-primary-container/20 hover:bg-primary-container/40 rounded-xl transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              {t('导出 JSON', 'Export JSON')}
-            </button>
-          )}
-        </div>
+          <p className="text-sm leading-relaxed text-secondary">
+            {t('会打开你的邮件客户端。邮件内容只会由你主动发送，不会先保存在本站。', 'This opens your email client. The message is sent only when you choose to send it, and is not stored by this site first.')}
+          </p>
+        </a>
 
-        {feedbacks.length === 0 ? (
-          <div className="bg-white dark:bg-surface-container-high rounded-3xl shadow-sm border border-surface-variant/30 p-12 text-center">
-            <Inbox className="w-16 h-16 text-secondary/30 mx-auto mb-4" />
-            <p className="text-secondary text-lg font-medium">
-              {t('暂无反馈记录', 'No feedbacks yet')}
+        {FEEDBACK_URL ? (
+          <a
+            href={FEEDBACK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-2xl border border-surface-variant/30 bg-white p-6 transition-colors hover:border-primary/40 hover:bg-primary-container/10 dark:bg-surface-container-high"
+          >
+            <Github className="mb-4 h-7 w-7 text-primary" />
+            <h2 className="mb-2 flex items-center gap-2 text-xl font-bold text-on-surface">
+              {t('公开反馈入口', 'Public feedback link')}
+              <ExternalLink className="h-4 w-4" />
+            </h2>
+            <p className="text-sm leading-relaxed text-secondary">
+              {t('打开配置的反馈页面，例如 GitHub Issues。请先确认页面说明再提交。', 'Opens the configured feedback page, such as GitHub Issues. Review that page before submitting.')}
             </p>
-            <p className="text-secondary/60 text-sm mt-2">
-              {t('提交第一条反馈吧！', 'Be the first to share your feedback!')}
-            </p>
-          </div>
+          </a>
         ) : (
-          <div className="space-y-3">
-            {feedbacks.map((item) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white dark:bg-surface-container-high rounded-2xl shadow-sm border border-surface-variant/30 p-5"
-              >
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-primary-container/30 text-primary">
-                    {typeLabel(item)}
-                  </span>
-                  <time className="text-xs text-secondary shrink-0">
-                    {new Date(item.createdAt).toLocaleString()}
-                  </time>
-                </div>
-                <p className="text-on-surface leading-relaxed whitespace-pre-wrap">{item.content}</p>
-                {item.contact && (
-                  <p className="text-xs text-secondary mt-2">
-                    {t('联系方式:', 'Contact:')} {item.contact}
-                  </p>
-                )}
-              </motion.div>
-            ))}
+          <div className="rounded-2xl border border-dashed border-surface-variant/60 bg-surface-container-low p-6">
+            <Lightbulb className="mb-4 h-7 w-7 text-primary" />
+            <h2 className="mb-2 text-xl font-bold text-on-surface">
+              {t('可配置反馈链接', 'Configurable feedback link')}
+            </h2>
+            <p className="text-sm leading-relaxed text-secondary">
+              {t('如需使用 GitHub Issues 或其他公开反馈入口，可通过 VITE_FEEDBACK_URL 配置。', 'To use GitHub Issues or another public feedback destination, set VITE_FEEDBACK_URL.')}
+            </p>
           </div>
         )}
-      </motion.section>
+      </section>
 
-      {/* Footer */}
-      <motion.footer variants={itemVariants} className="text-center mt-16 text-secondary text-sm">
-        <p>{t('所有反馈均保存在本地浏览器中。', 'All feedbacks are stored locally in your browser.')}</p>
-      </motion.footer>
-    </motion.div>
+      <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white p-6 dark:bg-surface-container-high">
+        <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          {t('隐私提醒', 'Privacy note')}
+        </h2>
+        <ul className="space-y-2 text-sm leading-relaxed text-secondary">
+          <li>{t('不要发送密码、验证码、证件号码、银行卡号或工具输入正文。', 'Do not send passwords, verification codes, IDs, card numbers, or tool input text.')}</li>
+          <li>{t('邮件会交给你的邮件服务商处理，不由本站收集。', 'Email is handled by your email provider, not collected by this site.')}</li>
+          <li>{t('如果某个工具需要联网，页面会按功能说明告知。', 'If a tool requires network access, its page should say so in the feature notes.')}</li>
+        </ul>
+      </section>
+    </motion.main>
   );
 }
+

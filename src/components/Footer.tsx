@@ -1,4 +1,4 @@
-import { Leaf, Github, Mail } from 'lucide-react';
+import { ArrowUp, Home, Leaf, Github, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
@@ -81,6 +81,11 @@ export default function Footer() {
           transition={{ delay: 0.7 }}
           className="flex items-center gap-4 text-sm text-secondary/60"
         >
+          <Link to="/" className="hover:text-primary transition-colors inline-flex items-center gap-1">
+            <Home className="h-4 w-4" />
+            {t('返回首页', 'Home')}
+          </Link>
+          <span>·</span>
           <Link to="/privacy" className="hover:text-primary transition-colors">
             {t('隐私政策', 'Privacy Policy')}
           </Link>
@@ -100,6 +105,15 @@ export default function Footer() {
           <Link to="/about" className="hover:text-primary transition-colors">
             {t('关于我们', 'About')}
           </Link>
+          <span>·</span>
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="hover:text-primary transition-colors inline-flex items-center gap-1"
+          >
+            <ArrowUp className="h-4 w-4" />
+            {t('返回顶部', 'Back to top')}
+          </button>
         </motion.div>
 
         <motion.div

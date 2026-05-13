@@ -85,10 +85,23 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
         {/* Generated Password Display */}
         <div className="bg-surface-container-low rounded-2xl p-4 mb-4 flex items-center gap-3">
           <motion.span key={displayPwd} initial={{ scale: 1.05, opacity: 0.7 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 20 }} className="flex-1 font-mono text-lg text-on-surface break-all select-all">{displayPwd}</motion.span>
-          <motion.button whileTap={{ scale: 0.9 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }} onClick={handleCopy} className={`p-2 rounded-xl transition-all shrink-0 ${copied ? 'bg-green-100 text-green-600' : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'}`}>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+            onClick={handleCopy}
+            aria-label={copied ? t('已复制密码', 'Password copied') : t('复制生成的密码', 'Copy generated password')}
+            className={`p-2 rounded-xl transition-all shrink-0 ${copied ? 'bg-green-100 text-green-600' : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'}`}
+          >
             {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
           </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }} onClick={regenerate} className="p-2 rounded-xl bg-white text-secondary hover:text-primary hover:bg-primary-container/20 transition-all shrink-0">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+            onClick={regenerate}
+            aria-label={t('重新生成密码', 'Regenerate password')}
+            className="p-2 rounded-xl bg-white text-secondary hover:text-primary hover:bg-primary-container/20 transition-all shrink-0"
+          >
             <RefreshCw className="w-5 h-5" />
           </motion.button>
         </div>
@@ -128,33 +141,39 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
 
           {/* Options */}
           <div className="space-y-3">
-            <label className="flex items-center justify-between cursor-pointer">
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-on-surface">{t('包含大写字母', 'Uppercase (A-Z)')}</span>
               <button
                 onClick={() => setUseUpper(!useUpper)}
+                aria-label={t('包含大写字母', 'Include uppercase letters')}
+                aria-pressed={useUpper}
                 className={`w-11 h-6 rounded-full transition-colors relative ${useUpper ? 'bg-primary' : 'bg-surface-variant'}`}
               >
                 <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useUpper ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
-            </label>
-            <label className="flex items-center justify-between cursor-pointer">
+            </div>
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-on-surface">{t('包含数字', 'Numbers (0-9)')}</span>
               <button
                 onClick={() => setUseNum(!useNum)}
+                aria-label={t('包含数字', 'Include numbers')}
+                aria-pressed={useNum}
                 className={`w-11 h-6 rounded-full transition-colors relative ${useNum ? 'bg-primary' : 'bg-surface-variant'}`}
               >
                 <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useNum ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
-            </label>
-            <label className="flex items-center justify-between cursor-pointer">
+            </div>
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-on-surface">{t('包含特殊字符', 'Symbols (!@#$...)')}</span>
               <button
                 onClick={() => setUseSym(!useSym)}
+                aria-label={t('包含特殊字符', 'Include symbols')}
+                aria-pressed={useSym}
                 className={`w-11 h-6 rounded-full transition-colors relative ${useSym ? 'bg-primary' : 'bg-surface-variant'}`}
               >
                 <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useSym ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
-            </label>
+            </div>
           </div>
         </div>
       </motion.div>

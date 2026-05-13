@@ -187,31 +187,31 @@ export default function Profile() {
         <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 shadow-sm border border-surface-variant/30">
           <h3 className="text-xl font-bold text-on-surface mb-6">{t('账号安全', 'Security')}</h3>
 
-          <div onClick={() => setShowPasswordModal(true)} className="flex items-center justify-between py-4 border-b border-surface-variant/30 group hover:bg-surface-container/30 rounded-xl px-2 -mx-2 transition-colors cursor-pointer">
-            <div className="flex gap-4 items-center">
-              <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+          <button type="button" onClick={() => setShowPasswordModal(true)} className="flex w-full items-center justify-between py-4 border-b border-surface-variant/30 group hover:bg-surface-container/30 rounded-xl px-2 -mx-2 transition-colors text-left">
+            <span className="flex gap-4 items-center">
+              <span className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
                 <Key className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-on-surface group-hover:text-primary transition-colors">{t('修改密码', 'Change Password')}</h4>
-                <p className="text-sm text-secondary">{t('定期更换密码可提高账号安全性', 'Regularly changing password improves security')}</p>
-              </div>
-            </div>
+              </span>
+              <span>
+                <span className="block font-bold text-on-surface group-hover:text-primary transition-colors">{t('修改密码', 'Change Password')}</span>
+                <span className="block text-sm text-secondary">{t('定期更换密码可提高账号安全性', 'Regularly changing password improves security')}</span>
+              </span>
+            </span>
             <ChevronRight className="w-5 h-5 text-secondary group-hover:text-primary transition-colors" />
-          </div>
+          </button>
 
-          <div onClick={() => setShowDeviceModal(true)} className="flex items-center justify-between py-4 border-b border-surface-variant/30 group hover:bg-surface-container/30 rounded-xl px-2 -mx-2 transition-colors cursor-pointer">
-            <div className="flex gap-4 items-center">
-              <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+          <button type="button" onClick={() => setShowDeviceModal(true)} className="flex w-full items-center justify-between py-4 border-b border-surface-variant/30 group hover:bg-surface-container/30 rounded-xl px-2 -mx-2 transition-colors text-left">
+            <span className="flex gap-4 items-center">
+              <span className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
                 <Smartphone className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-on-surface group-hover:text-primary transition-colors">{t('设备管理', 'Device Management')}</h4>
-                <p className="text-sm text-secondary">{t('查看并管理已登录账号的设备', 'View and manage devices logged into your account')}</p>
-              </div>
-            </div>
+              </span>
+              <span>
+                <span className="block font-bold text-on-surface group-hover:text-primary transition-colors">{t('设备管理', 'Device Management')}</span>
+                <span className="block text-sm text-secondary">{t('查看并管理已登录账号的设备', 'View and manage devices logged into your account')}</span>
+              </span>
+            </span>
             <ChevronRight className="w-5 h-5 text-secondary group-hover:text-primary transition-colors" />
-          </div>
+          </button>
         </div>
 
         <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 shadow-sm border border-surface-variant/30">
@@ -379,9 +379,9 @@ export default function Profile() {
       {/* Password Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowPasswordModal(false)}></div>
+          <button type="button" aria-label={t('关闭修改密码弹窗', 'Close change password dialog')} className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowPasswordModal(false)} />
           <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 max-w-md w-full relative z-10">
-            <button onClick={() => setShowPasswordModal(false)} className="absolute top-4 right-4 text-secondary hover:text-primary"><X className="w-5 h-5" /></button>
+            <button onClick={() => setShowPasswordModal(false)} aria-label={t('关闭修改密码弹窗', 'Close change password dialog')} className="absolute top-4 right-4 text-secondary hover:text-primary"><X className="w-5 h-5" /></button>
             <h3 className="text-xl font-bold mb-4">{t('修改密码', 'Change Password')}</h3>
             <div className="space-y-4">
               <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder={t('原密码', 'Current Password')} className="w-full bg-surface-container-low dark:bg-surface-container border border-surface-variant/50 rounded-xl py-3 px-4 outline-none focus:border-primary/50" />
@@ -397,9 +397,9 @@ export default function Profile() {
       {/* Device Management Modal */}
       {showDeviceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowDeviceModal(false)}></div>
+          <button type="button" aria-label={t('关闭设备管理弹窗', 'Close device management dialog')} className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowDeviceModal(false)} />
           <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 max-w-md w-full relative z-10">
-            <button onClick={() => setShowDeviceModal(false)} className="absolute top-4 right-4 text-secondary hover:text-primary"><X className="w-5 h-5" /></button>
+            <button onClick={() => setShowDeviceModal(false)} aria-label={t('关闭设备管理弹窗', 'Close device management dialog')} className="absolute top-4 right-4 text-secondary hover:text-primary"><X className="w-5 h-5" /></button>
             <h3 className="text-xl font-bold mb-4">{t('设备管理', 'Device Management')}</h3>
             <div className="space-y-4">
               {devices.map(device => (
@@ -427,7 +427,7 @@ export default function Profile() {
       {/* Delete Account Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)}></div>
+          <button type="button" aria-label={t('关闭注销账号弹窗', 'Close delete account dialog')} className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
           <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 max-w-md w-full relative z-10">
             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mb-4">
               <AlertTriangle className="w-6 h-6" />

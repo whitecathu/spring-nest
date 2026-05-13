@@ -419,6 +419,29 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     updatePaddleFromX(e.clientX);
   }, [updatePaddleFromX]);
 
+  const movePaddleBy = useCallback((delta: number) => {
+    const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
+    const newX = Math.max(0, Math.min(GAME_WIDTH - pw, paddleXRef.current + delta));
+    paddleXRef.current = newX;
+    setPaddleX(newX);
+  }, [isMobile]);
+
+  const handleGameKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if ((e.key === 'Enter' || e.key === ' ') && gameState !== 'playing') {
+      e.preventDefault();
+      startGame();
+      return;
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      movePaddleBy(-24);
+    }
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      movePaddleBy(24);
+    }
+  }, [gameState, movePaddleBy, startGame]);
+
   // Game loop
   useEffect(() => {
     if (gameState !== 'playing') return;
@@ -859,6 +882,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onMouseMove={handleMouseMove}
+            onKeyDown={handleGameKeyDown}
+            tabIndex={0}
+            aria-label={t('打砖块游戏区域，使用左右方向键移动挡板，回车或空格开始', 'Brick Breaker game area, use left and right arrows to move the paddle, Enter or Space to start')}
           >
             {/* Subtle grid lines */}
             <div
@@ -1192,6 +1218,16 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                     className="text-center cursor-pointer"
                     onClick={(e) => { e.stopPropagation(); startGame(); }}
                     onTouchStart={(e) => { e.stopPropagation(); startGame(); }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        startGame();
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={t('开始打砖块', 'Start Brick Breaker')}
                   >
                     <p className="text-5xl mb-3">🧱</p>
                     <p className="text-xl font-bold text-white mb-2">

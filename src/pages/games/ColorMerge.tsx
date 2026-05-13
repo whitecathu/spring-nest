@@ -277,6 +277,10 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
                   <motion.button
                     key={cell.id}
                     onClick={() => handleCellClick(r, c)}
+                    aria-label={t(
+                      `第 ${r + 1} 行第 ${c + 1} 列，${color.name} 色方块${isSelected ? '，已选中' : ''}`,
+                      `Row ${r + 1}, column ${c + 1}, ${color.name} block${isSelected ? ', selected' : ''}`
+                    )}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     animate={isMatched ? { scale: [1, 1.2, 0], opacity: [1, 1, 0] } : { scale: 1, opacity: 1 }}

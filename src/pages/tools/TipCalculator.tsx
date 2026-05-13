@@ -151,6 +151,15 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
               exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
               transition={springSmooth}
               onClick={showToast}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  showToast();
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={t('复制小费计算结果', 'Copy tip calculation results')}
               className="relative bg-gradient-to-br from-primary-container/50 to-primary/10 rounded-2xl p-6 space-y-3 cursor-pointer"
             >
               {/* Gradient shift overlay on value change */}
@@ -255,6 +264,8 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.9 }}
               transition={springBouncy}
+              role="status"
+              aria-live="polite"
               className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-on-surface text-surface px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-lg z-50"
             >
               <Check className="w-4 h-4" />

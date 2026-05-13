@@ -127,7 +127,11 @@ export default function UnitConverter({ onBack }: { onBack: () => void }) {
 
         {/* Swap */}
         <div className="flex justify-center my-4">
-          <button onClick={swapUnits} className="p-3 bg-surface-container-high rounded-full hover:bg-surface-variant transition-colors text-secondary hover:text-primary">
+          <button
+            onClick={swapUnits}
+            aria-label={t('交换换算单位', 'Swap conversion units')}
+            className="p-3 bg-surface-container-high rounded-full hover:bg-surface-variant transition-colors text-secondary hover:text-primary"
+          >
             <ArrowRightLeft className="w-5 h-5" />
           </button>
         </div>

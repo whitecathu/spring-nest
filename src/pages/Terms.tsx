@@ -2,6 +2,7 @@ import { FileText, Users, Shield, AlertTriangle, Scale, Clock, Mail, ChevronDown
 import { useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
+import SEO from '../components/SEO';
 
 interface SectionProps {
   icon: ReactNode;
@@ -73,6 +74,11 @@ export default function Terms() {
       variants={containerVariants}
       className="max-w-[900px] mx-auto px-6 py-16 w-full"
     >
+      <SEO
+        title={t('服务条款 - Spring Nest 春日小筑', 'Terms of Service - Spring Nest')}
+        description={t('阅读春日小筑在线工具与休闲小游戏的使用规则、责任限制、隐私入口和反馈方式。', 'Read the usage rules, limitations, privacy entry, and feedback options for Spring Nest tools and games.')}
+        canonical="/terms"
+      />
       {/* Header */}
       <motion.header variants={itemVariants} className="text-center mb-16">
         <div className="w-20 h-20 bg-primary-container/30 rounded-3xl flex items-center justify-center mx-auto mb-6 text-primary">

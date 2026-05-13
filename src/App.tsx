@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import Navigation from './components/Navigation';
@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useReducedMotion, pageTransitionVariants, softEase, floatingParticles } from './lib/animations';
+import { trackPageView } from './lib/analytics';
 import { Leaf } from 'lucide-react';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -95,6 +96,29 @@ const LoadingFallback = () => {
   );
 };
 
+function applyFormControlAccessibleNames() {
+  const controls = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+    'input:not([type="hidden"]), textarea, select',
+  );
+
+  controls.forEach((control) => {
+    if (control.getAttribute('aria-label') || control.getAttribute('aria-labelledby') || control.getAttribute('title')) return;
+    if (control.closest('label')) return;
+
+    const id = control.getAttribute('id');
+    if (id && document.querySelector(`label[for="${CSS.escape(id)}"]`)) return;
+
+    const placeholder = control.getAttribute('placeholder')?.replace(/\s+/g, ' ').trim();
+    const fallback =
+      placeholder ||
+      control.getAttribute('name') ||
+      (control.tagName.toLowerCase() === 'select' ? '选择选项' : control.getAttribute('type')) ||
+      '表单控件';
+
+    control.setAttribute('aria-label', fallback);
+  });
+}
+
 function PageWrapper({ children, reducedMotion }: { children: React.ReactNode; reducedMotion: boolean }) {
   if (reducedMotion) return children;
   return (
@@ -112,6 +136,17 @@ function PageWrapper({ children, reducedMotion }: { children: React.ReactNode; r
 export default function App() {
   const location = useLocation();
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    trackPageView(`${location.pathname}${location.search}`);
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    applyFormControlAccessibleNames();
+    const observer = new MutationObserver(applyFormControlAccessibleNames);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <ThemeProvider>

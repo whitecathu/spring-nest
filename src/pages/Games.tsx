@@ -1,6 +1,6 @@
-import { Gamepad2, Heart, Play, Flower2, Cloud } from 'lucide-react';
+import { ArrowLeft, ArrowUpDown, Cloud, Flower2, Gamepad2, Heart, Info, Play, RotateCcw, Search, Smartphone } from 'lucide-react';
 import { useState, useMemo, lazy, Suspense, useEffect, useLayoutEffect, useRef, useCallback, type ComponentType, type LazyExoticComponent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
@@ -10,6 +10,9 @@ import { trackGameStart } from '../lib/analytics';
 import { recordVisit } from '../lib/recent';
 import { springBouncy, springSmooth, springSnappy, gridContainerVariants, gridCardVariants, useReducedMotion } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
+import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
+import { getGameCategoryBySlug, getPrimaryGameCategorySlug } from '../lib/catalogRoutes';
+import type { AppItem } from '../types/app';
 
 const Game2048 = lazy(() => import('./games/Game2048'));
 const MemoryGame = lazy(() => import('./games/MemoryGame'));
@@ -53,21 +56,65 @@ const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack:
   'game-19': BubblePop,
 };
 
+type GameSortMode = 'popular' | 'new' | 'name';
+
+function matchesGameQuery(item: AppItem, query: string) {
+  if (!query.trim()) return true;
+  const q = query.trim().toLowerCase();
+  return [
+    item.title,
+    item.titleEn,
+    item.description,
+    item.descriptionEn,
+    item.category,
+    item.categoryEn,
+    item.instructions ?? '',
+    ...(item.tags ?? []),
+    ...(item.features ?? []),
+  ]
+    .join(' ')
+    .toLowerCase()
+    .includes(q);
+}
+
+function getGameFaq(item: AppItem, t: (zh: string, en: string) => string) {
+  if (item.faq?.length) {
+    return item.faq.map((entry) => ({
+      q: t(entry.q, entry.qEn ?? entry.q),
+      a: t(entry.a, entry.aEn ?? entry.a),
+    }));
+  }
+
+  return [
+    {
+      q: t('需要登录才能玩吗？', 'Do I need to sign in?'),
+      a: t('不需要。游戏可直接开始，最高分等记录会优先保存在浏览器本地。', 'No. You can play immediately, and high scores are saved locally in your browser first.'),
+    },
+    {
+      q: t('手机上能玩吗？', 'Can I play on mobile?'),
+      a: t('可以。游戏页会尽量提供触屏操作；如果游戏支持键盘，也会保留桌面端键盘操作。', 'Yes. Game pages provide touch controls where practical, while desktop keyboard controls stay available when supported.'),
+    },
+  ];
+}
+
 export default function Games() {
   const { t } = useUser();
   const { favoriteIds, toggle } = useFavorites();
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+  const categoryRoute = getGameCategoryBySlug(slug);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [query, setQuery] = useState('');
+  const [sortMode, setSortMode] = useState<GameSortMode>('popular');
   const pillContainerRef = useRef<HTMLDivElement>(null);
   const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const reducedMotion = useReducedMotion();
 
   // Find game by route slug
   const activeGameBySlug = useMemo(() => {
-    if (!slug) return null;
+    if (!slug || categoryRoute) return null;
     return games.find(g => g.route.endsWith(`/${slug}`)) || null;
-  }, [slug]);
+  }, [slug, categoryRoute]);
 
   const [internalGameId, setInternalGameId] = useState<string | null>(null);
   const activeGameId = activeGameBySlug?.id || internalGameId;
@@ -75,10 +122,10 @@ export default function Games() {
   useEffect(() => {
     if (slug && activeGameBySlug) {
       setInternalGameId(activeGameBySlug.id);
-    } else if (!slug) {
+    } else if (!slug || categoryRoute) {
       setInternalGameId(null);
     }
-  }, [slug, activeGameBySlug]);
+  }, [slug, activeGameBySlug, categoryRoute]);
 
   const categories = useMemo(() => {
     const cats = [...new Set(games.map(g => g.category))];
@@ -91,9 +138,30 @@ export default function Games() {
     ];
   }, [t]);
 
+  const effectiveCategory = categoryRoute?.category ?? activeCategory;
+
+  useEffect(() => {
+    if (categoryRoute) {
+      setActiveCategory(categoryRoute.category);
+    } else if (!slug) {
+      setActiveCategory('all');
+    }
+  }, [categoryRoute, slug]);
+
   const filteredGames = useMemo(
-    () => activeCategory === 'all' ? games : games.filter(g => g.category === activeCategory),
-    [activeCategory]
+    () => {
+      const byCategory = effectiveCategory === 'all'
+        ? games
+        : games.filter(game => game.category === effectiveCategory);
+      const byQuery = byCategory.filter(game => matchesGameQuery(game, query));
+
+      return [...byQuery].sort((a, b) => {
+        if (sortMode === 'new') return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew));
+        if (sortMode === 'name') return t(a.title, a.titleEn).localeCompare(t(b.title, b.titleEn), 'zh-Hans-CN');
+        return (b.popularScore ?? 0) - (a.popularScore ?? 0);
+      });
+    },
+    [effectiveCategory, query, sortMode, t],
   );
 
   const activeGame = useMemo(
@@ -144,6 +212,12 @@ export default function Games() {
   const handleCategorySwitch = useCallback((catId: string) => {
     if (catId === activeCategory) return;
     setActiveCategory(catId);
+    if (catId === 'all') {
+      navigate('/games');
+    } else {
+      const routeSlug = getPrimaryGameCategorySlug(catId);
+      navigate(routeSlug ? `/games/${routeSlug}` : '/games');
+    }
 
     requestAnimationFrame(() => {
       const container = pillContainerRef.current;
@@ -151,7 +225,7 @@ export default function Games() {
       const activePill = container.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
       activePill?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
     });
-  }, [activeCategory]);
+  }, [activeCategory, navigate]);
 
   useEffect(() => {
     if (activeGame) {
@@ -162,10 +236,102 @@ export default function Games() {
 
   if (activeGame && gameComponents[activeGame.id]) {
     const GameComponent = gameComponents[activeGame.id];
+    const faq = getGameFaq(activeGame, t);
+    const relatedGames = games.filter(game => activeGame.related?.includes(game.id)).slice(0, 3);
+    const jsonLd = [itemJsonLd(activeGame), faqJsonLd(faq)];
+
     return (
       <Suspense fallback={<GameToolLoading />}>
-        <SEO title={`${t(activeGame.title, activeGame.titleEn)} - Spring Nest`} description={t(activeGame.description, activeGame.descriptionEn)} type="game" />
-        <GameComponent onBack={handleBack} />
+        <SEO
+          title={`${t(activeGame.title, activeGame.titleEn)} - Spring Nest 春日小筑`}
+          description={t(activeGame.description, activeGame.descriptionEn)}
+          canonical={activeGame.route}
+          type="website"
+          jsonLd={jsonLd}
+        />
+        <article className="w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-8">
+          <Link to="/games" className="mb-5 inline-flex min-h-[48px] items-center gap-2 text-sm font-semibold text-secondary hover:text-primary">
+            <ArrowLeft className="h-4 w-4" />
+            {t('返回游戏列表', 'Back to games')}
+          </Link>
+          <header className="mb-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
+              <span className="rounded-full bg-tertiary-container/40 px-3 py-1 text-on-tertiary-container">
+                {t(activeGame.category, activeGame.categoryEn)}
+              </span>
+              <span className="rounded-full bg-surface-container px-3 py-1 text-secondary">
+                {t('无需登录', 'No sign-in')}
+              </span>
+            </div>
+            <p className="mb-3 text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
+              {t(activeGame.title, activeGame.titleEn)}
+            </p>
+            <p className="max-w-3xl text-base leading-relaxed text-secondary">
+              {t(activeGame.description, activeGame.descriptionEn)}
+            </p>
+          </header>
+
+          <section aria-label={t('主游戏区域', 'Main game area')}>
+            <GameComponent onBack={handleBack} />
+          </section>
+
+          <section className="mt-8 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+              <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
+                <Info className="h-5 w-5 text-primary" />
+                {t('玩法说明', 'How to play')}
+              </h2>
+              <p className="text-sm leading-relaxed text-secondary">
+                {t(activeGame.instructions || '打开游戏后按页面提示开始，完成目标即可得分。', activeGame.instructionsEn || 'Open the game and follow the on-page prompt to start. Complete the objective to score.')}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+              <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
+                <RotateCcw className="h-5 w-5 text-primary" />
+                {t('键盘操作', 'Keyboard')}
+              </h2>
+              <p className="text-sm leading-relaxed text-secondary">
+                {t('支持键盘的游戏通常使用方向键、空格或 Enter。具体按键以游戏区域内提示为准。', 'Keyboard-enabled games usually use arrow keys, Space, or Enter. Follow the game area prompts for exact controls.')}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+              <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
+                <Smartphone className="h-5 w-5 text-primary" />
+                {t('移动端操作', 'Mobile')}
+              </h2>
+              <p className="text-sm leading-relaxed text-secondary">
+                {t('移动端可使用点击、滑动或屏幕按钮操作。横屏游戏建议保持屏幕稳定，避免页面滚动干扰。', 'On mobile, use taps, swipes, or on-screen buttons. For landscape-style games, keep the screen steady to avoid accidental page scrolling.')}
+              </p>
+            </div>
+          </section>
+
+          <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+            <h2 className="mb-4 text-xl font-bold text-on-surface">FAQ</h2>
+            <div className="space-y-4">
+              {faq.map((entry) => (
+                <div key={entry.q}>
+                  <h3 className="font-semibold text-on-surface">{entry.q}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-secondary">{entry.a}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {relatedGames.length > 0 && (
+            <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+              <h2 className="mb-4 text-xl font-bold text-on-surface">{t('相关游戏', 'Related games')}</h2>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {relatedGames.map((game) => (
+                  <Link key={game.id} to={game.route} className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-tertiary-container/20">
+                    <span className="text-2xl" aria-hidden="true">{game.icon}</span>
+                    <h3 className="mt-2 font-bold text-on-surface">{t(game.title, game.titleEn)}</h3>
+                    <p className="mt-1 line-clamp-2 text-xs text-secondary">{t(game.description, game.descriptionEn)}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </article>
       </Suspense>
     );
   }
@@ -181,9 +347,27 @@ export default function Games() {
     );
   }
 
+  const pageTitle = categoryRoute
+    ? `${t(categoryRoute.label, categoryRoute.labelEn)} - Spring Nest 春日小筑`
+    : t('休闲小游戏合集 - Spring Nest 春日小筑', 'Casual Games Collection - Spring Nest');
+  const pageDescription = categoryRoute
+    ? t(
+        `${categoryRoute.label}收录春日小筑中可直接打开的相关小游戏，支持搜索、分类筛选和本地最高分记录。`,
+        `${categoryRoute.labelEn} collects related Spring Nest games with search, category filtering, and local high scores.`,
+      )
+    : t(
+        'Spring Nest 提供 2048、记忆翻牌、扫雷、贪吃蛇、打字测速等休闲小游戏，免费、轻量、无需登录。',
+        'Spring Nest offers 2048, memory match, minesweeper, snake, typing speed, and other casual games, free, lightweight, and playable without sign-in.',
+      );
+
   return (
     <div className="w-full max-w-[1200px] mx-auto px-6 py-10 relative">
-      <SEO title={t('休闲小游戏合集 - Spring Nest 春日小筑', 'Casual Games Collection - Spring Nest')} description={t('Spring Nest 提供多款轻松有趣的休闲小游戏，包括 2048、记忆翻牌、打地鼠等。', 'Spring Nest offers fun casual games including 2048, Memory Match, Whack-A-Mole, and more.')} />
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        canonical={categoryRoute ? `/games/${categoryRoute.slug}` : '/games'}
+        jsonLd={collectionJsonLd(pageTitle, pageDescription, categoryRoute ? `/games/${categoryRoute.slug}` : '/games', filteredGames)}
+      />
 
       {/* Decorative floating elements */}
       <motion.div
@@ -221,12 +405,49 @@ export default function Games() {
         <div className="absolute inset-0 bg-gradient-to-b from-tertiary-container/20 to-transparent -z-10 rounded-3xl blur-2xl"></div>
         <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl text-on-surface mb-6 flex items-center justify-center gap-4">
           <Gamepad2 className="text-primary w-10 h-10" />
-          {t('游戏天堂', 'Game Paradise')}
+          {categoryRoute ? t(categoryRoute.label, categoryRoute.labelEn) : t('游戏天堂', 'Game Paradise')}
         </h1>
         <p className="font-sans text-lg font-medium text-on-surface-variant max-w-2xl mx-auto">
-          {t('治愈小游戏，解锁休闲好时光', 'Healing casual games, unlocking good relaxing times')}
+          {pageDescription}
         </p>
       </motion.header>
+
+      <section className="mb-8 rounded-2xl border border-surface-variant/30 bg-white/70 dark:bg-surface-container-high/60 p-5">
+        <p className="text-sm leading-7 text-secondary">
+          {t(
+            '这里汇总了春日小筑的全部小游戏。你可以按类型筛选，也可以搜索名称、玩法或标签；多数游戏会把最高分保存在浏览器本地，不需要账号即可开始。适合短暂休息、反应训练、打字练习和经典解谜。',
+            'This page collects every Spring Nest game. Filter by type or search by name, gameplay, or tag. Most games save high scores in local browser storage and can be played without an account. Good for short breaks, reaction training, typing practice, and classic puzzles.',
+          )}
+        </p>
+      </section>
+
+      <div className="mb-8 grid gap-3 md:grid-cols-[1fr_auto]">
+        <form role="search" onSubmit={(event) => event.preventDefault()} className="relative">
+          <label htmlFor="games-search" className="sr-only">{t('搜索小游戏', 'Search games')}</label>
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary/50" />
+          <input
+            id="games-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t('搜索名称、玩法或标签', 'Search name, gameplay, or tags')}
+            className="min-h-[52px] w-full rounded-2xl border border-surface-variant/40 bg-white/80 py-3 pl-12 pr-4 text-on-surface outline-none transition-colors focus:border-primary dark:bg-surface-container-high/70"
+          />
+        </form>
+        <label className="flex min-h-[52px] items-center gap-2 rounded-2xl border border-surface-variant/40 bg-white/80 px-4 text-sm font-semibold text-secondary dark:bg-surface-container-high/70">
+          <ArrowUpDown className="h-4 w-4" />
+          <span className="sr-only">{t('排序', 'Sort')}</span>
+          <select
+            value={sortMode}
+            onChange={(event) => setSortMode(event.target.value as GameSortMode)}
+            className="bg-transparent text-on-surface outline-none"
+          >
+            <option value="popular">{t('按热门排序', 'Popular')}</option>
+            <option value="new">{t('最近更新优先', 'Recently updated')}</option>
+            <option value="name">{t('按名称排序', 'Name')}</option>
+          </select>
+        </label>
+      </div>
 
       {/* Category pills with sliding indicator */}
       <motion.div
@@ -283,7 +504,16 @@ export default function Games() {
               >
                 <Gamepad2 className="w-16 h-16 text-secondary/30 mb-4" />
               </motion.div>
-              <p className="font-medium text-lg">{t('暂无游戏', 'No games found')}</p>
+              <p className="font-medium text-lg">{t('没有找到相关游戏', 'No matching games found')}</p>
+              <button
+                onClick={() => {
+                  setQuery('');
+                  handleCategorySwitch('all');
+                }}
+                className="mt-4 rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary"
+              >
+                {t('清除筛选', 'Clear filters')}
+              </button>
             </motion.div>
           ) : (
             filteredGames.map((game) => (
@@ -311,7 +541,7 @@ export default function Games() {
                   <div className="flex-grow">
                     <h2 className="font-nunito text-lg text-on-surface font-bold group-hover:text-primary transition-colors">{t(game.title, game.titleEn)}</h2>
                     <span className="inline-block px-3 py-1 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-tertiary-container/30 text-on-tertiary-container">
-                      {game.category}
+                      {t(game.category, game.categoryEn)}
                     </span>
                   </div>
                 </div>

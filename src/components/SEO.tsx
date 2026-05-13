@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { absoluteUrl } from '../lib/site';
 
 interface SEOProps {
   title?: string;
@@ -6,9 +7,9 @@ interface SEOProps {
   ogImage?: string;
   canonical?: string;
   type?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
-
-const SITE_URL = 'https://master.spring-nest.pages.dev';
 
 const DEFAULTS = {
   title: 'Spring Nest - 春日小筑 | 实用工具与休闲小游戏',
@@ -50,45 +51,66 @@ function setCanonical(href: string) {
   el.setAttribute('href', href);
 }
 
+function setJsonLd(data?: Record<string, unknown> | Record<string, unknown>[]) {
+  const id = 'spring-nest-jsonld';
+  const existing = document.getElementById(id);
+
+  if (!data) {
+    existing?.remove();
+    return;
+  }
+
+  const el = existing ?? document.createElement('script');
+  el.setAttribute('id', id);
+  el.setAttribute('type', 'application/ld+json');
+  el.textContent = JSON.stringify(data);
+
+  if (!existing) document.head.appendChild(el);
+}
+
 export default function SEO({
   title,
   description,
   ogImage,
   canonical,
   type,
+  noindex,
+  jsonLd,
 }: SEOProps) {
   useEffect(() => {
     const t = title ?? DEFAULTS.title;
     const d = description ?? DEFAULTS.description;
     const img = ogImage ?? DEFAULTS.ogImage;
     const ogType = type ?? DEFAULTS.type;
-    const url = canonical ?? `${SITE_URL}${window.location.pathname}`;
+    const url = canonical ? absoluteUrl(canonical) : absoluteUrl(window.location.pathname);
+    const imageUrl = absoluteUrl(img);
 
     // Document title
     document.title = t;
 
     // Standard meta
     setMetaByName('description', d);
+    setMetaByName('robots', noindex ? 'noindex, follow' : 'index, follow');
 
     // Open Graph
     setMetaByProperty('og:title', t);
     setMetaByProperty('og:description', d);
     setMetaByProperty('og:type', ogType);
     setMetaByProperty('og:url', url);
-    setMetaByProperty('og:image', img.startsWith('http') ? img : `${SITE_URL}${img}`);
+    setMetaByProperty('og:image', imageUrl);
 
     // Twitter Card
     setMetaByName('twitter:card', 'summary_large_image');
     setMetaByName('twitter:title', t);
     setMetaByName('twitter:description', d);
-    setMetaByName(
-      'twitter:image',
-      img.startsWith('http') ? img : `${SITE_URL}${img}`,
-    );
+    setMetaByName('twitter:image', imageUrl);
 
     // Canonical
     setCanonical(url);
-  }, [title, description, ogImage, canonical, type]);
+
+    // Structured data
+    setJsonLd(jsonLd);
+  }, [title, description, ogImage, canonical, type, noindex, jsonLd]);
 
   return null;
 }

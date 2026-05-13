@@ -4,7 +4,7 @@
 
 > 藏尽春日好物，聚齐实用与欢喜 — 一个治愈系数字角落
 
-Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 8 个效率工具和 5 个休闲小游戏，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
+Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 25 个效率工具和 19 个休闲小游戏，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
 
 ## 技术栈
 
@@ -19,13 +19,13 @@ Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，�
 | Lucide React | 图标库 |
 | qrcode | 二维码生成 |
 | Vite PWA Plugin | PWA 离线支持 |
-| Vitest | 单元测试 (82 tests) |
+| Vitest | 单元测试 (83 tests) |
 | Playwright | E2E 端到端测试 |
 
 ## 已实现功能
 
 ### 核心功能
-- 登录/注册（localStorage 本地账号，邮箱校验，密码>=6位）
+- 登录/注册（localStorage 本地账号，邮箱校验，密码>=6位，本地密码以哈希形式保存）
 - 收藏功能（游戏+工具，按用户ID持久化）
 - 全文搜索（搜索名称、描述、分类、标签，结果排序）
 - 中英双语切换
@@ -34,11 +34,11 @@ Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，�
 - 404 页面
 - ErrorBoundary 全局错误处理
 - PWA 支持（可安装到桌面，离线访问）
-- 意见反馈系统（localStorage 本地存储，支持导出 JSON）
+- 意见反馈入口（邮件或 `VITE_FEEDBACK_URL`，不在页面内伪造提交结果）
 - 排行榜系统（需配置 Supabase）
 - 后台管理页面（需配置 Supabase）
 
-### 8 个真实工具
+### 工具示例（共 25 个）
 | 工具 | 功能 |
 |---|---|
 | 计算器 | 加减乘除、小数、键盘输入、历史记录、一键复制结果 |
@@ -50,7 +50,7 @@ Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，�
 | 轻量扫描仪 | 拍摄/上传文档、多种滤镜调整、下载PNG保存 |
 | 微风天气 | 自动定位/搜索城市、实时天气、三天预报 |
 
-### 5 个可玩游戏
+### 游戏示例（共 19 个）
 | 游戏 | 功能 |
 |---|---|
 | 2048 | 4x4棋盘、方向键/触屏滑动、撤回一步、分数+最高分、游戏结束判定 |
@@ -84,10 +84,11 @@ Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，�
 ```bash
 npm install        # 安装依赖
 npm run dev        # 启动开发服务器 (http://localhost:3000)
+npm run typecheck  # TypeScript 类型检查
 npm run build      # 生产构建
 npm run preview    # 预览构建产物
-npm run test       # 运行 82 个单元测试
-npm run test:e2e   # 运行 Playwright E2E 测试
+npm run test       # 运行 83 个单元测试
+npm run test:e2e   # 运行 15 个 Playwright 生产预览 E2E 测试
 npm run lint       # TypeScript 类型检查
 ```
 
@@ -95,18 +96,18 @@ npm run lint       # TypeScript 类型检查
 
 ```bash
 npm run build    # ✅ 通过，约 30 chunks，gzip ~160KB
-npm run test     # ✅ 通过，5 files / 82 tests
-npm run test:e2e # ✅ 通过，Playwright E2E 测试
+npm run test     # ✅ 通过，5 files / 83 tests
+npm run test:e2e # ✅ 通过，15 个 Playwright 生产预览 E2E 测试
 npm run lint     # ✅ 通过，无 TypeScript 错误
 ```
 
 ## CI/CD
 
-项目使用 GitHub Actions 进行持续集成，每次 push 或 PR 到 `main` 分支自动运行：
+项目使用 GitHub Actions 进行持续集成，每次 push 或 PR 到 `main` / `master` 分支自动运行：
 
 | 阶段 | 内容 | 依赖 |
 |---|---|---|
-| lint-and-test | TypeScript 类型检查 + 82 个单元测试 + 生产构建 | 无 |
+| lint-and-test | TypeScript 类型检查 + 83 个单元测试 + 生产构建 | 无 |
 | e2e | Playwright 端到端测试 | lint-and-test 通过后 |
 
 CI 配置见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
@@ -161,7 +162,6 @@ docs/                    # 文档
 | `spring_nest_colormerge_best` | 色彩拼图最高分 |
 | `spring_nest_forest_best` | 森林漫步最高分 |
 | `spring_nest_pomodoro` | 番茄钟完成统计 + 设置 |
-| `spring_nest_feedbacks` | 用户反馈记录 |
 | `spring_nest_whackamole_best_combo` | 打地鼠最高连击 |
 | `spring_nest_pomodoro_settings` | 番茄钟自定义设置 |
 

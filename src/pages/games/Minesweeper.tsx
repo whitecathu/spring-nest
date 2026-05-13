@@ -106,21 +106,26 @@ const GameCell = memo(function GameCell({ r, c, cell, cellSize, isAnimating, ani
   let content = '';
   let contentClass = '';
   let bgClass = `${UNREVEALED_BG} hover:bg-surface-variant active:bg-surface-variant`;
+  let stateLabel = 'hidden';
 
   if (cell.revealed) {
     if (cell.mine) {
       content = '💥';
       bgClass = 'bg-red-100';
+      stateLabel = 'mine revealed';
     } else if (cell.adjacent > 0) {
       content = String(cell.adjacent);
       contentClass = ADJACENT_COLORS[cell.adjacent] || '';
       bgClass = REVEALED_EMPTY_BG;
+      stateLabel = `${cell.adjacent} adjacent mines`;
     } else {
       bgClass = REVEALED_EMPTY_BG;
+      stateLabel = 'empty revealed';
     }
   } else if (cell.flagged) {
     content = '🚩';
     bgClass = 'bg-yellow-100 hover:bg-yellow-200';
+    stateLabel = 'flagged';
   }
 
   return (
@@ -146,6 +151,8 @@ const GameCell = memo(function GameCell({ r, c, cell, cellSize, isAnimating, ani
             : { type: 'spring', stiffness: 400, damping: 12 }
       }
       className={`${cellSize} rounded flex items-center justify-center font-bold transition-colors ${bgClass} ${contentClass} relative overflow-hidden`}
+      aria-label={`Minesweeper row ${r + 1}, column ${c + 1}, ${stateLabel}`}
+      aria-pressed={cell.flagged}
     >
       {content}
       {isRipple && (

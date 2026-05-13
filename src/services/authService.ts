@@ -1,8 +1,24 @@
-import type { UserAccount, LoginResult, RegisterResult } from '../types/user';
+import type { UserAccount, LoginResult, PublicUserAccount, RegisterResult } from '../types/user';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const STORAGE_USERS_KEY = 'spring_nest_users';
 const STORAGE_CURRENT_USER_KEY = 'spring_nest_current_user';
+const PASSWORD_HASH_PREFIX = 'local-v1:';
+
+function hashPassword(email: string, password: string): string {
+  const input = `${email.trim().toLowerCase()}:${password}:spring-nest-local-auth`;
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `${PASSWORD_HASH_PREFIX}${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+function toPublicUser(user: UserAccount): PublicUserAccount {
+  const { password: _password, passwordHash: _passwordHash, ...safeUser } = user;
+  return safeUser;
+}
 
 function getUsers(): UserAccount[] {
   try {
@@ -10,14 +26,14 @@ function getUsers(): UserAccount[] {
     if (!data) return [];
     const parsed = JSON.parse(data);
     if (!Array.isArray(parsed)) return [];
-    // Filter out malformed entries (must have id, email, password)
+    // Filter out malformed entries and accept legacy local records with plaintext passwords.
     return parsed.filter(
       (u: unknown) =>
         u !== null &&
         typeof u === 'object' &&
         'id' in (u as Record<string, unknown>) &&
         'email' in (u as Record<string, unknown>) &&
-        'password' in (u as Record<string, unknown>)
+        ('passwordHash' in (u as Record<string, unknown>) || 'password' in (u as Record<string, unknown>))
     ) as UserAccount[];
   } catch {
     return [];
@@ -28,20 +44,20 @@ function saveUsers(users: UserAccount[]): void {
   localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(users));
 }
 
-export function getCurrentUser(): Omit<UserAccount, 'password'> | null {
+export function getCurrentUser(): PublicUserAccount | null {
   try {
     const data = localStorage.getItem(STORAGE_CURRENT_USER_KEY);
     if (!data) return null;
     const parsed = JSON.parse(data);
     if (parsed === null || typeof parsed !== 'object') return null;
     if (!('id' in parsed) || !('email' in parsed)) return null;
-    return parsed as Omit<UserAccount, 'password'>;
+    return parsed as PublicUserAccount;
   } catch {
     return null;
   }
 }
 
-function setCurrentUser(user: Omit<UserAccount, 'password'> | null): void {
+function setCurrentUser(user: PublicUserAccount | null): void {
   if (user) {
     localStorage.setItem(STORAGE_CURRENT_USER_KEY, JSON.stringify(user));
   } else {
@@ -78,7 +94,7 @@ export function register(email: string, password: string, username?: string): Re
     id: generateId(),
     email,
     username: username || email.split('@')[0],
-    password,
+    passwordHash: hashPassword(email, password),
     bio: '',
     createdAt: new Date().toISOString(),
   };
@@ -86,7 +102,7 @@ export function register(email: string, password: string, username?: string): Re
   users.push(newUser);
   saveUsers(users);
 
-  const { password: _, ...safeUser } = newUser;
+  const safeUser = toPublicUser(newUser);
   setCurrentUser(safeUser);
   return { success: true, user: safeUser };
 }
@@ -100,13 +116,23 @@ export function login(email: string, password: string): LoginResult {
   }
 
   const users = getUsers();
-  const user = users.find(u => u.email === email && u.password === password);
+  const user = users.find(u => {
+    if (u.email !== email) return false;
+    if (u.passwordHash) return u.passwordHash === hashPassword(email, password);
+    return u.password === password;
+  });
 
   if (!user) {
     return { success: false, error: '邮箱或密码错误' };
   }
 
-  const { password: _, ...safeUser } = user;
+  if (!user.passwordHash) {
+    user.passwordHash = hashPassword(email, password);
+    delete user.password;
+    saveUsers(users);
+  }
+
+  const safeUser = toPublicUser(user);
   setCurrentUser(safeUser);
   return { success: true, user: safeUser };
 }
@@ -115,7 +141,7 @@ export function logout(): void {
   setCurrentUser(null);
 }
 
-export function updateProfile(updates: Partial<Omit<UserAccount, 'id' | 'createdAt'>>): Omit<UserAccount, 'password'> | null {
+export function updateProfile(updates: Partial<Omit<UserAccount, 'id' | 'createdAt' | 'password' | 'passwordHash'>>): PublicUserAccount | null {
   const current = getCurrentUser();
   if (!current) return null;
 
@@ -130,7 +156,7 @@ export function updateProfile(updates: Partial<Omit<UserAccount, 'id' | 'created
   users[idx] = { ...users[idx], ...updates };
   saveUsers(users);
 
-  const { password: _, ...safeUser } = users[idx];
+  const safeUser = toPublicUser(users[idx]);
   setCurrentUser(safeUser);
   return safeUser;
 }

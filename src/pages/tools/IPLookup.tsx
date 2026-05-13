@@ -73,6 +73,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
       {value && (
         <button
           onClick={() => handleCopy(value, field)}
+          aria-label={t(`复制${label}`, `Copy ${label}`)}
           className={`p-2 rounded-lg shrink-0 transition-all ${
             copiedField === field ? 'bg-green-100 text-green-600' : 'text-secondary/40 hover:text-primary hover:bg-primary-container/20'
           }`}

@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const previewUrl = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4173';
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -8,19 +10,24 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: previewUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], channel: 'msedge' },
+      use: {
+        ...devices['Desktop Chrome'],
+        ...(process.env.CI ? {} : { channel: 'msedge' }),
+      },
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    command: process.env.CI
+      ? 'npm run preview -- --host 127.0.0.1 --port 4173'
+      : 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173',
+    url: previewUrl,
     reuseExistingServer: !process.env.CI,
   },
 });

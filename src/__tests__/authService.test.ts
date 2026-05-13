@@ -56,6 +56,12 @@ describe('authService', () => {
       expect(current).toBeDefined();
       expect(current!.email).toBe('test@example.com');
     });
+
+    it('should not persist plaintext local passwords', () => {
+      register('test@example.com', 'password123');
+      expect(store['spring_nest_users']).not.toContain('password123');
+      expect(store['spring_nest_current_user']).not.toContain('password123');
+    });
   });
 
   describe('login', () => {

@@ -564,6 +564,15 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
               animation: deathShake ? 'flappy-shake 0.3s ease-in-out' : (tapPulse ? 'tap-pulse 0.15s ease-out' : 'none'),
             }}
             onClick={handleTap}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                handleTap();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={gameState === 'idle' ? t('开始 Flappy Bird', 'Start Flappy Bird') : t('让小鸟飞翔', 'Make the bird fly')}
           >
             {/* Parallax clouds */}
             {gameState !== 'idle' && clouds.map((cloud, i) => (
@@ -900,6 +909,16 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     animate={{ opacity: 1 }}
                     className="text-center cursor-pointer"
                     onClick={(e) => { e.stopPropagation(); startGame(); }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        startGame();
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={t('开始 Flappy Bird', 'Start Flappy Bird')}
                   >
                     <p className="text-5xl mb-3"
                       style={{ animation: 'bird-breathing 2s ease-in-out infinite', transform: 'scaleX(-1)' }}

@@ -5,7 +5,9 @@
 ```bash
 npm ci
 npm run lint        # tsc --noEmit
+npm run typecheck   # tsc --noEmit
 npm run test        # vitest run
+npm run test:e2e    # playwright production preview smoke
 npm run build       # vite build
 npm run preview     # local preview
 ```
@@ -25,13 +27,14 @@ npm run preview     # local preview
 
 ## 3. SEO Checks
 
-- [ ] Default title: "Spring Nest - 春日小筑 | 实用工具与休闲小游戏"
+- [ ] Default title: "Spring Nest - 春日小筑 | 免费在线实用工具与休闲小游戏合集"
 - [ ] Default description set
 - [ ] OG tags (title, description, type, url, image)
 - [ ] Twitter Card (summary_large_image)
 - [ ] Canonical URL correct
 - [ ] robots.txt exists, references sitemap
-- [ ] sitemap.xml includes all public routes (37 URLs)
+- [ ] sitemap.xml includes all public routes (65 URLs)
+- [ ] Representative tool/game/category routes have route-specific static title, description, canonical, OG, Twitter and JSON-LD
 
 ## 4. PWA Checks
 
@@ -41,8 +44,8 @@ npm run preview     # local preview
 - [ ] Icons: 192x192, 512x512, maskable 512x512
 - [ ] theme_color: #3f6751, background_color: #FFF9F2
 - [ ] Service worker generated (sw.js)
-- [ ] 68 precache entries
-- [ ] Offline fallback works (offline.html exists)
+- [ ] offline.html is precached
+- [ ] Offline fallback works for navigation when the network is unavailable
 
 ## 5. Cloudflare Pages Checks
 
@@ -54,7 +57,7 @@ npm run preview     # local preview
 
 ## 6. Post-Deploy Smoke Test
 
-Test on https://master.spring-nest.pages.dev/:
+Test on the configured production origin, currently https://spring-nest.pages.dev/ unless `VITE_SITE_URL` is changed:
 
 - [ ] Homepage loads
 - [ ] /tools loads
@@ -71,9 +74,8 @@ Test on https://master.spring-nest.pages.dev/:
 
 ## 7. Future Domain Migration
 
-When switching from `master.spring-nest.pages.dev` to a custom domain, update:
+When switching from the default Pages origin to a custom domain, update the Pages environment variable:
 
-- `public/sitemap.xml` - replace all URLs
-- `src/components/SEO.tsx` - update `SITE_URL` constant
-- `public/robots.txt` - update sitemap URL
-- OG image URLs in SEO component
+- `VITE_SITE_URL` - set the canonical public origin, for example `https://example.com`
+- Rebuild so `public/sitemap.xml`, `public/robots.txt`, route HTML, canonical URLs and OG image URLs are regenerated from the same origin
+- Do not hardcode Cloudflare branch preview domains as the canonical origin
