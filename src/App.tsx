@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import Navigation from './components/Navigation';
@@ -158,9 +158,11 @@ export default function App() {
   const location = useLocation();
   const reducedMotion = useReducedMotion();
   const { onTouchStart, onTouchEnd } = useSwipeNavigation();
+  const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     trackPageView(`${location.pathname}${location.search}`);
+    mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -175,12 +177,12 @@ export default function App() {
       <UserProvider>
         <ErrorBoundary>
           <div
-            className="min-h-screen flex flex-col font-sans selection:bg-primary-container selection:text-on-primary-container relative bg-background text-on-surface transition-colors duration-300"
+            className="h-screen flex flex-col font-sans selection:bg-primary-container selection:text-on-primary-container relative bg-background text-on-surface transition-colors duration-300 overflow-hidden"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
             <Navigation />
-            <main className="flex-grow flex flex-col relative overflow-x-hidden">
+            <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden relative overscroll-y-contain">
               <Suspense fallback={<LoadingFallback />}>
                 <AnimatePresence mode="wait">
                   <Routes location={location} key={location.pathname}>
@@ -315,8 +317,8 @@ export default function App() {
                   </Routes>
                 </AnimatePresence>
               </Suspense>
+              <Footer />
             </main>
-            <Footer />
             <PwaUpdatePrompt />
           </div>
         </ErrorBoundary>

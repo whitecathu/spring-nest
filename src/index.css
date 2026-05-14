@@ -127,9 +127,8 @@
 }
 
 html {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
 }
 
 body {
@@ -138,12 +137,14 @@ body {
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
   width: 100%;
 }
 
 #root {
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
   width: 100%;
 }
 
