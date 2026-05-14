@@ -7,23 +7,53 @@ import { springBouncy, springSmooth, springSnappy, toolPageEnter } from '../../l
 type CaseType = 'upper' | 'lower' | 'title' | 'sentence' | 'toggle' | 'reverse';
 
 const CASES: { id: CaseType; label: [string, string]; desc: [string, string] }[] = [
-  { id: 'upper', label: ['全部大写', 'UPPERCASE'], desc: ['所有字母转大写', 'ALL LETTERS TO UPPER'] },
-  { id: 'lower', label: ['全部小写', 'lowercase'], desc: ['所有字母转小写', 'all letters to lower'] },
-  { id: 'title', label: ['首字母大写', 'Title Case'], desc: ['每个单词首字母大写', 'Capitalize Each Word'] },
-  { id: 'sentence', label: ['句首大写', 'Sentence case'], desc: ['每句开头首字母大写', 'Capitalize first letter of sentences'] },
-  { id: 'toggle', label: ['大小写反转', 'tOGGLE cASE'], desc: ['反转每个字母的大小写', 'Toggle every letter case'] },
+  {
+    id: 'upper',
+    label: ['全部大写', 'UPPERCASE'],
+    desc: ['所有字母转大写', 'ALL LETTERS TO UPPER'],
+  },
+  {
+    id: 'lower',
+    label: ['全部小写', 'lowercase'],
+    desc: ['所有字母转小写', 'all letters to lower'],
+  },
+  {
+    id: 'title',
+    label: ['首字母大写', 'Title Case'],
+    desc: ['每个单词首字母大写', 'Capitalize Each Word'],
+  },
+  {
+    id: 'sentence',
+    label: ['句首大写', 'Sentence case'],
+    desc: ['每句开头首字母大写', 'Capitalize first letter of sentences'],
+  },
+  {
+    id: 'toggle',
+    label: ['大小写反转', 'tOGGLE cASE'],
+    desc: ['反转每个字母的大小写', 'Toggle every letter case'],
+  },
   { id: 'reverse', label: ['文本反转', 'Reverse'], desc: ['反转文本顺序', 'Reverse text order'] },
 ];
 
 function convertCase(text: string, type: CaseType): string {
   switch (type) {
-    case 'upper': return text.toUpperCase();
-    case 'lower': return text.toLowerCase();
-    case 'title': return text.replace(/\b\w/g, c => c.toUpperCase());
-    case 'sentence': return text.replace(/(^\s*|[.!?]\s+)([a-z])/g, (m, p, c) => p + c.toUpperCase());
-    case 'toggle': return text.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
-    case 'reverse': return text.split('').reverse().join('');
-    default: return text;
+    case 'upper':
+      return text.toUpperCase();
+    case 'lower':
+      return text.toLowerCase();
+    case 'title':
+      return text.replace(/\b\w/g, (c) => c.toUpperCase());
+    case 'sentence':
+      return text.replace(/(^\s*|[.!?]\s+)([a-z])/g, (m, p, c) => p + c.toUpperCase());
+    case 'toggle':
+      return text
+        .split('')
+        .map((c) => (c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()))
+        .join('');
+    case 'reverse':
+      return text.split('').reverse().join('');
+    default:
+      return text;
   }
 }
 
@@ -37,21 +67,27 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
   const shakeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => () => {
-    clearTimeout(shakeTimeoutRef.current);
-    clearTimeout(copiedTimeoutRef.current);
-  }, []);
-
-  const handleCaseSwitch = useCallback((id: CaseType) => {
-    if (!input.trim()) {
-      setShaking(true);
+  useEffect(
+    () => () => {
       clearTimeout(shakeTimeoutRef.current);
-      shakeTimeoutRef.current = setTimeout(() => setShaking(false), 500);
-      textareaRef.current?.focus();
-      return;
-    }
-    setActiveCase(id);
-  }, [input]);
+      clearTimeout(copiedTimeoutRef.current);
+    },
+    [],
+  );
+
+  const handleCaseSwitch = useCallback(
+    (id: CaseType) => {
+      if (!input.trim()) {
+        setShaking(true);
+        clearTimeout(shakeTimeoutRef.current);
+        shakeTimeoutRef.current = setTimeout(() => setShaking(false), 500);
+        textareaRef.current?.focus();
+        return;
+      }
+      setActiveCase(id);
+    },
+    [input],
+  );
 
   const output = useMemo(() => convertCase(input, activeCase), [input, activeCase]);
 
@@ -77,12 +113,15 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
   }, [output]);
 
   const charCount = input.length;
-  const wordCount = useMemo(() => input.trim() ? input.trim().split(/\s+/).length : 0, [input]);
-  const lineCount = useMemo(() => input ? input.split('\n').length : 0, [input]);
+  const wordCount = useMemo(() => (input.trim() ? input.trim().split(/\s+/).length : 0), [input]);
+  const lineCount = useMemo(() => (input ? input.split('\n').length : 0), [input]);
 
   return (
     <div className="flex-grow max-w-2xl mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
@@ -93,13 +132,17 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
             <Type className="w-8 h-8 text-primary" />
             {t('大小写转换', 'Case Converter')}
           </h1>
-          <p className="text-sm text-secondary mt-1">{t('快速转换文本大小写格式', 'Quickly convert text case formats')}</p>
+          <p className="text-sm text-secondary mt-1">
+            {t('快速转换文本大小写格式', 'Quickly convert text case formats')}
+          </p>
         </div>
 
         {/* Input */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <label className="text-sm font-semibold text-secondary">{t('输入文本', 'Input Text')}</label>
+            <label className="text-sm font-semibold text-secondary">
+              {t('输入文本', 'Input Text')}
+            </label>
             <span className="text-xs text-secondary">
               <motion.span
                 key={charCount}
@@ -109,8 +152,9 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
                 className="inline-block"
               >
                 {charCount}
-              </motion.span>
-              {' '}{t('字符', 'chars')} · {wordCount} {t('词', 'words')} · {lineCount} {t('行', 'lines')}</span>
+              </motion.span>{' '}
+              {t('字符', 'chars')} · {wordCount} {t('词', 'words')} · {lineCount} {t('行', 'lines')}
+            </span>
           </div>
           <motion.div
             animate={shaking ? { x: [0, -6, 6, -4, 4, -2, 2, 0] } : {}}
@@ -121,7 +165,7 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
               ref={textareaRef}
               spellCheck="false"
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value)}
               placeholder={t('在此输入或粘贴文本...', 'Type or paste text here...')}
               className="w-full h-40 px-4 py-3 bg-surface-container rounded-xl outline-none focus:ring-2 focus:ring-primary text-on-surface resize-none"
             />
@@ -147,7 +191,7 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
 
         {/* Case Buttons with sliding layoutId highlight */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {CASES.map(c => (
+          {CASES.map((c) => (
             <motion.button
               key={c.id}
               onClick={() => handleCaseSwitch(c.id)}
@@ -155,9 +199,7 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
               whileTap={{ scale: 0.93 }}
               transition={springSnappy}
               className={`relative px-4 py-2 rounded-full font-semibold text-sm min-h-[48px] ${
-                activeCase === c.id
-                  ? 'text-on-primary'
-                  : 'text-on-surface hover:bg-surface-variant'
+                activeCase === c.id ? 'text-on-primary' : 'text-on-surface hover:bg-surface-variant'
               }`}
             >
               {activeCase === c.id && (
@@ -184,7 +226,9 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
               className="mb-4"
             >
               <div className="flex justify-between items-center mb-2">
-                <label className="text-sm font-semibold text-secondary">{t('转换结果', 'Result')}</label>
+                <label className="text-sm font-semibold text-secondary">
+                  {t('转换结果', 'Result')}
+                </label>
                 <motion.button
                   onClick={handleCopy}
                   whileTap={{ scale: 0.9 }}
@@ -192,11 +236,23 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
                 >
                   <AnimatePresence mode="wait">
                     {copied ? (
-                      <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: [0, 1.2, 1] }} transition={{ duration: 0.4, times: [0, 0.6, 1] }} className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                      <motion.span
+                        key="check"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: [0, 1.2, 1] }}
+                        transition={{ duration: 0.4, times: [0, 0.6, 1] }}
+                        className="flex items-center gap-1 text-green-600 dark:text-green-400"
+                      >
                         <Check className="w-3 h-3" /> {t('已复制', 'Copied')}
                       </motion.span>
                     ) : (
-                      <motion.span key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={springBouncy} className="flex items-center gap-1">
+                      <motion.span
+                        key="copy"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={springBouncy}
+                        className="flex items-center gap-1"
+                      >
                         <Copy className="w-3 h-3" /> {t('复制', 'Copy')}
                       </motion.span>
                     )}

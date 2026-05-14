@@ -13,39 +13,42 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const generateQR = useCallback(async (text: string) => {
-    if (!text.trim()) {
-      setQrDataUrl(null);
-      setError('');
-      return;
-    }
-
-    try {
-      if (!QRCode) {
-        QRCode = (await import('qrcode')).default || (await import('qrcode'));
+  const generateQR = useCallback(
+    async (text: string) => {
+      if (!text.trim()) {
+        setQrDataUrl(null);
+        setError('');
+        return;
       }
 
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      try {
+        if (!QRCode) {
+          QRCode = (await import('qrcode')).default || (await import('qrcode'));
+        }
 
-      await QRCode.toCanvas(canvas, text.trim(), {
-        width: 256,
-        margin: 2,
-        color: {
-          dark: '#3f6751',
-          light: '#ffffff',
-        },
-      });
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-      const dataUrl = canvas.toDataURL('image/png');
-      setQrDataUrl(dataUrl);
-      localStorage.setItem('spring_nest_qr_last_input', text.trim());
-      setError('');
-    } catch (err) {
-      setError(t('二维码生成失败', 'Failed to generate QR code'));
-      setQrDataUrl(null);
-    }
-  }, [t]);
+        await QRCode.toCanvas(canvas, text.trim(), {
+          width: 256,
+          margin: 2,
+          color: {
+            dark: '#3f6751',
+            light: '#ffffff',
+          },
+        });
+
+        const dataUrl = canvas.toDataURL('image/png');
+        setQrDataUrl(dataUrl);
+        localStorage.setItem('spring_nest_qr_last_input', text.trim());
+        setError('');
+      } catch (err) {
+        setError(t('二维码生成失败', 'Failed to generate QR code'));
+        setQrDataUrl(null);
+      }
+    },
+    [t],
+  );
 
   useEffect(() => {
     const lastInput = localStorage.getItem('spring_nest_qr_last_input');
@@ -83,16 +86,29 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button onClick={onBack} whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <motion.button
+        onClick={onBack}
+        whileHover={{ x: -4 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </motion.button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('二维码生成器', 'QR Code Generator')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('二维码生成器', 'QR Code Generator')}
+        </h2>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-secondary mb-2">{t('输入文本或链接', 'Enter text or URL')}</label>
+          <label className="block text-sm font-medium text-secondary mb-2">
+            {t('输入文本或链接', 'Enter text or URL')}
+          </label>
           <textarea
             rows={3}
             value={input}
@@ -103,7 +119,9 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">{error}</div>
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
+            {error}
+          </div>
         )}
 
         <motion.button
@@ -119,12 +137,19 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
         {/* QR Code Display */}
         <div className="flex flex-col items-center">
           {qrDataUrl ? (
-            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }} className="bg-white p-4 rounded-2xl shadow-sm border border-surface-variant/30 mb-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              className="bg-white p-4 rounded-2xl shadow-sm border border-surface-variant/30 mb-4"
+            >
               <img src={qrDataUrl} alt="QR Code" className="w-64 h-64" />
             </motion.div>
           ) : (
             <div className="w-64 h-64 bg-surface-container-low rounded-2xl flex items-center justify-center mb-4 border border-surface-variant/20">
-              <span className="text-secondary/40 text-sm">{t('在此显示二维码', 'QR code will appear here')}</span>
+              <span className="text-secondary/40 text-sm">
+                {t('在此显示二维码', 'QR code will appear here')}
+              </span>
             </div>
           )}
 

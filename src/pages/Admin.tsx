@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Shield, Users, Heart, Gamepad2, Settings, Loader2, CloudOff, AlertTriangle } from 'lucide-react';
+import {
+  Shield,
+  Users,
+  Heart,
+  Gamepad2,
+  Settings,
+  Loader2,
+  CloudOff,
+  AlertTriangle,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { getAdminStats, type AdminStats } from '../services/cloudSyncService';
@@ -40,7 +49,10 @@ export default function Admin() {
             {t('管理后台', 'Admin Dashboard')}
           </h1>
           <p className="text-secondary text-sm">
-            {t('管理后台需要云同步功能，请配置 Supabase 环境变量', 'Admin dashboard requires cloud sync. Please configure Supabase environment variables.')}
+            {t(
+              '管理后台需要云同步功能，请配置 Supabase 环境变量',
+              'Admin dashboard requires cloud sync. Please configure Supabase environment variables.',
+            )}
           </p>
         </motion.div>
       </div>
@@ -75,20 +87,36 @@ export default function Admin() {
 
   const statCards = stats
     ? [
-        { icon: Users, label: t('总用户数', 'Total Users'), value: stats.totalUsers, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
-        { icon: Heart, label: t('总收藏数', 'Total Favorites'), value: stats.totalFavorites, color: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400' },
-        { icon: Gamepad2, label: t('总游戏分数', 'Total Scores'), value: stats.totalScores, color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' },
-        { icon: Settings, label: t('同步设置数', 'Synced Settings'), value: stats.totalSettings, color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' },
+        {
+          icon: Users,
+          label: t('总用户数', 'Total Users'),
+          value: stats.totalUsers,
+          color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+        },
+        {
+          icon: Heart,
+          label: t('总收藏数', 'Total Favorites'),
+          value: stats.totalFavorites,
+          color: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400',
+        },
+        {
+          icon: Gamepad2,
+          label: t('总游戏分数', 'Total Scores'),
+          value: stats.totalScores,
+          color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+        },
+        {
+          icon: Settings,
+          label: t('同步设置数', 'Synced Settings'),
+          value: stats.totalSettings,
+          color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+        },
       ]
     : [];
 
   return (
     <div className="flex-grow w-full max-w-[1000px] mx-auto px-6 py-10">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-10"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <Shield className="w-8 h-8 text-primary" />
           <h1 className="font-nunito text-3xl font-bold text-on-surface">
@@ -115,7 +143,7 @@ export default function Admin() {
           <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
             {t(
               '当前所有登录用户均可查看此页面。如需限制访问，请在 Supabase 的 profiles 表中添加 is_admin 字段。',
-              'All logged-in users can view this page. To restrict access, add an is_admin field to the profiles table in Supabase.'
+              'All logged-in users can view this page. To restrict access, add an is_admin field to the profiles table in Supabase.',
             )}
           </p>
         </div>
@@ -136,7 +164,9 @@ export default function Admin() {
               className="bg-white dark:bg-surface-container-high rounded-3xl p-8 shadow-sm border border-surface-variant/30"
             >
               <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${card.color}`}>
+                <div
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center ${card.color}`}
+                >
                   <card.icon className="w-7 h-7" />
                 </div>
                 <div>

@@ -4,17 +4,14 @@ import { getFavorites } from './favoriteService';
 // ─── Favorites Sync ─────────────────────────────────────────────────────────
 
 /** Upload favorites to Supabase */
-export async function syncFavoritesToCloud(
-  userId: string,
-  favorites: string[]
-): Promise<void> {
+export async function syncFavoritesToCloud(userId: string, favorites: string[]): Promise<void> {
   if (!supabase) return;
   try {
     // Delete existing favorites for this user
     await supabase.from('favorites').delete().eq('user_id', userId);
     // Insert new favorites
     if (favorites.length > 0) {
-      const rows = favorites.map(itemId => ({
+      const rows = favorites.map((itemId) => ({
         user_id: userId,
         item_id: itemId,
       }));
@@ -26,9 +23,7 @@ export async function syncFavoritesToCloud(
 }
 
 /** Download favorites from Supabase */
-export async function syncFavoritesFromCloud(
-  userId: string
-): Promise<string[]> {
+export async function syncFavoritesFromCloud(userId: string): Promise<string[]> {
   if (!supabase) return [];
   try {
     const { data, error } = await supabase
@@ -36,7 +31,7 @@ export async function syncFavoritesFromCloud(
       .select('item_id')
       .eq('user_id', userId);
     if (error || !data) return [];
-    return data.map(row => row.item_id as string);
+    return data.map((row) => row.item_id as string);
   } catch {
     return [];
   }
@@ -48,7 +43,7 @@ export async function syncFavoritesFromCloud(
 export async function syncScoreToCloud(
   userId: string,
   gameSlug: string,
-  score: number
+  score: number,
 ): Promise<void> {
   if (!supabase) return;
   try {
@@ -81,9 +76,7 @@ export async function syncScoreToCloud(
 }
 
 /** Download all game scores for a user from Supabase */
-export async function syncScoresFromCloud(
-  userId: string
-): Promise<Record<string, number>> {
+export async function syncScoresFromCloud(userId: string): Promise<Record<string, number>> {
   if (!supabase) return {};
   try {
     const { data, error } = await supabase
@@ -109,10 +102,7 @@ interface UserSettings {
 }
 
 /** Upload settings to Supabase */
-export async function syncSettingsToCloud(
-  userId: string,
-  settings: UserSettings
-): Promise<void> {
+export async function syncSettingsToCloud(userId: string, settings: UserSettings): Promise<void> {
   if (!supabase) return;
   try {
     await supabase.from('user_settings').upsert({
@@ -127,9 +117,7 @@ export async function syncSettingsToCloud(
 }
 
 /** Download settings from Supabase */
-export async function syncSettingsFromCloud(
-  userId: string
-): Promise<UserSettings | null> {
+export async function syncSettingsFromCloud(userId: string): Promise<UserSettings | null> {
   if (!supabase) return null;
   try {
     const { data, error } = await supabase
@@ -194,10 +182,7 @@ export interface LeaderboardEntry {
 }
 
 /** Get leaderboard for a specific game */
-export async function getLeaderboard(
-  gameSlug: string,
-  limit = 20
-): Promise<LeaderboardEntry[]> {
+export async function getLeaderboard(gameSlug: string, limit = 20): Promise<LeaderboardEntry[]> {
   if (!supabase) return [];
   try {
     const { data, error } = await supabase
@@ -207,8 +192,8 @@ export async function getLeaderboard(
       .order('score', { ascending: false })
       .limit(limit);
     if (error || !data) return [];
-    return data.map(row => ({
-      username: ((row.profiles as unknown as { username: string })?.username) || 'Anonymous',
+    return data.map((row) => ({
+      username: (row.profiles as unknown as { username: string })?.username || 'Anonymous',
       score: row.score as number,
       created_at: row.created_at as string,
     }));
@@ -253,9 +238,7 @@ export async function getAdminStats(): Promise<AdminStats> {
 export async function getUserCount(): Promise<number> {
   if (!supabase) return 0;
   try {
-    const { count } = await supabase
-      .from('profiles')
-      .select('id', { count: 'exact', head: true });
+    const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
     return count ?? 0;
   } catch {
     return 0;

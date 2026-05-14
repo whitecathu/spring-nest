@@ -49,8 +49,8 @@ npm run preview     # local preview
 
 ## 5. Cloudflare Pages Checks
 
-- [ ] _redirects: `/* /index.html 200` (SPA routing)
-- [ ] _headers: Security headers + Cache-Control rules
+- [ ] \_redirects: `/* /index.html 200` (SPA routing)
+- [ ] \_headers: Security headers + Cache-Control rules
 - [ ] Build command: `npm run build`
 - [ ] Output directory: `dist`
 - [ ] Node version: 18+ (recommend setting NODE_VERSION=18 in CF Pages env)

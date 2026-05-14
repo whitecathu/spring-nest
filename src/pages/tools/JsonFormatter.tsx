@@ -99,20 +99,34 @@ export default function JsonFormatter({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-2xl mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('JSON 格式化', 'JSON Formatter')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('JSON 格式化', 'JSON Formatter')}
+        </h2>
 
         {/* Input */}
         <div className="mb-4">
-          <label className="text-sm font-medium text-on-surface mb-2 block">{t('输入 JSON', 'Input JSON')}</label>
+          <label className="text-sm font-medium text-on-surface mb-2 block">
+            {t('输入 JSON', 'Input JSON')}
+          </label>
           <textarea
             value={input}
-            onChange={(e) => { setInput(e.target.value); setError(''); }}
+            onChange={(e) => {
+              setInput(e.target.value);
+              setError('');
+            }}
             placeholder={t('在此粘贴 JSON...', 'Paste JSON here...')}
             rows={8}
             className="w-full p-4 rounded-2xl bg-surface-container-low border border-surface-variant/30 text-on-surface placeholder-secondary/40 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm font-mono leading-relaxed"
@@ -146,7 +160,9 @@ export default function JsonFormatter({ onBack }: { onBack: () => void }) {
           <button
             onClick={handleCopy}
             className={`flex-1 min-w-[80px] py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-1.5 ${
-              copied ? 'bg-green-100 text-green-600' : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
+              copied
+                ? 'bg-green-100 text-green-600'
+                : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
             }`}
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -171,7 +187,9 @@ export default function JsonFormatter({ onBack }: { onBack: () => void }) {
         {/* Output */}
         {output && (
           <div>
-            <label className="text-sm font-medium text-on-surface mb-2 block">{t('结果', 'Result')}</label>
+            <label className="text-sm font-medium text-on-surface mb-2 block">
+              {t('结果', 'Result')}
+            </label>
             <textarea
               value={output}
               readOnly

@@ -13,19 +13,21 @@ test.describe('Spring Nest App', () => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Spring Nest/);
     await expect(page.locator('text=Spring Nest').first()).toBeVisible();
-    // Verify nav links exist
-    await expect(page.locator('nav >> text=首页')).toBeVisible();
-    await expect(page.locator('nav >> text=游戏天堂')).toBeVisible();
-    await expect(page.locator('nav >> text=实用小筑')).toBeVisible();
+    // Verify nav links exist. They are intentionally hidden behind mobile navigation on small viewports.
+    await expect(page.locator('nav >> text=首页')).toHaveCount(1);
+    await expect(page.locator('nav >> text=游戏天堂')).toHaveCount(1);
+    await expect(page.locator('nav >> text=实用小筑')).toHaveCount(1);
   });
 
   test('2. 工具列表进入计算器', async ({ page }) => {
     await page.goto('/tools');
     await expect(page.locator('h1')).toContainText('实用小筑');
     // Find the calculator card and click its "打开工具" button.
-    const calculatorCard = page.locator('main .glass-card', {
-      has: page.getByRole('heading', { name: '计算器' }),
-    }).first();
+    const calculatorCard = page
+      .locator('main .glass-card', {
+        has: page.getByRole('heading', { name: '计算器' }),
+      })
+      .first();
     await expect(calculatorCard).toBeVisible();
     await calculatorCard.getByRole('button', { name: '打开工具' }).click();
     // Verify calculator page loads - should show calculator UI
@@ -48,7 +50,9 @@ test.describe('Spring Nest App', () => {
   test('4. 搜索关键词并进入结果', async ({ page }) => {
     await page.goto('/');
     // Click search icon button in the nav
-    const searchButton = page.locator('header button').filter({ has: page.locator('svg.lucide-search') });
+    const searchButton = page
+      .locator('header button')
+      .filter({ has: page.locator('svg.lucide-search') });
     await searchButton.click();
     // Wait for search input to appear and type keyword
     const searchInput = page.getByRole('textbox', { name: '搜索游戏、工具' });
@@ -65,7 +69,9 @@ test.describe('Spring Nest App', () => {
   test('5. 注册账号', async ({ page }) => {
     await page.goto('/');
     // Click user icon button to open login modal
-    const userButton = page.locator('header button').filter({ has: page.locator('svg.lucide-user') });
+    const userButton = page
+      .locator('header button')
+      .filter({ has: page.locator('svg.lucide-user') });
     await userButton.click();
     // Wait for login modal to appear
     await expect(page.locator('text=欢迎回来')).toBeVisible();
@@ -85,19 +91,23 @@ test.describe('Spring Nest App', () => {
     await page.goto('/');
     // First register a user via localStorage
     await page.evaluate(() => {
-      const users = [{
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        password: 'password123',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }];
+      const users = [
+        {
+          id: 'u_test123',
+          email: 'test@example.com',
+          username: 'TestUser',
+          password: 'password123',
+          bio: '',
+          createdAt: new Date().toISOString(),
+        },
+      ];
       localStorage.setItem('spring_nest_users', JSON.stringify(users));
     });
     await page.reload();
     // Click user icon to open login modal
-    const userButton = page.locator('header button').filter({ has: page.locator('svg.lucide-user') });
+    const userButton = page
+      .locator('header button')
+      .filter({ has: page.locator('svg.lucide-user') });
     await userButton.click();
     // Fill login form
     await expect(page.locator('text=欢迎回来')).toBeVisible();
@@ -113,22 +123,27 @@ test.describe('Spring Nest App', () => {
     await page.goto('/');
     // Register and login first
     await page.evaluate(() => {
-      const users = [{
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        password: 'password123',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }];
+      const users = [
+        {
+          id: 'u_test123',
+          email: 'test@example.com',
+          username: 'TestUser',
+          password: 'password123',
+          bio: '',
+          createdAt: new Date().toISOString(),
+        },
+      ];
       localStorage.setItem('spring_nest_users', JSON.stringify(users));
-      localStorage.setItem('spring_nest_current_user', JSON.stringify({
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }));
+      localStorage.setItem(
+        'spring_nest_current_user',
+        JSON.stringify({
+          id: 'u_test123',
+          email: 'test@example.com',
+          username: 'TestUser',
+          bio: '',
+          createdAt: new Date().toISOString(),
+        }),
+      );
     });
     await page.reload();
     // Navigate to tools page
@@ -146,22 +161,27 @@ test.describe('Spring Nest App', () => {
     await page.goto('/');
     // Register and login first
     await page.evaluate(() => {
-      const users = [{
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        password: 'password123',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }];
+      const users = [
+        {
+          id: 'u_test123',
+          email: 'test@example.com',
+          username: 'TestUser',
+          password: 'password123',
+          bio: '',
+          createdAt: new Date().toISOString(),
+        },
+      ];
       localStorage.setItem('spring_nest_users', JSON.stringify(users));
-      localStorage.setItem('spring_nest_current_user', JSON.stringify({
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }));
+      localStorage.setItem(
+        'spring_nest_current_user',
+        JSON.stringify({
+          id: 'u_test123',
+          email: 'test@example.com',
+          username: 'TestUser',
+          bio: '',
+          createdAt: new Date().toISOString(),
+        }),
+      );
     });
     await page.reload();
     // Navigate to games page
@@ -179,22 +199,27 @@ test.describe('Spring Nest App', () => {
     await page.goto('/');
     // Register and login first
     await page.evaluate(() => {
-      const users = [{
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        password: 'password123',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }];
+      const users = [
+        {
+          id: 'u_test123',
+          email: 'test@example.com',
+          username: 'TestUser',
+          password: 'password123',
+          bio: '',
+          createdAt: new Date().toISOString(),
+        },
+      ];
       localStorage.setItem('spring_nest_users', JSON.stringify(users));
-      localStorage.setItem('spring_nest_current_user', JSON.stringify({
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }));
+      localStorage.setItem(
+        'spring_nest_current_user',
+        JSON.stringify({
+          id: 'u_test123',
+          email: 'test@example.com',
+          username: 'TestUser',
+          bio: '',
+          createdAt: new Date().toISOString(),
+        }),
+      );
     });
     await page.reload();
     // Navigate to tools page and favorite the first tool
@@ -219,11 +244,15 @@ test.describe('Spring Nest App', () => {
     await page.reload();
 
     // Verify starts in light mode (no dark class)
-    const initialHasDark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+    const initialHasDark = await page.evaluate(() =>
+      document.documentElement.classList.contains('dark'),
+    );
     expect(initialHasDark).toBe(false);
 
     // Find the theme toggle button by aria-label
-    const themeButton = page.locator('header button[aria-label*="主题"], header button[aria-label*="Toggle"]').first();
+    const themeButton = page
+      .locator('header button[aria-label*="主题"], header button[aria-label*="Toggle"]')
+      .first();
     await expect(themeButton).toBeVisible();
 
     // Click 1: light → dark — verify dark class is added
@@ -272,24 +301,35 @@ test.describe('Spring Nest App', () => {
     await page.goto('/');
     // Set up user state, then clear and verify clean state
     await page.evaluate(() => {
-      localStorage.setItem('spring_nest_users', JSON.stringify([{
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        password: 'password123',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }]));
-      localStorage.setItem('spring_nest_current_user', JSON.stringify({
-        id: 'u_test123',
-        email: 'test@example.com',
-        username: 'TestUser',
-        bio: '',
-        createdAt: new Date().toISOString(),
-      }));
-      localStorage.setItem('spring_nest_favorites', JSON.stringify({
-        u_test123: { tools: ['calculator'], games: ['2048'] },
-      }));
+      localStorage.setItem(
+        'spring_nest_users',
+        JSON.stringify([
+          {
+            id: 'u_test123',
+            email: 'test@example.com',
+            username: 'TestUser',
+            password: 'password123',
+            bio: '',
+            createdAt: new Date().toISOString(),
+          },
+        ]),
+      );
+      localStorage.setItem(
+        'spring_nest_current_user',
+        JSON.stringify({
+          id: 'u_test123',
+          email: 'test@example.com',
+          username: 'TestUser',
+          bio: '',
+          createdAt: new Date().toISOString(),
+        }),
+      );
+      localStorage.setItem(
+        'spring_nest_favorites',
+        JSON.stringify({
+          u_test123: { tools: ['calculator'], games: ['2048'] },
+        }),
+      );
       localStorage.setItem('spring_nest_theme', 'dark');
     });
 
@@ -322,7 +362,9 @@ test.describe('Spring Nest App', () => {
     expect(afterClear.theme).toBeNull();
 
     // Verify the app still works — user icon should show login button (not avatar)
-    const userButton = page.locator('header button[aria-label*="登录"], header button[aria-label*="Log in"]').first();
+    const userButton = page
+      .locator('header button[aria-label*="登录"], header button[aria-label*="Log in"]')
+      .first();
     await expect(userButton).toBeVisible();
 
     // Verify favorites page shows empty state (no crash)
@@ -336,8 +378,14 @@ test.describe('Spring Nest App', () => {
 
     // Verify PWA-related meta tags exist in the HTML
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#3f6751');
-    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', /apple-touch-icon/);
-    await expect(page.locator('meta[name="apple-mobile-web-app-capable"]')).toHaveAttribute('content', 'yes');
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
+      'href',
+      /apple-touch-icon/,
+    );
+    await expect(page.locator('meta[name="apple-mobile-web-app-capable"]')).toHaveAttribute(
+      'content',
+      'yes',
+    );
 
     // Try to fetch manifest.webmanifest — in dev mode vite-plugin-pwa may or may not serve it
     const response = await page.request.get('/manifest.webmanifest');
@@ -399,9 +447,21 @@ test.describe('Spring Nest App', () => {
     expect(headers.ok()).toBe(true);
     const headersText = await headers.text();
     expect(headersText).toContain('Content-Security-Policy:');
-    expect(headersText).toContain('X-Frame-Options: DENY');
+    expect(headersText).toContain(
+      'Permissions-Policy: geolocation=(self), camera=(self), microphone=()',
+    );
+    expect(headersText).toContain('X-Frame-Options: SAMEORIGIN');
 
-    const mobileRoutes = ['/', '/tools', '/tools/calculator', '/games', '/games/2048', '/privacy', '/feedback', '/nonexistent'];
+    const mobileRoutes = [
+      '/',
+      '/tools',
+      '/tools/calculator',
+      '/games',
+      '/games/2048',
+      '/privacy',
+      '/feedback',
+      '/nonexistent',
+    ];
     for (const width of [390, 360]) {
       await page.setViewportSize({ width, height: 844 });
       for (const route of mobileRoutes) {
@@ -410,17 +470,35 @@ test.describe('Spring Nest App', () => {
           client: document.documentElement.clientWidth,
           scroll: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
         }));
-        expect(dimensions.scroll, `${route} overflows at ${width}px`).toBeLessThanOrEqual(dimensions.client + 2);
+        expect(dimensions.scroll, `${route} overflows at ${width}px`).toBeLessThanOrEqual(
+          dimensions.client + 2,
+        );
       }
     }
   });
 
   test('15. sitemap 工具和游戏路由完整验收', async ({ page }) => {
     const sitemap = await (await page.request.get('/sitemap.xml')).text();
-    const routes = [...sitemap.matchAll(/<loc>https?:\/\/[^/]+([^<]+)<\/loc>/g)].map((match) => match[1]);
-    const toolCategorySlugs = new Set(['daily', 'time', 'dev', 'study', 'text', 'security', 'random']);
+    const routes = [...sitemap.matchAll(/<loc>https?:\/\/[^/]+([^<]+)<\/loc>/g)].map(
+      (match) => match[1],
+    );
+    const toolCategorySlugs = new Set([
+      'daily',
+      'time',
+      'dev',
+      'study',
+      'text',
+      'security',
+      'random',
+    ]);
     const gameCategorySlugs = new Set(['puzzle', 'classic', 'casual', 'action', 'educational']);
-    const checkedRoutes = routes.filter((route) => route === '/tools' || route === '/games' || route.startsWith('/tools/') || route.startsWith('/games/'));
+    const checkedRoutes = routes.filter(
+      (route) =>
+        route === '/tools' ||
+        route === '/games' ||
+        route.startsWith('/tools/') ||
+        route.startsWith('/games/'),
+    );
     const isDetail = (route: string) => {
       if (route.startsWith('/tools/')) return !toolCategorySlugs.has(route.split('/').pop() ?? '');
       if (route.startsWith('/games/')) return !gameCategorySlugs.has(route.split('/').pop() ?? '');
@@ -436,10 +514,21 @@ test.describe('Spring Nest App', () => {
         const html = await (await page.request.get(`${route}/index.html`)).text();
         expect(html, `${route} static head has canonical`).toContain('<link rel="canonical"');
         expect(html, `${route} static head references route`).toContain(route);
-        expect(html, `${route} static head is route-specific`).not.toContain('<title>Spring Nest - 春日小筑 | 实用工具与休闲小游戏</title>');
-        expect((html.match(/name="description"/g) ?? []).length, `${route} one static description`).toBe(1);
-        expect((html.match(/property="og:title"/g) ?? []).length, `${route} one static og:title`).toBe(1);
-        expect((html.match(/name="twitter:title"/g) ?? []).length, `${route} one static twitter:title`).toBe(1);
+        expect(html, `${route} static head is route-specific`).not.toContain(
+          '<title>Spring Nest - 春日小筑 | 实用工具与休闲小游戏</title>',
+        );
+        expect(
+          (html.match(/name="description"/g) ?? []).length,
+          `${route} one static description`,
+        ).toBe(1);
+        expect(
+          (html.match(/property="og:title"/g) ?? []).length,
+          `${route} one static og:title`,
+        ).toBe(1);
+        expect(
+          (html.match(/name="twitter:title"/g) ?? []).length,
+          `${route} one static twitter:title`,
+        ).toBe(1);
       }
 
       const response = await page.goto(route);
@@ -457,41 +546,75 @@ test.describe('Spring Nest App', () => {
         client: document.documentElement.clientWidth,
         scroll: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
       }));
-      expect(dimensions.scroll, `${route} mobile overflow`).toBeLessThanOrEqual(dimensions.client + 2);
+      expect(dimensions.scroll, `${route} mobile overflow`).toBeLessThanOrEqual(
+        dimensions.client + 2,
+      );
 
-      const missingLabels = await page.evaluate(() => Array.from(document.querySelectorAll('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])'))
-        .filter((element) => {
-          const style = window.getComputedStyle(element);
-          const rect = element.getBoundingClientRect();
-          if (style.display === 'none' || style.visibility === 'hidden' || rect.width === 0 || rect.height === 0) return false;
-          const id = element.getAttribute('id');
-          const hasForLabel = id ? Boolean(document.querySelector(`label[for="${CSS.escape(id)}"]`)) : false;
-          return !element.getAttribute('aria-label') && !element.getAttribute('aria-labelledby') && !element.closest('label') && !hasForLabel && !element.getAttribute('title');
-        })
-        .map((element) => ({
-          tag: element.tagName.toLowerCase(),
-          type: element.getAttribute('type'),
-          placeholder: element.getAttribute('placeholder'),
-        })));
+      const missingLabels = await page.evaluate(() =>
+        Array.from(
+          document.querySelectorAll(
+            'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])',
+          ),
+        )
+          .filter((element) => {
+            const style = window.getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            if (
+              style.display === 'none' ||
+              style.visibility === 'hidden' ||
+              rect.width === 0 ||
+              rect.height === 0
+            )
+              return false;
+            const id = element.getAttribute('id');
+            const hasForLabel = id
+              ? Boolean(document.querySelector(`label[for="${CSS.escape(id)}"]`))
+              : false;
+            return (
+              !element.getAttribute('aria-label') &&
+              !element.getAttribute('aria-labelledby') &&
+              !element.closest('label') &&
+              !hasForLabel &&
+              !element.getAttribute('title')
+            );
+          })
+          .map((element) => ({
+            tag: element.tagName.toLowerCase(),
+            type: element.getAttribute('type'),
+            placeholder: element.getAttribute('placeholder'),
+          })),
+      );
       expect(missingLabels, `${route} unlabeled visible form controls`).toEqual([]);
 
       const missingInteractiveNames = await page.evaluate(() => {
         const isVisible = (element: Element) => {
           const style = window.getComputedStyle(element);
           const rect = element.getBoundingClientRect();
-          return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+          return (
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            rect.width > 0 &&
+            rect.height > 0
+          );
         };
         const accessibleName = (element: Element) => {
           const labelledBy = element.getAttribute('aria-labelledby');
           const labelledText = labelledBy
-            ? labelledBy.split(/\s+/).map((id) => document.getElementById(id)?.textContent || '').join(' ')
+            ? labelledBy
+                .split(/\s+/)
+                .map((id) => document.getElementById(id)?.textContent || '')
+                .join(' ')
             : '';
           return [
             element.getAttribute('aria-label'),
             labelledText,
             element.getAttribute('title'),
             element.textContent,
-          ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
         };
         return Array.from(document.querySelectorAll('button,[role="button"],a[href]'))
           .filter(isVisible)

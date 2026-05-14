@@ -5,19 +5,71 @@ import { useUser } from '../../contexts/UserContext';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type CellState = { mine: boolean; revealed: boolean; flagged: boolean; adjacent: number };
-type DebrisParticle = { id: number; x: number; y: number; vx: number; vy: number; color: string; size: number; rotate: number; duration: number };
-type ConfettiParticle = { id: number; x: number; color: string; delay: number; size: number; shape: 'rect' | 'circle' | 'triangle'; spin: number; xDrift: number; duration: number };
+type DebrisParticle = {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  color: string;
+  size: number;
+  rotate: number;
+  duration: number;
+};
+type ConfettiParticle = {
+  id: number;
+  x: number;
+  color: string;
+  delay: number;
+  size: number;
+  shape: 'rect' | 'circle' | 'triangle';
+  spin: number;
+  xDrift: number;
+  duration: number;
+};
 type RippleCell = { r: number; c: number; id: number };
 
-const DIFFICULTIES: Record<Difficulty, { rows: number; cols: number; mines: number; label: [string, string]; desc: [string, string] }> = {
-  easy:   { rows: 9,  cols: 9,  mines: 10, label: ['简单', 'Easy'],   desc: ['9×9，10 颗雷', '9×9, 10 mines'] },
-  medium: { rows: 16, cols: 16, mines: 40, label: ['中等', 'Medium'], desc: ['16×16，40 颗雷', '16×16, 40 mines'] },
-  hard:   { rows: 16, cols: 30, mines: 99, label: ['困难', 'Hard'],   desc: ['16×30，99 颗雷', '16×30, 99 mines'] },
+const DIFFICULTIES: Record<
+  Difficulty,
+  { rows: number; cols: number; mines: number; label: [string, string]; desc: [string, string] }
+> = {
+  easy: {
+    rows: 9,
+    cols: 9,
+    mines: 10,
+    label: ['简单', 'Easy'],
+    desc: ['9×9，10 颗雷', '9×9, 10 mines'],
+  },
+  medium: {
+    rows: 16,
+    cols: 16,
+    mines: 40,
+    label: ['中等', 'Medium'],
+    desc: ['16×16，40 颗雷', '16×16, 40 mines'],
+  },
+  hard: {
+    rows: 16,
+    cols: 30,
+    mines: 99,
+    label: ['困难', 'Hard'],
+    desc: ['16×30，99 颗雷', '16×30, 99 mines'],
+  },
 };
 
-function createBoard(rows: number, cols: number, mines: number, firstR: number, firstC: number): CellState[][] {
+function createBoard(
+  rows: number,
+  cols: number,
+  mines: number,
+  firstR: number,
+  firstC: number,
+): CellState[][] {
   const board: CellState[][] = Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => ({ mine: false, revealed: false, flagged: false, adjacent: 0 }))
+    Array.from({ length: cols }, () => ({
+      mine: false,
+      revealed: false,
+      flagged: false,
+      adjacent: 0,
+    })),
   );
 
   // Place mines, avoiding first click and its neighbors
@@ -38,7 +90,8 @@ function createBoard(rows: number, cols: number, mines: number, firstR: number, 
       let count = 0;
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
-          const nr = r + dr, nc = c + dc;
+          const nr = r + dr,
+            nc = c + dc;
           if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc].mine) count++;
         }
       }
@@ -50,7 +103,8 @@ function createBoard(rows: number, cols: number, mines: number, firstR: number, 
 }
 
 function floodFill(board: CellState[][], r: number, c: number): void {
-  const rows = board.length, cols = board[0].length;
+  const rows = board.length,
+    cols = board[0].length;
   if (r < 0 || r >= rows || c < 0 || c >= cols) return;
   if (board[r][c].revealed || board[r][c].flagged) return;
   board[r][c].revealed = true;
@@ -74,14 +128,28 @@ function checkWin(board: CellState[][]): boolean {
 }
 
 function loadBestTime(d: Difficulty): number {
-  try { return JSON.parse(localStorage.getItem(`spring_nest_minesweeper_best_${d}`) || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem(`spring_nest_minesweeper_best_${d}`) || '0');
+  } catch {
+    return 0;
+  }
 }
 
 function saveBestTime(d: Difficulty, time: number) {
   localStorage.setItem(`spring_nest_minesweeper_best_${d}`, JSON.stringify(time));
 }
 
-const ADJACENT_COLORS = ['', 'text-blue-600', 'text-green-600', 'text-red-600', 'text-purple-700', 'text-yellow-700', 'text-cyan-600', 'text-gray-800', 'text-gray-500'];
+const ADJACENT_COLORS = [
+  '',
+  'text-blue-600',
+  'text-green-600',
+  'text-red-600',
+  'text-purple-700',
+  'text-yellow-700',
+  'text-cyan-600',
+  'text-gray-800',
+  'text-gray-500',
+];
 
 const REVEALED_EMPTY_BG = 'bg-surface-container-lowest/80';
 const UNREVEALED_BG = 'bg-gradient-to-br from-surface-container-low to-surface-container';
@@ -102,7 +170,21 @@ interface CellProps {
   onContextMenu: (r: number, c: number, e: React.MouseEvent) => void;
 }
 
-const GameCell = memo(function GameCell({ r, c, cell, cellSize, isAnimating, animDelay, isBoom, isRipple, isPressed, onTouchStart, onTouchEnd, onClick, onContextMenu }: CellProps) {
+const GameCell = memo(function GameCell({
+  r,
+  c,
+  cell,
+  cellSize,
+  isAnimating,
+  animDelay,
+  isBoom,
+  isRipple,
+  isPressed,
+  onTouchStart,
+  onTouchEnd,
+  onClick,
+  onContextMenu,
+}: CellProps) {
   let content = '';
   let contentClass = '';
   let bgClass = `${UNREVEALED_BG} hover:bg-surface-variant active:bg-surface-variant`;
@@ -140,7 +222,10 @@ const GameCell = memo(function GameCell({ r, c, cell, cellSize, isAnimating, ani
         isAnimating
           ? { scale: [0.3, 1.12, 0.92, 1.04, 0.98, 1], opacity: 1 }
           : isBoom
-            ? { backgroundColor: ['#ffffff', '#ef4444', '#fca5a5', '#fecaca'], scale: [1, 1.15, 1.05, 1] }
+            ? {
+                backgroundColor: ['#ffffff', '#ef4444', '#fca5a5', '#fecaca'],
+                scale: [1, 1.15, 1.05, 1],
+              }
             : {}
       }
       transition={
@@ -221,7 +306,12 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
     const cfg = DIFFICULTIES[difficulty];
     // Create empty board (no mines yet, placed on first click)
     const empty: CellState[][] = Array.from({ length: cfg.rows }, () =>
-      Array.from({ length: cfg.cols }, () => ({ mine: false, revealed: false, flagged: false, adjacent: 0 }))
+      Array.from({ length: cfg.cols }, () => ({
+        mine: false,
+        revealed: false,
+        flagged: false,
+        adjacent: 0,
+      })),
     );
     setBoard(empty);
     setGameState('idle');
@@ -248,209 +338,272 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
     startGame();
   }, [startGame]);
 
-  const handleReveal = useCallback((r: number, c: number) => {
-    setBoard(prev => {
-      if (prev.length === 0) return prev;
-      const cell = prev[r][c];
-      if (cell.revealed || cell.flagged) return prev;
+  const handleReveal = useCallback(
+    (r: number, c: number) => {
+      setBoard((prev) => {
+        if (prev.length === 0) return prev;
+        const cell = prev[r][c];
+        if (cell.revealed || cell.flagged) return prev;
 
-      let currentBoard = prev;
+        let currentBoard = prev;
 
-      // First click: create board with mines
-      if (!boardCreatedRef.current) {
-        const cfg = DIFFICULTIES[difficulty];
-        currentBoard = createBoard(cfg.rows, cfg.cols, cfg.mines, r, c);
-        boardCreatedRef.current = true;
-        setGameState('playing');
-        clearTimer();
-        setTime(0);
-        timeRef.current = 0;
-        timerRef.current = setInterval(() => setTime(t => { timeRef.current = t + 1; return t + 1; }), 1000);
-      }
+        // First click: create board with mines
+        if (!boardCreatedRef.current) {
+          const cfg = DIFFICULTIES[difficulty];
+          currentBoard = createBoard(cfg.rows, cfg.cols, cfg.mines, r, c);
+          boardCreatedRef.current = true;
+          setGameState('playing');
+          clearTimer();
+          setTime(0);
+          timeRef.current = 0;
+          timerRef.current = setInterval(
+            () =>
+              setTime((t) => {
+                timeRef.current = t + 1;
+                return t + 1;
+              }),
+            1000,
+          );
+        }
 
-      // Deep copy
-      const newBoard = currentBoard.map(row => row.map(cell => ({ ...cell })));
+        // Deep copy
+        const newBoard = currentBoard.map((row) => row.map((cell) => ({ ...cell })));
 
-      if (newBoard[r][c].mine) {
-        // Triggered mine: white flash, then red flash, then show explosion
-        newBoard[r][c].revealed = true;
-        setBoomCell({ r, c });
-        setWhiteFlash(true);
-        // Intensifying shake: start mild (set 1), ramp up (set 2), then settle (set 3)
-        setBoardShake(1);
-        setTimeout(() => { setWhiteFlash(false); setRedFlash(true); }, 80);
-        setTimeout(() => setBoardShake(2), 120);
-        setTimeout(() => setBoardShake(3), 300);
-        setTimeout(() => setBoardShake(0), 650);
-        setTimeout(() => setBoomCell(null), 650);
-        setTimeout(() => setRedFlash(false), 400);
+        if (newBoard[r][c].mine) {
+          // Triggered mine: white flash, then red flash, then show explosion
+          newBoard[r][c].revealed = true;
+          setBoomCell({ r, c });
+          setWhiteFlash(true);
+          // Intensifying shake: start mild (set 1), ramp up (set 2), then settle (set 3)
+          setBoardShake(1);
+          setTimeout(() => {
+            setWhiteFlash(false);
+            setRedFlash(true);
+          }, 80);
+          setTimeout(() => setBoardShake(2), 120);
+          setTimeout(() => setBoardShake(3), 300);
+          setTimeout(() => setBoardShake(0), 650);
+          setTimeout(() => setBoomCell(null), 650);
+          setTimeout(() => setRedFlash(false), 400);
 
-        // Spawn larger, more colorful debris particles from the clicked mine
-        const debrisColors = ['#ef4444', '#f97316', '#fbbf24', '#78716c', '#a8a29e', '#dc2626', '#e879f9', '#22d3ee', '#a3e635', '#f472b6', '#facc15', '#38bdf8'];
-        const newDebris: DebrisParticle[] = Array.from({ length: 24 }, (_, i) => {
-          const angle = (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-          const speed = 50 + Math.random() * 150;
-          return {
-            id: i,
-            x: c, y: r,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            color: debrisColors[i % debrisColors.length],
-            size: 4 + Math.random() * 8,
-            rotate: Math.random() * 720 - 360,
-            duration: 0.8 + Math.random() * 0.5,
-          };
-        });
-        setDebris(newDebris);
-        setTimeout(() => setDebris([]), 1400);
+          // Spawn larger, more colorful debris particles from the clicked mine
+          const debrisColors = [
+            '#ef4444',
+            '#f97316',
+            '#fbbf24',
+            '#78716c',
+            '#a8a29e',
+            '#dc2626',
+            '#e879f9',
+            '#22d3ee',
+            '#a3e635',
+            '#f472b6',
+            '#facc15',
+            '#38bdf8',
+          ];
+          const newDebris: DebrisParticle[] = Array.from({ length: 24 }, (_, i) => {
+            const angle = (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+            const speed = 50 + Math.random() * 150;
+            return {
+              id: i,
+              x: c,
+              y: r,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              color: debrisColors[i % debrisColors.length],
+              size: 4 + Math.random() * 8,
+              rotate: Math.random() * 720 - 360,
+              duration: 0.8 + Math.random() * 0.5,
+            };
+          });
+          setDebris(newDebris);
+          setTimeout(() => setDebris([]), 1400);
 
-        // Collect all other mines with distance from triggered mine (Euclidean for radial wave)
-        const mines: { r: number; c: number; dist: number }[] = [];
+          // Collect all other mines with distance from triggered mine (Euclidean for radial wave)
+          const mines: { r: number; c: number; dist: number }[] = [];
+          for (let ri = 0; ri < newBoard.length; ri++) {
+            for (let ci = 0; ci < newBoard[ri].length; ci++) {
+              if (newBoard[ri][ci].mine && !(ri === r && ci === c)) {
+                const dist = Math.sqrt(Math.pow(ri - r, 2) + Math.pow(ci - c, 2));
+                mines.push({ r: ri, c: ci, dist });
+              }
+            }
+          }
+
+          // Sort by distance and reveal with delay (clear radial wave)
+          mines.sort((a, b) => a.dist - b.dist);
+          mines.forEach((m, i) => {
+            setTimeout(
+              () => {
+                setBoard((prev) => {
+                  const nb = prev.map((row) => row.map((cell) => ({ ...cell })));
+                  nb[m.r][m.c].revealed = true;
+                  return nb;
+                });
+              },
+              300 + i * 40,
+            );
+          });
+
+          clearTimer();
+          setTimeout(() => setGameState('lost'), mines.length * 40 + 1000);
+          return newBoard;
+        }
+
+        floodFill(newBoard, r, c);
+
+        // Track newly revealed cells for wave-like cascade animation
+        const newlyRevealed = new Map<string, number>();
         for (let ri = 0; ri < newBoard.length; ri++) {
           for (let ci = 0; ci < newBoard[ri].length; ci++) {
-            if (newBoard[ri][ci].mine && !(ri === r && ci === c)) {
-              const dist = Math.sqrt(Math.pow(ri - r, 2) + Math.pow(ci - c, 2));
-              mines.push({ r: ri, c: ci, dist });
+            if (newBoard[ri][ci].revealed && !prev[ri]?.[ci]?.revealed) {
+              const dist = Math.abs(ri - r) + Math.abs(ci - c);
+              newlyRevealed.set(`${ri}-${ci}`, dist * 35);
             }
           }
         }
+        if (newlyRevealed.size > 0) {
+          setCellAnimDelays(newlyRevealed);
+          const maxDelay = Math.max(...newlyRevealed.values());
+          setTimeout(() => setCellAnimDelays(new Map()), maxDelay + 400);
+        }
 
-        // Sort by distance and reveal with delay (clear radial wave)
-        mines.sort((a, b) => a.dist - b.dist);
-        mines.forEach((m, i) => {
-          setTimeout(() => {
-            setBoard(prev => {
-              const nb = prev.map(row => row.map(cell => ({ ...cell })));
-              nb[m.r][m.c].revealed = true;
-              return nb;
-            });
-          }, 300 + i * 40);
-        });
+        if (checkWin(newBoard)) {
+          clearTimer();
+          setGameState('won');
+          // Spawn varied confetti particles with different shapes and sizes
+          const colors = [
+            '#22c55e',
+            '#3b82f6',
+            '#f59e0b',
+            '#ef4444',
+            '#a855f7',
+            '#ec4899',
+            '#14b8a6',
+            '#eab308',
+            '#f97316',
+            '#06b6d4',
+            '#d946ef',
+            '#84cc16',
+          ];
+          const shapes: ConfettiParticle['shape'][] = ['rect', 'circle', 'triangle'];
+          const particles: ConfettiParticle[] = Array.from({ length: 70 }, (_, i) => {
+            const isLarge = i < 12;
+            return {
+              id: i,
+              x: 5 + Math.random() * 90,
+              color: colors[Math.floor(Math.random() * colors.length)],
+              delay: Math.random() * 0.8,
+              size: isLarge ? 14 + Math.random() * 12 : 4 + Math.random() * 10,
+              shape: shapes[Math.floor(Math.random() * shapes.length)],
+              spin: (Math.random() > 0.5 ? 1 : -1) * (720 + Math.random() * 1080),
+              xDrift: (Math.random() - 0.5) * 24,
+              duration: isLarge ? 3.0 + Math.random() * 1.5 : 2.5 + Math.random() * 1.5,
+            };
+          });
+          setConfetti(particles);
+          setTimeout(() => setConfetti([]), 4500);
+          setBoardGlow(true);
+          setTimeout(() => setBoardGlow(false), 4000);
 
-        clearTimer();
-        setTimeout(() => setGameState('lost'), mines.length * 40 + 1000);
-        return newBoard;
-      }
-
-      floodFill(newBoard, r, c);
-
-      // Track newly revealed cells for wave-like cascade animation
-      const newlyRevealed = new Map<string, number>();
-      for (let ri = 0; ri < newBoard.length; ri++) {
-        for (let ci = 0; ci < newBoard[ri].length; ci++) {
-          if (newBoard[ri][ci].revealed && !prev[ri]?.[ci]?.revealed) {
-            const dist = Math.abs(ri - r) + Math.abs(ci - c);
-            newlyRevealed.set(`${ri}-${ci}`, dist * 35);
+          const bt = loadBestTime(difficulty);
+          const currentTime = timeRef.current;
+          if (bt === 0 || currentTime < bt) {
+            saveBestTime(difficulty, currentTime);
+            setBestTime(currentTime);
           }
         }
-      }
-      if (newlyRevealed.size > 0) {
-        setCellAnimDelays(newlyRevealed);
-        const maxDelay = Math.max(...newlyRevealed.values());
-        setTimeout(() => setCellAnimDelays(new Map()), maxDelay + 400);
-      }
 
-      if (checkWin(newBoard)) {
-        clearTimer();
-        setGameState('won');
-        // Spawn varied confetti particles with different shapes and sizes
-        const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7', '#ec4899', '#14b8a6', '#eab308', '#f97316', '#06b6d4', '#d946ef', '#84cc16'];
-        const shapes: ConfettiParticle['shape'][] = ['rect', 'circle', 'triangle'];
-        const particles: ConfettiParticle[] = Array.from({ length: 70 }, (_, i) => {
-          const isLarge = i < 12;
-          return {
-            id: i,
-            x: 5 + Math.random() * 90,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            delay: Math.random() * 0.8,
-            size: isLarge ? 14 + Math.random() * 12 : 4 + Math.random() * 10,
-            shape: shapes[Math.floor(Math.random() * shapes.length)],
-            spin: (Math.random() > 0.5 ? 1 : -1) * (720 + Math.random() * 1080),
-            xDrift: (Math.random() - 0.5) * 24,
-            duration: isLarge ? 3.0 + Math.random() * 1.5 : 2.5 + Math.random() * 1.5,
-          };
-        });
-        setConfetti(particles);
-        setTimeout(() => setConfetti([]), 4500);
-        setBoardGlow(true);
-        setTimeout(() => setBoardGlow(false), 4000);
+        return newBoard;
+      });
+    },
+    [difficulty, clearTimer],
+  );
 
-        const bt = loadBestTime(difficulty);
-        const currentTime = timeRef.current;
-        if (bt === 0 || currentTime < bt) {
-          saveBestTime(difficulty, currentTime);
-          setBestTime(currentTime);
-        }
-      }
-
-      return newBoard;
-    });
-  }, [difficulty, clearTimer]);
-
-  const handleFlag = useCallback((r: number, c: number) => {
-    setBoard(prev => {
-      if (prev.length === 0) return prev;
-      const cell = prev[r][c];
-      if (cell.revealed) return prev;
-      const newBoard = prev.map(row => row.map(cell => ({ ...cell })));
-      newBoard[r][c].flagged = !newBoard[r][c].flagged;
-      const cfg = DIFFICULTIES[difficulty];
-      const flagCount = newBoard.flat().filter(cell => cell.flagged).length;
-      setMinesLeft(cfg.mines - flagCount);
-      return newBoard;
-    });
-  }, [difficulty]);
+  const handleFlag = useCallback(
+    (r: number, c: number) => {
+      setBoard((prev) => {
+        if (prev.length === 0) return prev;
+        const cell = prev[r][c];
+        if (cell.revealed) return prev;
+        const newBoard = prev.map((row) => row.map((cell) => ({ ...cell })));
+        newBoard[r][c].flagged = !newBoard[r][c].flagged;
+        const cfg = DIFFICULTIES[difficulty];
+        const flagCount = newBoard.flat().filter((cell) => cell.flagged).length;
+        setMinesLeft(cfg.mines - flagCount);
+        return newBoard;
+      });
+    },
+    [difficulty],
+  );
 
   const addRipple = useCallback((r: number, c: number) => {
     const id = ++rippleIdRef.current;
-    setRippleCells(prev => [...prev, { r, c, id }]);
-    setTimeout(() => setRippleCells(prev => prev.filter(rc => rc.id !== id)), 500);
+    setRippleCells((prev) => [...prev, { r, c, id }]);
+    setTimeout(() => setRippleCells((prev) => prev.filter((rc) => rc.id !== id)), 500);
   }, []);
 
-  const handleTouchStart = useCallback((r: number, c: number, e: React.TouchEvent) => {
-    longPressTriggeredRef.current = false;
-    setPressCell({ r, c });
-    longPressTimerRef.current = setTimeout(() => {
-      longPressTriggeredRef.current = true;
-      setPressCell(null);
-      handleFlag(r, c);
-    }, 350);
-  }, [handleFlag]);
+  const handleTouchStart = useCallback(
+    (r: number, c: number, e: React.TouchEvent) => {
+      longPressTriggeredRef.current = false;
+      setPressCell({ r, c });
+      longPressTimerRef.current = setTimeout(() => {
+        longPressTriggeredRef.current = true;
+        setPressCell(null);
+        handleFlag(r, c);
+      }, 350);
+    },
+    [handleFlag],
+  );
 
-  const handleTouchEnd = useCallback((r: number, c: number, e: React.TouchEvent) => {
-    setPressCell(null);
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    if (!longPressTriggeredRef.current) {
+  const handleTouchEnd = useCallback(
+    (r: number, c: number, e: React.TouchEvent) => {
+      setPressCell(null);
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      if (!longPressTriggeredRef.current) {
+        addRipple(r, c);
+        if (flagMode === 'flag') {
+          handleFlag(r, c);
+        } else {
+          handleReveal(r, c);
+        }
+      }
+    },
+    [handleReveal, handleFlag, flagMode, addRipple],
+  );
+
+  const handleCellClick = useCallback(
+    (r: number, c: number) => {
+      // For non-touch (mouse) clicks
+      if (longPressTriggeredRef.current) return;
       addRipple(r, c);
       if (flagMode === 'flag') {
         handleFlag(r, c);
       } else {
         handleReveal(r, c);
       }
-    }
-  }, [handleReveal, handleFlag, flagMode, addRipple]);
+    },
+    [handleReveal, handleFlag, flagMode, addRipple],
+  );
 
-  const handleCellClick = useCallback((r: number, c: number) => {
-    // For non-touch (mouse) clicks
-    if (longPressTriggeredRef.current) return;
-    addRipple(r, c);
-    if (flagMode === 'flag') {
+  const handleRightClick = useCallback(
+    (r: number, c: number, e: React.MouseEvent) => {
+      e.preventDefault();
       handleFlag(r, c);
-    } else {
-      handleReveal(r, c);
-    }
-  }, [handleReveal, handleFlag, flagMode, addRipple]);
-
-  const handleRightClick = useCallback((r: number, c: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    handleFlag(r, c);
-  }, [handleFlag]);
+    },
+    [handleFlag],
+  );
 
   const cfg = DIFFICULTIES[difficulty];
-  const cellSize = cfg.cols > 16 ? 'w-7 h-7 text-[10px] sm:w-7 sm:h-7 sm:text-xs' : cfg.cols > 10 ? 'w-8 h-8 text-xs sm:w-8 sm:h-8 sm:text-sm' : 'w-9 h-9 text-sm sm:w-10 sm:h-10 sm:text-base';
+  const cellSize =
+    cfg.cols > 16
+      ? 'w-7 h-7 text-[10px] sm:w-7 sm:h-7 sm:text-xs'
+      : cfg.cols > 10
+        ? 'w-8 h-8 text-xs sm:w-8 sm:h-8 sm:text-sm'
+        : 'w-9 h-9 text-sm sm:w-10 sm:h-10 sm:text-base';
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -479,7 +632,10 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-4xl mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -489,14 +645,16 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('扫雷', 'Minesweeper')}</h1>
-            <p className="text-sm text-secondary">{t('经典扫雷，小心地雷！', 'Classic minesweeper, watch out for mines!')}</p>
+            <p className="text-sm text-secondary">
+              {t('经典扫雷，小心地雷！', 'Classic minesweeper, watch out for mines!')}
+            </p>
           </div>
         </div>
 
         {/* Difficulty Selection */}
         <div className="mb-4">
           <div className="flex justify-center gap-2">
-            {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
+            {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
               <motion.button
                 key={d}
                 onClick={() => {
@@ -526,7 +684,18 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         {/* Status Bar */}
         <div className="flex justify-between items-center mb-3 max-w-md mx-auto">
           <motion.div
-            animate={mineCounterPulse ? { scale: [1, 1.25, 0.95, 1.05, 1], backgroundColor: ['rgba(239,68,68,0)', 'rgba(239,68,68,0.15)', 'rgba(239,68,68,0)'] } : {}}
+            animate={
+              mineCounterPulse
+                ? {
+                    scale: [1, 1.25, 0.95, 1.05, 1],
+                    backgroundColor: [
+                      'rgba(239,68,68,0)',
+                      'rgba(239,68,68,0.15)',
+                      'rgba(239,68,68,0)',
+                    ],
+                  }
+                : {}
+            }
             transition={{ duration: 0.4 }}
             className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5"
           >
@@ -546,12 +715,25 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
             </motion.button>
           </div>
           <motion.div
-            animate={timerTick ? { scale: [1, 1.12, 0.97, 1], backgroundColor: ['rgba(59,130,246,0)', 'rgba(59,130,246,0.12)', 'rgba(59,130,246,0)'] } : {}}
+            animate={
+              timerTick
+                ? {
+                    scale: [1, 1.12, 0.97, 1],
+                    backgroundColor: [
+                      'rgba(59,130,246,0)',
+                      'rgba(59,130,246,0.12)',
+                      'rgba(59,130,246,0)',
+                    ],
+                  }
+                : {}
+            }
             transition={{ duration: 0.3 }}
             className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5"
           >
             <Timer className="w-4 h-4 text-blue-500" />
-            <span className="font-bold text-on-surface tabular-nums text-sm">{formatTime(time)}</span>
+            <span className="font-bold text-on-surface tabular-nums text-sm">
+              {formatTime(time)}
+            </span>
           </motion.div>
         </div>
 
@@ -559,7 +741,8 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         {bestTime > 0 && (
           <div className="text-center mb-2">
             <span className="text-xs text-secondary flex items-center justify-center gap-1">
-              <Trophy className="w-3 h-3" />{t('最佳', 'Best')}: {formatTime(bestTime)}
+              <Trophy className="w-3 h-3" />
+              {t('最佳', 'Best')}: {formatTime(bestTime)}
             </span>
           </div>
         )}
@@ -574,7 +757,10 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                   : boardShake === 2
                     ? { x: [0, -8, 10, -8, 8, -4, 0], rotate: [0, -1, 1, -0.5, 0.5, 0] }
                     : boardShake === 3
-                      ? { x: [0, -14, 16, -12, 14, -8, 6, -3, 0], rotate: [0, -2, 2.5, -1.5, 1, -0.5, 0] }
+                      ? {
+                          x: [0, -14, 16, -12, 14, -8, 6, -3, 0],
+                          rotate: [0, -2, 2.5, -1.5, 1, -0.5, 0],
+                        }
                       : { x: 0, rotate: 0 }
               }
               transition={{ duration: boardShake === 3 ? 0.45 : 0.3 }}
@@ -585,7 +771,9 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
               }`}
               style={{
                 gridTemplateColumns: `repeat(${cfg.cols}, minmax(0, 1fr))`,
-                backgroundImage: boardGlow ? undefined : 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 1px, transparent 1px)',
+                backgroundImage: boardGlow
+                  ? undefined
+                  : 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 1px, transparent 1px)',
                 backgroundSize: '8px 8px',
               }}
               onContextMenu={(e) => e.preventDefault()}
@@ -595,7 +783,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                   const isAnimating = cellAnimDelays.has(`${r}-${c}`);
                   const animDelay = cellAnimDelays.get(`${r}-${c}`) ?? 0;
                   const isBoom = boomCell?.r === r && boomCell?.c === c;
-                  const isRipple = rippleCells.some(rc => rc.r === r && rc.c === c);
+                  const isRipple = rippleCells.some((rc) => rc.r === r && rc.c === c);
                   const isPressed = pressCell?.r === r && pressCell?.c === c;
 
                   return (
@@ -616,7 +804,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                       onContextMenu={handleRightClick}
                     />
                   );
-                })
+                }),
               )}
             </motion.div>
 
@@ -679,11 +867,9 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         {/* Bottom Controls - Flag Toggle with Sliding Indicator */}
         <div className="flex justify-center gap-3 mt-3">
           <motion.button
-            onClick={() => setFlagMode(m => m === 'reveal' ? 'flag' : 'reveal')}
+            onClick={() => setFlagMode((m) => (m === 'reveal' ? 'flag' : 'reveal'))}
             whileTap={{ scale: 0.95 }}
-            className={`relative px-2 py-3.5 rounded-full font-semibold text-sm flex items-center min-h-[52px] overflow-hidden ${
-              'bg-surface-container-high'
-            }`}
+            className={`relative px-2 py-3.5 rounded-full font-semibold text-sm flex items-center min-h-[52px] overflow-hidden ${'bg-surface-container-high'}`}
           >
             {/* Sliding background indicator */}
             <motion.div
@@ -725,25 +911,23 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           <AnimatePresence>
             {confetti.map((p) => {
-              const shapeClass = p.shape === 'circle'
-                ? 'rounded-full'
-                : p.shape === 'triangle'
-                  ? ''
-                  : 'rounded-sm';
-              const shapeStyle: React.CSSProperties = p.shape === 'triangle'
-                ? {
-                    backgroundColor: 'transparent',
-                    width: 0,
-                    height: 0,
-                    borderLeft: `${p.size / 2}px solid transparent`,
-                    borderRight: `${p.size / 2}px solid transparent`,
-                    borderBottom: `${p.size}px solid ${p.color}`,
-                  }
-                : {
-                    backgroundColor: p.color,
-                    width: p.size,
-                    height: p.size,
-                  };
+              const shapeClass =
+                p.shape === 'circle' ? 'rounded-full' : p.shape === 'triangle' ? '' : 'rounded-sm';
+              const shapeStyle: React.CSSProperties =
+                p.shape === 'triangle'
+                  ? {
+                      backgroundColor: 'transparent',
+                      width: 0,
+                      height: 0,
+                      borderLeft: `${p.size / 2}px solid transparent`,
+                      borderRight: `${p.size / 2}px solid transparent`,
+                      borderBottom: `${p.size}px solid ${p.color}`,
+                    }
+                  : {
+                      backgroundColor: p.color,
+                      width: p.size,
+                      height: p.size,
+                    };
               return (
                 <motion.div
                   key={p.id}
@@ -816,7 +1000,13 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                         scale: [0, 1.5, 0.8, 1.2, 0.95, 1.05, 1],
                         rotate: [-10, 5, -3, 2, 0],
                       }}
-                      transition={{ delay: 0.5, duration: 0.8, type: 'spring', stiffness: 300, damping: 8 }}
+                      transition={{
+                        delay: 0.5,
+                        duration: 0.8,
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 8,
+                      }}
                       className="text-sm text-green-500 mb-2 font-bold"
                     >
                       🏆 {t('新纪录！', 'New Record!')}
@@ -844,9 +1034,14 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                 </>
               )}
               <div className="flex justify-center gap-3">
-                <button onClick={startGame} className={`px-6 py-3 rounded-full font-semibold text-white min-h-[48px] transition-colors ${
-                  gameState === 'won' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
-                }`}>
+                <button
+                  onClick={startGame}
+                  className={`px-6 py-3 rounded-full font-semibold text-white min-h-[48px] transition-colors ${
+                    gameState === 'won'
+                      ? 'bg-green-500 hover:bg-green-600'
+                      : 'bg-red-500 hover:bg-red-600'
+                  }`}
+                >
                   {t('再来一局', 'Play Again')}
                 </button>
               </div>

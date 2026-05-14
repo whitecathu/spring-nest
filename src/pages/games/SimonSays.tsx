@@ -12,7 +12,11 @@ const COLORS = [
 ];
 
 function loadBestScore(): number {
-  try { return JSON.parse(localStorage.getItem('spring_nest_simon_best') || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem('spring_nest_simon_best') || '0');
+  } catch {
+    return 0;
+  }
 }
 
 function saveBestScore(score: number) {
@@ -21,7 +25,9 @@ function saveBestScore(score: number) {
 
 export default function SimonSays({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
-  const [gameState, setGameState] = useState<'idle' | 'showing' | 'input' | 'wrong' | 'idle_next'>('idle');
+  const [gameState, setGameState] = useState<'idle' | 'showing' | 'input' | 'wrong' | 'idle_next'>(
+    'idle',
+  );
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerIndex, setPlayerIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -46,11 +52,14 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
     }
   }, []);
 
-  useEffect(() => () => {
-    clearTimer();
-    timeoutsRef.current.forEach(clearTimeout);
-    timeoutsRef.current = [];
-  }, [clearTimer]);
+  useEffect(
+    () => () => {
+      clearTimer();
+      timeoutsRef.current.forEach(clearTimeout);
+      timeoutsRef.current = [];
+    },
+    [clearTimer],
+  );
 
   const playSequence = useCallback((seq: number[], spd: number) => {
     setGameState('showing');
@@ -94,80 +103,86 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
     timeoutRef.current = setTimeout(() => playSequence(seq, 600), 500);
   }, [clearTimer, playSequence]);
 
-  const handleColorTap = useCallback((colorId: number) => {
-    if (gameState !== 'input') return;
+  const handleColorTap = useCallback(
+    (colorId: number) => {
+      if (gameState !== 'input') return;
 
-    setActiveColor(colorId);
-    const t1 = setTimeout(() => setActiveColor(null), 200);
-    timeoutsRef.current.push(t1);
+      setActiveColor(colorId);
+      const t1 = setTimeout(() => setActiveColor(null), 200);
+      timeoutsRef.current.push(t1);
 
-    const expected = sequenceRef.current[playerIndex];
-    if (colorId !== expected) {
-      setGameState('wrong');
-      setShakeGrid(true);
-      const t2 = setTimeout(() => setShakeGrid(false), 500);
-      timeoutsRef.current.push(t2);
-      clearTimer();
-      const s = score;
-      const best = loadBestScore();
-      if (s > best) {
-        saveBestScore(s);
-        setBestScore(s);
-        setIsNewRecord(true);
-      }
-      return;
-    }
-
-    const nextIndex = playerIndex + 1;
-    setPlayerIndex(nextIndex);
-
-    if (nextIndex >= sequenceRef.current.length) {
-      // Completed the sequence!
-      const newScore = score + 1;
-      setScore(newScore);
-      setCombo(c => c + 1);
-
-      setShowScorePopup(true);
-      const t3 = setTimeout(() => setShowScorePopup(false), 800);
-      timeoutsRef.current.push(t3);
-
-      const best = loadBestScore();
-      if (newScore > best) {
-        saveBestScore(newScore);
-        setBestScore(newScore);
-        setIsNewRecord(true);
-        const t4 = setTimeout(() => setIsNewRecord(false), 2000);
-        timeoutsRef.current.push(t4);
+      const expected = sequenceRef.current[playerIndex];
+      if (colorId !== expected) {
+        setGameState('wrong');
+        setShakeGrid(true);
+        const t2 = setTimeout(() => setShakeGrid(false), 500);
+        timeoutsRef.current.push(t2);
+        clearTimer();
+        const s = score;
+        const best = loadBestScore();
+        if (s > best) {
+          saveBestScore(s);
+          setBestScore(s);
+          setIsNewRecord(true);
+        }
+        return;
       }
 
-      // Speed up every 3 rounds
-      const newSpeed = Math.max(250, 600 - Math.floor(newScore / 3) * 40);
-      if (newSpeed < prevSpeedRef.current) {
-        setLevelUpFlash(true);
-        const tFlash = setTimeout(() => setLevelUpFlash(false), 600);
-        timeoutsRef.current.push(tFlash);
+      const nextIndex = playerIndex + 1;
+      setPlayerIndex(nextIndex);
+
+      if (nextIndex >= sequenceRef.current.length) {
+        // Completed the sequence!
+        const newScore = score + 1;
+        setScore(newScore);
+        setCombo((c) => c + 1);
+
+        setShowScorePopup(true);
+        const t3 = setTimeout(() => setShowScorePopup(false), 800);
+        timeoutsRef.current.push(t3);
+
+        const best = loadBestScore();
+        if (newScore > best) {
+          saveBestScore(newScore);
+          setBestScore(newScore);
+          setIsNewRecord(true);
+          const t4 = setTimeout(() => setIsNewRecord(false), 2000);
+          timeoutsRef.current.push(t4);
+        }
+
+        // Speed up every 3 rounds
+        const newSpeed = Math.max(250, 600 - Math.floor(newScore / 3) * 40);
+        if (newSpeed < prevSpeedRef.current) {
+          setLevelUpFlash(true);
+          const tFlash = setTimeout(() => setLevelUpFlash(false), 600);
+          timeoutsRef.current.push(tFlash);
+        }
+        prevSpeedRef.current = newSpeed;
+        setSpeed(newSpeed);
+
+        // Add next color to sequence
+        const nextColor = Math.floor(Math.random() * 4);
+        const newSeq = [...sequenceRef.current, nextColor];
+        sequenceRef.current = newSeq;
+        setSequence(newSeq);
+        setPlayerIndex(0);
+
+        // Small delay then show next sequence
+        setGameState('idle_next');
+        timeoutRef.current = setTimeout(() => playSequence(newSeq, newSpeed), 800);
       }
-      prevSpeedRef.current = newSpeed;
-      setSpeed(newSpeed);
-
-      // Add next color to sequence
-      const nextColor = Math.floor(Math.random() * 4);
-      const newSeq = [...sequenceRef.current, nextColor];
-      sequenceRef.current = newSeq;
-      setSequence(newSeq);
-      setPlayerIndex(0);
-
-      // Small delay then show next sequence
-      setGameState('idle_next');
-      timeoutRef.current = setTimeout(() => playSequence(newSeq, newSpeed), 800);
-    }
-  }, [gameState, playerIndex, score, clearTimer, playSequence]);
+    },
+    [gameState, playerIndex, score, clearTimer, playSequence],
+  );
 
   const formatRound = useCallback((n: number) => t(`第 ${n} 轮`, `Round ${n}`), [t]);
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -177,7 +192,9 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('西蒙说', 'Simon Says')}</h1>
-            <p className="text-sm text-secondary">{t('记住颜色顺序，跟随着挑战！', 'Remember the color sequence and follow along!')}</p>
+            <p className="text-sm text-secondary">
+              {t('记住颜色顺序，跟随着挑战！', 'Remember the color sequence and follow along!')}
+            </p>
           </div>
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center relative">
@@ -205,7 +222,7 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
                       +1
                     </motion.div>
                     {/* Particle dots flying outward */}
-                    {[0, 1, 2, 3, 4, 5].map(i => {
+                    {[0, 1, 2, 3, 4, 5].map((i) => {
                       const angle = (i / 6) * Math.PI * 2;
                       const dist = 28 + Math.random() * 12;
                       return (
@@ -228,8 +245,13 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
                 )}
               </AnimatePresence>
             </div>
-            <div className={`bg-surface-container-high rounded-xl px-3 py-2 text-center relative ${isNewRecord ? 'ring-2 ring-amber-400' : ''}`}>
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+            <div
+              className={`bg-surface-container-high rounded-xl px-3 py-2 text-center relative ${isNewRecord ? 'ring-2 ring-amber-400' : ''}`}
+            >
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Trophy className="w-3 h-3" />
+                {t('最佳', 'Best')}
+              </div>
               <motion.div
                 animate={isNewRecord ? { scale: [1, 1.25, 1] } : {}}
                 transition={isNewRecord ? { duration: 0.5, ...springBouncy } : {}}
@@ -253,22 +275,45 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         <div className="text-center mb-4">
           <AnimatePresence mode="wait">
             {gameState === 'showing' && (
-              <motion.p key="showing" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="text-sm font-semibold text-amber-500">
+              <motion.p
+                key="showing"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="text-sm font-semibold text-amber-500"
+              >
                 {t('👀 仔细看...', '👀 Watch carefully...')}
               </motion.p>
             )}
             {gameState === 'input' && (
-              <motion.p key="input" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="text-sm font-semibold text-green-500">
-                {t('🎯 轮到你了！', "🎯 Your turn!")}
+              <motion.p
+                key="input"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="text-sm font-semibold text-green-500"
+              >
+                {t('🎯 轮到你了！', '🎯 Your turn!')}
               </motion.p>
             )}
             {gameState === 'idle_next' && (
-              <motion.p key="next" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: 10 }} className="text-sm font-semibold text-blue-500">
+              <motion.p
+                key="next"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="text-sm font-semibold text-blue-500"
+              >
                 {formatRound(sequence.length)}
               </motion.p>
             )}
             {gameState === 'wrong' && (
-              <motion.p key="wrong" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-sm font-semibold text-red-500">
+              <motion.p
+                key="wrong"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-sm font-semibold text-red-500"
+              >
                 {t('💥 答错了！', '💥 Wrong!')}
               </motion.p>
             )}
@@ -293,7 +338,9 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
                 transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
               />
               <Zap className="w-4 h-4 text-amber-500 relative z-10" />
-              <span className="text-sm font-bold text-amber-500 relative z-10">{combo}x {t('连击', 'Combo')}</span>
+              <span className="text-sm font-bold text-amber-500 relative z-10">
+                {combo}x {t('连击', 'Combo')}
+              </span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -327,63 +374,67 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         )}
 
         {/* Color Grid */}
-          <motion.div
-            className="grid grid-cols-2 gap-4 max-w-[320px] mx-auto mb-6 relative"
-            animate={shakeGrid ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
-            transition={shakeGrid ? { duration: 0.4 } : { duration: 0.1 }}
-          >
-            {/* Red flash overlay on wrong */}
-            <AnimatePresence>
-              {gameState === 'wrong' && (
-                <motion.div
-                  className="absolute inset-0 bg-red-500/20 rounded-2xl pointer-events-none z-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 0.4, 0] }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                />
-              )}
-            </AnimatePresence>
-            {/* Golden flash on level up / speed increase */}
-            <AnimatePresence>
-              {levelUpFlash && (
-                <motion.div
-                  className="absolute -inset-1 rounded-3xl pointer-events-none z-10"
-                  style={{ boxShadow: '0 0 20px 4px rgba(234,179,8,0.5), inset 0 0 20px 4px rgba(234,179,8,0.15)' }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 1, 0] }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6 }}
-                />
-              )}
-            </AnimatePresence>
-            {COLORS.map((color) => (
-              <motion.button
-                key={color.id}
-                onClick={() => handleColorTap(color.id)}
-                disabled={gameState !== 'input'}
-                animate={{
-                  scale: activeColor === color.id ? [1, 1.08, 1] : 1,
-                }}
-                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                whileTap={gameState === 'input' ? { scale: 0.92 } : {}}
-                className={`rounded-2xl aspect-square min-h-[120px] flex items-center justify-center cursor-pointer disabled:cursor-default ${
-                  gameState === 'showing' ? 'opacity-50' : ''
-                }`}
+        <motion.div
+          className="grid grid-cols-2 gap-4 max-w-[320px] mx-auto mb-6 relative"
+          animate={shakeGrid ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
+          transition={shakeGrid ? { duration: 0.4 } : { duration: 0.1 }}
+        >
+          {/* Red flash overlay on wrong */}
+          <AnimatePresence>
+            {gameState === 'wrong' && (
+              <motion.div
+                className="absolute inset-0 bg-red-500/20 rounded-2xl pointer-events-none z-10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.4, 0] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              />
+            )}
+          </AnimatePresence>
+          {/* Golden flash on level up / speed increase */}
+          <AnimatePresence>
+            {levelUpFlash && (
+              <motion.div
+                className="absolute -inset-1 rounded-3xl pointer-events-none z-10"
                 style={{
-                  backgroundColor: activeColor === color.id ? color.active : color.bg,
-                  boxShadow: activeColor === color.id
+                  boxShadow:
+                    '0 0 20px 4px rgba(234,179,8,0.5), inset 0 0 20px 4px rgba(234,179,8,0.15)',
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+              />
+            )}
+          </AnimatePresence>
+          {COLORS.map((color) => (
+            <motion.button
+              key={color.id}
+              onClick={() => handleColorTap(color.id)}
+              disabled={gameState !== 'input'}
+              animate={{
+                scale: activeColor === color.id ? [1, 1.08, 1] : 1,
+              }}
+              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+              whileTap={gameState === 'input' ? { scale: 0.92 } : {}}
+              className={`rounded-2xl aspect-square min-h-[120px] flex items-center justify-center cursor-pointer disabled:cursor-default ${
+                gameState === 'showing' ? 'opacity-50' : ''
+              }`}
+              style={{
+                backgroundColor: activeColor === color.id ? color.active : color.bg,
+                boxShadow:
+                  activeColor === color.id
                     ? `0 0 30px ${color.bg}80, 0 0 60px ${color.bg}40`
                     : `0 4px 12px ${color.bg}40`,
-                  transition: 'background-color 0.15s ease, box-shadow 0.15s ease, opacity 0.3s ease',
-                }}
-              >
-                <span className="text-white font-bold text-lg drop-shadow-md">
-                  {t(...color.name)}
-                </span>
-              </motion.button>
-            ))}
-          </motion.div>
+                transition: 'background-color 0.15s ease, box-shadow 0.15s ease, opacity 0.3s ease',
+              }}
+            >
+              <span className="text-white font-bold text-lg drop-shadow-md">
+                {t(...color.name)}
+              </span>
+            </motion.button>
+          ))}
+        </motion.div>
 
         {/* Controls */}
         <AnimatePresence mode="wait">
@@ -412,7 +463,10 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
 
         {/* Instructions */}
         <div className="mt-4 text-center text-xs text-secondary/50">
-          {t('记住颜色出现的顺序，然后按相同顺序点击', 'Remember the color sequence, then tap in the same order')}
+          {t(
+            '记住颜色出现的顺序，然后按相同顺序点击',
+            'Remember the color sequence, then tap in the same order',
+          )}
         </div>
       </motion.div>
     </div>

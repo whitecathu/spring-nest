@@ -8,7 +8,10 @@ interface DiffSegment {
   text: string;
 }
 
-function computeLineDiff(oldText: string, newText: string): { oldSegments: DiffSegment[]; newSegments: DiffSegment[] } {
+function computeLineDiff(
+  oldText: string,
+  newText: string,
+): { oldSegments: DiffSegment[]; newSegments: DiffSegment[] } {
   const oldLines = oldText.split('\n');
   const newLines = newText.split('\n');
 
@@ -53,8 +56,8 @@ function computeLineDiff(oldText: string, newText: string): { oldSegments: DiffS
     }
   }
 
-  oldTemp.reverse().forEach(s => oldResult.push(s));
-  newTemp.reverse().forEach(s => newResult.push(s));
+  oldTemp.reverse().forEach((s) => oldResult.push(s));
+  newTemp.reverse().forEach((s) => newResult.push(s));
 
   return { oldSegments: oldResult, newSegments: newResult };
 }
@@ -72,9 +75,9 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
 
   const stats = useMemo(() => {
     if (!diff) return null;
-    const added = diff.newSegments.filter(s => s.type === 'added').length;
-    const removed = diff.oldSegments.filter(s => s.type === 'removed').length;
-    const unchanged = diff.oldSegments.filter(s => s.type === 'equal' && s.text !== '').length;
+    const added = diff.newSegments.filter((s) => s.type === 'added').length;
+    const removed = diff.oldSegments.filter((s) => s.type === 'removed').length;
+    const unchanged = diff.oldSegments.filter((s) => s.type === 'equal' && s.text !== '').length;
     return { added, removed, unchanged };
   }, [diff]);
 
@@ -123,15 +126,24 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
 
   const renderDiffPanel = (segments: DiffSegment[], side: 'left' | 'right') => {
     return segments.map((seg, idx) => {
-      const lineNum = segments.slice(0, idx + 1).filter(s => s.type === 'equal' || (side === 'left' ? s.type === 'removed' : s.type === 'added')).length;
+      const lineNum = segments
+        .slice(0, idx + 1)
+        .filter(
+          (s) =>
+            s.type === 'equal' || (side === 'left' ? s.type === 'removed' : s.type === 'added'),
+        ).length;
       let bgClass = '';
-      if (seg.type === 'removed') bgClass = 'bg-red-50 dark:bg-red-900/20 border-l-2 border-red-400';
-      else if (seg.type === 'added') bgClass = 'bg-green-50 dark:bg-green-900/20 border-l-2 border-green-400';
+      if (seg.type === 'removed')
+        bgClass = 'bg-red-50 dark:bg-red-900/20 border-l-2 border-red-400';
+      else if (seg.type === 'added')
+        bgClass = 'bg-green-50 dark:bg-green-900/20 border-l-2 border-green-400';
       else bgClass = 'bg-transparent';
 
       return (
         <div key={idx} className={`flex ${bgClass}`}>
-          <span className="w-10 shrink-0 text-right pr-2 py-0.5 text-xs text-secondary/50 font-mono select-none">{idx + 1}</span>
+          <span className="w-10 shrink-0 text-right pr-2 py-0.5 text-xs text-secondary/50 font-mono select-none">
+            {idx + 1}
+          </span>
           <span className="py-0.5 pr-3 text-sm font-mono text-on-surface whitespace-pre-wrap break-all flex-1">
             {seg.text || ' '}
           </span>
@@ -142,19 +154,35 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-5xl mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-2">{t('文本对比', 'Text Diff')}</h2>
-        <p className="text-sm text-secondary text-center mb-6">{t('逐行对比两段文本，高亮显示差异', 'Compare two texts line by line with highlighted differences')}</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
+          {t('文本对比', 'Text Diff')}
+        </h2>
+        <p className="text-sm text-secondary text-center mb-6">
+          {t(
+            '逐行对比两段文本，高亮显示差异',
+            'Compare two texts line by line with highlighted differences',
+          )}
+        </p>
 
         {/* Input Areas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="text-sm font-medium text-on-surface mb-2 block">{t('原始文本', 'Original Text')}</label>
+            <label className="text-sm font-medium text-on-surface mb-2 block">
+              {t('原始文本', 'Original Text')}
+            </label>
             <textarea
               value={textA}
               onChange={(e) => setTextA(e.target.value)}
@@ -164,7 +192,9 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-on-surface mb-2 block">{t('修改后文本', 'Modified Text')}</label>
+            <label className="text-sm font-medium text-on-surface mb-2 block">
+              {t('修改后文本', 'Modified Text')}
+            </label>
             <textarea
               value={textB}
               onChange={(e) => setTextB(e.target.value)}
@@ -188,7 +218,9 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
             onClick={handleCopy}
             disabled={!diff}
             className={`flex-1 min-w-[80px] py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-1.5 ${
-              copied ? 'bg-green-100 text-green-600' : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
+              copied
+                ? 'bg-green-100 text-green-600'
+                : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
             } disabled:opacity-40`}
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -249,7 +281,12 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
         {/* Empty state */}
         {!diff && (
           <div className="text-center py-12 text-secondary/50">
-            <p className="text-lg">{t('在上方输入两段文本，即可查看差异', 'Enter two texts above to see the differences')}</p>
+            <p className="text-lg">
+              {t(
+                '在上方输入两段文本，即可查看差异',
+                'Enter two texts above to see the differences',
+              )}
+            </p>
           </div>
         )}
       </motion.div>

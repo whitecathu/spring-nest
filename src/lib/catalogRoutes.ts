@@ -33,4 +33,3 @@ export function getPrimaryToolCategorySlug(category: string): string | undefined
 export function getPrimaryGameCategorySlug(category: string): string | undefined {
   return gameCategoryRoutes.find((route) => route.category === category)?.slug;
 }
-

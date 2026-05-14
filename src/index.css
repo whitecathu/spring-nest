@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-primary: #3f6751;
@@ -17,10 +17,10 @@
   --color-on-tertiary-container: #7a5748;
   --color-tertiary-fixed-dim: #eabdaa;
 
-  --color-background: #FFF9F2;
+  --color-background: #fff9f2;
   --color-on-background: #1a1c1a;
 
-  --color-surface: #FFF9F2;
+  --color-surface: #fff9f2;
   --color-on-surface: #1a1c1a;
   --color-surface-variant: #e2e3df;
   --color-on-surface-variant: #414943;
@@ -43,26 +43,54 @@
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
 
   @keyframes fade-in-up {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    25% { transform: translateY(-8px) rotate(0.5deg); }
-    50% { transform: translateY(-15px) rotate(0deg); }
-    75% { transform: translateY(-8px) rotate(-0.5deg); }
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-8px) rotate(0.5deg);
+    }
+    50% {
+      transform: translateY(-15px) rotate(0deg);
+    }
+    75% {
+      transform: translateY(-8px) rotate(-0.5deg);
+    }
   }
   @keyframes float-petal {
-    0% { transform: translateY(-10vh) rotate(0deg) translateX(0); }
-    100% { transform: translateY(110vh) rotate(360deg) translateX(50px); }
+    0% {
+      transform: translateY(-10vh) rotate(0deg) translateX(0);
+    }
+    100% {
+      transform: translateY(110vh) rotate(360deg) translateX(50px);
+    }
   }
   @keyframes shimmer-transform {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
   }
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(184, 228, 201, 0.4); }
-    50% { box-shadow: 0 0 20px 4px rgba(184, 228, 201, 0.2); }
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(184, 228, 201, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 20px 4px rgba(184, 228, 201, 0.2);
+    }
   }
 }
 
@@ -107,7 +135,9 @@ html {
 body {
   background-color: var(--color-background);
   color: var(--color-on-background);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
   overflow-x: hidden;
   width: 100%;
 }
@@ -119,7 +149,9 @@ body {
 
 /* ── Mobile UX foundations ── */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -148,12 +180,20 @@ body {
 
 /* Prevent double-tap zoom on interactive elements on mobile */
 @media (hover: none) and (pointer: coarse) {
-  button, a, [role="button"], input, select, textarea, label {
+  button,
+  a,
+  [role='button'],
+  input,
+  select,
+  textarea,
+  label {
     touch-action: manipulation;
   }
 
   /* Ensure minimum 48px tap targets */
-  button, a, [role="button"] {
+  button,
+  a,
+  [role='button'] {
     min-height: 48px;
     min-width: 48px;
   }
@@ -169,7 +209,12 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-surface-container-high) 40%, transparent), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-surface-container-high) 40%, transparent),
+    transparent
+  );
   transform: translateX(-100%);
   animation: shimmer-transform 1.5s infinite ease-in-out;
   will-change: transform;
@@ -259,12 +304,16 @@ body {
 }
 
 .hover-glow:hover {
-  box-shadow: 0 15px 35px -5px rgba(184, 228, 201, 0.5), 0 8px 15px -5px rgba(184, 228, 201, 0.3);
+  box-shadow:
+    0 15px 35px -5px rgba(184, 228, 201, 0.5),
+    0 8px 15px -5px rgba(184, 228, 201, 0.3);
   transform: translateY(-4px);
 }
 
 .dark .hover-glow:hover {
-  box-shadow: 0 15px 35px -5px rgba(47, 67, 55, 0.5), 0 8px 15px -5px rgba(47, 67, 55, 0.3);
+  box-shadow:
+    0 15px 35px -5px rgba(47, 67, 55, 0.5),
+    0 8px 15px -5px rgba(47, 67, 55, 0.3);
 }
 
 .btn-gradient {
@@ -276,7 +325,9 @@ body {
 .reveal-up {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .reveal-up.revealed {
   opacity: 1;
@@ -284,16 +335,34 @@ body {
 }
 
 /* ── Stagger delay utilities ── */
-.stagger-1 { transition-delay: 0.05s; }
-.stagger-2 { transition-delay: 0.1s; }
-.stagger-3 { transition-delay: 0.15s; }
-.stagger-4 { transition-delay: 0.2s; }
-.stagger-5 { transition-delay: 0.25s; }
-.stagger-6 { transition-delay: 0.3s; }
+.stagger-1 {
+  transition-delay: 0.05s;
+}
+.stagger-2 {
+  transition-delay: 0.1s;
+}
+.stagger-3 {
+  transition-delay: 0.15s;
+}
+.stagger-4 {
+  transition-delay: 0.2s;
+}
+.stagger-5 {
+  transition-delay: 0.25s;
+}
+.stagger-6 {
+  transition-delay: 0.3s;
+}
 
 /* ── Smooth scrollbar ── */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
 
 /* Category pill snap scrolling on mobile */
 @media (max-width: 640px) {
@@ -322,8 +391,14 @@ body {
   animation: page-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Category switch transition ── */
@@ -331,8 +406,14 @@ body {
   animation: category-switch-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes category-switch-fade {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Focus ring — accessible + pretty ── */
@@ -344,8 +425,14 @@ body {
 
 /* ── Minesweeper cell reveal animation ── */
 @keyframes cell-reveal {
-  from { transform: scale(0.7); opacity: 0.5; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 .animate-cell-reveal {
   animation: cell-reveal 0.2s ease-out;
@@ -353,12 +440,21 @@ body {
 
 /* ── BrickBreaker starfield twinkle ── */
 @keyframes bb-twinkle {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.75; }
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.75;
+  }
 }
 
 /* ── BrickBreaker combo timeout bar ── */
 @keyframes combo-bar-shrink {
-  from { width: 100%; }
-  to { width: 0%; }
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }

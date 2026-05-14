@@ -61,7 +61,11 @@ function generatePuzzle(size: Size): number[] {
 }
 
 function loadBestMoves(size: Size): number {
-  try { return JSON.parse(localStorage.getItem(`spring_nest_puzzle_best_moves_${size}`) || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem(`spring_nest_puzzle_best_moves_${size}`) || '0');
+  } catch {
+    return 0;
+  }
 }
 
 function saveBestMoves(size: Size, moves: number) {
@@ -69,7 +73,11 @@ function saveBestMoves(size: Size, moves: number) {
 }
 
 function loadBestTime(size: Size): number {
-  try { return JSON.parse(localStorage.getItem(`spring_nest_puzzle_best_time_${size}`) || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem(`spring_nest_puzzle_best_time_${size}`) || '0');
+  } catch {
+    return 0;
+  }
 }
 
 function saveBestTime(size: Size, seconds: number) {
@@ -120,18 +128,21 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
     return () => clearTimer();
   }, [clearTimer]);
 
-  const newGame = useCallback((newSize?: Size) => {
-    const s = newSize ?? size;
-    clearTimer();
-    setTiles(generatePuzzle(s));
-    setMoves(0);
-    setElapsed(0);
-    setStarted(false);
-    setWon(false);
-    setBestMoves(loadBestMoves(s));
-    setBestTimeVal(loadBestTime(s));
-    startTimeRef.current = 0;
-  }, [size, clearTimer]);
+  const newGame = useCallback(
+    (newSize?: Size) => {
+      const s = newSize ?? size;
+      clearTimer();
+      setTiles(generatePuzzle(s));
+      setMoves(0);
+      setElapsed(0);
+      setStarted(false);
+      setWon(false);
+      setBestMoves(loadBestMoves(s));
+      setBestTimeVal(loadBestTime(s));
+      startTimeRef.current = 0;
+    },
+    [size, clearTimer],
+  );
 
   const startTimer = useCallback(() => {
     if (timerRef.current) return;
@@ -141,91 +152,109 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
     }, 500);
   }, []);
 
-  const applyMove = useCallback((newTiles: number[]) => {
-    setTiles(newTiles);
-    const newMoves = moves + 1;
-    setMoves(newMoves);
+  const applyMove = useCallback(
+    (newTiles: number[]) => {
+      setTiles(newTiles);
+      const newMoves = moves + 1;
+      setMoves(newMoves);
 
-    if (isSolved(newTiles, size)) {
-      clearTimer();
-      const finalTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      setElapsed(finalTime);
-      setWon(true);
+      if (isSolved(newTiles, size)) {
+        clearTimer();
+        const finalTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        setElapsed(finalTime);
+        setWon(true);
 
-      const currentBestMoves = loadBestMoves(size);
-      if (currentBestMoves === 0 || newMoves < currentBestMoves) {
-        setBestMoves(newMoves);
-        saveBestMoves(size, newMoves);
+        const currentBestMoves = loadBestMoves(size);
+        if (currentBestMoves === 0 || newMoves < currentBestMoves) {
+          setBestMoves(newMoves);
+          saveBestMoves(size, newMoves);
+        }
+        const currentBestTime = loadBestTime(size);
+        if (currentBestTime === 0 || finalTime < currentBestTime) {
+          setBestTimeVal(finalTime);
+          saveBestTime(size, finalTime);
+        }
       }
-      const currentBestTime = loadBestTime(size);
-      if (currentBestTime === 0 || finalTime < currentBestTime) {
-        setBestTimeVal(finalTime);
-        saveBestTime(size, finalTime);
+    },
+    [moves, size, clearTimer],
+  );
+
+  const moveByDirection = useCallback(
+    (dir: Direction) => {
+      if (won) return;
+      const emptyIndex = tiles.indexOf(0);
+      const s = size;
+      const emptyRow = Math.floor(emptyIndex / s);
+      const emptyCol = emptyIndex % s;
+
+      let tileRow = emptyRow;
+      let tileCol = emptyCol;
+
+      if (dir === 'up') tileRow = emptyRow + 1;
+      else if (dir === 'down') tileRow = emptyRow - 1;
+      else if (dir === 'left') tileCol = emptyCol + 1;
+      else if (dir === 'right') tileCol = emptyCol - 1;
+
+      if (tileRow < 0 || tileRow >= s || tileCol < 0 || tileCol >= s) return;
+
+      const tileIndex = tileRow * s + tileCol;
+      if (!started) {
+        setStarted(true);
+        startTimer();
       }
-    }
-  }, [moves, size, clearTimer]);
 
-  const moveByDirection = useCallback((dir: Direction) => {
-    if (won) return;
-    const emptyIndex = tiles.indexOf(0);
-    const s = size;
-    const emptyRow = Math.floor(emptyIndex / s);
-    const emptyCol = emptyIndex % s;
+      const newTiles = [...tiles];
+      [newTiles[tileIndex], newTiles[emptyIndex]] = [newTiles[emptyIndex], newTiles[tileIndex]];
+      applyMove(newTiles);
+    },
+    [tiles, size, won, started, startTimer, applyMove],
+  );
 
-    let tileRow = emptyRow;
-    let tileCol = emptyCol;
+  const handleTileClick = useCallback(
+    (index: number) => {
+      if (won) return;
+      const emptyIndex = tiles.indexOf(0);
+      const s = size;
 
-    if (dir === 'up') tileRow = emptyRow + 1;
-    else if (dir === 'down') tileRow = emptyRow - 1;
-    else if (dir === 'left') tileCol = emptyCol + 1;
-    else if (dir === 'right') tileCol = emptyCol - 1;
+      const row = Math.floor(index / s);
+      const col = index % s;
+      const emptyRow = Math.floor(emptyIndex / s);
+      const emptyCol = emptyIndex % s;
 
-    if (tileRow < 0 || tileRow >= s || tileCol < 0 || tileCol >= s) return;
+      const isAdjacent =
+        (row === emptyRow && Math.abs(col - emptyCol) === 1) ||
+        (col === emptyCol && Math.abs(row - emptyRow) === 1);
 
-    const tileIndex = tileRow * s + tileCol;
-    if (!started) {
-      setStarted(true);
-      startTimer();
-    }
+      if (!isAdjacent) return;
 
-    const newTiles = [...tiles];
-    [newTiles[tileIndex], newTiles[emptyIndex]] = [newTiles[emptyIndex], newTiles[tileIndex]];
-    applyMove(newTiles);
-  }, [tiles, size, won, started, startTimer, applyMove]);
+      if (!started) {
+        setStarted(true);
+        startTimer();
+      }
 
-  const handleTileClick = useCallback((index: number) => {
-    if (won) return;
-    const emptyIndex = tiles.indexOf(0);
-    const s = size;
-
-    const row = Math.floor(index / s);
-    const col = index % s;
-    const emptyRow = Math.floor(emptyIndex / s);
-    const emptyCol = emptyIndex % s;
-
-    const isAdjacent =
-      (row === emptyRow && Math.abs(col - emptyCol) === 1) ||
-      (col === emptyCol && Math.abs(row - emptyRow) === 1);
-
-    if (!isAdjacent) return;
-
-    if (!started) {
-      setStarted(true);
-      startTimer();
-    }
-
-    const newTiles = [...tiles];
-    [newTiles[index], newTiles[emptyIndex]] = [newTiles[emptyIndex], newTiles[index]];
-    applyMove(newTiles);
-  }, [tiles, size, won, started, startTimer, applyMove]);
+      const newTiles = [...tiles];
+      [newTiles[index], newTiles[emptyIndex]] = [newTiles[emptyIndex], newTiles[index]];
+      applyMove(newTiles);
+    },
+    [tiles, size, won, started, startTimer, applyMove],
+  );
 
   // Keyboard controls
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       const map: Record<string, Direction> = {
-        ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
-        w: 'up', s: 'down', a: 'left', d: 'right',
-        W: 'up', S: 'down', A: 'left', D: 'right',
+        ArrowUp: 'up',
+        ArrowDown: 'down',
+        ArrowLeft: 'left',
+        ArrowRight: 'right',
+        w: 'up',
+        s: 'down',
+        a: 'left',
+        d: 'right',
+        W: 'up',
+        S: 'down',
+        A: 'left',
+        D: 'right',
       };
       const dir = map[e.key];
       if (dir) {
@@ -245,50 +274,63 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
     touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   }, []);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
-    const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
-    if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
-    let dir: Direction;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      dir = dx > 0 ? 'right' : 'left';
-    } else {
-      dir = dy > 0 ? 'down' : 'up';
-    }
-    moveByDirection(dir);
-  }, [moveByDirection]);
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+      const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+      if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+      let dir: Direction;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        dir = dx > 0 ? 'right' : 'left';
+      } else {
+        dir = dy > 0 ? 'down' : 'up';
+      }
+      moveByDirection(dir);
+    },
+    [moveByDirection],
+  );
 
-  const changeSize = useCallback((newSize: Size) => {
-    setSize(newSize);
-    clearTimer();
-    setTiles(generatePuzzle(newSize));
-    setMoves(0);
-    setElapsed(0);
-    setStarted(false);
-    setWon(false);
-    setBestMoves(loadBestMoves(newSize));
-    setBestTimeVal(loadBestTime(newSize));
-    startTimeRef.current = 0;
-  }, [clearTimer]);
+  const changeSize = useCallback(
+    (newSize: Size) => {
+      setSize(newSize);
+      clearTimer();
+      setTiles(generatePuzzle(newSize));
+      setMoves(0);
+      setElapsed(0);
+      setStarted(false);
+      setWon(false);
+      setBestMoves(loadBestMoves(newSize));
+      setBestTimeVal(loadBestTime(newSize));
+      startTimeRef.current = 0;
+    },
+    [clearTimer],
+  );
 
-  const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const formatTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   // Check if a direction is movable
-  const canMoveDir = useCallback((dir: Direction): boolean => {
-    const emptyIndex = tiles.indexOf(0);
-    const s = size;
-    const emptyRow = Math.floor(emptyIndex / s);
-    const emptyCol = emptyIndex % s;
-    if (dir === 'up') return emptyRow < s - 1;
-    if (dir === 'down') return emptyRow > 0;
-    if (dir === 'left') return emptyCol < s - 1;
-    if (dir === 'right') return emptyCol > 0;
-    return false;
-  }, [tiles, size]);
+  const canMoveDir = useCallback(
+    (dir: Direction): boolean => {
+      const emptyIndex = tiles.indexOf(0);
+      const s = size;
+      const emptyRow = Math.floor(emptyIndex / s);
+      const emptyCol = emptyIndex % s;
+      if (dir === 'up') return emptyRow < s - 1;
+      if (dir === 'down') return emptyRow > 0;
+      if (dir === 'left') return emptyCol < s - 1;
+      if (dir === 'right') return emptyCol > 0;
+      return false;
+    },
+    [tiles, size],
+  );
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -297,14 +339,18 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-3xl font-black text-on-surface">{t('数字华容道', 'Number Puzzle')}</h1>
-            <p className="text-sm text-secondary">{t('按顺序排列数字', 'Arrange numbers in order')}</p>
+            <h1 className="text-3xl font-black text-on-surface">
+              {t('数字华容道', 'Number Puzzle')}
+            </h1>
+            <p className="text-sm text-secondary">
+              {t('按顺序排列数字', 'Arrange numbers in order')}
+            </p>
           </div>
         </div>
 
         {/* Size Toggle */}
         <div className="flex justify-center gap-2 mb-4">
-          {([3, 4] as Size[]).map(s => (
+          {([3, 4] as Size[]).map((s) => (
             <button
               key={s}
               onClick={() => changeSize(s)}
@@ -322,20 +368,34 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
         {/* Stats */}
         <div className="flex justify-center gap-3 mb-4">
           <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-            <div className="text-xs text-secondary font-medium flex items-center gap-1"><Footprints className="w-3 h-3" />{t('步数', 'Moves')}</div>
+            <div className="text-xs text-secondary font-medium flex items-center gap-1">
+              <Footprints className="w-3 h-3" />
+              {t('步数', 'Moves')}
+            </div>
             <div className="text-xl font-bold text-primary tabular-nums">{moves}</div>
           </div>
           <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-            <div className="text-xs text-secondary font-medium flex items-center gap-1"><Clock className="w-3 h-3" />{t('用时', 'Time')}</div>
+            <div className="text-xs text-secondary font-medium flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {t('用时', 'Time')}
+            </div>
             <div className="text-xl font-bold text-primary tabular-nums">{formatTime(elapsed)}</div>
           </div>
           <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-            <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳步数', 'Best Moves')}</div>
+            <div className="text-xs text-secondary font-medium flex items-center gap-1">
+              <Trophy className="w-3 h-3" />
+              {t('最佳步数', 'Best Moves')}
+            </div>
             <div className="text-xl font-bold text-tertiary tabular-nums">{bestMoves || '—'}</div>
           </div>
           <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-            <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳用时', 'Best Time')}</div>
-            <div className="text-xl font-bold text-tertiary tabular-nums">{bestTime > 0 ? formatTime(bestTime) : '—'}</div>
+            <div className="text-xs text-secondary font-medium flex items-center gap-1">
+              <Trophy className="w-3 h-3" />
+              {t('最佳用时', 'Best Time')}
+            </div>
+            <div className="text-xl font-bold text-tertiary tabular-nums">
+              {bestTime > 0 ? formatTime(bestTime) : '—'}
+            </div>
           </div>
         </div>
 
@@ -346,19 +406,23 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div
-            className="grid gap-2"
-            style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
-          >
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
             {tiles.map((val, i) => {
               const isEmpty = val === 0;
               return (
                 <motion.button
                   key={`${size}-${i}`}
                   onClick={() => handleTileClick(i)}
-                  aria-label={isEmpty
-                    ? t(`第 ${Math.floor(i / size) + 1} 行第 ${(i % size) + 1} 列，空格`, `Row ${Math.floor(i / size) + 1}, column ${(i % size) + 1}, empty space`)
-                    : t(`数字 ${val}，第 ${Math.floor(i / size) + 1} 行第 ${(i % size) + 1} 列，点击移动`, `Tile ${val}, row ${Math.floor(i / size) + 1}, column ${(i % size) + 1}, move`)
+                  aria-label={
+                    isEmpty
+                      ? t(
+                          `第 ${Math.floor(i / size) + 1} 行第 ${(i % size) + 1} 列，空格`,
+                          `Row ${Math.floor(i / size) + 1}, column ${(i % size) + 1}, empty space`,
+                        )
+                      : t(
+                          `数字 ${val}，第 ${Math.floor(i / size) + 1} 行第 ${(i % size) + 1} 列，点击移动`,
+                          `Tile ${val}, row ${Math.floor(i / size) + 1}, column ${(i % size) + 1}, move`,
+                        )
                   }
                   layout
                   transition={{ type: 'tween', duration: 0.12, ease: 'easeOut' }}
@@ -386,7 +450,9 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
               disabled={!canMoveDir('up')}
               aria-label={t('向上移动', 'Move up')}
               className={`w-full aspect-square rounded-xl font-bold text-xl flex items-center justify-center active:scale-90 transition-all min-h-[44px] ${
-                canMoveDir('up') ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant' : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+                canMoveDir('up')
+                  ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
+                  : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
               }`}
             >
               ↑
@@ -397,7 +463,9 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
               disabled={!canMoveDir('left')}
               aria-label={t('向左移动', 'Move left')}
               className={`w-full aspect-square rounded-xl font-bold text-xl flex items-center justify-center active:scale-90 transition-all min-h-[44px] ${
-                canMoveDir('left') ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant' : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+                canMoveDir('left')
+                  ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
+                  : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
               }`}
             >
               ←
@@ -408,7 +476,9 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
               disabled={!canMoveDir('right')}
               aria-label={t('向右移动', 'Move right')}
               className={`w-full aspect-square rounded-xl font-bold text-xl flex items-center justify-center active:scale-90 transition-all min-h-[44px] ${
-                canMoveDir('right') ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant' : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+                canMoveDir('right')
+                  ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
+                  : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
               }`}
             >
               →
@@ -419,7 +489,9 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
               disabled={!canMoveDir('down')}
               aria-label={t('向下移动', 'Move down')}
               className={`w-full aspect-square rounded-xl font-bold text-xl flex items-center justify-center active:scale-90 transition-all min-h-[44px] ${
-                canMoveDir('down') ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant' : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
+                canMoveDir('down')
+                  ? 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
+                  : 'bg-surface-container-lowest/30 text-on-surface/30 cursor-default'
               }`}
             >
               ↓
@@ -430,7 +502,10 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
 
         {/* Operation Hint */}
         <p className="text-xs text-secondary text-center mb-4">
-          {t('方向键/WASD 控制空位移动，手机可滑动棋盘或点击方向按钮，也可点击相邻数字', 'Arrow keys/WASD to move the blank, swipe the board, tap direction buttons, or tap adjacent tiles')}
+          {t(
+            '方向键/WASD 控制空位移动，手机可滑动棋盘或点击方向按钮，也可点击相邻数字',
+            'Arrow keys/WASD to move the blank, swipe the board, tap direction buttons, or tap adjacent tiles',
+          )}
         </p>
 
         {/* Controls */}
@@ -454,8 +529,17 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
               transition={{ type: 'spring', stiffness: 300, damping: 18 }}
               className="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-2xl text-center"
             >
-              <motion.p initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }} className="text-3xl mb-2">🧩</motion.p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">{t('恭喜完成！', 'Congratulations!')}</p>
+              <motion.p
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+                className="text-3xl mb-2"
+              >
+                🧩
+              </motion.p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
+                {t('恭喜完成！', 'Congratulations!')}
+              </p>
               <div className="flex justify-center gap-4 mb-4">
                 <div>
                   <p className="text-xs text-green-500">{t('步数', 'Moves')}</p>
@@ -467,9 +551,19 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
                 </div>
               </div>
               {(moves === bestMoves || elapsed === bestTime) && (
-                <motion.p initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} className="text-sm text-yellow-500 mb-3">🏆 {t('新纪录！', 'New Record!')}</motion.p>
+                <motion.p
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', delay: 0.3 }}
+                  className="text-sm text-yellow-500 mb-3"
+                >
+                  🏆 {t('新纪录！', 'New Record!')}
+                </motion.p>
               )}
-              <button onClick={() => newGame()} className="px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors min-h-[44px]">
+              <button
+                onClick={() => newGame()}
+                className="px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors min-h-[44px]"
+              >
                 {t('再来一局', 'Play Again')}
               </button>
             </motion.div>

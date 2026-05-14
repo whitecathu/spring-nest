@@ -37,7 +37,11 @@ interface Particle {
 }
 
 function loadBestScore(): number {
-  try { return JSON.parse(localStorage.getItem('spring_nest_forest_best') || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem('spring_nest_forest_best') || '0');
+  } catch {
+    return 0;
+  }
 }
 function saveBestScore(score: number) {
   localStorage.setItem('spring_nest_forest_best', JSON.stringify(score));
@@ -75,7 +79,12 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
   const [gameOver, setGameOver] = useState(false);
   const [items, setItems] = useState<FallingItem[]>([]);
   const [animals, setAnimals] = useState<Animal[]>([]);
-  const [hitEffect, setHitEffect] = useState<{ id: number; x: number; y: number; text: string } | null>(null);
+  const [hitEffect, setHitEffect] = useState<{
+    id: number;
+    x: number;
+    y: number;
+    text: string;
+  } | null>(null);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [branchShake, setBranchShake] = useState(false);
   const [combo, setCombo] = useState(0);
@@ -87,10 +96,22 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
   const gameAreaRef = useRef<HTMLDivElement>(null);
 
   const clearAllTimers = useCallback(() => {
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    if (spawnRef.current) { clearInterval(spawnRef.current); spawnRef.current = null; }
-    if (moveRef.current) { clearInterval(moveRef.current); moveRef.current = null; }
-    if (animalRef.current) { clearInterval(animalRef.current); animalRef.current = null; }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (spawnRef.current) {
+      clearInterval(spawnRef.current);
+      spawnRef.current = null;
+    }
+    if (moveRef.current) {
+      clearInterval(moveRef.current);
+      moveRef.current = null;
+    }
+    if (animalRef.current) {
+      clearInterval(animalRef.current);
+      animalRef.current = null;
+    }
   }, []);
 
   const spawnItem = useCallback(() => {
@@ -104,7 +125,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
       speed: 1.5 + Math.random() * 2,
       size: 0.8 + Math.random() * 0.6,
     };
-    setItems(prev => [...prev, newItem]);
+    setItems((prev) => [...prev, newItem]);
   }, []);
 
   const spawnAnimal = useCallback(() => {
@@ -116,9 +137,9 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
       y: 60 + Math.random() * 25,
       visible: true,
     };
-    setAnimals(prev => [...prev, newAnimal]);
+    setAnimals((prev) => [...prev, newAnimal]);
     setTimeout(() => {
-      setAnimals(prev => prev.map(a => a.id === newAnimal.id ? { ...a, visible: false } : a));
+      setAnimals((prev) => prev.map((a) => (a.id === newAnimal.id ? { ...a, visible: false } : a)));
     }, 3000);
   }, []);
 
@@ -131,9 +152,9 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
       angle: (360 / count) * i + Math.random() * 30,
       distance: 30 + Math.random() * 40,
     }));
-    setParticles(prev => [...prev, ...newParticles]);
+    setParticles((prev) => [...prev, ...newParticles]);
     setTimeout(() => {
-      setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
+      setParticles((prev) => prev.filter((p) => !newParticles.find((np) => np.id === p.id)));
     }, 700);
   }, []);
 
@@ -151,7 +172,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
     setPlaying(true);
 
     timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
           clearAllTimers();
           setPlaying(false);
@@ -162,15 +183,16 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
       });
     }, 1000);
 
-    spawnRef.current = setInterval(() => {
-      spawnItem();
-    }, 600 + Math.random() * 400);
+    spawnRef.current = setInterval(
+      () => {
+        spawnItem();
+      },
+      600 + Math.random() * 400,
+    );
 
     moveRef.current = setInterval(() => {
-      setItems(prev =>
-        prev
-          .map(item => ({ ...item, y: item.y + item.speed }))
-          .filter(item => item.y < 110)
+      setItems((prev) =>
+        prev.map((item) => ({ ...item, y: item.y + item.speed })).filter((item) => item.y < 110),
       );
     }, 50);
 
@@ -179,59 +201,76 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
     }, 4000);
   }, [clearAllTimers, spawnItem, spawnAnimal]);
 
-  useEffect(() => { return clearAllTimers; }, [clearAllTimers]);
+  useEffect(() => {
+    return clearAllTimers;
+  }, [clearAllTimers]);
 
-  const catchItem = useCallback((item: FallingItem) => {
-    if (!playing || gameOver) return;
+  const catchItem = useCallback(
+    (item: FallingItem) => {
+      if (!playing || gameOver) return;
 
-    if (item.type === 'branch') {
-      setScore(s => Math.max(0, s - 2));
-      setCombo(0);
-      setHitEffect({ id: item.id, x: item.x, y: item.y, text: '-2' });
-      setBranchShake(true);
-      setTimeout(() => setBranchShake(false), 400);
-    } else {
-      const comboBonus = combo >= 3 ? 2 : combo >= 2 ? 1 : 0;
-      const points = 1 + comboBonus;
-      setCombo(c => c + 1);
-      setScore(s => {
-        const newScore = s + points;
+      if (item.type === 'branch') {
+        setScore((s) => Math.max(0, s - 2));
+        setCombo(0);
+        setHitEffect({ id: item.id, x: item.x, y: item.y, text: '-2' });
+        setBranchShake(true);
+        setTimeout(() => setBranchShake(false), 400);
+      } else {
+        const comboBonus = combo >= 3 ? 2 : combo >= 2 ? 1 : 0;
+        const points = 1 + comboBonus;
+        setCombo((c) => c + 1);
+        setScore((s) => {
+          const newScore = s + points;
+          if (newScore > bestScore) {
+            setBestScore(newScore);
+            saveBestScore(newScore);
+          }
+          return newScore;
+        });
+        setHitEffect({
+          id: item.id,
+          x: item.x,
+          y: item.y,
+          text: comboBonus > 0 ? `+${points} 🔥` : `+${points}`,
+        });
+        emitParticles(item.x, item.y, SPARKLE_POOL, 4);
+      }
+
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+      setTimeout(() => setHitEffect(null), 600);
+    },
+    [playing, gameOver, combo, bestScore, emitParticles],
+  );
+
+  const catchAnimal = useCallback(
+    (animal: Animal) => {
+      if (!playing || gameOver) return;
+      const bonus = 5;
+      setScore((s) => {
+        const newScore = s + bonus;
         if (newScore > bestScore) {
           setBestScore(newScore);
           saveBestScore(newScore);
         }
         return newScore;
       });
-      setHitEffect({ id: item.id, x: item.x, y: item.y, text: comboBonus > 0 ? `+${points} 🔥` : `+${points}` });
-      emitParticles(item.x, item.y, SPARKLE_POOL, 4);
-    }
+      setHitEffect({ id: animal.id, x: animal.x, y: animal.y, text: `+${bonus} ✨` });
+      emitParticles(animal.x, animal.y, CELEBRATION_POOL, 6);
+      setAnimals((prev) => prev.map((a) => (a.id === animal.id ? { ...a, visible: false } : a)));
+      setTimeout(() => setHitEffect(null), 600);
+    },
+    [playing, gameOver, bestScore, emitParticles],
+  );
 
-    setItems(prev => prev.filter(i => i.id !== item.id));
-    setTimeout(() => setHitEffect(null), 600);
-  }, [playing, gameOver, combo, bestScore, emitParticles]);
-
-  const catchAnimal = useCallback((animal: Animal) => {
-    if (!playing || gameOver) return;
-    const bonus = 5;
-    setScore(s => {
-      const newScore = s + bonus;
-      if (newScore > bestScore) {
-        setBestScore(newScore);
-        saveBestScore(newScore);
-      }
-      return newScore;
-    });
-    setHitEffect({ id: animal.id, x: animal.x, y: animal.y, text: `+${bonus} ✨` });
-    emitParticles(animal.x, animal.y, CELEBRATION_POOL, 6);
-    setAnimals(prev => prev.map(a => a.id === animal.id ? { ...a, visible: false } : a));
-    setTimeout(() => setHitEffect(null), 600);
-  }, [playing, gameOver, bestScore, emitParticles]);
-
-  const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const formatTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -240,19 +279,34 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('森林漫步', 'Forest Walk')}</h1>
-            <p className="text-sm text-secondary">{t('收集落叶，避开树枝！', 'Collect leaves, avoid branches!')}</p>
+            <p className="text-sm text-secondary">
+              {t('收集落叶，避开树枝！', 'Collect leaves, avoid branches!')}
+            </p>
           </div>
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Clock className="w-3 h-3" />{t('时间', 'Time')}</div>
-              <div className={`text-xl font-bold ${timeLeft <= 10 ? 'text-red-500' : 'text-primary'} tabular-nums`}>{formatTime(timeLeft)}</div>
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {t('时间', 'Time')}
+              </div>
+              <div
+                className={`text-xl font-bold ${timeLeft <= 10 ? 'text-red-500' : 'text-primary'} tabular-nums`}
+              >
+                {formatTime(timeLeft)}
+              </div>
             </div>
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Leaf className="w-3 h-3" />{t('分数', 'Score')}</div>
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Leaf className="w-3 h-3" />
+                {t('分数', 'Score')}
+              </div>
               <div className="text-xl font-bold text-primary">{score}</div>
             </div>
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Trophy className="w-3 h-3" />
+                {t('最佳', 'Best')}
+              </div>
               <div className="text-xl font-bold text-tertiary">{bestScore}</div>
             </div>
           </div>
@@ -272,20 +326,28 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
               className="text-center mb-2"
             >
               <motion.span
-                animate={combo >= 5 ? {
-                  scale: [1, 1.15, 1],
-                  rotate: [0, -3, 3, 0],
-                } : {}}
+                animate={
+                  combo >= 5
+                    ? {
+                        scale: [1, 1.15, 1],
+                        rotate: [0, -3, 3, 0],
+                      }
+                    : {}
+                }
                 transition={{ repeat: Infinity, duration: 0.8 }}
                 className={`inline-block text-sm font-black drop-shadow-lg ${
                   combo >= 5
                     ? 'text-2xl bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400 bg-clip-text text-transparent'
                     : combo >= 3
-                    ? 'text-lg text-orange-500'
-                    : 'text-amber-500'
+                      ? 'text-lg text-orange-500'
+                      : 'text-amber-500'
                 }`}
               >
-                {combo >= 5 ? `🔥 ${t('超级连击', 'Super Combo')} x${combo} 🔥` : combo >= 3 ? `🔥 ${t('连击', 'Combo')} x${combo}` : `✨ x${combo}`}
+                {combo >= 5
+                  ? `🔥 ${t('超级连击', 'Super Combo')} x${combo} 🔥`
+                  : combo >= 3
+                    ? `🔥 ${t('连击', 'Combo')} x${combo}`
+                    : `✨ x${combo}`}
               </motion.span>
             </motion.div>
           )}
@@ -293,10 +355,14 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
 
         <motion.div
           ref={gameAreaRef}
-          animate={branchShake ? {
-            x: [0, -8, 8, -6, 6, -3, 3, 0],
-            transition: { duration: 0.4 },
-          } : { x: 0 }}
+          animate={
+            branchShake
+              ? {
+                  x: [0, -8, 8, -6, 6, -3, 3, 0],
+                  transition: { duration: 0.4 },
+                }
+              : { x: 0 }
+          }
           className={`relative bg-gradient-to-b from-green-100/60 via-green-200/40 to-green-300/50 dark:from-green-900/30 dark:via-green-800/20 dark:to-green-700/30 rounded-3xl overflow-hidden mb-4 border-2 border-green-300/30 dark:border-green-700/30 ${
             branchShake ? 'ring-2 ring-red-400/60' : ''
           }`}
@@ -340,7 +406,10 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
               <span
                 key={i}
                 className={tree.size}
-                style={{ marginBottom: `${tree.mb}px`, filter: 'drop-shadow(0 -2px 4px rgba(0,80,0,0.15))' }}
+                style={{
+                  marginBottom: `${tree.mb}px`,
+                  filter: 'drop-shadow(0 -2px 4px rgba(0,80,0,0.15))',
+                }}
               >
                 {tree.emoji}
               </span>
@@ -349,7 +418,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
 
           <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-green-600/30 to-transparent pointer-events-none" />
 
-          {items.map(item => (
+          {items.map((item) => (
             <motion.button
               key={item.id}
               initial={{ opacity: 0, scale: 0 }}
@@ -370,24 +439,26 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
           ))}
 
           <AnimatePresence>
-            {animals.filter(a => a.visible).map(animal => (
-              <motion.button
-                key={animal.id}
-                initial={{ opacity: 0, scale: 0, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0, y: -20 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                className="absolute cursor-pointer text-3xl active:scale-125 transition-transform touch-none select-none"
-                style={{
-                  left: `${animal.x}%`,
-                  top: `${animal.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                }}
-                onClick={() => catchAnimal(animal)}
-              >
-                {animal.emoji}
-              </motion.button>
-            ))}
+            {animals
+              .filter((a) => a.visible)
+              .map((animal) => (
+                <motion.button
+                  key={animal.id}
+                  initial={{ opacity: 0, scale: 0, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0, y: -20 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                  className="absolute cursor-pointer text-3xl active:scale-125 transition-transform touch-none select-none"
+                  style={{
+                    left: `${animal.x}%`,
+                    top: `${animal.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                  onClick={() => catchAnimal(animal)}
+                >
+                  {animal.emoji}
+                </motion.button>
+              ))}
           </AnimatePresence>
 
           {/* Score popups with better styling */}
@@ -423,7 +494,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
 
           {/* Sparkle / celebration particles */}
           <AnimatePresence>
-            {particles.map(p => {
+            {particles.map((p) => {
               const rad = (p.angle * Math.PI) / 180;
               const tx = Math.cos(rad) * p.distance;
               const ty = Math.sin(rad) * p.distance;
@@ -455,9 +526,14 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
                 className="text-center"
               >
                 <p className="text-5xl mb-4">🌳</p>
-                <p className="text-lg font-bold text-on-surface mb-2">{t('森林漫步', 'Forest Walk')}</p>
+                <p className="text-lg font-bold text-on-surface mb-2">
+                  {t('森林漫步', 'Forest Walk')}
+                </p>
                 <p className="text-sm text-secondary mb-6 px-4">
-                  {t('点击收集落叶 🍂，避开树枝 🪵，抓住小动物加分！', 'Tap falling leaves 🍂, avoid branches 🪵, catch animals for bonus!')}
+                  {t(
+                    '点击收集落叶 🍂，避开树枝 🪵，抓住小动物加分！',
+                    'Tap falling leaves 🍂, avoid branches 🪵, catch animals for bonus!',
+                  )}
                 </p>
                 <button
                   onClick={startGame}
@@ -491,7 +567,8 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="mt-6 p-6 rounded-2xl text-center border"
               style={{
-                background: 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.15), rgba(52,211,153,0.08))',
+                background:
+                  'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.15), rgba(52,211,153,0.08))',
                 borderColor: 'rgba(34,197,94,0.25)',
               }}
             >
@@ -532,7 +609,10 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         </AnimatePresence>
 
         <div className="mt-4 text-center text-xs text-secondary/50">
-          {t('点击落叶收集，点击树枝会扣分哦', 'Tap leaves to collect, tapping branches loses points')}
+          {t(
+            '点击落叶收集，点击树枝会扣分哦',
+            'Tap leaves to collect, tapping branches loses points',
+          )}
         </div>
       </motion.div>
     </div>

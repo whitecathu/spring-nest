@@ -28,7 +28,6 @@ import { getNewItems } from '../lib/recommendations';
 import { trackSearch } from '../lib/analytics';
 import SEO from '../components/SEO';
 import { websiteJsonLd } from '../lib/structuredData';
-import { getPrimaryGameCategorySlug, getPrimaryToolCategorySlug } from '../lib/catalogRoutes';
 
 // --- Shared card component for featured items (extracted for stable identity) ---
 function FeaturedCard({
@@ -40,7 +39,18 @@ function FeaturedCard({
   onFavorite,
   t,
 }: {
-  item: { id: string; icon?: string; iconBg?: string; title: string; titleEn: string; description: string; descriptionEn: string; category: string; categoryEn?: string; route: string };
+  item: {
+    id: string;
+    icon?: string;
+    iconBg?: string;
+    title: string;
+    titleEn: string;
+    description: string;
+    descriptionEn: string;
+    category: string;
+    categoryEn?: string;
+    route: string;
+  };
   index: number;
   actionLabel: string;
   accentClass: string;
@@ -56,11 +66,20 @@ function FeaturedCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.45, delay: index * 0.08 }}
-      whileHover={{ y: -10, scale: 1.02, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+      whileHover={{
+        y: -10,
+        scale: 1.02,
+        transition: { type: 'spring', stiffness: 400, damping: 15 },
+      }}
       whileTap={{ scale: 0.97, transition: { type: 'spring', stiffness: 500, damping: 20 } }}
       className="bg-white dark:bg-surface-container-high rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(184,228,201,0.2)] transition-all duration-300 flex flex-col gap-4 border border-surface-variant/20 hover:border-primary/20 group relative overflow-hidden"
     >
-      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(184,228,201,0.15), rgba(255,208,189,0.1))' }} />
+      <div
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: 'linear-gradient(135deg, rgba(184,228,201,0.15), rgba(255,208,189,0.1))',
+        }}
+      />
       <button
         type="button"
         onClick={() => onFavorite(item.id)}
@@ -73,12 +92,18 @@ function FeaturedCard({
       >
         <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
       </button>
-      <Link to={item.route} className="relative z-0 flex flex-1 flex-col gap-4" aria-label={t(`打开${item.title}`, `Open ${item.titleEn}`)}>
+      <Link
+        to={item.route}
+        className="relative z-0 flex flex-1 flex-col gap-4"
+        aria-label={t(`打开${item.title}`, `Open ${item.titleEn}`)}
+      >
         <div className="flex items-start gap-4 pr-10">
           <div
             className={`w-14 h-14 rounded-xl ${item.iconBg || 'bg-surface-container'} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-300`}
           >
-            <span className="text-2xl" aria-hidden="true">{item.icon}</span>
+            <span className="text-2xl" aria-hidden="true">
+              {item.icon}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-nunito font-bold text-lg text-on-surface group-hover:text-primary transition-colors truncate">
@@ -123,7 +148,7 @@ export default function Home() {
   const featuredTools = useMemo(
     () =>
       tools
-        .filter(item => item.featured)
+        .filter((item) => item.featured)
         .sort((a, b) => (b.popularScore ?? 0) - (a.popularScore ?? 0))
         .slice(0, 6),
     [],
@@ -132,7 +157,7 @@ export default function Home() {
   const featuredGames = useMemo(
     () =>
       games
-        .filter(item => item.featured)
+        .filter((item) => item.featured)
         .sort((a, b) => (b.popularScore ?? 0) - (a.popularScore ?? 0))
         .slice(0, 6),
     [],
@@ -140,18 +165,63 @@ export default function Home() {
 
   // --- Category definitions ---
   const toolCategories = [
-    { label: '日常实用', labelEn: 'Daily Utility', icon: Zap, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
-    { label: '时间效率', labelEn: 'Time & Efficiency', icon: Timer, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
-    { label: '开发辅助', labelEn: 'Developer Tools', icon: Code2, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
-    { label: '学习写作', labelEn: 'Study & Writing', icon: BookOpen, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
-    { label: '安全隐私', labelEn: 'Security & Privacy', icon: Shield, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
-    { label: '趣味工具', labelEn: 'Fun Tools', icon: Sparkles, color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
+    {
+      label: '日常实用',
+      labelEn: 'Daily Utility',
+      icon: Zap,
+      color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+    },
+    {
+      label: '时间效率',
+      labelEn: 'Time & Efficiency',
+      icon: Timer,
+      color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    },
+    {
+      label: '开发辅助',
+      labelEn: 'Developer Tools',
+      icon: Code2,
+      color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    },
+    {
+      label: '学习写作',
+      labelEn: 'Study & Writing',
+      icon: BookOpen,
+      color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+    },
+    {
+      label: '安全隐私',
+      labelEn: 'Security & Privacy',
+      icon: Shield,
+      color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+    },
+    {
+      label: '趣味工具',
+      labelEn: 'Fun Tools',
+      icon: Sparkles,
+      color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
+    },
   ];
 
   const gameCategories = [
-    { label: '反应挑战', labelEn: 'Action', icon: Zap, color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
-    { label: '益智解谜', labelEn: 'Puzzle', icon: Brain, color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' },
-    { label: '学习练习', labelEn: 'Educational', icon: GraduationCap, color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
+    {
+      label: '反应挑战',
+      labelEn: 'Action',
+      icon: Zap,
+      color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    },
+    {
+      label: '益智解谜',
+      labelEn: 'Puzzle',
+      icon: Brain,
+      color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
+    },
+    {
+      label: '学习练习',
+      labelEn: 'Educational',
+      icon: GraduationCap,
+      color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
+    },
   ];
 
   const handleHeroSearch = (event: FormEvent<HTMLFormElement>) => {
@@ -180,7 +250,10 @@ export default function Home() {
       {/* ========== 1. Hero Section ========== */}
       <section className="relative w-full pt-20 pb-16 sm:pt-32 sm:pb-24 px-6 flex flex-col items-center justify-center text-center overflow-hidden bg-gradient-to-b from-[#E8F5EE] to-[#FFF9F2] dark:from-[#1a2c1f] dark:to-background">
         {/* Floating decorations */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" style={{ willChange: 'transform' }}>
+        <div
+          className="absolute inset-0 pointer-events-none overflow-hidden z-0"
+          style={{ willChange: 'transform' }}
+        >
           <motion.div
             style={{ y: cloudY1 }}
             className="absolute top-20 left-[10%] opacity-40 text-primary-container"
@@ -192,10 +265,7 @@ export default function Home() {
               <Cloud className="w-20 h-20 fill-primary-container" />
             </motion.div>
           </motion.div>
-          <motion.div
-            style={{ y: cloudY2 }}
-            className="absolute top-40 right-[15%] opacity-30"
-          >
+          <motion.div style={{ y: cloudY2 }} className="absolute top-40 right-[15%] opacity-30">
             <motion.div
               animate={{ y: [0, 30, 0], x: [0, -15, 0] }}
               transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
@@ -253,7 +323,10 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="font-nunito text-lg text-secondary/80 max-w-2xl mx-auto mb-8"
           >
-            {t('免费、轻量、无需登录、即开即用。搜索工具、小游戏、描述或标签，快速打开你需要的内容。', 'Free, lightweight, no sign-in required, ready on open. Search tools, games, descriptions, or tags and jump straight in.')}
+            {t(
+              '免费、轻量、无需登录、即开即用。搜索工具、小游戏、描述或标签，快速打开你需要的内容。',
+              'Free, lightweight, no sign-in required, ready on open. Search tools, games, descriptions, or tags and jump straight in.',
+            )}
           </motion.p>
 
           <motion.form
@@ -274,7 +347,10 @@ export default function Home() {
                 type="search"
                 value={heroQuery}
                 onChange={(event) => setHeroQuery(event.target.value)}
-                placeholder={t('搜索计算器、2048、JSON、随机...', 'Search calculator, 2048, JSON, random...')}
+                placeholder={t(
+                  '搜索计算器、2048、JSON、随机...',
+                  'Search calculator, 2048, JSON, random...',
+                )}
                 className="min-h-[48px] flex-1 bg-transparent px-2 text-base text-on-surface outline-none placeholder:text-secondary/60"
               />
               <button
@@ -523,10 +599,16 @@ export default function Home() {
                 {t('全部工具', 'All Tools')}
               </h2>
               <p className="mt-1 text-sm text-secondary">
-                {t('覆盖计算、时间、文本、随机、安全与开发辅助。', 'Calculators, time, text, random, security, and developer utilities.')}
+                {t(
+                  '覆盖计算、时间、文本、随机、安全与开发辅助。',
+                  'Calculators, time, text, random, security, and developer utilities.',
+                )}
               </p>
             </div>
-            <Link to="/tools" className="inline-flex min-h-[48px] items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+            <Link
+              to="/tools"
+              className="inline-flex min-h-[48px] items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+            >
               {t('查看全部', 'View all')}
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -561,10 +643,16 @@ export default function Home() {
                 {t('全部小游戏', 'All Games')}
               </h2>
               <p className="mt-1 text-sm text-secondary">
-                {t('益智解谜、反应挑战、学习练习和经典休闲玩法。', 'Puzzle, action, educational, and classic casual games.')}
+                {t(
+                  '益智解谜、反应挑战、学习练习和经典休闲玩法。',
+                  'Puzzle, action, educational, and classic casual games.',
+                )}
               </p>
             </div>
-            <Link to="/games" className="inline-flex min-h-[48px] items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+            <Link
+              to="/games"
+              className="inline-flex min-h-[48px] items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+            >
               {t('查看全部', 'View all')}
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -598,7 +686,10 @@ export default function Home() {
               {t('为什么选择春日小筑', 'Why Spring Nest')}
             </h2>
             <p className="text-sm text-secondary">
-              {t('把常用工具和轻松游戏放在同一个安静入口，减少跳转和账号负担。', 'One calm place for everyday utilities and casual breaks, without extra accounts or noisy setup.')}
+              {t(
+                '把常用工具和轻松游戏放在同一个安静入口，减少跳转和账号负担。',
+                'One calm place for everyday utilities and casual breaks, without extra accounts or noisy setup.',
+              )}
             </p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr_1fr] gap-4">
@@ -606,17 +697,26 @@ export default function Home() {
               {
                 icon: Shield,
                 title: t('隐私优先', 'Privacy first'),
-                text: t('收藏、最近使用和大多数分数只保存在浏览器本地。工具输入默认不上传服务器。', 'Favorites, recent items, and most scores stay in local browser storage. Tool inputs are not uploaded by default.'),
+                text: t(
+                  '收藏、最近使用和大多数分数只保存在浏览器本地。工具输入默认不上传服务器。',
+                  'Favorites, recent items, and most scores stay in local browser storage. Tool inputs are not uploaded by default.',
+                ),
               },
               {
                 icon: Zap,
                 title: t('即开即用', 'Open and use'),
-                text: t('无需登录即可使用核心工具和小游戏，登录不是完成任务的前提。', 'Core tools and games work without sign-in. Accounts are not required to finish a task.'),
+                text: t(
+                  '无需登录即可使用核心工具和小游戏，登录不是完成任务的前提。',
+                  'Core tools and games work without sign-in. Accounts are not required to finish a task.',
+                ),
               },
               {
                 icon: Search,
                 title: t('快速找到', 'Fast to find'),
-                text: t('可按名称、说明、标签和分类搜索，适合重复打开常用功能。', 'Search by name, description, tag, and category for repeat access.'),
+                text: t(
+                  '可按名称、说明、标签和分类搜索，适合重复打开常用功能。',
+                  'Search by name, description, tag, and category for repeat access.',
+                ),
               },
             ].map((item, index) => {
               const Icon = item.icon;
@@ -630,7 +730,9 @@ export default function Home() {
                   className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5"
                 >
                   <Icon className="mb-4 h-6 w-6 text-primary" />
-                  <h3 className="mb-2 font-nunito text-lg font-bold text-on-surface">{item.title}</h3>
+                  <h3 className="mb-2 font-nunito text-lg font-bold text-on-surface">
+                    {item.title}
+                  </h3>
                   <p className="text-sm leading-relaxed text-secondary">{item.text}</p>
                 </motion.article>
               );
@@ -673,9 +775,13 @@ export default function Home() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{ scale: 1.08, y: -3, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+                    whileHover={{
+                      scale: 1.08,
+                      y: -3,
+                      transition: { type: 'spring', stiffness: 500, damping: 15 },
+                    }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate(`/tools/${getPrimaryToolCategorySlug(cat.label) ?? ''}`)}
+                    onClick={() => navigate(`/tools?category=${encodeURIComponent(cat.label)}`)}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 ${cat.color}`}
                   >
                     <Icon className="w-4 h-4" />
@@ -704,9 +810,13 @@ export default function Home() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{ scale: 1.08, y: -3, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+                    whileHover={{
+                      scale: 1.08,
+                      y: -3,
+                      transition: { type: 'spring', stiffness: 500, damping: 15 },
+                    }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate(`/games/${getPrimaryGameCategorySlug(cat.label) ?? ''}`)}
+                    onClick={() => navigate(`/games?category=${encodeURIComponent(cat.label)}`)}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 ${cat.color}`}
                   >
                     <Icon className="w-4 h-4" />

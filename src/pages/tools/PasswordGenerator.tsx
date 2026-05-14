@@ -8,7 +8,12 @@ const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const NUMBERS = '0123456789';
 const SYMBOLS = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 
-function generatePassword(length: number, useUpper: boolean, useNum: boolean, useSym: boolean): string {
+function generatePassword(
+  length: number,
+  useUpper: boolean,
+  useNum: boolean,
+  useSym: boolean,
+): string {
   let charset = LOWERCASE;
   if (useUpper) charset += UPPERCASE;
   if (useNum) charset += NUMBERS;
@@ -21,7 +26,10 @@ function generatePassword(length: number, useUpper: boolean, useNum: boolean, us
   return result;
 }
 
-function getStrength(pwd: string, opts: boolean[]): { label: string; labelEn: string; color: string; pct: number } {
+function getStrength(
+  pwd: string,
+  opts: boolean[],
+): { label: string; labelEn: string; color: string; pct: number } {
   const [upper, num, sym] = opts;
   let score = 0;
   if (pwd.length >= 8) score++;
@@ -44,9 +52,15 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
   const [useSym, setUseSym] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const password = useMemo(() => generatePassword(length, useUpper, useNum, useSym), [length, useUpper, useNum, useSym]);
+  const password = useMemo(
+    () => generatePassword(length, useUpper, useNum, useSym),
+    [length, useUpper, useNum, useSym],
+  );
 
-  const strength = useMemo(() => getStrength(password, [useUpper, useNum, useSym]), [password, useUpper, useNum, useSym]);
+  const strength = useMemo(
+    () => getStrength(password, [useUpper, useNum, useSym]),
+    [password, useUpper, useNum, useSym],
+  );
 
   const [displayPwd, setDisplayPwd] = useState(password);
 
@@ -74,22 +88,45 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button onClick={onBack} whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <motion.button
+        onClick={onBack}
+        whileHover={{ x: -4 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </motion.button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('密码生成器', 'Password Generator')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('密码生成器', 'Password Generator')}
+        </h2>
 
         {/* Generated Password Display */}
         <div className="bg-surface-container-low rounded-2xl p-4 mb-4 flex items-center gap-3">
-          <motion.span key={displayPwd} initial={{ scale: 1.05, opacity: 0.7 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 20 }} className="flex-1 font-mono text-lg text-on-surface break-all select-all">{displayPwd}</motion.span>
+          <motion.span
+            key={displayPwd}
+            initial={{ scale: 1.05, opacity: 0.7 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+            className="flex-1 font-mono text-lg text-on-surface break-all select-all"
+          >
+            {displayPwd}
+          </motion.span>
           <motion.button
             whileTap={{ scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             onClick={handleCopy}
-            aria-label={copied ? t('已复制密码', 'Password copied') : t('复制生成的密码', 'Copy generated password')}
+            aria-label={
+              copied
+                ? t('已复制密码', 'Password copied')
+                : t('复制生成的密码', 'Copy generated password')
+            }
             className={`p-2 rounded-xl transition-all shrink-0 ${copied ? 'bg-green-100 text-green-600' : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'}`}
           >
             {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
@@ -113,7 +150,10 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
             <span className="text-sm font-bold">{t(strength.label, strength.labelEn)}</span>
           </div>
           <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
-            <div className={`h-full rounded-full transition-all duration-300 ${strength.color}`} style={{ width: `${strength.pct}%` }} />
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
+              style={{ width: `${strength.pct}%` }}
+            />
           </div>
         </div>
 
@@ -142,36 +182,48 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
           {/* Options */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-on-surface">{t('包含大写字母', 'Uppercase (A-Z)')}</span>
+              <span className="text-sm font-medium text-on-surface">
+                {t('包含大写字母', 'Uppercase (A-Z)')}
+              </span>
               <button
                 onClick={() => setUseUpper(!useUpper)}
                 aria-label={t('包含大写字母', 'Include uppercase letters')}
                 aria-pressed={useUpper}
                 className={`w-11 h-6 rounded-full transition-colors relative ${useUpper ? 'bg-primary' : 'bg-surface-variant'}`}
               >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useUpper ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                <div
+                  className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useUpper ? 'translate-x-6' : 'translate-x-0.5'}`}
+                />
               </button>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-on-surface">{t('包含数字', 'Numbers (0-9)')}</span>
+              <span className="text-sm font-medium text-on-surface">
+                {t('包含数字', 'Numbers (0-9)')}
+              </span>
               <button
                 onClick={() => setUseNum(!useNum)}
                 aria-label={t('包含数字', 'Include numbers')}
                 aria-pressed={useNum}
                 className={`w-11 h-6 rounded-full transition-colors relative ${useNum ? 'bg-primary' : 'bg-surface-variant'}`}
               >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useNum ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                <div
+                  className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useNum ? 'translate-x-6' : 'translate-x-0.5'}`}
+                />
               </button>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-on-surface">{t('包含特殊字符', 'Symbols (!@#$...)')}</span>
+              <span className="text-sm font-medium text-on-surface">
+                {t('包含特殊字符', 'Symbols (!@#$...)')}
+              </span>
               <button
                 onClick={() => setUseSym(!useSym)}
                 aria-label={t('包含特殊字符', 'Include symbols')}
                 aria-pressed={useSym}
                 className={`w-11 h-6 rounded-full transition-colors relative ${useSym ? 'bg-primary' : 'bg-surface-variant'}`}
               >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useSym ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                <div
+                  className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${useSym ? 'translate-x-6' : 'translate-x-0.5'}`}
+                />
               </button>
             </div>
           </div>

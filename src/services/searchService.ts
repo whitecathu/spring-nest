@@ -59,7 +59,11 @@ export function search(query: string, typeFilter?: AppItemType): SearchResult[] 
   return results;
 }
 
-export function searchByType(query: string): { results: SearchResult[]; toolCount: number; gameCount: number } {
+export function searchByType(query: string): {
+  results: SearchResult[];
+  toolCount: number;
+  gameCount: number;
+} {
   const all = search(query);
   const toolCount = all.filter((r) => r.item.type === 'tool').length;
   const gameCount = all.filter((r) => r.item.type === 'game').length;

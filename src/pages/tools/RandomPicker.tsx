@@ -28,7 +28,10 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
   }, []);
 
   const handlePick = useCallback(() => {
-    const lines = input.split('\n').map(s => s.trim()).filter(Boolean);
+    const lines = input
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (lines.length === 0) return;
 
     setResult(null);
@@ -86,23 +89,39 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
     }
   }, [result]);
 
-  const lines = input.split('\n').map(s => s.trim()).filter(Boolean);
+  const lines = input
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('抽签工具', 'Random Picker')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('抽签工具', 'Random Picker')}
+        </h2>
 
         {/* Input */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-on-surface">{t('输入选项（每行一个）', 'Enter options (one per line)')}</label>
-            <span className="text-xs text-secondary">{lines.length} {t('项', 'items')}</span>
+            <label className="text-sm font-medium text-on-surface">
+              {t('输入选项（每行一个）', 'Enter options (one per line)')}
+            </label>
+            <span className="text-xs text-secondary">
+              {lines.length} {t('项', 'items')}
+            </span>
           </div>
           <textarea
             value={input}
@@ -154,14 +173,18 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
               <div className="text-xs text-secondary font-medium mb-2">
                 {spinning ? t('抽取中...', 'Picking...') : t('结果', 'Result')}
               </div>
-              <div className={`text-3xl font-bold mb-4 ${spinning ? 'text-secondary animate-pulse' : 'text-primary'}`}>
+              <div
+                className={`text-3xl font-bold mb-4 ${spinning ? 'text-secondary animate-pulse' : 'text-primary'}`}
+              >
                 {spinDisplay || result}
               </div>
               {result && !spinning && (
                 <button
                   onClick={handleCopy}
                   className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 mx-auto ${
-                    copied ? 'bg-green-100 text-green-600' : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'
+                    copied
+                      ? 'bg-green-100 text-green-600'
+                      : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'
                   }`}
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}

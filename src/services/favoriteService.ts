@@ -49,7 +49,7 @@ export function addFavorite(userId: string, itemId: string): void {
 export function removeFavorite(userId: string, itemId: string): void {
   const data = getFavoritesData();
   if (data[userId]) {
-    data[userId] = data[userId].filter(id => id !== itemId);
+    data[userId] = data[userId].filter((id) => id !== itemId);
     saveFavoritesData(data);
   }
 }

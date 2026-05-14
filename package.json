@@ -5,18 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "generate:sitemap": "node scripts/generate-static-site-files.mjs",
-    "prebuild": "node scripts/generate-static-site-files.mjs",
+    "generate:site-assets": "tsx scripts/generate-site-assets.ts",
+    "generate:sitemap": "npm run generate:site-assets",
+    "prebuild": "npm run generate:site-assets",
     "build": "vite build",
     "postbuild": "node scripts/generate-route-heads.mjs",
     "preview": "vite preview",
     "clean": "npx rimraf dist",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "lhci": "lhci autorun",
+    "analyze": "vite build --mode analyze"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",
@@ -29,6 +34,8 @@
     "react-router-dom": "^6.30.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -38,8 +45,11 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",
     "jsdom": "^29.1.1",
+    "prettier": "^3.8.3",
+    "rollup-plugin-visualizer": "^7.0.1",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.1.14",
+    "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
     "vite-plugin-pwa": "^1.2.0",

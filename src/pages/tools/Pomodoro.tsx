@@ -24,7 +24,9 @@ function loadStats() {
   try {
     const d = localStorage.getItem('spring_nest_pomodoro');
     return d ? JSON.parse(d) : { sessions: 0, totalMinutes: 0 };
-  } catch { return { sessions: 0, totalMinutes: 0 }; }
+  } catch {
+    return { sessions: 0, totalMinutes: 0 };
+  }
 }
 
 function saveStats(stats: { sessions: number; totalMinutes: number }) {
@@ -37,11 +39,20 @@ function loadSettings(): PomodoroSettings {
     if (!d) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(d);
     return {
-      focusTime: FOCUS_OPTIONS.includes(parsed.focusTime) ? parsed.focusTime : DEFAULT_SETTINGS.focusTime,
-      breakTime: BREAK_OPTIONS.includes(parsed.breakTime) ? parsed.breakTime : DEFAULT_SETTINGS.breakTime,
-      soundEnabled: typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : DEFAULT_SETTINGS.soundEnabled,
+      focusTime: FOCUS_OPTIONS.includes(parsed.focusTime)
+        ? parsed.focusTime
+        : DEFAULT_SETTINGS.focusTime,
+      breakTime: BREAK_OPTIONS.includes(parsed.breakTime)
+        ? parsed.breakTime
+        : DEFAULT_SETTINGS.breakTime,
+      soundEnabled:
+        typeof parsed.soundEnabled === 'boolean'
+          ? parsed.soundEnabled
+          : DEFAULT_SETTINGS.soundEnabled,
     };
-  } catch { return DEFAULT_SETTINGS; }
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
 }
 
 function saveSettings(settings: PomodoroSettings) {
@@ -111,7 +122,7 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
   const startTimer = useCallback(() => {
     setIsRunning(true);
     intervalRef.current = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
           // Timer complete
           const currentSettings = settingsRef.current;
@@ -121,7 +132,10 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
           setCelebrating(true);
           setTimeout(() => setCelebrating(false), 600);
           if (mode === 'focus') {
-            setStats(s => ({ sessions: s.sessions + 1, totalMinutes: s.totalMinutes + currentSettings.focusTime }));
+            setStats((s) => ({
+              sessions: s.sessions + 1,
+              totalMinutes: s.totalMinutes + currentSettings.focusTime,
+            }));
             setMode('break');
             return currentSettings.breakTime * 60;
           } else {
@@ -152,21 +166,21 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
   };
 
   const updateFocusTime = (minutes: number) => {
-    setSettings(s => ({ ...s, focusTime: minutes }));
+    setSettings((s) => ({ ...s, focusTime: minutes }));
     if (mode === 'focus' && !isRunning) {
       setTimeLeft(minutes * 60);
     }
   };
 
   const updateBreakTime = (minutes: number) => {
-    setSettings(s => ({ ...s, breakTime: minutes }));
+    setSettings((s) => ({ ...s, breakTime: minutes }));
     if (mode === 'break' && !isRunning) {
       setTimeLeft(minutes * 60);
     }
   };
 
   const toggleSound = () => {
-    setSettings(s => ({ ...s, soundEnabled: !s.soundEnabled }));
+    setSettings((s) => ({ ...s, soundEnabled: !s.soundEnabled }));
   };
 
   const minutes = Math.floor(timeLeft / 60);
@@ -176,12 +190,21 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button onClick={onBack} whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <motion.button
+        onClick={onBack}
+        whileHover={{ x: -4 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </motion.button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-8 shadow-lg border border-surface-variant/30 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-8 shadow-lg border border-surface-variant/30 text-center"
+      >
         {/* Mode Switch */}
         <div className="flex justify-center mb-6">
           <div className="bg-surface-container-high rounded-full p-1 flex gap-1">
@@ -190,13 +213,17 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               onClick={() => switchMode('focus')}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${mode === 'focus' ? 'bg-white text-primary shadow-sm' : 'text-secondary'}`}
-            >{t('专注', 'Focus')} ({settings.focusTime}m)</motion.button>
+            >
+              {t('专注', 'Focus')} ({settings.focusTime}m)
+            </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               onClick={() => switchMode('break')}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${mode === 'break' ? 'bg-white text-primary shadow-sm' : 'text-secondary'}`}
-            >{t('休息', 'Break')} ({settings.breakTime}m)</motion.button>
+            >
+              {t('休息', 'Break')} ({settings.breakTime}m)
+            </motion.button>
           </div>
         </div>
 
@@ -209,7 +236,9 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
           <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
             <circle cx="100" cy="100" r="90" fill="none" stroke="#e2e3df" strokeWidth="8" />
             <circle
-              cx="100" cy="100" r="90"
+              cx="100"
+              cy="100"
+              r="90"
               fill="none"
               stroke={mode === 'focus' ? '#3f6751' : '#795648'}
               strokeWidth="8"
@@ -232,17 +261,35 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
         {/* Controls */}
         <div className="flex justify-center gap-4 mb-6">
           {!isRunning ? (
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.93 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }} onClick={startTimer} className="px-8 py-4 bg-primary text-on-primary rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              onClick={startTimer}
+              className="px-8 py-4 bg-primary text-on-primary rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            >
               <Play className="w-5 h-5 fill-on-primary" />
               {t('开始', 'Start')}
             </motion.button>
           ) : (
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.93 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }} onClick={pauseTimer} className="px-8 py-4 bg-surface-container-high text-on-surface rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              onClick={pauseTimer}
+              className="px-8 py-4 bg-surface-container-high text-on-surface rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            >
               <Pause className="w-5 h-5" />
               {t('暂停', 'Pause')}
             </motion.button>
           )}
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.93 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }} onClick={resetTimer} className="px-6 py-4 bg-surface-container-low text-secondary rounded-full font-semibold hover:bg-surface-container-high transition-all flex items-center gap-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            onClick={resetTimer}
+            className="px-6 py-4 bg-surface-container-low text-secondary rounded-full font-semibold hover:bg-surface-container-high transition-all flex items-center gap-2"
+          >
             <RotateCcw className="w-5 h-5" />
             {t('重置', 'Reset')}
           </motion.button>
@@ -270,9 +317,11 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
 
           {/* Focus Time Selection */}
           <div className="mb-3">
-            <div className="text-xs text-secondary font-medium mb-1.5">{t('专注时长', 'Focus Duration')}</div>
+            <div className="text-xs text-secondary font-medium mb-1.5">
+              {t('专注时长', 'Focus Duration')}
+            </div>
             <div className="flex gap-1.5">
-              {FOCUS_OPTIONS.map(opt => (
+              {FOCUS_OPTIONS.map((opt) => (
                 <motion.button
                   key={opt}
                   whileTap={{ scale: 0.93 }}
@@ -292,9 +341,11 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
 
           {/* Break Time Selection */}
           <div>
-            <div className="text-xs text-secondary font-medium mb-1.5">{t('休息时长', 'Break Duration')}</div>
+            <div className="text-xs text-secondary font-medium mb-1.5">
+              {t('休息时长', 'Break Duration')}
+            </div>
             <div className="flex gap-1.5">
-              {BREAK_OPTIONS.map(opt => (
+              {BREAK_OPTIONS.map((opt) => (
                 <motion.button
                   key={opt}
                   whileTap={{ scale: 0.93 }}
@@ -314,7 +365,11 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Stats */}
-        <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} className="bg-surface-container-low rounded-2xl p-4 flex justify-around">
+        <motion.div
+          whileHover={{ y: -2 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="bg-surface-container-low rounded-2xl p-4 flex justify-around"
+        >
           <div>
             <div className="text-2xl font-bold text-primary">{stats.sessions}</div>
             <div className="text-xs text-secondary font-medium">{t('完成次数', 'Sessions')}</div>

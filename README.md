@@ -4,27 +4,32 @@
 
 > 藏尽春日好物，聚齐实用与欢喜 — 一个治愈系数字角落
 
+<!-- AUTO:STATS_START -->
+
 Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 25 个效率工具和 19 个休闲小游戏，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
+
+<!-- AUTO:STATS_END -->
 
 ## 技术栈
 
-| 技术 | 用途 |
-|---|---|
-| React 19 | UI 框架 |
-| Vite 6 | 构建工具 |
-| TypeScript 5.8 | 类型安全 |
-| Tailwind CSS 4 | 原子化 CSS |
-| React Router 6 | 客户端路由 |
-| Motion (Framer Motion) | 动画 |
-| Lucide React | 图标库 |
-| qrcode | 二维码生成 |
-| Vite PWA Plugin | PWA 离线支持 |
-| Vitest | 单元测试 (83 tests) |
-| Playwright | E2E 端到端测试 |
+| 技术                   | 用途                |
+| ---------------------- | ------------------- |
+| React 19               | UI 框架             |
+| Vite 6                 | 构建工具            |
+| TypeScript 5.8         | 类型安全            |
+| Tailwind CSS 4         | 原子化 CSS          |
+| React Router 6         | 客户端路由          |
+| Motion (Framer Motion) | 动画                |
+| Lucide React           | 图标库              |
+| qrcode                 | 二维码生成          |
+| Vite PWA Plugin        | PWA 离线支持        |
+| Vitest                 | 单元测试 (83 tests) |
+| Playwright             | E2E 端到端测试      |
 
 ## 已实现功能
 
 ### 核心功能
+
 - 登录/注册（localStorage 本地账号，邮箱校验，密码>=6位，本地密码以哈希形式保存）
 - 收藏功能（游戏+工具，按用户ID持久化）
 - 全文搜索（搜索名称、描述、分类、标签，结果排序）
@@ -38,44 +43,87 @@ Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，�
 - 排行榜系统（需配置 Supabase）
 - 后台管理页面（需配置 Supabase）
 
-### 工具示例（共 25 个）
-| 工具 | 功能 |
-|---|---|
-| 计算器 | 加减乘除、小数、键盘输入、历史记录、一键复制结果 |
-| 番茄钟 | 自定义时长、Web Audio 提示音、完成统计、localStorage 持久化 |
-| 单位换算 | 长度/重量/温度/面积实时换算 |
-| 密码生成器 | 自定义长度、大小写/数字/特殊字符、一键复制、强度指示 |
-| 二维码生成器 | 文本/链接转二维码、下载PNG |
-| 指南针 | 设备传感器电子罗盘、桌面端拖动操作、方位角显示 |
-| 轻量扫描仪 | 拍摄/上传文档、多种滤镜调整、下载PNG保存 |
-| 微风天气 | 自动定位/搜索城市、实时天气、三天预报 |
+### 工具列表（共 25 个）
 
-### 游戏示例（共 19 个）
-| 游戏 | 功能 |
-|---|---|
-| 2048 | 4x4棋盘、方向键/触屏滑动、撤回一步、分数+最高分、游戏结束判定 |
-| 记忆翻牌 | 4/8/12对难度选择、步数/用时统计、最佳成绩按难度持久化 |
-| 打地鼠 | 30秒限时、连击加成系统、9洞随机出鼠、难度递增、最高分记录 |
-| 色彩拼图 | 4x4棋盘、交换相邻色块三连线消除、连锁反应、步数统计 |
-| 森林漫步 | 60秒限时、点击收集落叶、避开树枝、连击加成、动物加分 |
+<!-- AUTO:TOOLS_START -->
+
+| 工具                                     | 功能                                                                     | 分类     |
+| ---------------------------------------- | ------------------------------------------------------------------------ | -------- |
+| [计算器](/tools/calculator)              | 极简风格计算器，支持加减乘除、历史记录，让每一次运算都清晰明了。         | 日常实用 |
+| [番茄钟](/tools/pomodoro)                | 25 分钟专注 + 5 分钟休息循环，助你快速进入心流状态。                     | 时间效率 |
+| [单位换算](/tools/converter)             | 支持长度、重量、温度、面积实时换算，操作简单快捷。                       | 日常实用 |
+| [密码生成器](/tools/password)            | 自定义长度与字符类型，一键生成强密码，支持复制。                         | 安全隐私 |
+| [二维码生成器](/tools/qrcode)            | 输入文本或链接快速生成二维码，支持下载保存。                             | 日常实用 |
+| [指南针](/tools/compass)                 | 支持设备传感器的电子罗盘，桌面端可拖动操作。                             | 日常实用 |
+| [轻量扫描仪](/tools/scanner)             | 拍摄或上传文档，支持多种滤镜调整，下载 PNG 保存。                        | 日常实用 |
+| [微风天气](/tools/weather)               | 自动定位或搜索城市，查看实时天气和三天预报。                             | 日常实用 |
+| [随机选择器](/tools/random-picker)       | 输入选项，随机抽取一个结果。适合抽签、决定吃什么、小组分配。             | 趣味工具 |
+| [倒计时与秒表](/tools/timer-stopwatch)   | 支持倒计时和秒表两种模式，常用时间快捷设置。                             | 时间效率 |
+| [字数统计](/tools/word-counter)          | 实时统计字数、字符数、中文字符、英文单词、行数和段落数。                 | 学习写作 |
+| [Markdown 预览](/tools/markdown-preview) | 左侧编辑 Markdown，右侧实时预览渲染效果。                                | 学习写作 |
+| [JSON 格式化](/tools/json-formatter)     | 格式化、压缩、校验 JSON 数据，快速定位语法错误。                         | 开发辅助 |
+| [Base64 编解码](/tools/base64-codec)     | 文本与 Base64 互相转换，支持中文和 Unicode 字符。                        | 开发辅助 |
+| [URL 编解码](/tools/url-codec)           | URL 编码与解码转换，处理特殊字符和中文链接。                             | 开发辅助 |
+| [颜色转换器](/tools/color-converter)     | HEX、RGB、HSL 颜色格式互转，附带春日主题色板。                           | 趣味工具 |
+| [日期计算器](/tools/date-calculator)     | 计算两个日期之间的天数差，或从某日期推算 N 天后的日期。                  | 时间效率 |
+| [文本对比](/tools/text-diff)             | 逐行对比两段文本，高亮显示新增和删除的内容，支持差异统计。               | 学习写作 |
+| [随机文本生成](/tools/lorem-generator)   | 快速生成 Lorem Ipsum 占位文本，可自定义段落数和每段句数。                | 学习写作 |
+| [IP 查询](/tools/ip-lookup)              | 查看您的公网 IP 地址及地理位置、运营商、时区等详细信息。                 | 开发辅助 |
+| [小费计算器](/tools/tip-calculator)      | 快速计算小费金额和分账，支持自定义小费比例和多人分账。                   | 日常实用 |
+| [大小写转换](/tools/case-converter)      | 快速转换文本大小写格式，支持大写、小写、首字母大写、句首大写等多种模式。 | 学习写作 |
+| [随机数生成](/tools/random-number)       | 生成指定范围内的随机数，支持批量生成和常用范围预设。                     | 趣味工具 |
+| [BMI 计算器](/tools/bmi-calculator)      | 输入身高体重，快速计算 BMI 指数，查看健康范围和建议。                    | 日常实用 |
+| [文字朗读](/tools/text-to-speech)        | 输入文字即可朗读，支持多种语言和语速调节，让文字开口说话。               | 趣味工具 |
+
+<!-- AUTO:TOOLS_END -->
+
+### 游戏列表（共 19 个）
+
+<!-- AUTO:GAMES_START -->
+
+| 游戏                                | 功能                                                                 | 分类     |
+| ----------------------------------- | -------------------------------------------------------------------- | -------- |
+| [2048](/games/2048)                 | 经典数字合并游戏，滑动方块合并相同数字，挑战 2048 及更高分。         | 益智解谜 |
+| [记忆翻牌](/games/memory)           | 翻转卡片找出配对，锻炼记忆力，挑战最少步数完成。                     | 益智解谜 |
+| [打地鼠](/games/whackamole)         | 快速点击冒出的地鼠，考验反应速度，连击加分。                         | 反应挑战 |
+| [色彩拼图](/games/colormerge)       | 交换相邻色块，三个同色连线即可消除，支持连锁反应。                   | 益智解谜 |
+| [森林漫步](/games/forestwalk)       | 点击收集落叶，避开树枝，抓住小动物加分，60秒限时挑战。               | 反应挑战 |
+| [贪吃蛇](/games/snake)              | 控制蛇吃食物不断变长，避免撞墙和撞到自己。                           | 反应挑战 |
+| [反应测试](/games/reaction-test)    | 等待屏幕变绿后尽快点击，测试你的反应速度。                           | 反应挑战 |
+| [数字华容道](/games/number-puzzle)  | 滑动数字方块，将打乱的数字还原为正确顺序。                           | 益智解谜 |
+| [井字棋](/games/tic-tac-toe)        | 经典井字棋，支持双人对战和人机对战。                                 | 益智解谜 |
+| [打字挑战](/games/typing-challenge) | 看着目标句子快速输入，统计准确率和速度。                             | 学习练习 |
+| [色彩挑战](/games/color-stroop)     | 文字颜色和含义不一致时，选择文字的实际颜色。考验专注力。             | 反应挑战 |
+| [扫雷](/games/minesweeper)          | 经典扫雷游戏，三种难度可选，点击揭开格子，长按标旗，小心地雷！       | 益智解谜 |
+| [像素小鸟](/games/flappy-bird)      | 点击屏幕让小鸟飞翔，穿过管道得分，简单又上瘾的休闲游戏。             | 反应挑战 |
+| [打砖块](/games/brick-breaker)      | 用挡板反弹小球击碎上方的彩色砖块，支持触屏滑动控制，多关卡挑战。     | 反应挑战 |
+| [西蒙说](/games/simon-says)         | 记住颜色出现的顺序，然后按相同顺序点击。考验记忆力和反应速度。       | 反应挑战 |
+| [数独](/games/sudoku)               | 经典数字谜题，在 9×9 格子中填入 1-9，每行每列每宫不重复。            | 益智解谜 |
+| [打字测速](/games/typing-speed)     | 测试你的英文打字速度，支持限时和限词两种模式，统计 WPM 和准确率。    | 学习练习 |
+| [找词游戏](/games/word-search)      | 在字母网格中找出隐藏的单词，支持横竖斜八个方向，锻炼观察力和词汇量。 | 益智解谜 |
+| [泡泡消消](/games/bubble-pop)       | 点击相同颜色的泡泡消除，连锁反应加分，挑战高分极限。                 | 反应挑战 |
+
+<!-- AUTO:GAMES_END -->
 
 ## 路由
 
-| 路径 | 页面 |
-|---|---|
-| `/` | 首页 |
-| `/games` | 游戏列表 |
-| `/games/:slug` | 游戏详情 |
-| `/tools` | 工具列表 |
-| `/tools/:slug` | 工具详情 |
-| `/favorites` | 收藏列表 |
-| `/profile` | 个人中心 |
-| `/about` | 关于我们 |
+| 路径            | 页面     |
+| --------------- | -------- |
+| `/`             | 首页     |
+| `/games`        | 游戏列表 |
+| `/games/:slug`  | 游戏详情 |
+| `/tools`        | 工具列表 |
+| `/tools/:slug`  | 工具详情 |
+| `/favorites`    | 收藏列表 |
+| `/profile`      | 个人中心 |
+| `/leaderboard`  | 排行榜   |
+| `/about`        | 关于我们 |
 | `/search?q=xxx` | 搜索结果 |
-| `/feedback` | 意见反馈 |
-| `/privacy` | 隐私政策 |
-| `/terms` | 服务条款 |
-| `*` | 404 |
+| `/feedback`     | 意见反馈 |
+| `/privacy`      | 隐私政策 |
+| `/terms`        | 服务条款 |
+| `/offline`      | 离线提示 |
+| `*`             | 404      |
 
 ## 本地运行
 
@@ -105,10 +153,10 @@ npm run lint     # ✅ 通过，无 TypeScript 错误
 
 项目使用 GitHub Actions 进行持续集成，每次 push 或 PR 到 `main` / `master` 分支自动运行：
 
-| 阶段 | 内容 | 依赖 |
-|---|---|---|
-| lint-and-test | TypeScript 类型检查 + 83 个单元测试 + 生产构建 | 无 |
-| e2e | Playwright 端到端测试 | lint-and-test 通过后 |
+| 阶段          | 内容                                           | 依赖                 |
+| ------------- | ---------------------------------------------- | -------------------- |
+| lint-and-test | TypeScript 类型检查 + 83 个单元测试 + 生产构建 | 无                   |
+| e2e           | Playwright 端到端测试                          | lint-and-test 通过后 |
 
 CI 配置见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
 
@@ -123,8 +171,8 @@ src/
 ├── contexts/            # UserContext + ThemeContext
 ├── components/          # 公共组件 (Navigation, Footer, LoginModal, ErrorBoundary)
 ├── pages/               # 页面组件
-│   ├── games/           # 3 个游戏
-│   └── tools/           # 5 个工具
+│   ├── games/           # 19 个游戏
+│   └── tools/           # 25 个工具
 ├── __tests__/           # 单元测试 (Vitest)
 ├── App.tsx              # 路由配置
 └── main.tsx             # 入口文件
@@ -149,31 +197,31 @@ docs/                    # 文档
 
 ### localStorage 存储
 
-| 存储 Key | 内容 |
-|---|---|
-| `spring_nest_users` | 注册用户账号列表 |
-| `spring_nest_current_user` | 当前登录用户 |
-| `spring_nest_favorites` | 收藏数据（按用户ID分组） |
-| `spring_nest_lang` | 语言偏好 |
-| `spring_nest_theme` | 主题偏好 (light/dark/system) |
-| `spring_nest_2048_best` | 2048 最高分 |
-| `spring_nest_memory_best` | 记忆翻牌最佳步数 |
-| `spring_nest_whackamole_best` | 打地鼠最高分 |
-| `spring_nest_colormerge_best` | 色彩拼图最高分 |
-| `spring_nest_forest_best` | 森林漫步最高分 |
-| `spring_nest_pomodoro` | 番茄钟完成统计 + 设置 |
-| `spring_nest_whackamole_best_combo` | 打地鼠最高连击 |
-| `spring_nest_pomodoro_settings` | 番茄钟自定义设置 |
+| 存储 Key                            | 内容                         |
+| ----------------------------------- | ---------------------------- |
+| `spring_nest_users`                 | 注册用户账号列表             |
+| `spring_nest_current_user`          | 当前登录用户                 |
+| `spring_nest_favorites`             | 收藏数据（按用户ID分组）     |
+| `spring_nest_lang`                  | 语言偏好                     |
+| `spring_nest_theme`                 | 主题偏好 (light/dark/system) |
+| `spring_nest_2048_best`             | 2048 最高分                  |
+| `spring_nest_memory_best`           | 记忆翻牌最佳步数             |
+| `spring_nest_whackamole_best`       | 打地鼠最高分                 |
+| `spring_nest_colormerge_best`       | 色彩拼图最高分               |
+| `spring_nest_forest_best`           | 森林漫步最高分               |
+| `spring_nest_pomodoro`              | 番茄钟完成统计 + 设置        |
+| `spring_nest_whackamole_best_combo` | 打地鼠最高连击               |
+| `spring_nest_pomodoro_settings`     | 番茄钟自定义设置             |
 
 ### Supabase 云端数据库
 
-| 表名 | 内容 |
-|---|---|
-| `profiles` | 用户资料 (用户名、简介、头像) |
-| `favorites` | 用户收藏 (游戏+工具) |
-| `game_scores` | 游戏分数记录 |
-| `user_settings` | 用户设置 (主题、语言、通知) |
-| `tool_usage` | 工具使用记录 |
+| 表名            | 内容                          |
+| --------------- | ----------------------------- |
+| `profiles`      | 用户资料 (用户名、简介、头像) |
+| `favorites`     | 用户收藏 (游戏+工具)          |
+| `game_scores`   | 游戏分数记录                  |
+| `user_settings` | 用户设置 (主题、语言、通知)   |
+| `tool_usage`    | 工具使用记录                  |
 
 详见 [docs/数据库设计.md](docs/数据库设计.md)。
 
@@ -214,6 +262,7 @@ npx netlify deploy --prod --dir=dist
 ```
 
 **环境变量配置**:
+
 1. 在 Netlify Dashboard → Site settings → Environment variables 中添加:
    - `VITE_SUPABASE_URL` = `https://your-project.supabase.co`
    - `VITE_SUPABASE_ANON_KEY` = `your-anon-key`
@@ -222,6 +271,7 @@ npx netlify deploy --prod --dir=dist
 ### 部署验证
 
 部署后请验证：
+
 - 直接访问子路由（如 `/games/2048`）不返回 404
 - 刷新页面路由正常
 - PWA 安装提示出现

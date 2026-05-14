@@ -83,21 +83,35 @@ export default function Base64Codec({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('Base64 编解码', 'Base64 Codec')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('Base64 编解码', 'Base64 Codec')}
+        </h2>
 
         {/* Input */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-secondary mb-2">{t('原文', 'Input')}</label>
+          <label className="block text-sm font-medium text-secondary mb-2">
+            {t('原文', 'Input')}
+          </label>
           <div className="relative">
             <textarea
               value={input}
-              onChange={(e) => { setInput(e.target.value); setError(''); }}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setError('');
+              }}
               className="w-full bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:border-primary/50 min-h-[100px] resize-y font-mono"
               placeholder={t('输入要编码/解码的文本...', 'Enter text to encode/decode...')}
             />
@@ -106,7 +120,11 @@ export default function Base64Codec({ onBack }: { onBack: () => void }) {
                 onClick={() => handleCopy(input, 'input')}
                 className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 text-secondary hover:text-primary transition-colors"
               >
-                {copiedInput ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                {copiedInput ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
               </button>
             )}
           </div>
@@ -137,7 +155,9 @@ export default function Base64Codec({ onBack }: { onBack: () => void }) {
 
         {/* Output */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-secondary mb-2">{t('Base64', 'Base64')}</label>
+          <label className="block text-sm font-medium text-secondary mb-2">
+            {t('Base64', 'Base64')}
+          </label>
           <div className="relative">
             <textarea
               value={output}
@@ -150,7 +170,11 @@ export default function Base64Codec({ onBack }: { onBack: () => void }) {
                 onClick={() => handleCopy(output, 'output')}
                 className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 text-secondary hover:text-primary transition-colors"
               >
-                {copiedOutput ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                {copiedOutput ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
               </button>
             )}
           </div>

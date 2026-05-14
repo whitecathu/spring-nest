@@ -30,9 +30,7 @@ function setMetaByName(name: string, content: string) {
 }
 
 function setMetaByProperty(property: string, content: string) {
-  let el = document.querySelector<HTMLMetaElement>(
-    `meta[property="${property}"]`,
-  );
+  let el = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
   if (!el) {
     el = document.createElement('meta');
     el.setAttribute('property', property);

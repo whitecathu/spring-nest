@@ -49,7 +49,11 @@ interface ScorePopup {
 let particleIdCounter = 0;
 
 function loadBestScore(): number {
-  try { return JSON.parse(localStorage.getItem('spring_nest_flappy_best') || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem('spring_nest_flappy_best') || '0');
+  } catch {
+    return 0;
+  }
 }
 
 function saveBestScore(score: number) {
@@ -179,7 +183,18 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
   // Spawn death particles at a given bird position
   const spawnDeathParticles = useCallback((y: number) => {
-    const colors = ['#fbbf24', '#f59e0b', '#ef4444', '#fb923c', '#f87171', '#ffffff', '#ff6b6b', '#ffd93d', '#ff8a5c', '#a855f7'];
+    const colors = [
+      '#fbbf24',
+      '#f59e0b',
+      '#ef4444',
+      '#fb923c',
+      '#f87171',
+      '#ffffff',
+      '#ff6b6b',
+      '#ffd93d',
+      '#ff8a5c',
+      '#a855f7',
+    ];
     const count = 10 + Math.floor(Math.random() * 3); // 10-12 particles
     const newParticles: DeathParticle[] = Array.from({ length: count }, () => ({
       id: particleIdCounter++,
@@ -189,10 +204,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
       size: Math.random() * 6 + 2,
       duration: Math.random() * 0.5 + 0.3,
     }));
-    setDeathParticles(prev => [...prev, ...newParticles]);
+    setDeathParticles((prev) => [...prev, ...newParticles]);
     // Clean up after animation completes
     setTimeout(() => {
-      setDeathParticles(prev => prev.filter(p => !newParticles.includes(p)));
+      setDeathParticles((prev) => prev.filter((p) => !newParticles.includes(p)));
     }, 1200);
   }, []);
 
@@ -259,7 +274,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     if (gameState !== 'ready') return;
     const interval = setInterval(() => {
-      setReadyCountdown(prev => {
+      setReadyCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
           beginPlaying();
@@ -275,7 +290,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     if (scorePopups.length === 0) return;
     const timeout = setTimeout(() => {
-      setScorePopups(prev => prev.slice(1));
+      setScorePopups((prev) => prev.slice(1));
     }, 800);
     return () => clearTimeout(timeout);
   }, [scorePopups]);
@@ -342,7 +357,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
         // Score popup (+1 animation)
         const popupId = scorePopupIdRef.current++;
-        setScorePopups(prev => [...prev, { id: popupId, x: BIRD_X + BIRD_SIZE, y: birdYRef.current - 10 }]);
+        setScorePopups((prev) => [
+          ...prev,
+          { id: popupId, x: BIRD_X + BIRD_SIZE, y: birdYRef.current - 10 },
+        ]);
 
         // Milestone combo indicator every 5 points
         if (scoreRef.current > 0 && scoreRef.current % 5 === 0) {
@@ -375,7 +393,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
       groundScrollRef.current = (groundScrollRef.current + PIPE_SPEED) % 40;
 
       // Update clouds (parallax: slower than pipes)
-      const updatedClouds = cloudsRef.current.map(cloud => {
+      const updatedClouds = cloudsRef.current.map((cloud) => {
         let newX = cloud.x - cloud.speed;
         if (newX + cloud.width < 0) {
           newX = GAME_WIDTH + Math.random() * 40;
@@ -521,7 +539,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         }
       `}</style>
 
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -547,7 +568,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
               </motion.div>
             </div>
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Trophy className="w-3 h-3" />
+                {t('最佳', 'Best')}
+              </div>
               <div className="text-xl font-bold text-tertiary tabular-nums">{bestScore}</div>
             </div>
           </div>
@@ -561,7 +585,11 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
             style={{
               width: GAME_WIDTH * gameScale,
               height: GAME_HEIGHT * gameScale,
-              animation: deathShake ? 'flappy-shake 0.3s ease-in-out' : (tapPulse ? 'tap-pulse 0.15s ease-out' : 'none'),
+              animation: deathShake
+                ? 'flappy-shake 0.3s ease-in-out'
+                : tapPulse
+                  ? 'tap-pulse 0.15s ease-out'
+                  : 'none',
             }}
             onClick={handleTap}
             onKeyDown={(e) => {
@@ -572,39 +600,44 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
             }}
             role="button"
             tabIndex={0}
-            aria-label={gameState === 'idle' ? t('开始 Flappy Bird', 'Start Flappy Bird') : t('让小鸟飞翔', 'Make the bird fly')}
+            aria-label={
+              gameState === 'idle'
+                ? t('开始 Flappy Bird', 'Start Flappy Bird')
+                : t('让小鸟飞翔', 'Make the bird fly')
+            }
           >
             {/* Parallax clouds */}
-            {gameState !== 'idle' && clouds.map((cloud, i) => (
-              <div
-                key={`cloud-${i}`}
-                className="absolute pointer-events-none"
-                style={{
-                  left: cloud.x * gameScale,
-                  top: cloud.y * gameScale,
-                  width: cloud.width * gameScale,
-                  height: (cloud.width * 0.4) * gameScale,
-                  opacity: cloud.opacity,
-                }}
-              >
+            {gameState !== 'idle' &&
+              clouds.map((cloud, i) => (
                 <div
-                  className="w-full h-full rounded-full bg-white dark:bg-white/20"
+                  key={`cloud-${i}`}
+                  className="absolute pointer-events-none"
                   style={{
-                    filter: 'blur(2px)',
+                    left: cloud.x * gameScale,
+                    top: cloud.y * gameScale,
+                    width: cloud.width * gameScale,
+                    height: cloud.width * 0.4 * gameScale,
+                    opacity: cloud.opacity,
                   }}
-                />
-                <div
-                  className="absolute rounded-full bg-white dark:bg-white/20"
-                  style={{
-                    width: '60%',
-                    height: '70%',
-                    top: '-30%',
-                    left: '20%',
-                    filter: 'blur(2px)',
-                  }}
-                />
-              </div>
-            ))}
+                >
+                  <div
+                    className="w-full h-full rounded-full bg-white dark:bg-white/20"
+                    style={{
+                      filter: 'blur(2px)',
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full bg-white dark:bg-white/20"
+                    style={{
+                      width: '60%',
+                      height: '70%',
+                      top: '-30%',
+                      left: '20%',
+                      filter: 'blur(2px)',
+                    }}
+                  />
+                </div>
+              ))}
 
             {/* Top gradient overlay for depth */}
             <div
@@ -756,7 +789,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   fontSize: BIRD_SIZE * gameScale,
                   lineHeight: 1,
                   transform: 'scaleX(-1)',
-                  animation: gameState === 'ready' ? 'ready-bounce 0.6s ease-in-out infinite, bird-breathing 2s ease-in-out infinite' : 'bird-breathing 2s ease-in-out infinite',
+                  animation:
+                    gameState === 'ready'
+                      ? 'ready-bounce 0.6s ease-in-out infinite, bird-breathing 2s ease-in-out infinite'
+                      : 'bird-breathing 2s ease-in-out infinite',
                 }}
               >
                 🐦
@@ -908,7 +944,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="text-center cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); startGame(); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startGame();
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -920,9 +959,15 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     tabIndex={0}
                     aria-label={t('开始 Flappy Bird', 'Start Flappy Bird')}
                   >
-                    <p className="text-5xl mb-3"
-                      style={{ animation: 'bird-breathing 2s ease-in-out infinite', transform: 'scaleX(-1)' }}
-                    >🐦</p>
+                    <p
+                      className="text-5xl mb-3"
+                      style={{
+                        animation: 'bird-breathing 2s ease-in-out infinite',
+                        transform: 'scaleX(-1)',
+                      }}
+                    >
+                      🐦
+                    </p>
                     <p
                       className="text-xl font-bold text-white drop-shadow-lg mb-2"
                       style={{ animation: 'pulse-glow 2s ease-in-out infinite' }}
@@ -947,7 +992,8 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     <p
                       className="text-8xl font-black text-white drop-shadow-lg"
                       style={{
-                        animation: 'countdown-pop 0.6s ease-out, countdown-fade 0.7s ease-in forwards',
+                        animation:
+                          'countdown-pop 0.6s ease-out, countdown-fade 0.7s ease-in forwards',
                         textShadow: '0 0 30px rgba(251, 191, 36, 0.6), 0 4px 12px rgba(0,0,0,0.3)',
                         color: '#fbbf24',
                       }}
@@ -967,7 +1013,9 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     transition={springSmooth}
                     className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4"
                   >
-                    <p className="text-2xl font-bold text-on-surface mb-2">{t('游戏结束', 'Game Over')}</p>
+                    <p className="text-2xl font-bold text-on-surface mb-2">
+                      {t('游戏结束', 'Game Over')}
+                    </p>
                     <p className="text-5xl mb-3">💀</p>
 
                     {/* Score breakdown animation */}
@@ -1007,7 +1055,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6, ...springSmooth }}
-                      onClick={(e) => { e.stopPropagation(); startGame(); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startGame();
+                      }}
                       className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]"
                     >
                       {t('再来一局', 'Play Again')}

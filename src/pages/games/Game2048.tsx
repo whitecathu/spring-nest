@@ -1,4 +1,10 @@
-import { useState, useEffect, useCallback, useRef, type TouchEvent as ReactTouchEvent } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type TouchEvent as ReactTouchEvent,
+} from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Undo2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
@@ -51,7 +57,7 @@ function addRandom(grid: Grid): void {
 }
 
 function slide(row: number[]): { row: number[]; score: number; mergeIndices: number[] } {
-  let arr = row.filter(v => v !== 0);
+  let arr = row.filter((v) => v !== 0);
   let score = 0;
   const mergeIndices: number[] = [];
   for (let i = 0; i < arr.length - 1; i++) {
@@ -62,13 +68,16 @@ function slide(row: number[]): { row: number[]; score: number; mergeIndices: num
       mergeIndices.push(i);
     }
   }
-  arr = arr.filter(v => v !== 0);
+  arr = arr.filter((v) => v !== 0);
   while (arr.length < 4) arr.push(0);
   return { row: arr, score, mergeIndices };
 }
 
-function moveGrid(grid: Grid, dir: Direction): { grid: Grid; score: number; moved: boolean; merges: MergePopup[] } {
-  const newGrid: Grid = grid.map(r => [...r]);
+function moveGrid(
+  grid: Grid,
+  dir: Direction,
+): { grid: Grid; score: number; moved: boolean; merges: MergePopup[] } {
+  const newGrid: Grid = grid.map((r) => [...r]);
   let totalScore = 0;
   let moved = false;
   const merges: MergePopup[] = [];
@@ -92,18 +101,36 @@ function moveGrid(grid: Grid, dir: Direction): { grid: Grid; score: number; move
     for (const mi of result.mergeIndices) {
       let mergeRow = -1;
       let mergeCol = -1;
-      if (dir === 'left') { mergeRow = i; mergeCol = mi; }
-      else if (dir === 'right') { mergeRow = i; mergeCol = 3 - mi; }
-      else if (dir === 'up') { mergeRow = mi; mergeCol = i; }
-      else { mergeRow = 3 - mi; mergeCol = i; }
+      if (dir === 'left') {
+        mergeRow = i;
+        mergeCol = mi;
+      } else if (dir === 'right') {
+        mergeRow = i;
+        mergeCol = 3 - mi;
+      } else if (dir === 'up') {
+        mergeRow = mi;
+        mergeCol = i;
+      } else {
+        mergeRow = 3 - mi;
+        mergeCol = i;
+      }
       merges.push({ id: mergePopupId++, row: mergeRow, col: mergeCol, value: result.row[mi] });
     }
 
     for (let j = 0; j < 4; j++) {
-      if (dir === 'left') { if (newGrid[i][j] !== result.row[j]) moved = true; newGrid[i][j] = result.row[j]; }
-      else if (dir === 'right') { if (newGrid[i][3 - j] !== result.row[j]) moved = true; newGrid[i][3 - j] = result.row[j]; }
-      else if (dir === 'up') { if (newGrid[j][i] !== result.row[j]) moved = true; newGrid[j][i] = result.row[j]; }
-      else { if (newGrid[3 - j][i] !== result.row[j]) moved = true; newGrid[3 - j][i] = result.row[j]; }
+      if (dir === 'left') {
+        if (newGrid[i][j] !== result.row[j]) moved = true;
+        newGrid[i][j] = result.row[j];
+      } else if (dir === 'right') {
+        if (newGrid[i][3 - j] !== result.row[j]) moved = true;
+        newGrid[i][3 - j] = result.row[j];
+      } else if (dir === 'up') {
+        if (newGrid[j][i] !== result.row[j]) moved = true;
+        newGrid[j][i] = result.row[j];
+      } else {
+        if (newGrid[3 - j][i] !== result.row[j]) moved = true;
+        newGrid[3 - j][i] = result.row[j];
+      }
     }
   }
 
@@ -132,7 +159,11 @@ function hasReached2048(grid: Grid): boolean {
 }
 
 function loadBestScore(): number {
-  try { return JSON.parse(localStorage.getItem('spring_nest_2048_best') || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem('spring_nest_2048_best') || '0');
+  } catch {
+    return 0;
+  }
 }
 
 function saveBestScore(score: number) {
@@ -149,21 +180,82 @@ interface TileStyle {
 
 function getTileStyle(val: number): TileStyle {
   const styles: Record<number, TileStyle> = {
-    2:    { bg: 'linear-gradient(135deg, #f0ede8 0%, #eee4da 100%)', text: '#776e65', fontSize: 'text-2xl sm:text-3xl' },
-    4:    { bg: 'linear-gradient(135deg, #f2e8d8 0%, #ede0c8 100%)', text: '#776e65', fontSize: 'text-2xl sm:text-3xl' },
-    8:    { bg: 'linear-gradient(135deg, #f5c28a 0%, #f2b179 100%)', text: '#ffffff', fontSize: 'text-2xl sm:text-3xl' },
-    16:   { bg: 'linear-gradient(135deg, #f8a573 0%, #f59563 100%)', text: '#ffffff', fontSize: 'text-2xl sm:text-3xl' },
-    32:   { bg: 'linear-gradient(135deg, #f98d70 0%, #f67c5f 100%)', text: '#ffffff', fontSize: 'text-2xl sm:text-3xl' },
-    64:   { bg: 'linear-gradient(135deg, #f8704c 0%, #f65e3b 100%)', text: '#ffffff', fontSize: 'text-2xl sm:text-3xl' },
-    128:  { bg: 'linear-gradient(135deg, #f0da7e 0%, #edcf72 100%)', text: '#ffffff', glow: '0 0 20px 4px rgba(237,207,114,0.5)', fontSize: 'text-xl sm:text-2xl' },
-    256:  { bg: 'linear-gradient(135deg, #f0d76d 0%, #edcc61 100%)', text: '#ffffff', glow: '0 0 22px 5px rgba(237,204,97,0.55)', fontSize: 'text-xl sm:text-2xl' },
-    512:  { bg: 'linear-gradient(135deg, #f0d35c 0%, #edc850 100%)', text: '#ffffff', glow: '0 0 24px 6px rgba(237,200,80,0.6)', fontSize: 'text-xl sm:text-2xl' },
-    1024: { bg: 'linear-gradient(135deg, #f0cf4b 0%, #edc53f 100%)', text: '#ffffff', glow: '0 0 26px 7px rgba(237,197,63,0.65)', fontSize: 'text-lg sm:text-xl' },
-    2048: { bg: 'linear-gradient(135deg, #f0cc38 0%, #edc22e 100%)', text: '#ffffff', glow: '0 0 30px 8px rgba(237,194,46,0.7)', fontSize: 'text-lg sm:text-xl' },
-    4096: { bg: 'linear-gradient(135deg, #4a4840 0%, #3c3a32 100%)', text: '#ffffff', glow: '0 0 28px 8px rgba(60,58,50,0.6)', fontSize: 'text-lg sm:text-xl' },
-    8192: { bg: 'linear-gradient(135deg, #4a4840 0%, #3c3a32 100%)', text: '#ffffff', glow: '0 0 30px 10px rgba(60,58,50,0.7)', fontSize: 'text-base sm:text-lg' },
+    2: {
+      bg: 'linear-gradient(135deg, #f0ede8 0%, #eee4da 100%)',
+      text: '#776e65',
+      fontSize: 'text-2xl sm:text-3xl',
+    },
+    4: {
+      bg: 'linear-gradient(135deg, #f2e8d8 0%, #ede0c8 100%)',
+      text: '#776e65',
+      fontSize: 'text-2xl sm:text-3xl',
+    },
+    8: {
+      bg: 'linear-gradient(135deg, #f5c28a 0%, #f2b179 100%)',
+      text: '#ffffff',
+      fontSize: 'text-2xl sm:text-3xl',
+    },
+    16: {
+      bg: 'linear-gradient(135deg, #f8a573 0%, #f59563 100%)',
+      text: '#ffffff',
+      fontSize: 'text-2xl sm:text-3xl',
+    },
+    32: {
+      bg: 'linear-gradient(135deg, #f98d70 0%, #f67c5f 100%)',
+      text: '#ffffff',
+      fontSize: 'text-2xl sm:text-3xl',
+    },
+    64: {
+      bg: 'linear-gradient(135deg, #f8704c 0%, #f65e3b 100%)',
+      text: '#ffffff',
+      fontSize: 'text-2xl sm:text-3xl',
+    },
+    128: {
+      bg: 'linear-gradient(135deg, #f0da7e 0%, #edcf72 100%)',
+      text: '#ffffff',
+      glow: '0 0 20px 4px rgba(237,207,114,0.5)',
+      fontSize: 'text-xl sm:text-2xl',
+    },
+    256: {
+      bg: 'linear-gradient(135deg, #f0d76d 0%, #edcc61 100%)',
+      text: '#ffffff',
+      glow: '0 0 22px 5px rgba(237,204,97,0.55)',
+      fontSize: 'text-xl sm:text-2xl',
+    },
+    512: {
+      bg: 'linear-gradient(135deg, #f0d35c 0%, #edc850 100%)',
+      text: '#ffffff',
+      glow: '0 0 24px 6px rgba(237,200,80,0.6)',
+      fontSize: 'text-xl sm:text-2xl',
+    },
+    1024: {
+      bg: 'linear-gradient(135deg, #f0cf4b 0%, #edc53f 100%)',
+      text: '#ffffff',
+      glow: '0 0 26px 7px rgba(237,197,63,0.65)',
+      fontSize: 'text-lg sm:text-xl',
+    },
+    2048: {
+      bg: 'linear-gradient(135deg, #f0cc38 0%, #edc22e 100%)',
+      text: '#ffffff',
+      glow: '0 0 30px 8px rgba(237,194,46,0.7)',
+      fontSize: 'text-lg sm:text-xl',
+    },
+    4096: {
+      bg: 'linear-gradient(135deg, #4a4840 0%, #3c3a32 100%)',
+      text: '#ffffff',
+      glow: '0 0 28px 8px rgba(60,58,50,0.6)',
+      fontSize: 'text-lg sm:text-xl',
+    },
+    8192: {
+      bg: 'linear-gradient(135deg, #4a4840 0%, #3c3a32 100%)',
+      text: '#ffffff',
+      glow: '0 0 30px 10px rgba(60,58,50,0.7)',
+      fontSize: 'text-base sm:text-lg',
+    },
   };
-  return styles[val] || { bg: 'transparent', text: 'transparent', fontSize: 'text-2xl sm:text-3xl' };
+  return (
+    styles[val] || { bg: 'transparent', text: 'transparent', fontSize: 'text-2xl sm:text-3xl' }
+  );
 }
 
 export default function Game2048({ onBack }: { onBack: () => void }) {
@@ -199,51 +291,63 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
         rotationSpeed: (Math.random() - 0.5) * 720,
       });
     }
-    setConfetti(prev => [...prev, ...particles]);
+    setConfetti((prev) => [...prev, ...particles]);
     setTimeout(() => {
-      setConfetti(prev => prev.filter(p => !particles.find(np => np.id === p.id)));
+      setConfetti((prev) => prev.filter((p) => !particles.find((np) => np.id === p.id)));
     }, 2000);
   }, []);
 
-  const handleMove = useCallback((dir: Direction) => {
-    if (gameOver || showWin) return;
-    const result = moveGrid(grid, dir);
-    if (result.moved) {
-      setPrevGrid(grid.map(r => [...r]));
-      setPrevScore(score);
-      setGrid(result.grid);
-      const newScore = score + result.score;
-      setScore(newScore);
-      if (newScore > bestScore) {
-        setBestScore(newScore);
-        saveBestScore(newScore);
-      }
+  const handleMove = useCallback(
+    (dir: Direction) => {
+      if (gameOver || showWin) return;
+      const result = moveGrid(grid, dir);
+      if (result.moved) {
+        setPrevGrid(grid.map((r) => [...r]));
+        setPrevScore(score);
+        setGrid(result.grid);
+        const newScore = score + result.score;
+        setScore(newScore);
+        if (newScore > bestScore) {
+          setBestScore(newScore);
+          saveBestScore(newScore);
+        }
 
-      // Show merge popups
-      if (result.merges.length > 0) {
-        setMergePopups(result.merges);
-        setTimeout(() => setMergePopups([]), 800);
-      }
+        // Show merge popups
+        if (result.merges.length > 0) {
+          setMergePopups(result.merges);
+          setTimeout(() => setMergePopups([]), 800);
+        }
 
-      // Win condition
-      if (!winTriggeredRef.current && hasReached2048(result.grid)) {
-        winTriggeredRef.current = true;
-        setShowWin(true);
-        spawnConfetti(35);
-      }
+        // Win condition
+        if (!winTriggeredRef.current && hasReached2048(result.grid)) {
+          winTriggeredRef.current = true;
+          setShowWin(true);
+          spawnConfetti(35);
+        }
 
-      if (isGameOver(result.grid)) {
-        setGameOver(true);
+        if (isGameOver(result.grid)) {
+          setGameOver(true);
+        }
       }
-    }
-  }, [grid, score, bestScore, gameOver, showWin, spawnConfetti]);
+    },
+    [grid, score, bestScore, gameOver, showWin, spawnConfetti],
+  );
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       const map: Record<string, Direction> = {
-        ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
-        w: 'up', s: 'down', a: 'left', d: 'right',
-        W: 'up', S: 'down', A: 'left', D: 'right',
+        ArrowUp: 'up',
+        ArrowDown: 'down',
+        ArrowLeft: 'left',
+        ArrowRight: 'right',
+        w: 'up',
+        s: 'down',
+        a: 'left',
+        d: 'right',
+        W: 'up',
+        S: 'down',
+        A: 'left',
+        D: 'right',
       };
       if (map[e.key]) {
         e.preventDefault();
@@ -299,7 +403,12 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button onClick={onBack} whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px]">
+      <motion.button
+        onClick={onBack}
+        whileHover={{ x: -4 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px]"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </motion.button>
@@ -309,10 +418,15 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">2048</h1>
-            <p className="text-sm text-secondary">{t('合并方块，挑战 2048！', 'Merge tiles to reach 2048!')}</p>
+            <p className="text-sm text-secondary">
+              {t('合并方块，挑战 2048！', 'Merge tiles to reach 2048!')}
+            </p>
           </div>
           <div className="flex gap-2">
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            <motion.div
+              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
+            >
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
               <motion.div
                 key={score}
@@ -324,8 +438,14 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
                 {score}
               </motion.div>
             </motion.div>
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+            <motion.div
+              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
+            >
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Trophy className="w-3 h-3" />
+                {t('最佳', 'Best')}
+              </div>
               <div className="text-xl font-bold text-tertiary tabular-nums">{bestScore}</div>
             </motion.div>
           </div>
@@ -334,7 +454,9 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
         {/* Grid */}
         <div
           className="relative bg-surface-container-high rounded-2xl p-3 mb-4 touch-none"
-          style={{ boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), inset 0 -1px 4px rgba(255,255,255,0.05)' }}
+          style={{
+            boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15), inset 0 -1px 4px rgba(255,255,255,0.05)',
+          }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -353,9 +475,9 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
                     background: val ? ts.bg : 'rgba(238,228,218,0.12)',
                     color: val ? ts.text : 'transparent',
                     boxShadow: val
-                      ? (isHighValue && ts.glow
-                          ? `${ts.glow}, 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)`
-                          : '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)')
+                      ? isHighValue && ts.glow
+                        ? `${ts.glow}, 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)`
+                        : '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
                       : 'none',
                   }}
                 >
@@ -368,19 +490,29 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
           {/* Merge score popup layer */}
           <div className="absolute inset-3 pointer-events-none overflow-hidden">
             <AnimatePresence>
-              {mergePopups.map(mp => {
+              {mergePopups.map((mp) => {
                 const cellSize = 100 / 4;
                 const x = mp.col * cellSize + cellSize / 2;
                 const y = mp.row * cellSize + cellSize / 2;
                 return (
                   <motion.div
                     key={mp.id}
-                    initial={{ left: `${x}%`, top: `${y}%`, opacity: 1, scale: 0.6, x: '-50%', y: '-50%' }}
+                    initial={{
+                      left: `${x}%`,
+                      top: `${y}%`,
+                      opacity: 1,
+                      scale: 0.6,
+                      x: '-50%',
+                      y: '-50%',
+                    }}
                     animate={{ top: `${y - 18}%`, opacity: 0, scale: 1.3, x: '-50%', y: '-50%' }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                     className="absolute font-black text-lg drop-shadow-md"
-                    style={{ color: '#f59563', textShadow: '0 1px 3px rgba(0,0,0,0.3), 0 0 8px rgba(245,149,99,0.4)' }}
+                    style={{
+                      color: '#f59563',
+                      textShadow: '0 1px 3px rgba(0,0,0,0.3), 0 0 8px rgba(245,149,99,0.4)',
+                    }}
                   >
                     +{mp.value}
                   </motion.div>
@@ -391,7 +523,7 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
 
           {/* Confetti layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-            {confetti.map(p => (
+            {confetti.map((p) => (
               <motion.div
                 key={p.id}
                 initial={{
@@ -461,8 +593,12 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
               >
                 🏆
               </motion.p>
-              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">{t('恭喜通关！', 'You Win!')}</p>
-              <p className="text-lg font-bold text-amber-500 mb-4">{t('得分', 'Score')}: {score}</p>
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+                {t('恭喜通关！', 'You Win!')}
+              </p>
+              <p className="text-lg font-bold text-amber-500 mb-4">
+                {t('得分', 'Score')}: {score}
+              </p>
               <div className="flex justify-center gap-3">
                 <motion.button
                   onClick={continueAfterWin}
@@ -505,8 +641,12 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
               >
                 😵
               </motion.p>
-              <p className="text-2xl font-bold text-red-500 dark:text-red-400 mb-1">{t('游戏结束', 'Game Over')}</p>
-              <p className="text-xl font-bold text-red-400 mb-1">{t('最终得分', 'Final Score')}: {score}</p>
+              <p className="text-2xl font-bold text-red-500 dark:text-red-400 mb-1">
+                {t('游戏结束', 'Game Over')}
+              </p>
+              <p className="text-xl font-bold text-red-400 mb-1">
+                {t('最终得分', 'Final Score')}: {score}
+              </p>
               {score > 0 && score === bestScore && (
                 <motion.p
                   initial={{ scale: 0 }}

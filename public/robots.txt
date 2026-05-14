@@ -1,7 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /profile
-Disallow: /favorites
 Disallow: /admin
 
 Sitemap: https://spring-nest.pages.dev/sitemap.xml

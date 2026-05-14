@@ -15,7 +15,12 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
   const [toastVisible, setToastVisible] = useState(false);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => () => { clearTimeout(toastTimeoutRef.current); }, []);
+  useEffect(
+    () => () => {
+      clearTimeout(toastTimeoutRef.current);
+    },
+    [],
+  );
 
   const bill = parseFloat(billAmount) || 0;
   const tip = customTip ? parseFloat(customTip) || 0 : tipPercent;
@@ -39,7 +44,10 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
@@ -50,19 +58,25 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
             <Calculator className="w-8 h-8 text-primary" />
             {t('小费计算器', 'Tip Calculator')}
           </h1>
-          <p className="text-sm text-secondary mt-1">{t('快速计算小费和分账', 'Quickly calculate tips and split bills')}</p>
+          <p className="text-sm text-secondary mt-1">
+            {t('快速计算小费和分账', 'Quickly calculate tips and split bills')}
+          </p>
         </div>
 
         {/* Bill Amount */}
         <div className="bg-surface-container rounded-2xl p-5 mb-4">
-          <label className="text-sm font-semibold text-secondary mb-2 block">{t('账单金额', 'Bill Amount')}</label>
+          <label className="text-sm font-semibold text-secondary mb-2 block">
+            {t('账单金额', 'Bill Amount')}
+          </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-primary">¥</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-primary">
+              ¥
+            </span>
             <input
               type="number"
               inputMode="decimal"
               value={billAmount}
-              onChange={e => setBillAmount(e.target.value)}
+              onChange={(e) => setBillAmount(e.target.value)}
               placeholder="0.00"
               className="w-full pl-10 pr-4 py-4 text-2xl font-bold bg-surface-container-lowest rounded-xl outline-none focus:ring-2 focus:ring-primary text-on-surface"
             />
@@ -76,10 +90,13 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
             {t('小费比例', 'Tip Percentage')}
           </label>
           <div className="flex flex-wrap gap-2 mb-3">
-            {TIP_PRESETS.map(p => (
+            {TIP_PRESETS.map((p) => (
               <motion.button
                 key={p}
-                onClick={() => { setTipPercent(p); setCustomTip(''); }}
+                onClick={() => {
+                  setTipPercent(p);
+                  setCustomTip('');
+                }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.9 }}
                 animate={tipPercent === p && !customTip ? { scale: 1.06 } : { scale: 1 }}
@@ -98,7 +115,7 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
             type="number"
             inputMode="numeric"
             value={customTip}
-            onChange={e => setCustomTip(e.target.value)}
+            onChange={(e) => setCustomTip(e.target.value)}
             placeholder={t('自定义比例...', 'Custom %...')}
             className="w-full px-4 py-3 bg-surface-container-lowest rounded-xl outline-none focus:ring-2 focus:ring-primary text-on-surface text-sm"
           />
@@ -275,7 +292,10 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
         </AnimatePresence>
 
         <div className="mt-4 text-center text-xs text-secondary/50">
-          {t('输入账单金额，选择小费比例和分账人数', 'Enter bill amount, select tip % and split count')}
+          {t(
+            '输入账单金额，选择小费比例和分账人数',
+            'Enter bill amount, select tip % and split count',
+          )}
         </div>
       </motion.div>
     </div>

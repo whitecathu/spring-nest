@@ -1,16 +1,48 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, Clock, Footprints, Trophy, Settings, Sparkles, Zap, Mountain, Star } from 'lucide-react';
+import {
+  ArrowLeft,
+  RotateCcw,
+  Clock,
+  Footprints,
+  Trophy,
+  Settings,
+  Sparkles,
+  Zap,
+  Mountain,
+  Star,
+} from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
 const EMOJIS = ['🌸', '🌿', '🍀', '🌻', '🦋', '🐝', '🍃', '🌷', '🌹', '🌺', '🌼', '💐'];
 
 type Difficulty = 'easy' | 'normal' | 'hard';
 
-const DIFFICULTY_CONFIG: Record<Difficulty, { pairs: number; cols: number; label: [string, string]; icon: typeof Sparkles; color: string }> = {
-  easy:   { pairs: 4,  cols: 4, label: ['简单', 'Easy'], icon: Sparkles, color: 'from-green-400 to-emerald-500' },
-  normal: { pairs: 8,  cols: 4, label: ['普通', 'Normal'], icon: Zap, color: 'from-amber-400 to-orange-500' },
-  hard:   { pairs: 12, cols: 6, label: ['困难', 'Hard'], icon: Mountain, color: 'from-rose-400 to-red-500' },
+const DIFFICULTY_CONFIG: Record<
+  Difficulty,
+  { pairs: number; cols: number; label: [string, string]; icon: typeof Sparkles; color: string }
+> = {
+  easy: {
+    pairs: 4,
+    cols: 4,
+    label: ['简单', 'Easy'],
+    icon: Sparkles,
+    color: 'from-green-400 to-emerald-500',
+  },
+  normal: {
+    pairs: 8,
+    cols: 4,
+    label: ['普通', 'Normal'],
+    icon: Zap,
+    color: 'from-amber-400 to-orange-500',
+  },
+  hard: {
+    pairs: 12,
+    cols: 6,
+    label: ['困难', 'Hard'],
+    icon: Mountain,
+    color: 'from-rose-400 to-red-500',
+  },
 };
 
 interface Card {
@@ -41,15 +73,26 @@ interface Confetti {
   delay: number;
 }
 
-const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+const CONFETTI_COLORS = [
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#96CEB4',
+  '#FFEAA7',
+  '#DDA0DD',
+  '#98D8C8',
+  '#F7DC6F',
+];
 const SPARKLE_EMOJIS = ['✨', '🌸', '⭐', '💫', '🌟'];
 
 function shuffleCards(pairs: number): Card[] {
   const selected = EMOJIS.slice(0, pairs);
-  const cards = selected.map((emoji, i) => [
-    { id: i * 2, emoji, pairId: i, flipped: false, matched: false },
-    { id: i * 2 + 1, emoji, pairId: i, flipped: false, matched: false },
-  ]).flat();
+  const cards = selected
+    .map((emoji, i) => [
+      { id: i * 2, emoji, pairId: i, flipped: false, matched: false },
+      { id: i * 2 + 1, emoji, pairId: i, flipped: false, matched: false },
+    ])
+    .flat();
   for (let i = cards.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [cards[i], cards[j]] = [cards[j], cards[i]];
@@ -88,7 +131,11 @@ function generateConfetti(): Confetti[] {
 }
 
 function loadBestMoves(difficulty: Difficulty): number {
-  try { return JSON.parse(localStorage.getItem(`spring_nest_memory_best_${difficulty}`) || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem(`spring_nest_memory_best_${difficulty}`) || '0');
+  } catch {
+    return 0;
+  }
 }
 function saveBestMoves(difficulty: Difficulty, moves: number) {
   localStorage.setItem(`spring_nest_memory_best_${difficulty}`, JSON.stringify(moves));
@@ -109,7 +156,10 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
 
   // New state for enhanced animations
   const [shakingIds, setShakingIds] = useState<number[]>([]);
-  const [matchSparkles, setMatchSparkles] = useState<{ cardId: number; sparkles: Sparkle[] } | null>(null);
+  const [matchSparkles, setMatchSparkles] = useState<{
+    cardId: number;
+    sparkles: Sparkle[];
+  } | null>(null);
   const [matchedPairFlash, setMatchedPairFlash] = useState<number[]>([]);
   const [confetti, setConfetti] = useState<Confetti[]>([]);
   const [prevMoves, setPrevMoves] = useState(0);
@@ -165,66 +215,73 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
     return () => clearInterval(timer);
   }, [startTime, gameComplete, difficulty]);
 
-  const handleFlip = useCallback((id: number) => {
-    if (processingRef.current || gameComplete || !difficulty) return;
+  const handleFlip = useCallback(
+    (id: number) => {
+      if (processingRef.current || gameComplete || !difficulty) return;
 
-    const card = cards.find(c => c.id === id);
-    if (!card || card.flipped || card.matched) return;
+      const card = cards.find((c) => c.id === id);
+      if (!card || card.flipped || card.matched) return;
 
-    if (flippedIds.length === 2) return;
+      if (flippedIds.length === 2) return;
 
-    const newFlipped = [...flippedIds, id];
-    setFlippedIds(newFlipped);
+      const newFlipped = [...flippedIds, id];
+      setFlippedIds(newFlipped);
 
-    if (newFlipped.length === 2) {
-      processingRef.current = true;
-      setMoves(m => m + 1);
+      if (newFlipped.length === 2) {
+        processingRef.current = true;
+        setMoves((m) => m + 1);
 
-      const first = cards.find(c => c.id === newFlipped[0])!;
-      const second = cards.find(c => c.id === newFlipped[1])!;
+        const first = cards.find((c) => c.id === newFlipped[0])!;
+        const second = cards.find((c) => c.id === newFlipped[1])!;
 
-      if (first.pairId === second.pairId) {
-        // Match - show sparkles and flash
-        const sparkleData = generateSparkles();
-        setMatchSparkles({ cardId: second.id, sparkles: sparkleData });
-        setMatchedPairFlash([first.id, second.id]);
+        if (first.pairId === second.pairId) {
+          // Match - show sparkles and flash
+          const sparkleData = generateSparkles();
+          setMatchSparkles({ cardId: second.id, sparkles: sparkleData });
+          setMatchedPairFlash([first.id, second.id]);
 
-        setTimeout(() => {
-          setCards(prev => prev.map(c =>
-            c.id === first.id || c.id === second.id ? { ...c, matched: true, flipped: true } : c
-          ));
-          setFlippedIds([]);
-          setMatchedCount(m => {
-            const newCount = m + 1;
-            if (newCount === DIFFICULTY_CONFIG[difficulty].pairs) {
-              const finalMoves = moves + 1;
-              setGameComplete(true);
-              setConfetti(generateConfetti());
-              if (!bestMoves || finalMoves < bestMoves) {
-                setBestMoves(finalMoves);
-                saveBestMoves(difficulty, finalMoves);
-              }
-            }
-            return newCount;
-          });
-          // Clear sparkles after animation
           setTimeout(() => {
-            setMatchSparkles(null);
-            setMatchedPairFlash([]);
-          }, 600);
-          processingRef.current = false;
-        }, 400);
-      } else {
-        // No match - shake then flip back
-        setShakingIds([first.id, second.id]);
-        setTimeout(() => {
-          setShakingIds([]);
-          setFlippedIds([]);
-          processingRef.current = false;
-        }, 800);
+            setCards((prev) =>
+              prev.map((c) =>
+                c.id === first.id || c.id === second.id
+                  ? { ...c, matched: true, flipped: true }
+                  : c,
+              ),
+            );
+            setFlippedIds([]);
+            setMatchedCount((m) => {
+              const newCount = m + 1;
+              if (newCount === DIFFICULTY_CONFIG[difficulty].pairs) {
+                const finalMoves = moves + 1;
+                setGameComplete(true);
+                setConfetti(generateConfetti());
+                if (!bestMoves || finalMoves < bestMoves) {
+                  setBestMoves(finalMoves);
+                  saveBestMoves(difficulty, finalMoves);
+                }
+              }
+              return newCount;
+            });
+            // Clear sparkles after animation
+            setTimeout(() => {
+              setMatchSparkles(null);
+              setMatchedPairFlash([]);
+            }, 600);
+            processingRef.current = false;
+          }, 400);
+        } else {
+          // No match - shake then flip back
+          setShakingIds([first.id, second.id]);
+          setTimeout(() => {
+            setShakingIds([]);
+            setFlippedIds([]);
+            processingRef.current = false;
+          }, 800);
+        }
       }
-    }
-  }, [cards, flippedIds, moves, bestMoves, gameComplete, difficulty]);
+    },
+    [cards, flippedIds, moves, bestMoves, gameComplete, difficulty],
+  );
 
   const reset = () => {
     if (!difficulty) return;
@@ -253,13 +310,17 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
     setMatchSparkles(null);
   };
 
-  const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const formatTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   // Difficulty selector screen
   if (!difficulty) {
     return (
       <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-        <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm"
+        >
           <ArrowLeft className="w-5 h-5" />
           {t('返回游戏列表', 'Back to Games')}
         </button>
@@ -273,12 +334,18 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
             >
               🃏
             </motion.div>
-            <h1 className="text-3xl font-black text-on-surface mb-2">{t('记忆翻牌', 'Memory Match')}</h1>
-            <p className="text-sm text-secondary">{t('选择难度开始游戏', 'Select difficulty to start')}</p>
+            <h1 className="text-3xl font-black text-on-surface mb-2">
+              {t('记忆翻牌', 'Memory Match')}
+            </h1>
+            <p className="text-sm text-secondary">
+              {t('选择难度开始游戏', 'Select difficulty to start')}
+            </p>
           </div>
 
           <div className="flex flex-col gap-4">
-            {(Object.entries(DIFFICULTY_CONFIG) as [Difficulty, typeof DIFFICULTY_CONFIG.easy][]).map(([key, config], index) => {
+            {(
+              Object.entries(DIFFICULTY_CONFIG) as [Difficulty, typeof DIFFICULTY_CONFIG.easy][]
+            ).map(([key, config], index) => {
               const best = loadBestMoves(key);
               const Icon = config.icon;
               return (
@@ -293,17 +360,24 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                   className="w-full p-5 bg-surface-container-high rounded-2xl border border-surface-variant/30 hover:bg-primary-container/50 transition-all text-left group relative overflow-hidden"
                 >
                   {/* Subtle gradient accent on the left */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${config.color} rounded-l-2xl`} />
+                  <div
+                    className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${config.color} rounded-l-2xl`}
+                  />
 
                   <div className="flex justify-between items-center pl-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.color} flex items-center justify-center shadow-md`}>
+                      <div
+                        className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.color} flex items-center justify-center shadow-md`}
+                      >
                         <Icon className="w-5 h-5 text-white" />
                       </div>
                       <div>
                         <p className="text-lg font-bold text-on-surface">{t(...config.label)}</p>
                         <p className="text-sm text-secondary">
-                          {t(`${config.pairs} 对 ${config.pairs * 2} 张牌`, `${config.pairs} pairs · ${config.pairs * 2} cards`)}
+                          {t(
+                            `${config.pairs} 对 ${config.pairs * 2} 张牌`,
+                            `${config.pairs} pairs · ${config.pairs * 2} cards`,
+                          )}
                         </p>
                       </div>
                     </div>
@@ -311,7 +385,9 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                       {best > 0 ? (
                         <div className="flex items-center gap-1 text-tertiary">
                           <Trophy className="w-4 h-4" />
-                          <span className="text-sm font-semibold">{best} {t('步', 'moves')}</span>
+                          <span className="text-sm font-semibold">
+                            {best} {t('步', 'moves')}
+                          </span>
                         </div>
                       ) : (
                         <span className="text-xs text-secondary">{t('暂无记录', 'No record')}</span>
@@ -331,7 +407,10 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -342,7 +421,8 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('记忆翻牌', 'Memory Match')}</h1>
             <p className="text-sm text-secondary">
-              {t('找出所有配对', 'Find all matching pairs')} · <span className="font-semibold text-primary">{t(...config.label)}</span>
+              {t('找出所有配对', 'Find all matching pairs')} ·{' '}
+              <span className="font-semibold text-primary">{t(...config.label)}</span>
             </p>
           </div>
         </div>
@@ -354,26 +434,45 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
             animate={elapsedBounce ? { scale: [1, 1.08, 1] } : {}}
             transition={{ duration: 0.2 }}
           >
-            <div className="text-xs text-secondary flex items-center gap-1"><Clock className="w-3 h-3" />{t('用时', 'Time')}</div>
+            <div className="text-xs text-secondary flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {t('用时', 'Time')}
+            </div>
             <div className="text-xl font-bold text-primary tabular-nums">{formatTime(elapsed)}</div>
           </motion.div>
           <motion.div
             className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-            animate={movesBounce ? { scale: [1, 1.15, 1], color: ['var(--color-primary)', '#f59e0b', 'var(--color-primary)'] } : {}}
+            animate={
+              movesBounce
+                ? {
+                    scale: [1, 1.15, 1],
+                    color: ['var(--color-primary)', '#f59e0b', 'var(--color-primary)'],
+                  }
+                : {}
+            }
             transition={{ duration: 0.3 }}
           >
-            <div className="text-xs text-secondary flex items-center gap-1"><Footprints className="w-3 h-3" />{t('步数', 'Moves')}</div>
+            <div className="text-xs text-secondary flex items-center gap-1">
+              <Footprints className="w-3 h-3" />
+              {t('步数', 'Moves')}
+            </div>
             <div className="text-xl font-bold text-primary">{moves}</div>
           </motion.div>
           <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-            <div className="text-xs text-secondary flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+            <div className="text-xs text-secondary flex items-center gap-1">
+              <Trophy className="w-3 h-3" />
+              {t('最佳', 'Best')}
+            </div>
             <div className="text-xl font-bold text-tertiary">{bestMoves || '—'}</div>
           </div>
         </div>
 
         {/* Cards Grid */}
-        <div className={`grid gap-3 mb-6`} style={{ gridTemplateColumns: `repeat(${config.cols}, 1fr)` }}>
-          {cards.map(card => {
+        <div
+          className={`grid gap-3 mb-6`}
+          style={{ gridTemplateColumns: `repeat(${config.cols}, 1fr)` }}
+        >
+          {cards.map((card) => {
             const isFlipped = card.flipped || card.matched || flippedIds.includes(card.id);
             const isShaking = shakingIds.includes(card.id);
             const isMatchFlashing = matchedPairFlash.includes(card.id);
@@ -442,7 +541,7 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                 <AnimatePresence>
                   {showSparklesOnThis && matchSparkles && (
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
-                      {matchSparkles.sparkles.map(sparkle => (
+                      {matchSparkles.sparkles.map((sparkle) => (
                         <motion.span
                           key={sparkle.id}
                           className="absolute text-lg"
@@ -498,7 +597,7 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
             >
               {/* Confetti particles */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                {confetti.map(particle => (
+                {confetti.map((particle) => (
                   <motion.div
                     key={particle.id}
                     className="absolute w-2.5 h-2.5 rounded-sm"
@@ -546,9 +645,15 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                 transition={{ delay: 0.5 }}
                 className="relative z-10"
               >
-                <p className="text-sm text-green-500 mb-1">{t('难度', 'Difficulty')}: {t(...config.label)}</p>
-                <p className="text-sm text-green-500 mb-1">{t('用时', 'Time')}: {formatTime(elapsed)}</p>
-                <p className="text-sm text-green-500 mb-4">{t('步数', 'Moves')}: {moves}</p>
+                <p className="text-sm text-green-500 mb-1">
+                  {t('难度', 'Difficulty')}: {t(...config.label)}
+                </p>
+                <p className="text-sm text-green-500 mb-1">
+                  {t('用时', 'Time')}: {formatTime(elapsed)}
+                </p>
+                <p className="text-sm text-green-500 mb-4">
+                  {t('步数', 'Moves')}: {moves}
+                </p>
                 {bestMoves === moves && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
@@ -568,10 +673,16 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                 transition={{ delay: 0.6 }}
                 className="flex justify-center gap-3 relative z-10"
               >
-                <button onClick={reset} className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors">
+                <button
+                  onClick={reset}
+                  className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors"
+                >
                   {t('再来一局', 'Play Again')}
                 </button>
-                <button onClick={changeDifficulty} className="px-6 py-2 bg-white text-green-600 border border-green-300 rounded-full font-semibold hover:bg-green-50 transition-colors">
+                <button
+                  onClick={changeDifficulty}
+                  className="px-6 py-2 bg-white text-green-600 border border-green-300 rounded-full font-semibold hover:bg-green-50 transition-colors"
+                >
                   {t('切换难度', 'Change Difficulty')}
                 </button>
               </motion.div>

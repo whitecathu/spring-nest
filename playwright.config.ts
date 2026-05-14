@@ -22,6 +22,15 @@ export default defineConfig({
         ...(process.env.CI ? {} : { channel: 'msedge' }),
       },
     },
+    {
+      name: 'mobile-chrome',
+      use: {
+        ...devices['Pixel 5'],
+        ...(process.env.CI ? {} : { channel: 'msedge' }),
+      },
+    },
+    // WebKit/mobile Safari is intentionally not enabled in CI yet because this project
+    // currently installs only Chromium browsers for faster, more stable checks.
   ],
   webServer: {
     command: process.env.CI

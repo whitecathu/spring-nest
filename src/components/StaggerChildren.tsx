@@ -32,7 +32,13 @@ export default function StaggerChildren({
 }
 
 /** Use as child of StaggerChildren */
-export function StaggerItem({ children, className = '' }: { children: ReactNode; className?: string }) {
+export function StaggerItem({
+  children,
+  className = '',
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <motion.div
       variants={{

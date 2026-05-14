@@ -17,6 +17,9 @@ export function getSiteOrigin(): string {
     normalizeOrigin(import.meta.env.VITE_PUBLIC_SITE_URL);
 
   if (envOrigin) return envOrigin;
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
 
   return DEFAULT_SITE_ORIGIN;
 }

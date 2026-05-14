@@ -39,7 +39,7 @@ interface Attempt {
 }
 
 function getRandomPhrase(phrases: string[], exclude?: string): string {
-  const filtered = exclude ? phrases.filter(p => p !== exclude) : phrases;
+  const filtered = exclude ? phrases.filter((p) => p !== exclude) : phrases;
   return filtered[Math.floor(Math.random() * filtered.length)];
 }
 
@@ -91,77 +91,87 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
     setMode(newMode);
   }, []);
 
-  const validateAndComplete = useCallback((value: string) => {
-    if (finished) return;
+  const validateAndComplete = useCallback(
+    (value: string) => {
+      if (finished) return;
 
-    // Start timer on first character
-    if (!startedRef.current && value.length > 0) {
-      const now = Date.now();
-      startTimeRef.current = now;
-      startedRef.current = true;
-      setStarted(true);
-      setStartTime(now);
-    }
-
-    // Check if finished (all characters typed)
-    const targetChars = Array.from(targetPhrase.normalize('NFC'));
-    const inputChars = Array.from(value.normalize('NFC'));
-    if (inputChars.length >= targetChars.length) {
-      const endTime = Date.now();
-      const elapsed = startedRef.current ? endTime - startTimeRef.current : 0;
-
-      let correct = 0;
-      for (let i = 0; i < targetChars.length; i++) {
-        if (inputChars[i] === targetChars[i]) correct++;
+      // Start timer on first character
+      if (!startedRef.current && value.length > 0) {
+        const now = Date.now();
+        startTimeRef.current = now;
+        startedRef.current = true;
+        setStarted(true);
+        setStartTime(now);
       }
-      const accuracy = Math.round((correct / targetChars.length) * 100);
-      const minutes = elapsed / 60000;
-      const wpm = mode === 'zh'
-        ? Math.round(targetChars.length / (elapsed / 1000) * 60)
-        : Math.round((targetChars.length / 5) / minutes);
 
-      setFinished(true);
-      setFinalElapsed(elapsed);
+      // Check if finished (all characters typed)
+      const targetChars = Array.from(targetPhrase.normalize('NFC'));
+      const inputChars = Array.from(value.normalize('NFC'));
+      if (inputChars.length >= targetChars.length) {
+        const endTime = Date.now();
+        const elapsed = startedRef.current ? endTime - startTimeRef.current : 0;
 
-      setHistory(prev => {
-        const newHistory: Attempt = {
-          phrase: targetPhrase,
-          time: elapsed,
-          accuracy,
-          wpm,
-          mode,
-          timestamp: endTime,
-        };
-        return [newHistory, ...prev].slice(0, 5);
-      });
-    }
-  }, [finished, targetPhrase, mode]);
+        let correct = 0;
+        for (let i = 0; i < targetChars.length; i++) {
+          if (inputChars[i] === targetChars[i]) correct++;
+        }
+        const accuracy = Math.round((correct / targetChars.length) * 100);
+        const minutes = elapsed / 60000;
+        const wpm =
+          mode === 'zh'
+            ? Math.round((targetChars.length / (elapsed / 1000)) * 60)
+            : Math.round(targetChars.length / 5 / minutes);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (finished) return;
+        setFinished(true);
+        setFinalElapsed(elapsed);
 
-    // Always update the displayed input value so IME composition renders correctly
-    setInputValue(value);
+        setHistory((prev) => {
+          const newHistory: Attempt = {
+            phrase: targetPhrase,
+            time: elapsed,
+            accuracy,
+            wpm,
+            mode,
+            timestamp: endTime,
+          };
+          return [newHistory, ...prev].slice(0, 5);
+        });
+      }
+    },
+    [finished, targetPhrase, mode],
+  );
 
-    // Skip validation during IME composition
-    if (isComposingRef.current || (e.nativeEvent as InputEvent)?.isComposing) {
-      return;
-    }
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (finished) return;
 
-    validateAndComplete(value);
-  }, [finished, validateAndComplete]);
+      // Always update the displayed input value so IME composition renders correctly
+      setInputValue(value);
+
+      // Skip validation during IME composition
+      if (isComposingRef.current || (e.nativeEvent as InputEvent)?.isComposing) {
+        return;
+      }
+
+      validateAndComplete(value);
+    },
+    [finished, validateAndComplete],
+  );
 
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;
   }, []);
 
-  const handleCompositionEnd = useCallback((e: React.CompositionEvent<HTMLInputElement>) => {
-    isComposingRef.current = false;
-    const value = e.currentTarget.value;
-    setInputValue(value);
-    validateAndComplete(value);
-  }, [validateAndComplete]);
+  const handleCompositionEnd = useCallback(
+    (e: React.CompositionEvent<HTMLInputElement>) => {
+      isComposingRef.current = false;
+      const value = e.currentTarget.value;
+      setInputValue(value);
+      validateAndComplete(value);
+    },
+    [validateAndComplete],
+  );
 
   // Timer update effect
   useEffect(() => {
@@ -205,7 +215,10 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[44px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -213,8 +226,12 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         {/* Header */}
         <div className="text-center mb-4">
-          <h1 className="text-3xl font-black text-on-surface">{t('打字挑战', 'Typing Challenge')}</h1>
-          <p className="text-sm text-secondary">{t('快速准确地输入目标文字', 'Type the target text quickly and accurately')}</p>
+          <h1 className="text-3xl font-black text-on-surface">
+            {t('打字挑战', 'Typing Challenge')}
+          </h1>
+          <p className="text-sm text-secondary">
+            {t('快速准确地输入目标文字', 'Type the target text quickly and accurately')}
+          </p>
         </div>
 
         {/* Mode Toggle */}
@@ -222,7 +239,9 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
           <button
             onClick={() => handleModeChange('zh')}
             className={`px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
-              mode === 'zh' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface'
+              mode === 'zh'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high text-on-surface'
             }`}
           >
             {t('中文', 'Chinese')}
@@ -230,7 +249,9 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
           <button
             onClick={() => handleModeChange('en')}
             className={`px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
-              mode === 'en' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface'
+              mode === 'en'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high text-on-surface'
             }`}
           >
             English
@@ -244,14 +265,18 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
               <Clock className="w-3 h-3" />
               {t('用时', 'Time')}
             </div>
-            <div className="text-xl font-bold text-primary tabular-nums">{formatTime(elapsedTime)}</div>
+            <div className="text-xl font-bold text-primary tabular-nums">
+              {formatTime(elapsedTime)}
+            </div>
           </div>
           <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
             <div className="text-xs text-secondary font-medium flex items-center gap-1">
               <Target className="w-3 h-3" />
               {t('准确率', 'Accuracy')}
             </div>
-            <div className={`text-xl font-bold tabular-nums ${accuracy >= 90 ? 'text-green-500' : accuracy >= 70 ? 'text-yellow-500' : 'text-red-500'}`}>
+            <div
+              className={`text-xl font-bold tabular-nums ${accuracy >= 90 ? 'text-green-500' : accuracy >= 70 ? 'text-yellow-500' : 'text-red-500'}`}
+            >
               {inputValue.length > 0 ? `${accuracy}%` : '--'}
             </div>
           </div>
@@ -259,7 +284,9 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
 
         {/* Target Phrase Display */}
         <div className="bg-surface-container-high rounded-2xl p-6 mb-4">
-          <div className={`text-2xl sm:text-3xl font-bold leading-relaxed tracking-wider ${mode === 'zh' ? 'font-serif' : ''}`}>
+          <div
+            className={`text-2xl sm:text-3xl font-bold leading-relaxed tracking-wider ${mode === 'zh' ? 'font-serif' : ''}`}
+          >
             {characterComparison.map(({ char, status }, i) => (
               <span
                 key={i}
@@ -301,7 +328,10 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
           />
           {mode === 'zh' && !finished && (
             <p className="text-xs text-secondary mt-1.5 text-center">
-              {t('支持中文输入法，候选词上屏后会自动更新进度', 'IME supported — progress updates after committing')}
+              {t(
+                '支持中文输入法，候选词上屏后会自动更新进度',
+                'IME supported — progress updates after committing',
+              )}
             </p>
           )}
         </div>
@@ -332,7 +362,9 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
               exit={{ opacity: 0, scale: 0.9 }}
               className="p-6 bg-blue-50 border border-blue-200 rounded-2xl mb-6"
             >
-              <p className="text-xl font-bold text-blue-700 mb-3 text-center">{t('完成！', 'Complete!')}</p>
+              <p className="text-xl font-bold text-blue-700 mb-3 text-center">
+                {t('完成！', 'Complete!')}
+              </p>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
                   <p className="text-xs text-blue-500">{t('用时', 'Time')}</p>
@@ -343,11 +375,13 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
                   <p className="text-lg font-bold text-blue-700">{accuracy}%</p>
                 </div>
                 <div>
-                  <p className="text-xs text-blue-500">{mode === 'zh' ? t('字/分', 'CPM') : 'WPM'}</p>
+                  <p className="text-xs text-blue-500">
+                    {mode === 'zh' ? t('字/分', 'CPM') : 'WPM'}
+                  </p>
                   <p className="text-lg font-bold text-blue-700">
                     {mode === 'zh'
-                      ? Math.round(targetPhrase.length / (finalElapsed / 1000) * 60)
-                      : Math.round((targetPhrase.length / 5) / (finalElapsed / 60000))}
+                      ? Math.round((targetPhrase.length / (finalElapsed / 1000)) * 60)
+                      : Math.round(targetPhrase.length / 5 / (finalElapsed / 60000))}
                   </p>
                 </div>
               </div>
@@ -376,10 +410,21 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
                   </span>
                   <div className="flex items-center gap-3 text-secondary shrink-0">
                     <span className="tabular-nums">{formatTime(attempt.time)}</span>
-                    <span className={attempt.accuracy >= 90 ? 'text-green-500' : attempt.accuracy >= 70 ? 'text-yellow-500' : 'text-red-500'}>
+                    <span
+                      className={
+                        attempt.accuracy >= 90
+                          ? 'text-green-500'
+                          : attempt.accuracy >= 70
+                            ? 'text-yellow-500'
+                            : 'text-red-500'
+                      }
+                    >
                       {attempt.accuracy}%
                     </span>
-                    <span className="tabular-nums">{attempt.wpm}{attempt.mode === 'zh' ? t('/分', ' CPM') : ' WPM'}</span>
+                    <span className="tabular-nums">
+                      {attempt.wpm}
+                      {attempt.mode === 'zh' ? t('/分', ' CPM') : ' WPM'}
+                    </span>
                   </div>
                 </motion.div>
               ))}

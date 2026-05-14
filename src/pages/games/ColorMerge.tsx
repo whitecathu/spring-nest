@@ -44,7 +44,7 @@ function initGrid(): Grid {
 }
 
 function cloneGrid(grid: Grid): Grid {
-  return grid.map(row => row.map(cell => ({ ...cell })));
+  return grid.map((row) => row.map((cell) => ({ ...cell })));
 }
 
 function findMatches(grid: Grid): Set<string> {
@@ -105,7 +105,7 @@ function applyGravity(grid: Grid): Grid {
 }
 
 function isAdjacent(r1: number, c1: number, r2: number, c2: number): boolean {
-  return (Math.abs(r1 - r2) + Math.abs(c1 - c2)) === 1;
+  return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
 }
 
 function swapCells(grid: Grid, r1: number, c1: number, r2: number, c2: number): Grid {
@@ -133,7 +133,11 @@ function hasValidMoves(grid: Grid): boolean {
 }
 
 function loadBestScore(): number {
-  try { return JSON.parse(localStorage.getItem('spring_nest_colormerge_best') || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem('spring_nest_colormerge_best') || '0');
+  } catch {
+    return 0;
+  }
 }
 function saveBestScore(score: number) {
   localStorage.setItem('spring_nest_colormerge_best', JSON.stringify(score));
@@ -150,78 +154,84 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
   const [moves, setMoves] = useState(0);
   const processingRef = useRef(false);
 
-  const processMatches = useCallback((currentGrid: Grid, currentScore: number) => {
-    const matches = findMatches(currentGrid);
-    if (matches.size === 0) {
-      if (!hasValidMoves(currentGrid)) {
-        setGameOver(true);
+  const processMatches = useCallback(
+    (currentGrid: Grid, currentScore: number) => {
+      const matches = findMatches(currentGrid);
+      if (matches.size === 0) {
+        if (!hasValidMoves(currentGrid)) {
+          setGameOver(true);
+        }
+        processingRef.current = false;
+        return;
       }
-      processingRef.current = false;
-      return;
-    }
 
-    const points = matches.size * 10;
-    const newScore = currentScore + points;
+      const points = matches.size * 10;
+      const newScore = currentScore + points;
 
-    setMatchedCells(matches);
-
-    setTimeout(() => {
-      const afterRemove = removeMatches(currentGrid, matches);
-      const afterGravity = applyGravity(afterRemove);
-
-      setGrid(afterGravity);
-      setScore(newScore);
-      setMatchedCells(new Set());
-
-      if (newScore > bestScore) {
-        setBestScore(newScore);
-        saveBestScore(newScore);
-      }
+      setMatchedCells(matches);
 
       setTimeout(() => {
-        processMatches(afterGravity, newScore);
-      }, 200);
-    }, 300);
-  }, [bestScore]);
+        const afterRemove = removeMatches(currentGrid, matches);
+        const afterGravity = applyGravity(afterRemove);
 
-  const handleCellClick = useCallback((r: number, c: number) => {
-    if (processingRef.current || gameOver) return;
+        setGrid(afterGravity);
+        setScore(newScore);
+        setMatchedCells(new Set());
 
-    if (!selected) {
-      setSelected([r, c]);
-      return;
-    }
+        if (newScore > bestScore) {
+          setBestScore(newScore);
+          saveBestScore(newScore);
+        }
 
-    const [sr, sc] = selected;
+        setTimeout(() => {
+          processMatches(afterGravity, newScore);
+        }, 200);
+      }, 300);
+    },
+    [bestScore],
+  );
 
-    if (sr === r && sc === c) {
+  const handleCellClick = useCallback(
+    (r: number, c: number) => {
+      if (processingRef.current || gameOver) return;
+
+      if (!selected) {
+        setSelected([r, c]);
+        return;
+      }
+
+      const [sr, sc] = selected;
+
+      if (sr === r && sc === c) {
+        setSelected(null);
+        return;
+      }
+
+      if (!isAdjacent(sr, sc, r, c)) {
+        setSelected([r, c]);
+        return;
+      }
+
+      processingRef.current = true;
+      const swapped = swapCells(grid, sr, sc, r, c);
+      const matches = findMatches(swapped);
+
+      if (matches.size === 0) {
+        processingRef.current = false;
+        setSelected(null);
+        return;
+      }
+
+      setGrid(swapped);
       setSelected(null);
-      return;
-    }
+      setMoves((m) => m + 1);
 
-    if (!isAdjacent(sr, sc, r, c)) {
-      setSelected([r, c]);
-      return;
-    }
-
-    processingRef.current = true;
-    const swapped = swapCells(grid, sr, sc, r, c);
-    const matches = findMatches(swapped);
-
-    if (matches.size === 0) {
-      processingRef.current = false;
-      setSelected(null);
-      return;
-    }
-
-    setGrid(swapped);
-    setSelected(null);
-    setMoves(m => m + 1);
-
-    setTimeout(() => {
-      processMatches(swapped, score);
-    }, 150);
-  }, [selected, grid, score, gameOver, processMatches]);
+      setTimeout(() => {
+        processMatches(swapped, score);
+      }, 150);
+    },
+    [selected, grid, score, gameOver, processMatches],
+  );
 
   const reset = () => {
     setGrid(initGrid());
@@ -235,7 +245,10 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -244,15 +257,23 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('色彩拼图', 'Color Merge')}</h1>
-            <p className="text-sm text-secondary">{t('交换相邻色块，三个连线消除！', 'Swap adjacent tiles, match 3 to clear!')}</p>
+            <p className="text-sm text-secondary">
+              {t('交换相邻色块，三个连线消除！', 'Swap adjacent tiles, match 3 to clear!')}
+            </p>
           </div>
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Palette className="w-3 h-3" />{t('分数', 'Score')}</div>
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Palette className="w-3 h-3" />
+                {t('分数', 'Score')}
+              </div>
               <div className="text-xl font-bold text-primary">{score}</div>
             </div>
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Trophy className="w-3 h-3" />
+                {t('最佳', 'Best')}
+              </div>
               <div className="text-xl font-bold text-tertiary">{bestScore}</div>
             </div>
           </div>
@@ -279,12 +300,20 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
                     onClick={() => handleCellClick(r, c)}
                     aria-label={t(
                       `第 ${r + 1} 行第 ${c + 1} 列，${color.name} 色方块${isSelected ? '，已选中' : ''}`,
-                      `Row ${r + 1}, column ${c + 1}, ${color.name} block${isSelected ? ', selected' : ''}`
+                      `Row ${r + 1}, column ${c + 1}, ${color.name} block${isSelected ? ', selected' : ''}`,
                     )}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    animate={isMatched ? { scale: [1, 1.2, 0], opacity: [1, 1, 0] } : { scale: 1, opacity: 1 }}
-                    transition={isMatched ? { duration: 0.3 } : { type: 'spring', stiffness: 300, damping: 20 }}
+                    animate={
+                      isMatched
+                        ? { scale: [1, 1.2, 0], opacity: [1, 1, 0] }
+                        : { scale: 1, opacity: 1 }
+                    }
+                    transition={
+                      isMatched
+                        ? { duration: 0.3 }
+                        : { type: 'spring', stiffness: 300, damping: 20 }
+                    }
                     className={`aspect-square rounded-xl transition-all ${
                       isSelected
                         ? 'ring-3 ring-primary ring-offset-2 ring-offset-surface-container-high scale-105'
@@ -297,7 +326,7 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
                     }}
                   />
                 );
-              })
+              }),
             )}
           </div>
         </div>
@@ -321,11 +350,22 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
               className="mt-6 p-6 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/30 rounded-2xl text-center"
             >
               <p className="text-2xl mb-2">🎨</p>
-              <p className="text-xl font-bold text-purple-600 dark:text-purple-400 mb-2">{t('没有可用的移动了！', 'No more moves!')}</p>
-              <p className="text-sm text-purple-500 dark:text-purple-400 mb-1">{t('得分', 'Score')}: {score}</p>
-              <p className="text-sm text-purple-500 dark:text-purple-400 mb-4">{t('步数', 'Moves')}: {moves}</p>
-              {score > 0 && score >= bestScore && <p className="text-sm text-purple-500 mb-2">🏆 {t('新纪录！', 'New Record!')}</p>}
-              <button onClick={reset} className="px-6 py-2 bg-purple-500 text-white rounded-full font-semibold hover:bg-purple-600 transition-colors">
+              <p className="text-xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                {t('没有可用的移动了！', 'No more moves!')}
+              </p>
+              <p className="text-sm text-purple-500 dark:text-purple-400 mb-1">
+                {t('得分', 'Score')}: {score}
+              </p>
+              <p className="text-sm text-purple-500 dark:text-purple-400 mb-4">
+                {t('步数', 'Moves')}: {moves}
+              </p>
+              {score > 0 && score >= bestScore && (
+                <p className="text-sm text-purple-500 mb-2">🏆 {t('新纪录！', 'New Record!')}</p>
+              )}
+              <button
+                onClick={reset}
+                className="px-6 py-2 bg-purple-500 text-white rounded-full font-semibold hover:bg-purple-600 transition-colors"
+              >
                 {t('再来一局', 'Play Again')}
               </button>
             </motion.div>

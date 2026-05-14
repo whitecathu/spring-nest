@@ -35,7 +35,9 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-8 h-8 text-red-500" />
             </div>
-            <h2 className="text-xl font-bold text-on-surface mb-2">出错了 / Something went wrong</h2>
+            <h2 className="text-xl font-bold text-on-surface mb-2">
+              出错了 / Something went wrong
+            </h2>
             <p className="text-secondary text-sm mb-6">
               {this.state.error?.message || '发生了一个意外错误 / An unexpected error occurred'}
             </p>

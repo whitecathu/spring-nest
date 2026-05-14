@@ -24,57 +24,65 @@ export default function GameToolLoading() {
       <div className="flex flex-col items-center gap-5">
         <div className="relative">
           {/* Floating particles — softer easing curves */}
-          {!reducedMotion && floatingParticles.map((p, i) => (
-            <motion.div
-              key={`particle-${i}`}
-              className="absolute rounded-full bg-primary/20"
-              style={{ width: p.size, height: p.size, left: '50%', top: '50%', willChange: 'transform, opacity' }}
-              animate={{
-                x: [0, p.x, 0],
-                y: [0, p.y, 0],
-                opacity: [0, 0.55, 0],
-                scale: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 3.5,
-                repeat: Infinity,
-                delay: p.delay,
-                ease: softEase,
-              }}
-            />
-          ))}
-          {/* Floating orbit dots */}
-          {!reducedMotion && orbitDots.map((dot, i) => {
-            const rad = (dot.angle * Math.PI) / 180;
-            const cx = Math.cos(rad) * dot.radius;
-            const cy = Math.sin(rad) * dot.radius;
-            return (
+          {!reducedMotion &&
+            floatingParticles.map((p, i) => (
               <motion.div
-                key={`orbit-${i}`}
-                className="absolute rounded-full bg-primary/25"
+                key={`particle-${i}`}
+                className="absolute rounded-full bg-primary/20"
                 style={{
-                  width: dot.size,
-                  height: dot.size,
+                  width: p.size,
+                  height: p.size,
                   left: '50%',
                   top: '50%',
-                  marginLeft: -dot.size / 2,
-                  marginTop: -dot.size / 2,
+                  willChange: 'transform, opacity',
                 }}
                 animate={{
-                  x: [0, cx, 0, -cx, 0],
-                  y: [0, cy, 0, -cy, 0],
-                  opacity: [0, 0.7, 0.4, 0.7, 0],
-                  scale: [0.5, 1, 0.8, 1, 0.5],
+                  x: [0, p.x, 0],
+                  y: [0, p.y, 0],
+                  opacity: [0, 0.55, 0],
+                  scale: [0.5, 1, 0.5],
                 }}
                 transition={{
-                  duration: 4,
+                  duration: 3.5,
                   repeat: Infinity,
-                  delay: dot.delay,
-                  ease: [0.4, 0, 0.2, 1],
+                  delay: p.delay,
+                  ease: softEase,
                 }}
               />
-            );
-          })}
+            ))}
+          {/* Floating orbit dots */}
+          {!reducedMotion &&
+            orbitDots.map((dot, i) => {
+              const rad = (dot.angle * Math.PI) / 180;
+              const cx = Math.cos(rad) * dot.radius;
+              const cy = Math.sin(rad) * dot.radius;
+              return (
+                <motion.div
+                  key={`orbit-${i}`}
+                  className="absolute rounded-full bg-primary/25"
+                  style={{
+                    width: dot.size,
+                    height: dot.size,
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: -dot.size / 2,
+                    marginTop: -dot.size / 2,
+                  }}
+                  animate={{
+                    x: [0, cx, 0, -cx, 0],
+                    y: [0, cy, 0, -cy, 0],
+                    opacity: [0, 0.7, 0.4, 0.7, 0],
+                    scale: [0.5, 1, 0.8, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    delay: dot.delay,
+                    ease: [0.4, 0, 0.2, 1],
+                  }}
+                />
+              );
+            })}
           <motion.div
             animate={reducedMotion ? {} : { y: [0, -6, 0], scale: [1, 1.05, 1] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: softEase }}
@@ -87,7 +95,8 @@ export default function GameToolLoading() {
             <motion.div
               className="h-full rounded-full"
               style={{
-                background: 'linear-gradient(90deg, transparent 0%, var(--color-primary, #22c55e) 25%, var(--color-primary, #22c55e) 75%, transparent 100%)',
+                background:
+                  'linear-gradient(90deg, transparent 0%, var(--color-primary, #22c55e) 25%, var(--color-primary, #22c55e) 75%, transparent 100%)',
                 opacity: 0.6,
               }}
               animate={{ x: ['-100%', '100%'] }}

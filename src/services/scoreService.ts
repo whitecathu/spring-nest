@@ -5,8 +5,8 @@ export type { LeaderboardEntry };
 
 const SCORE_KEYS: Record<string, string> = {
   '2048': 'spring_nest_2048_best',
-  'memory': 'spring_nest_memory_best',
-  'whackamole': 'spring_nest_whackamole_best',
+  memory: 'spring_nest_memory_best',
+  whackamole: 'spring_nest_whackamole_best',
 };
 
 /** Get best score for a game (localStorage first, then cloud if logged in) */
@@ -39,9 +39,6 @@ export function saveBestScore(gameSlug: string, score: number, userId?: string):
 }
 
 /** Fetch leaderboard from Supabase */
-export async function fetchLeaderboard(
-  gameSlug: string,
-  limit = 20
-): Promise<LeaderboardEntry[]> {
+export async function fetchLeaderboard(gameSlug: string, limit = 20): Promise<LeaderboardEntry[]> {
   return getLeaderboard(gameSlug, limit);
 }

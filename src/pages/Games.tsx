@@ -1,62 +1,59 @@
-import { ArrowLeft, ArrowUpDown, Cloud, Flower2, Gamepad2, Heart, Info, Play, RotateCcw, Search, Smartphone } from 'lucide-react';
-import { useState, useMemo, lazy, Suspense, useEffect, useLayoutEffect, useRef, useCallback, type ComponentType, type LazyExoticComponent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  ArrowUpDown,
+  Cloud,
+  Flower2,
+  Gamepad2,
+  Heart,
+  Info,
+  Play,
+  RotateCcw,
+  Search,
+  Smartphone,
+} from 'lucide-react';
+import {
+  useState,
+  useMemo,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { games } from '../data/games';
 import SEO from '../components/SEO';
 import { trackGameStart } from '../lib/analytics';
-import { recordVisit } from '../lib/recent';
-import { springBouncy, springSmooth, springSnappy, gridContainerVariants, gridCardVariants, useReducedMotion } from '../lib/animations';
+import { getRecentItems, recordVisit } from '../lib/recent';
+import {
+  springBouncy,
+  springSmooth,
+  springSnappy,
+  gridContainerVariants,
+  gridCardVariants,
+  useReducedMotion,
+} from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
 import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
-import { getGameCategoryBySlug, getPrimaryGameCategorySlug } from '../lib/catalogRoutes';
+import { getGameCategoryBySlug } from '../lib/catalogRoutes';
 import type { AppItem } from '../types/app';
+import { gameComponents } from '../registries/gameRegistry';
 
-const Game2048 = lazy(() => import('./games/Game2048'));
-const MemoryGame = lazy(() => import('./games/MemoryGame'));
-const WhackAMole = lazy(() => import('./games/WhackAMole'));
-const ColorMerge = lazy(() => import('./games/ColorMerge'));
-const ForestWalk = lazy(() => import('./games/ForestWalk'));
-const Snake = lazy(() => import('./games/Snake'));
-const ReactionTest = lazy(() => import('./games/ReactionTest'));
-const NumberPuzzle = lazy(() => import('./games/NumberPuzzle'));
-const TicTacToe = lazy(() => import('./games/TicTacToe'));
-const TypingChallenge = lazy(() => import('./games/TypingChallenge'));
-const ColorStroop = lazy(() => import('./games/ColorStroop'));
-const Minesweeper = lazy(() => import('./games/Minesweeper'));
-const FlappyBird = lazy(() => import('./games/FlappyBird'));
-const BrickBreaker = lazy(() => import('./games/BrickBreaker'));
-const SimonSays = lazy(() => import('./games/SimonSays'));
-const SudokuGame = lazy(() => import('./games/SudokuGame'));
-const TypingSpeedTest = lazy(() => import('./games/TypingSpeedTest'));
-const WordSearch = lazy(() => import('./games/WordSearch'));
-const BubblePop = lazy(() => import('./games/BubblePop'));
+type GameSortMode = 'popular' | 'newest' | 'name' | 'recent';
 
-const gameComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
-  'game-1': Game2048,
-  'game-2': MemoryGame,
-  'game-3': WhackAMole,
-  'game-4': ColorMerge,
-  'game-5': ForestWalk,
-  'game-6': Snake,
-  'game-7': ReactionTest,
-  'game-8': NumberPuzzle,
-  'game-9': TicTacToe,
-  'game-10': TypingChallenge,
-  'game-11': ColorStroop,
-  'game-12': Minesweeper,
-  'game-13': FlappyBird,
-  'game-14': BrickBreaker,
-  'game-15': SimonSays,
-  'game-16': SudokuGame,
-  'game-17': TypingSpeedTest,
-  'game-18': WordSearch,
-  'game-19': BubblePop,
-};
+const sortModes = new Set<GameSortMode>(['popular', 'newest', 'name', 'recent']);
 
-type GameSortMode = 'popular' | 'new' | 'name';
+function getValidSortMode(value: string | null): GameSortMode {
+  return value && sortModes.has(value as GameSortMode) ? (value as GameSortMode) : 'popular';
+}
+
+function getValidCategory(value: string | null, categories: string[]) {
+  if (!value || value === 'all') return 'all';
+  return categories.includes(value) ? value : 'all';
+}
 
 function matchesGameQuery(item: AppItem, query: string) {
   if (!query.trim()) return true;
@@ -88,11 +85,17 @@ function getGameFaq(item: AppItem, t: (zh: string, en: string) => string) {
   return [
     {
       q: t('需要登录才能玩吗？', 'Do I need to sign in?'),
-      a: t('不需要。游戏可直接开始，最高分等记录会优先保存在浏览器本地。', 'No. You can play immediately, and high scores are saved locally in your browser first.'),
+      a: t(
+        '不需要。游戏可直接开始，最高分等记录会优先保存在浏览器本地。',
+        'No. You can play immediately, and high scores are saved locally in your browser first.',
+      ),
     },
     {
       q: t('手机上能玩吗？', 'Can I play on mobile?'),
-      a: t('可以。游戏页会尽量提供触屏操作；如果游戏支持键盘，也会保留桌面端键盘操作。', 'Yes. Game pages provide touch controls where practical, while desktop keyboard controls stay available when supported.'),
+      a: t(
+        '可以。游戏页会尽量提供触屏操作；如果游戏支持键盘，也会保留桌面端键盘操作。',
+        'Yes. Game pages provide touch controls where practical, while desktop keyboard controls stay available when supported.',
+      ),
     },
   ];
 }
@@ -102,18 +105,20 @@ export default function Games() {
   const { favoriteIds, toggle } = useFavorites();
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const categoryRoute = getGameCategoryBySlug(slug);
-  const [activeCategory, setActiveCategory] = useState('all');
   const [query, setQuery] = useState('');
-  const [sortMode, setSortMode] = useState<GameSortMode>('popular');
   const pillContainerRef = useRef<HTMLDivElement>(null);
-  const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+  const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({
+    left: 0,
+    width: 0,
+  });
   const reducedMotion = useReducedMotion();
 
   // Find game by route slug
   const activeGameBySlug = useMemo(() => {
     if (!slug || categoryRoute) return null;
-    return games.find(g => g.route.endsWith(`/${slug}`)) || null;
+    return games.find((g) => g.route.endsWith(`/${slug}`)) || null;
   }, [slug, categoryRoute]);
 
   const [internalGameId, setInternalGameId] = useState<string | null>(null);
@@ -128,58 +133,80 @@ export default function Games() {
   }, [slug, activeGameBySlug, categoryRoute]);
 
   const categories = useMemo(() => {
-    const cats = [...new Set(games.map(g => g.category))];
+    const cats = [...new Set(games.map((g) => g.category))];
     return [
       { id: 'all', label: t('全部游戏', 'All Games') },
-      ...cats.map(c => {
-        const game = games.find(g => g.category === c);
+      ...cats.map((c) => {
+        const game = games.find((g) => g.category === c);
         return { id: c, label: t(c, game?.categoryEn || c) };
       }),
     ];
   }, [t]);
 
-  const effectiveCategory = categoryRoute?.category ?? activeCategory;
+  const categoryIds = useMemo(() => categories.map((cat) => cat.id), [categories]);
+  const queryCategory = getValidCategory(searchParams.get('category'), categoryIds);
+  const activeCategory =
+    queryCategory !== 'all' ? queryCategory : (categoryRoute?.category ?? 'all');
+  const sortMode = getValidSortMode(searchParams.get('sort'));
 
   useEffect(() => {
-    if (categoryRoute) {
-      setActiveCategory(categoryRoute.category);
-    } else if (!slug) {
-      setActiveCategory('all');
-    }
-  }, [categoryRoute, slug]);
+    if (slug && !categoryRoute && !activeGameBySlug) navigate('/games', { replace: true });
+  }, [slug, categoryRoute, activeGameBySlug, navigate]);
 
-  const filteredGames = useMemo(
-    () => {
-      const byCategory = effectiveCategory === 'all'
-        ? games
-        : games.filter(game => game.category === effectiveCategory);
-      const byQuery = byCategory.filter(game => matchesGameQuery(game, query));
+  const filteredGames = useMemo(() => {
+    const recentOrder = new Map(
+      getRecentItems(20)
+        .filter((item) => item.type === 'game')
+        .map((item, index) => [item.id, index]),
+    );
+    const byCategory =
+      activeCategory === 'all' ? games : games.filter((game) => game.category === activeCategory);
+    const byQuery = byCategory.filter((game) => matchesGameQuery(game, query));
 
-      return [...byQuery].sort((a, b) => {
-        if (sortMode === 'new') return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew));
-        if (sortMode === 'name') return t(a.title, a.titleEn).localeCompare(t(b.title, b.titleEn), 'zh-Hans-CN');
-        return (b.popularScore ?? 0) - (a.popularScore ?? 0);
-      });
-    },
-    [effectiveCategory, query, sortMode, t],
-  );
+    return [...byQuery].sort((a, b) => {
+      if (sortMode === 'newest') return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew));
+      if (sortMode === 'name')
+        return t(a.title, a.titleEn).localeCompare(t(b.title, b.titleEn), 'zh-Hans-CN');
+      if (sortMode === 'recent') {
+        const aRecent = recentOrder.get(a.id) ?? Number.POSITIVE_INFINITY;
+        const bRecent = recentOrder.get(b.id) ?? Number.POSITIVE_INFINITY;
+        if (aRecent !== bRecent) return aRecent - bRecent;
+      }
+      return (b.popularScore ?? 0) - (a.popularScore ?? 0);
+    });
+  }, [activeCategory, query, sortMode, t]);
 
   const activeGame = useMemo(
-    () => games.find(g => g.id === activeGameId) || null,
-    [activeGameId]
+    () => games.find((g) => g.id === activeGameId) || null,
+    [activeGameId],
   );
 
-  const handlePlay = useCallback((gameId: string) => {
-    const game = games.find(g => g.id === gameId);
-    if (game) {
-      const gameSlug = game.route.split('/').pop();
-      navigate(`/games/${gameSlug}`);
-    }
-  }, [navigate]);
+  const handlePlay = useCallback(
+    (gameId: string) => {
+      const game = games.find((g) => g.id === gameId);
+      if (game) {
+        const gameSlug = game.route.split('/').pop();
+        navigate(`/games/${gameSlug}`);
+      }
+    },
+    [navigate],
+  );
 
   const handleBack = useCallback(() => {
     navigate('/games');
   }, [navigate]);
+
+  const handleSortChange = useCallback(
+    (nextSort: GameSortMode) => {
+      const params = new URLSearchParams(searchParams);
+      if (activeCategory !== 'all') params.set('category', activeCategory);
+      else params.delete('category');
+      if (nextSort === 'popular') params.delete('sort');
+      else params.set('sort', nextSort);
+      setSearchParams(params, { replace: false });
+    },
+    [activeCategory, searchParams, setSearchParams],
+  );
 
   const updatePillLayout = () => {
     const container = pillContainerRef.current;
@@ -190,7 +217,7 @@ export default function Games() {
       const pillRect = activePill.getBoundingClientRect();
       const newLeft = pillRect.left - containerRect.left + container.scrollLeft;
       const newWidth = pillRect.width;
-      setPillLayout(prev => {
+      setPillLayout((prev) => {
         if (prev.left === newLeft && prev.width === newWidth) return prev;
         return { left: newLeft, width: newWidth };
       });
@@ -209,23 +236,25 @@ export default function Games() {
     return () => observer.disconnect();
   }, []);
 
-  const handleCategorySwitch = useCallback((catId: string) => {
-    if (catId === activeCategory) return;
-    setActiveCategory(catId);
-    if (catId === 'all') {
-      navigate('/games');
-    } else {
-      const routeSlug = getPrimaryGameCategorySlug(catId);
-      navigate(routeSlug ? `/games/${routeSlug}` : '/games');
-    }
+  const handleCategorySwitch = useCallback(
+    (catId: string) => {
+      if (catId === activeCategory) return;
+      const params = new URLSearchParams(searchParams);
+      if (catId === 'all') params.delete('category');
+      else params.set('category', catId);
+      if (sortMode !== 'popular') params.set('sort', sortMode);
+      else params.delete('sort');
+      setSearchParams(params, { replace: false });
 
-    requestAnimationFrame(() => {
-      const container = pillContainerRef.current;
-      if (!container) return;
-      const activePill = container.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
-      activePill?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-    });
-  }, [activeCategory, navigate]);
+      requestAnimationFrame(() => {
+        const container = pillContainerRef.current;
+        if (!container) return;
+        const activePill = container.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
+        activePill?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      });
+    },
+    [activeCategory, searchParams, setSearchParams, sortMode],
+  );
 
   useEffect(() => {
     if (activeGame) {
@@ -237,7 +266,7 @@ export default function Games() {
   if (activeGame && gameComponents[activeGame.id]) {
     const GameComponent = gameComponents[activeGame.id];
     const faq = getGameFaq(activeGame, t);
-    const relatedGames = games.filter(game => activeGame.related?.includes(game.id)).slice(0, 3);
+    const relatedGames = games.filter((game) => activeGame.related?.includes(game.id)).slice(0, 3);
     const jsonLd = [itemJsonLd(activeGame), faqJsonLd(faq)];
 
     return (
@@ -250,7 +279,10 @@ export default function Games() {
           jsonLd={jsonLd}
         />
         <article className="w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-8">
-          <Link to="/games" className="mb-5 inline-flex min-h-[48px] items-center gap-2 text-sm font-semibold text-secondary hover:text-primary">
+          <Link
+            to="/games"
+            className="mb-5 inline-flex min-h-[48px] items-center gap-2 text-sm font-semibold text-secondary hover:text-primary"
+          >
             <ArrowLeft className="h-4 w-4" />
             {t('返回游戏列表', 'Back to games')}
           </Link>
@@ -282,7 +314,11 @@ export default function Games() {
                 {t('玩法说明', 'How to play')}
               </h2>
               <p className="text-sm leading-relaxed text-secondary">
-                {t(activeGame.instructions || '打开游戏后按页面提示开始，完成目标即可得分。', activeGame.instructionsEn || 'Open the game and follow the on-page prompt to start. Complete the objective to score.')}
+                {t(
+                  activeGame.instructions || '打开游戏后按页面提示开始，完成目标即可得分。',
+                  activeGame.instructionsEn ||
+                    'Open the game and follow the on-page prompt to start. Complete the objective to score.',
+                )}
               </p>
             </div>
             <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
@@ -291,7 +327,10 @@ export default function Games() {
                 {t('键盘操作', 'Keyboard')}
               </h2>
               <p className="text-sm leading-relaxed text-secondary">
-                {t('支持键盘的游戏通常使用方向键、空格或 Enter。具体按键以游戏区域内提示为准。', 'Keyboard-enabled games usually use arrow keys, Space, or Enter. Follow the game area prompts for exact controls.')}
+                {t(
+                  '支持键盘的游戏通常使用方向键、空格或 Enter。具体按键以游戏区域内提示为准。',
+                  'Keyboard-enabled games usually use arrow keys, Space, or Enter. Follow the game area prompts for exact controls.',
+                )}
               </p>
             </div>
             <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
@@ -300,7 +339,10 @@ export default function Games() {
                 {t('移动端操作', 'Mobile')}
               </h2>
               <p className="text-sm leading-relaxed text-secondary">
-                {t('移动端可使用点击、滑动或屏幕按钮操作。横屏游戏建议保持屏幕稳定，避免页面滚动干扰。', 'On mobile, use taps, swipes, or on-screen buttons. For landscape-style games, keep the screen steady to avoid accidental page scrolling.')}
+                {t(
+                  '移动端可使用点击、滑动或屏幕按钮操作。横屏游戏建议保持屏幕稳定，避免页面滚动干扰。',
+                  'On mobile, use taps, swipes, or on-screen buttons. For landscape-style games, keep the screen steady to avoid accidental page scrolling.',
+                )}
               </p>
             </div>
           </section>
@@ -319,13 +361,25 @@ export default function Games() {
 
           {relatedGames.length > 0 && (
             <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
-              <h2 className="mb-4 text-xl font-bold text-on-surface">{t('相关游戏', 'Related games')}</h2>
+              <h2 className="mb-4 text-xl font-bold text-on-surface">
+                {t('相关游戏', 'Related games')}
+              </h2>
               <div className="grid gap-3 sm:grid-cols-3">
                 {relatedGames.map((game) => (
-                  <Link key={game.id} to={game.route} className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-tertiary-container/20">
-                    <span className="text-2xl" aria-hidden="true">{game.icon}</span>
-                    <h3 className="mt-2 font-bold text-on-surface">{t(game.title, game.titleEn)}</h3>
-                    <p className="mt-1 line-clamp-2 text-xs text-secondary">{t(game.description, game.descriptionEn)}</p>
+                  <Link
+                    key={game.id}
+                    to={game.route}
+                    className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-tertiary-container/20"
+                  >
+                    <span className="text-2xl" aria-hidden="true">
+                      {game.icon}
+                    </span>
+                    <h3 className="mt-2 font-bold text-on-surface">
+                      {t(game.title, game.titleEn)}
+                    </h3>
+                    <p className="mt-1 line-clamp-2 text-xs text-secondary">
+                      {t(game.description, game.descriptionEn)}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -339,8 +393,13 @@ export default function Games() {
   if (activeGame) {
     return (
       <div className="flex-grow flex flex-col items-center justify-center py-20">
-        <p className="text-xl text-secondary mb-4">{t('此游戏正在开发中，敬请期待', 'This game is under development. Stay tuned.')}</p>
-        <button onClick={handleBack} className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]">
+        <p className="text-xl text-secondary mb-4">
+          {t('此游戏正在开发中，敬请期待', 'This game is under development. Stay tuned.')}
+        </p>
+        <button
+          onClick={handleBack}
+          className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]"
+        >
           {t('返回游戏列表', 'Back to Games')}
         </button>
       </div>
@@ -366,14 +425,19 @@ export default function Games() {
         title={pageTitle}
         description={pageDescription}
         canonical={categoryRoute ? `/games/${categoryRoute.slug}` : '/games'}
-        jsonLd={collectionJsonLd(pageTitle, pageDescription, categoryRoute ? `/games/${categoryRoute.slug}` : '/games', filteredGames)}
+        jsonLd={collectionJsonLd(
+          pageTitle,
+          pageDescription,
+          categoryRoute ? `/games/${categoryRoute.slug}` : '/games',
+          filteredGames,
+        )}
       />
 
       {/* Decorative floating elements */}
       <motion.div
         {...(!reducedMotion && {
           animate: { y: [0, -20, 0], rotate: [0, 5, -5, 0] },
-          transition: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+          transition: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
         })}
         className="absolute top-10 left-10 text-primary-fixed-dim opacity-40 select-none pointer-events-none"
       >
@@ -382,7 +446,7 @@ export default function Games() {
       <motion.div
         {...(!reducedMotion && {
           animate: { x: [0, 15, 0], y: [0, 10, 0] },
-          transition: { duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 },
+          transition: { duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 },
         })}
         className="absolute top-40 right-10 text-tertiary-fixed-dim opacity-40 select-none pointer-events-none"
       >
@@ -405,7 +469,9 @@ export default function Games() {
         <div className="absolute inset-0 bg-gradient-to-b from-tertiary-container/20 to-transparent -z-10 rounded-3xl blur-2xl"></div>
         <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl text-on-surface mb-6 flex items-center justify-center gap-4">
           <Gamepad2 className="text-primary w-10 h-10" />
-          {categoryRoute ? t(categoryRoute.label, categoryRoute.labelEn) : t('游戏天堂', 'Game Paradise')}
+          {categoryRoute
+            ? t(categoryRoute.label, categoryRoute.labelEn)
+            : t('游戏天堂', 'Game Paradise')}
         </h1>
         <p className="font-sans text-lg font-medium text-on-surface-variant max-w-2xl mx-auto">
           {pageDescription}
@@ -423,7 +489,9 @@ export default function Games() {
 
       <div className="mb-8 grid gap-3 md:grid-cols-[1fr_auto]">
         <form role="search" onSubmit={(event) => event.preventDefault()} className="relative">
-          <label htmlFor="games-search" className="sr-only">{t('搜索小游戏', 'Search games')}</label>
+          <label htmlFor="games-search" className="sr-only">
+            {t('搜索小游戏', 'Search games')}
+          </label>
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary/50" />
           <input
             id="games-search"
@@ -439,11 +507,12 @@ export default function Games() {
           <span className="sr-only">{t('排序', 'Sort')}</span>
           <select
             value={sortMode}
-            onChange={(event) => setSortMode(event.target.value as GameSortMode)}
+            onChange={(event) => handleSortChange(event.target.value as GameSortMode)}
             className="bg-transparent text-on-surface outline-none"
           >
             <option value="popular">{t('按热门排序', 'Popular')}</option>
-            <option value="new">{t('最近更新优先', 'Recently updated')}</option>
+            <option value="newest">{t('最近更新优先', 'Newest')}</option>
+            <option value="recent">{t('最近使用优先', 'Recently used')}</option>
             <option value="name">{t('按名称排序', 'Name')}</option>
           </select>
         </label>
@@ -463,7 +532,7 @@ export default function Games() {
           transition={springSmooth}
           style={{ zIndex: 0 }}
         />
-        {categories.map(cat => (
+        {categories.map((cat) => (
           <motion.button
             key={cat.id}
             onClick={() => handleCategorySwitch(cat.id)}
@@ -500,11 +569,13 @@ export default function Games() {
             >
               <motion.div
                 animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
                 <Gamepad2 className="w-16 h-16 text-secondary/30 mb-4" />
               </motion.div>
-              <p className="font-medium text-lg">{t('没有找到相关游戏', 'No matching games found')}</p>
+              <p className="font-medium text-lg">
+                {t('没有找到相关游戏', 'No matching games found')}
+              </p>
               <button
                 onClick={() => {
                   setQuery('');
@@ -526,26 +597,39 @@ export default function Games() {
               >
                 {game.image ? (
                   <div className="w-full h-48 rounded-2xl overflow-hidden bg-surface-container-low flex items-center justify-center relative">
-                    <img src={game.image} alt={game.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                    <img
+                      src={game.image}
+                      alt={game.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    />
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300"></div>
                   </div>
                 ) : (
-                  <div className={`w-full h-48 rounded-2xl ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center text-6xl`}>
+                  <div
+                    className={`w-full h-48 rounded-2xl ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center text-6xl`}
+                  >
                     {game.icon}
                   </div>
                 )}
                 <div className="flex items-start gap-4 mt-4">
-                  <div className={`w-16 h-16 rounded-2xl ${game.iconBg || 'bg-surface-container'} flex items-center justify-center shrink-0 shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 text-2xl`}>
+                  <div
+                    className={`w-16 h-16 rounded-2xl ${game.iconBg || 'bg-surface-container'} flex items-center justify-center shrink-0 shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 text-2xl`}
+                  >
                     {game.icon || <Gamepad2 className="text-primary w-8 h-8" />}
                   </div>
                   <div className="flex-grow">
-                    <h2 className="font-nunito text-lg text-on-surface font-bold group-hover:text-primary transition-colors">{t(game.title, game.titleEn)}</h2>
+                    <h2 className="font-nunito text-lg text-on-surface font-bold group-hover:text-primary transition-colors">
+                      {t(game.title, game.titleEn)}
+                    </h2>
                     <span className="inline-block px-3 py-1 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-tertiary-container/30 text-on-tertiary-container">
                       {t(game.category, game.categoryEn)}
                     </span>
                   </div>
                 </div>
-                <p className="font-sans text-base text-on-surface-variant line-clamp-2 mt-3">{t(game.description, game.descriptionEn)}</p>
+                <p className="font-sans text-base text-on-surface-variant line-clamp-2 mt-3">
+                  {t(game.description, game.descriptionEn)}
+                </p>
                 <div className="mt-auto pt-4 flex justify-between items-center">
                   <button
                     onClick={() => toggle(game.id)}
@@ -554,9 +638,15 @@ export default function Games() {
                         ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
                         : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
                     }`}
-                    aria-label={favoriteIds.includes(game.id) ? t('取消收藏', 'Remove favorite') : t('收藏', 'Add favorite')}
+                    aria-label={
+                      favoriteIds.includes(game.id)
+                        ? t('取消收藏', 'Remove favorite')
+                        : t('收藏', 'Add favorite')
+                    }
                   >
-                    <Heart className={`w-5 h-5 ${favoriteIds.includes(game.id) ? 'fill-current' : ''}`} />
+                    <Heart
+                      className={`w-5 h-5 ${favoriteIds.includes(game.id) ? 'fill-current' : ''}`}
+                    />
                   </button>
                   <motion.button
                     onClick={() => handlePlay(game.id)}

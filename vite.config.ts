@@ -1,16 +1,17 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, type PluginOption } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { visualizer } from 'rollup-plugin-visualizer';
 
-export default defineConfig({
-  plugins: [
+export default defineConfig(({ mode }) => {
+  const plugins: PluginOption[] = [
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico'],
+      registerType: 'prompt',
+      includeAssets: ['favicon.ico', 'offline.html'],
       manifest: {
         name: 'Spring Nest - 春日小筑',
         short_name: '春日小筑',
@@ -54,6 +55,25 @@ export default defineConfig({
             },
           },
           {
+            urlPattern: ({ url, request }) =>
+              url.origin === self.location.origin &&
+              ['script', 'style', 'image', 'font'].includes(request.destination),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'spring-nest-static-assets',
+              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/wttr\.in\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'spring-nest-weather',
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 30 },
+            },
+          },
+          {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
@@ -72,22 +92,37 @@ export default defineConfig({
         ],
       },
     }),
-  ],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
+  ];
+
+  if (mode === 'analyze') {
+    plugins.push(
+      visualizer({
+        filename: 'dist/bundle-stats.html',
+        gzipSize: true,
+        brotliSize: true,
+        template: 'treemap',
+      }),
+    );
+  }
+
+  return {
+    plugins,
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
     },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'motion': ['motion'],
-          'lucide': ['lucide-react'],
-          'qrcode': ['qrcode'],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            motion: ['motion'],
+            lucide: ['lucide-react'],
+            qrcode: ['qrcode'],
+          },
         },
       },
     },
-  },
+  };
 });

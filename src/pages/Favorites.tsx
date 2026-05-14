@@ -12,23 +12,26 @@ export default function Favorites() {
   const { favoriteIds, toggle } = useFavorites();
   const navigate = useNavigate();
 
-  const favoriteGames = games.filter(g => favoriteIds.includes(g.id));
-  const favoriteTools = tools.filter(t => favoriteIds.includes(t.id));
+  const favoriteGames = games.filter((g) => favoriteIds.includes(g.id));
+  const favoriteTools = tools.filter((t) => favoriteIds.includes(t.id));
   const totalFavorites = favoriteGames.length + favoriteTools.length;
 
   const handlePlayGame = (gameId: string) => {
-    const game = games.find(g => g.id === gameId);
+    const game = games.find((g) => g.id === gameId);
     if (game) navigate(game.route);
   };
 
   const handleOpenTool = (toolId: string) => {
-    const tool = tools.find(t => t.id === toolId);
+    const tool = tools.find((t) => t.id === toolId);
     if (tool) navigate(tool.route);
   };
 
   return (
     <div className="flex-grow w-full max-w-[1200px] mx-auto px-6 py-10 relative">
-      <SEO title={t('我的收藏 - Spring Nest 春日小筑', 'Favorites - Spring Nest')} description={t('查看你收藏的工具和游戏', 'View your favorite tools and games')} />
+      <SEO
+        title={t('我的收藏 - Spring Nest 春日小筑', 'Favorites - Spring Nest')}
+        description={t('查看你收藏的工具和游戏', 'View your favorite tools and games')}
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -39,7 +42,9 @@ export default function Favorites() {
           <div className="w-16 h-16 rounded-2xl bg-tertiary-container/50 text-tertiary flex items-center justify-center shadow-inner mb-4">
             <Heart className="w-8 h-8 fill-tertiary" />
           </div>
-          <h1 className="font-nunito text-3xl font-bold text-on-surface mb-2">{t('我的收藏', 'My Favorites')}</h1>
+          <h1 className="font-nunito text-3xl font-bold text-on-surface mb-2">
+            {t('我的收藏', 'My Favorites')}
+          </h1>
           <p className="text-secondary font-medium">
             {totalFavorites > 0
               ? t(`共收藏了 ${totalFavorites} 个应用`, `You have ${totalFavorites} favorited items`)
@@ -63,15 +68,25 @@ export default function Favorites() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: -20 }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                    whileHover={{
+                      y: -4,
+                      transition: { type: 'spring', stiffness: 400, damping: 15 },
+                    }}
                     whileTap={{ scale: 0.97 }}
                     key={item.id}
                     className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
                   >
                     <div className="flex gap-4">
-                      <div className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 ${item.iconBg || 'bg-surface-container'} flex items-center justify-center text-3xl`}>
+                      <div
+                        className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 ${item.iconBg || 'bg-surface-container'} flex items-center justify-center text-3xl`}
+                      >
                         {item.image ? (
-                          <img src={item.image} alt={t(item.title, item.titleEn)} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          <img
+                            src={item.image}
+                            alt={t(item.title, item.titleEn)}
+                            loading="lazy"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
                         ) : (
                           <span>{item.icon}</span>
                         )}
@@ -79,7 +94,9 @@ export default function Favorites() {
                       <div className="flex-grow flex flex-col justify-between py-1">
                         <div>
                           <div className="flex justify-between items-start">
-                            <h3 className="font-bold text-on-surface line-clamp-1">{t(item.title, item.titleEn)}</h3>
+                            <h3 className="font-bold text-on-surface line-clamp-1">
+                              {t(item.title, item.titleEn)}
+                            </h3>
                             <button
                               onClick={() => toggle(item.id)}
                               className="text-red-400 hover:text-red-600 transition-colors shrink-0"
@@ -88,7 +105,9 @@ export default function Favorites() {
                               <Heart className="w-4 h-4 fill-current" />
                             </button>
                           </div>
-                          <p className="text-xs text-secondary mt-1 line-clamp-2">{t(item.description, item.descriptionEn)}</p>
+                          <p className="text-xs text-secondary mt-1 line-clamp-2">
+                            {t(item.description, item.descriptionEn)}
+                          </p>
                         </div>
                         <div className="flex justify-between items-center mt-2">
                           <span className="text-xs font-semibold px-2 py-1 bg-surface-container-high rounded-full text-on-surface-variant">
@@ -126,15 +145,25 @@ export default function Favorites() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: -20 }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                    whileHover={{
+                      y: -4,
+                      transition: { type: 'spring', stiffness: 400, damping: 15 },
+                    }}
                     whileTap={{ scale: 0.97 }}
                     key={item.id}
                     className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
                   >
                     <div className="flex gap-4">
-                      <div className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 ${item.iconBg || 'bg-surface-container'} flex items-center justify-center text-3xl`}>
+                      <div
+                        className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 ${item.iconBg || 'bg-surface-container'} flex items-center justify-center text-3xl`}
+                      >
                         {item.image ? (
-                          <img src={item.image} alt={t(item.title, item.titleEn)} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          <img
+                            src={item.image}
+                            alt={t(item.title, item.titleEn)}
+                            loading="lazy"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
                         ) : (
                           <span>{item.icon}</span>
                         )}
@@ -142,7 +171,9 @@ export default function Favorites() {
                       <div className="flex-grow flex flex-col justify-between py-1">
                         <div>
                           <div className="flex justify-between items-start">
-                            <h3 className="font-bold text-on-surface line-clamp-1">{t(item.title, item.titleEn)}</h3>
+                            <h3 className="font-bold text-on-surface line-clamp-1">
+                              {t(item.title, item.titleEn)}
+                            </h3>
                             <button
                               onClick={() => toggle(item.id)}
                               className="text-red-400 hover:text-red-600 transition-colors shrink-0"
@@ -151,7 +182,9 @@ export default function Favorites() {
                               <Heart className="w-4 h-4 fill-current" />
                             </button>
                           </div>
-                          <p className="text-xs text-secondary mt-1 line-clamp-2">{t(item.description, item.descriptionEn)}</p>
+                          <p className="text-xs text-secondary mt-1 line-clamp-2">
+                            {t(item.description, item.descriptionEn)}
+                          </p>
                         </div>
                         <div className="flex justify-between items-center mt-2">
                           <span className="text-xs font-semibold px-2 py-1 bg-surface-container-high rounded-full text-on-surface-variant">
@@ -184,10 +217,18 @@ export default function Favorites() {
               <Heart className="w-10 h-10 text-secondary/30" />
             </div>
             <p className="font-medium text-lg">{t('暂无收藏内容', 'No favorites yet')}</p>
-            <p className="text-sm text-secondary/50 mb-6">{t('快去探索游戏和工具，收藏你喜欢的吧', 'Explore games and tools and add your favorites')}</p>
+            <p className="text-sm text-secondary/50 mb-6">
+              {t(
+                '快去探索游戏和工具，收藏你喜欢的吧',
+                'Explore games and tools and add your favorites',
+              )}
+            </p>
             <div className="flex gap-4">
               <motion.button
-                whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                whileHover={{
+                  scale: 1.05,
+                  transition: { type: 'spring', stiffness: 400, damping: 15 },
+                }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/games')}
                 className="px-6 py-3 bg-primary-container text-on-primary-container rounded-full font-semibold text-sm hover:bg-primary-container/80 transition-colors"
@@ -195,7 +236,10 @@ export default function Favorites() {
                 {t('探索游戏', 'Explore Games')}
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+                whileHover={{
+                  scale: 1.05,
+                  transition: { type: 'spring', stiffness: 400, damping: 15 },
+                }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/tools')}
                 className="px-6 py-3 bg-tertiary-container text-on-tertiary-container rounded-full font-semibold text-sm hover:bg-tertiary-container/80 transition-colors"

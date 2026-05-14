@@ -15,28 +15,31 @@ export default function NotFound() {
     <div className="flex-grow flex items-center justify-center px-6 py-20 relative overflow-hidden">
       <SEO
         title={t('页面未找到 - Spring Nest', 'Page Not Found - Spring Nest')}
-        description={t('页面不存在。你可以返回首页、搜索工具和小游戏，或访问推荐内容。', 'This page does not exist. Return home, search tools and games, or visit recommended content.')}
+        description={t(
+          '页面不存在。你可以返回首页、搜索工具和小游戏，或访问推荐内容。',
+          'This page does not exist. Return home, search tools and games, or visit recommended content.',
+        )}
         noindex
       />
       {/* Floating background elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
           animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute top-20 left-[10%] opacity-20 text-primary-container"
         >
           <Cloud className="w-24 h-24 fill-primary-container" />
         </motion.div>
         <motion.div
           animate={{ y: [0, 15, 0], x: [0, -10, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
           className="absolute bottom-20 right-[15%] opacity-15 text-tertiary-container"
         >
           <Cloud className="w-32 h-32 fill-tertiary-container" />
         </motion.div>
         <motion.div
           animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
           className="absolute top-[30%] right-[20%] opacity-20 text-tertiary-container"
         >
           <Flower2 className="w-12 h-12 fill-tertiary-container" />
@@ -58,7 +61,7 @@ export default function NotFound() {
         >
           <motion.div
             animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             className="text-9xl font-black text-primary/10 select-none"
           >
             404
@@ -66,7 +69,7 @@ export default function NotFound() {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.3, type: "spring", bounce: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.3, type: 'spring', bounce: 0.5 }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           >
             <Leaf className="w-20 h-20 text-primary/30 fill-primary/30" />
@@ -88,7 +91,10 @@ export default function NotFound() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-secondary mb-10 text-lg"
         >
-          {t('你访问的页面不存在，可能已被移除或地址输入有误。', 'The page you are looking for does not exist or has been moved.')}
+          {t(
+            '你访问的页面不存在，可能已被移除或地址输入有误。',
+            'The page you are looking for does not exist or has been moved.',
+          )}
         </motion.p>
 
         <motion.div
@@ -122,9 +128,7 @@ export default function NotFound() {
           transition={{ duration: 0.5, delay: 0.6 }}
           className="mt-8 pt-8 border-t border-surface-variant/30"
         >
-          <p className="text-sm text-secondary mb-4">
-            {t('或者试试搜索：', 'Or try searching:')}
-          </p>
+          <p className="text-sm text-secondary mb-4">{t('或者试试搜索：', 'Or try searching:')}</p>
           <Link
             to="/search"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-surface-container-high rounded-full text-sm font-medium text-primary hover:bg-primary-container/20 transition-colors border border-primary/20"
@@ -140,9 +144,7 @@ export default function NotFound() {
                 to={item.route}
                 className="rounded-2xl border border-surface-variant/50 bg-white/80 dark:bg-surface-container-high px-4 py-3 text-sm text-on-surface transition-colors hover:border-primary/40 hover:bg-primary-container/15"
               >
-                <span className="block font-semibold">
-                  {t(item.title, item.titleEn)}
-                </span>
+                <span className="block font-semibold">{t(item.title, item.titleEn)}</span>
                 <span className="mt-1 block text-xs text-secondary line-clamp-2">
                   {t(item.description, item.descriptionEn)}
                 </span>

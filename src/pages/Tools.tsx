@@ -1,76 +1,57 @@
-import { ArrowLeft, ArrowUpDown, BookOpen, Heart, Info, Play, Search, Shield, Wrench } from 'lucide-react';
-import { useState, useMemo, lazy, Suspense, useEffect, useLayoutEffect, useRef, type ComponentType, type LazyExoticComponent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  ArrowUpDown,
+  BookOpen,
+  Heart,
+  Info,
+  Play,
+  Search,
+  Shield,
+  Wrench,
+} from 'lucide-react';
+import { useState, useMemo, Suspense, useEffect, useLayoutEffect, useRef } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { tools } from '../data/tools';
 import SEO from '../components/SEO';
 import { trackToolOpen } from '../lib/analytics';
-import { recordVisit } from '../lib/recent';
-import { springSmooth, springBouncy, springSnappy, gridContainerVariants, gridCardVariants } from '../lib/animations';
+import { getRecentItems, recordVisit } from '../lib/recent';
+import {
+  springSmooth,
+  springBouncy,
+  springSnappy,
+  gridContainerVariants,
+  gridCardVariants,
+} from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
-import { getPrimaryToolCategorySlug, getToolCategoryBySlug } from '../lib/catalogRoutes';
+import { getToolCategoryBySlug } from '../lib/catalogRoutes';
 import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
 import type { AppItem } from '../types/app';
+import { toolComponents } from '../registries/toolRegistry';
 
-const Calculator = lazy(() => import('./tools/Calculator'));
-const Pomodoro = lazy(() => import('./tools/Pomodoro'));
-const UnitConverter = lazy(() => import('./tools/UnitConverter'));
-const PasswordGenerator = lazy(() => import('./tools/PasswordGenerator'));
-const QRCodeGenerator = lazy(() => import('./tools/QRCodeGenerator'));
-const Compass = lazy(() => import('./tools/Compass'));
-const Scanner = lazy(() => import('./tools/Scanner'));
-const Weather = lazy(() => import('./tools/Weather'));
-const RandomPicker = lazy(() => import('./tools/RandomPicker'));
-const TimerStopwatch = lazy(() => import('./tools/TimerStopwatch'));
-const WordCounter = lazy(() => import('./tools/WordCounter'));
-const MarkdownPreview = lazy(() => import('./tools/MarkdownPreview'));
-const JsonFormatter = lazy(() => import('./tools/JsonFormatter'));
-const Base64Codec = lazy(() => import('./tools/Base64Codec'));
-const UrlCodec = lazy(() => import('./tools/UrlCodec'));
-const ColorConverter = lazy(() => import('./tools/ColorConverter'));
-const DateCalculator = lazy(() => import('./tools/DateCalculator'));
-const TextDiff = lazy(() => import('./tools/TextDiff'));
-const LoremGenerator = lazy(() => import('./tools/LoremGenerator'));
-const IPLookup = lazy(() => import('./tools/IPLookup'));
-const TipCalculator = lazy(() => import('./tools/TipCalculator'));
-const CaseConverter = lazy(() => import('./tools/CaseConverter'));
-const RandomNumber = lazy(() => import('./tools/RandomNumber'));
-const BMICalculator = lazy(() => import('./tools/BMICalculator'));
-const TextToSpeech = lazy(() => import('./tools/TextToSpeech'));
+const toolsWithInternalH1 = new Set([
+  'tool-12',
+  'tool-21',
+  'tool-22',
+  'tool-23',
+  'tool-24',
+  'tool-25',
+]);
 
-const toolComponents: Record<string, LazyExoticComponent<ComponentType<{ onBack: () => void }>>> = {
-  'tool-1': Calculator,
-  'tool-2': Pomodoro,
-  'tool-3': UnitConverter,
-  'tool-4': PasswordGenerator,
-  'tool-5': QRCodeGenerator,
-  'tool-6': Compass,
-  'tool-7': Scanner,
-  'tool-8': Weather,
-  'tool-9': RandomPicker,
-  'tool-10': TimerStopwatch,
-  'tool-11': WordCounter,
-  'tool-12': MarkdownPreview,
-  'tool-13': JsonFormatter,
-  'tool-14': Base64Codec,
-  'tool-15': UrlCodec,
-  'tool-16': ColorConverter,
-  'tool-17': DateCalculator,
-  'tool-18': TextDiff,
-  'tool-19': LoremGenerator,
-  'tool-20': IPLookup,
-  'tool-21': TipCalculator,
-  'tool-22': CaseConverter,
-  'tool-23': RandomNumber,
-  'tool-24': BMICalculator,
-  'tool-25': TextToSpeech,
-};
+type SortMode = 'popular' | 'newest' | 'name' | 'recent';
 
-const toolsWithInternalH1 = new Set(['tool-12', 'tool-21', 'tool-22', 'tool-23', 'tool-24', 'tool-25']);
+const sortModes = new Set<SortMode>(['popular', 'newest', 'name', 'recent']);
 
-type SortMode = 'popular' | 'new' | 'name';
+function getValidSortMode(value: string | null): SortMode {
+  return value && sortModes.has(value as SortMode) ? (value as SortMode) : 'popular';
+}
+
+function getValidCategory(value: string | null, categories: string[]) {
+  if (!value || value === 'all') return 'all';
+  return categories.includes(value) ? value : 'all';
+}
 
 function matchesCatalogQuery(item: AppItem, query: string) {
   if (!query.trim()) return true;
@@ -102,11 +83,17 @@ function getToolFaq(item: AppItem, t: (zh: string, en: string) => string) {
   return [
     {
       q: t('这个工具会上传输入内容吗？', 'Does this tool upload my input?'),
-      a: t('不会。除天气、IP 查询等明确需要联网的工具外，输入内容默认只在浏览器本地处理。', 'No. Except tools that clearly need the network, such as weather or IP lookup, inputs are processed locally in your browser.'),
+      a: t(
+        '不会。除天气、IP 查询等明确需要联网的工具外，输入内容默认只在浏览器本地处理。',
+        'No. Except tools that clearly need the network, such as weather or IP lookup, inputs are processed locally in your browser.',
+      ),
     },
     {
       q: t('是否需要登录？', 'Do I need to sign in?'),
-      a: t('不需要。核心功能可以直接使用，收藏和最近使用会保存在本地浏览器。', 'No. Core features work immediately, while favorites and recent items are saved in local browser storage.'),
+      a: t(
+        '不需要。核心功能可以直接使用，收藏和最近使用会保存在本地浏览器。',
+        'No. Core features work immediately, while favorites and recent items are saved in local browser storage.',
+      ),
     },
   ];
 }
@@ -116,22 +103,40 @@ export default function Tools() {
   const { favoriteIds, toggle } = useFavorites();
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const categoryRoute = getToolCategoryBySlug(slug);
-  const [activeCategory, setActiveCategory] = useState('all');
   const [query, setQuery] = useState('');
-  const [sortMode, setSortMode] = useState<SortMode>('popular');
   const pillContainerRef = useRef<HTMLDivElement>(null);
-  const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+  const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({
+    left: 0,
+    width: 0,
+  });
+
+  const categories = useMemo(() => {
+    const cats = [...new Set(tools.map((t) => t.category))];
+    return [
+      { id: 'all', label: t('全部工具', 'All Tools') },
+      ...cats.map((c) => {
+        const tool = tools.find((tl) => tl.category === c);
+        return { id: c, label: t(c, tool?.categoryEn || c) };
+      }),
+    ];
+  }, [t]);
+
+  const categoryIds = useMemo(() => categories.map((cat) => cat.id), [categories]);
+  const queryCategory = getValidCategory(searchParams.get('category'), categoryIds);
+  const activeCategory =
+    queryCategory !== 'all' ? queryCategory : (categoryRoute?.category ?? 'all');
+  const sortMode = getValidSortMode(searchParams.get('sort'));
 
   const handleCategorySwitch = (catId: string) => {
     if (catId === activeCategory) return;
-    setActiveCategory(catId);
-    if (catId === 'all') {
-      navigate('/tools');
-    } else {
-      const routeSlug = getPrimaryToolCategorySlug(catId);
-      navigate(routeSlug ? `/tools/${routeSlug}` : '/tools');
-    }
+    const params = new URLSearchParams(searchParams);
+    if (catId === 'all') params.delete('category');
+    else params.set('category', catId);
+    if (sortMode !== 'popular') params.set('sort', sortMode);
+    else params.delete('sort');
+    setSearchParams(params, { replace: false });
 
     requestAnimationFrame(() => {
       const container = pillContainerRef.current;
@@ -150,7 +155,7 @@ export default function Tools() {
       const pillRect = activePill.getBoundingClientRect();
       const newLeft = pillRect.left - containerRect.left + container.scrollLeft;
       const newWidth = pillRect.width;
-      setPillLayout(prev => {
+      setPillLayout((prev) => {
         if (prev.left === newLeft && prev.width === newWidth) return prev;
         return { left: newLeft, width: newWidth };
       });
@@ -171,7 +176,7 @@ export default function Tools() {
 
   const activeToolBySlug = useMemo(() => {
     if (!slug || categoryRoute) return null;
-    return tools.find(tl => tl.route.endsWith(`/${slug}`)) || null;
+    return tools.find((tl) => tl.route.endsWith(`/${slug}`)) || null;
   }, [slug, categoryRoute]);
 
   const [internalToolId, setInternalToolId] = useState<string | null>(null);
@@ -186,44 +191,40 @@ export default function Tools() {
     }
   }, [slug, activeToolBySlug, categoryRoute]);
 
-  const categories = useMemo(() => {
-    const cats = [...new Set(tools.map(t => t.category))];
-    return [{ id: 'all', label: t('全部工具', 'All Tools') }, ...cats.map(c => { const tool = tools.find(tl => tl.category === c); return { id: c, label: t(c, tool?.categoryEn || c) }; })];
-  }, [t]);
-
-  const effectiveCategory = categoryRoute?.category ?? activeCategory;
-
   useEffect(() => {
-    if (categoryRoute) {
-      setActiveCategory(categoryRoute.category);
-    } else if (!slug) {
-      setActiveCategory('all');
-    }
-  }, [categoryRoute, slug]);
+    if (slug && !categoryRoute && !activeToolBySlug) navigate('/tools', { replace: true });
+  }, [slug, categoryRoute, activeToolBySlug, navigate]);
 
-  const filteredTools = useMemo(
-    () => {
-      const byCategory = effectiveCategory === 'all'
-        ? tools
-        : tools.filter(tool => tool.category === effectiveCategory);
-      const byQuery = byCategory.filter(tool => matchesCatalogQuery(tool, query));
+  const filteredTools = useMemo(() => {
+    const recentOrder = new Map(
+      getRecentItems(20)
+        .filter((item) => item.type === 'tool')
+        .map((item, index) => [item.id, index]),
+    );
+    const byCategory =
+      activeCategory === 'all' ? tools : tools.filter((tool) => tool.category === activeCategory);
+    const byQuery = byCategory.filter((tool) => matchesCatalogQuery(tool, query));
 
-      return [...byQuery].sort((a, b) => {
-        if (sortMode === 'new') return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew));
-        if (sortMode === 'name') return t(a.title, a.titleEn).localeCompare(t(b.title, b.titleEn), 'zh-Hans-CN');
-        return (b.popularScore ?? 0) - (a.popularScore ?? 0);
-      });
-    },
-    [effectiveCategory, query, sortMode, t],
-  );
+    return [...byQuery].sort((a, b) => {
+      if (sortMode === 'newest') return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew));
+      if (sortMode === 'name')
+        return t(a.title, a.titleEn).localeCompare(t(b.title, b.titleEn), 'zh-Hans-CN');
+      if (sortMode === 'recent') {
+        const aRecent = recentOrder.get(a.id) ?? Number.POSITIVE_INFINITY;
+        const bRecent = recentOrder.get(b.id) ?? Number.POSITIVE_INFINITY;
+        if (aRecent !== bRecent) return aRecent - bRecent;
+      }
+      return (b.popularScore ?? 0) - (a.popularScore ?? 0);
+    });
+  }, [activeCategory, query, sortMode, t]);
 
   const activeTool = useMemo(
-    () => tools.find(t => t.id === activeToolId) || null,
-    [activeToolId]
+    () => tools.find((t) => t.id === activeToolId) || null,
+    [activeToolId],
   );
 
   const handleOpen = (toolId: string) => {
-    const tool = tools.find(t => t.id === toolId);
+    const tool = tools.find((t) => t.id === toolId);
     if (tool) {
       const toolSlug = tool.route.split('/').pop();
       navigate(`/tools/${toolSlug}`);
@@ -232,6 +233,15 @@ export default function Tools() {
 
   const handleBack = () => {
     navigate('/tools');
+  };
+
+  const handleSortChange = (nextSort: SortMode) => {
+    const params = new URLSearchParams(searchParams);
+    if (activeCategory !== 'all') params.set('category', activeCategory);
+    else params.delete('category');
+    if (nextSort === 'popular') params.delete('sort');
+    else params.set('sort', nextSort);
+    setSearchParams(params, { replace: false });
   };
 
   useEffect(() => {
@@ -244,7 +254,7 @@ export default function Tools() {
   if (activeTool && toolComponents[activeTool.id]) {
     const ToolComponent = toolComponents[activeTool.id];
     const faq = getToolFaq(activeTool, t);
-    const relatedTools = tools.filter(tool => activeTool.related?.includes(tool.id)).slice(0, 3);
+    const relatedTools = tools.filter((tool) => activeTool.related?.includes(tool.id)).slice(0, 3);
     const jsonLd = [itemJsonLd(activeTool), faqJsonLd(faq)];
 
     return (
@@ -257,7 +267,10 @@ export default function Tools() {
           jsonLd={jsonLd}
         />
         <article className="w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-8">
-          <Link to="/tools" className="mb-5 inline-flex min-h-[48px] items-center gap-2 text-sm font-semibold text-secondary hover:text-primary">
+          <Link
+            to="/tools"
+            className="mb-5 inline-flex min-h-[48px] items-center gap-2 text-sm font-semibold text-secondary hover:text-primary"
+          >
             <ArrowLeft className="h-4 w-4" />
             {t('返回工具列表', 'Back to tools')}
           </Link>
@@ -284,7 +297,10 @@ export default function Tools() {
             </p>
             <p className="mt-4 flex items-start gap-2 rounded-xl bg-primary-container/20 p-3 text-sm leading-relaxed text-on-surface-variant">
               <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              {t('隐私提示：输入内容不会上传服务器，除非该工具明确说明需要联网功能。', 'Privacy note: your input is not uploaded to a server unless this tool clearly states that network access is required.')}
+              {t(
+                '隐私提示：输入内容不会上传服务器，除非该工具明确说明需要联网功能。',
+                'Privacy note: your input is not uploaded to a server unless this tool clearly states that network access is required.',
+              )}
             </p>
           </header>
 
@@ -299,7 +315,12 @@ export default function Tools() {
                 {t('使用方法', 'How to use')}
               </h2>
               <p className="leading-relaxed text-secondary">
-                {t(activeTool.instructions || '打开工具后按页面提示输入或选择内容，结果会在浏览器本地即时生成。', activeTool.instructionsEn || 'Open the tool, enter or select values as prompted, and results will be generated locally in your browser.')}
+                {t(
+                  activeTool.instructions ||
+                    '打开工具后按页面提示输入或选择内容，结果会在浏览器本地即时生成。',
+                  activeTool.instructionsEn ||
+                    'Open the tool, enter or select values as prompted, and results will be generated locally in your browser.',
+                )}
               </p>
             </div>
             <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
@@ -331,13 +352,25 @@ export default function Tools() {
 
           {relatedTools.length > 0 && (
             <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
-              <h2 className="mb-4 text-xl font-bold text-on-surface">{t('相关工具', 'Related tools')}</h2>
+              <h2 className="mb-4 text-xl font-bold text-on-surface">
+                {t('相关工具', 'Related tools')}
+              </h2>
               <div className="grid gap-3 sm:grid-cols-3">
                 {relatedTools.map((tool) => (
-                  <Link key={tool.id} to={tool.route} className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-primary-container/20">
-                    <span className="text-2xl" aria-hidden="true">{tool.icon}</span>
-                    <h3 className="mt-2 font-bold text-on-surface">{t(tool.title, tool.titleEn)}</h3>
-                    <p className="mt-1 line-clamp-2 text-xs text-secondary">{t(tool.description, tool.descriptionEn)}</p>
+                  <Link
+                    key={tool.id}
+                    to={tool.route}
+                    className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-primary-container/20"
+                  >
+                    <span className="text-2xl" aria-hidden="true">
+                      {tool.icon}
+                    </span>
+                    <h3 className="mt-2 font-bold text-on-surface">
+                      {t(tool.title, tool.titleEn)}
+                    </h3>
+                    <p className="mt-1 line-clamp-2 text-xs text-secondary">
+                      {t(tool.description, tool.descriptionEn)}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -351,8 +384,13 @@ export default function Tools() {
   if (activeTool) {
     return (
       <div className="flex-grow flex flex-col items-center justify-center py-20">
-        <p className="text-xl text-secondary mb-4">{t('此工具正在开发中，敬请期待', 'This tool is under development. Stay tuned.')}</p>
-        <button onClick={handleBack} className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]">
+        <p className="text-xl text-secondary mb-4">
+          {t('此工具正在开发中，敬请期待', 'This tool is under development. Stay tuned.')}
+        </p>
+        <button
+          onClick={handleBack}
+          className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]"
+        >
           {t('返回工具列表', 'Back to Tools')}
         </button>
       </div>
@@ -378,7 +416,12 @@ export default function Tools() {
         title={pageTitle}
         description={pageDescription}
         canonical={categoryRoute ? `/tools/${categoryRoute.slug}` : '/tools'}
-        jsonLd={collectionJsonLd(pageTitle, pageDescription, categoryRoute ? `/tools/${categoryRoute.slug}` : '/tools', filteredTools)}
+        jsonLd={collectionJsonLd(
+          pageTitle,
+          pageDescription,
+          categoryRoute ? `/tools/${categoryRoute.slug}` : '/tools',
+          filteredTools,
+        )}
       />
 
       {/* Background blur orbs */}
@@ -395,15 +438,23 @@ export default function Tools() {
       >
         <div className="absolute inset-0 bg-gradient-to-b from-primary-container/20 to-transparent -z-10 rounded-3xl blur-2xl"></div>
 
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+        >
           <Wrench className="absolute top-4 right-[25%] text-primary/20 w-10 h-10 pointer-events-none" />
         </motion.div>
-        <motion.div animate={{ rotate: -360 }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }}>
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+        >
           <BookOpen className="absolute bottom-8 left-[20%] text-tertiary/20 w-8 h-8 pointer-events-none" />
         </motion.div>
 
         <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#274e3a] dark:text-primary mb-6 flex items-center justify-center gap-4">
-          {categoryRoute ? t(categoryRoute.label, categoryRoute.labelEn) : t('实用小筑', 'Practical Tools')}
+          {categoryRoute
+            ? t(categoryRoute.label, categoryRoute.labelEn)
+            : t('实用小筑', 'Practical Tools')}
         </h1>
         <p className="font-sans text-lg font-medium text-on-surface-variant max-w-2xl mx-auto">
           {pageDescription}
@@ -421,7 +472,9 @@ export default function Tools() {
 
       <div className="mb-8 grid gap-3 md:grid-cols-[1fr_auto]">
         <form role="search" onSubmit={(event) => event.preventDefault()} className="relative">
-          <label htmlFor="tools-search" className="sr-only">{t('搜索工具', 'Search tools')}</label>
+          <label htmlFor="tools-search" className="sr-only">
+            {t('搜索工具', 'Search tools')}
+          </label>
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary/50" />
           <input
             id="tools-search"
@@ -437,11 +490,12 @@ export default function Tools() {
           <span className="sr-only">{t('排序', 'Sort')}</span>
           <select
             value={sortMode}
-            onChange={(event) => setSortMode(event.target.value as SortMode)}
+            onChange={(event) => handleSortChange(event.target.value as SortMode)}
             className="bg-transparent text-on-surface outline-none"
           >
             <option value="popular">{t('按热门排序', 'Popular')}</option>
-            <option value="new">{t('最近更新优先', 'Recently updated')}</option>
+            <option value="newest">{t('最近更新优先', 'Newest')}</option>
+            <option value="recent">{t('最近使用优先', 'Recently used')}</option>
             <option value="name">{t('按名称排序', 'Name')}</option>
           </select>
         </label>
@@ -460,7 +514,7 @@ export default function Tools() {
           transition={springSmooth}
           style={{ zIndex: 0 }}
         />
-        {categories.map(cat => (
+        {categories.map((cat) => (
           <motion.button
             key={cat.id}
             onClick={() => handleCategorySwitch(cat.id)}
@@ -496,7 +550,9 @@ export default function Tools() {
               className="col-span-full flex flex-col items-center justify-center py-20 text-secondary"
             >
               <Wrench className="w-16 h-16 text-secondary/30 mb-4" />
-              <p className="font-medium text-lg">{t('没有找到相关工具', 'No matching tools found')}</p>
+              <p className="font-medium text-lg">
+                {t('没有找到相关工具', 'No matching tools found')}
+              </p>
               <button
                 onClick={() => {
                   setQuery('');
@@ -517,10 +573,17 @@ export default function Tools() {
                 className="glass-card rounded-3xl p-8 transition-all duration-500 hover-glow group"
               >
                 <div className="flex flex-col items-center text-center gap-6 mb-6">
-                  <div className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 relative text-4xl`}>
+                  <div
+                    className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 relative text-4xl`}
+                  >
                     {tool.image ? (
                       <>
-                        <img src={tool.image} alt={tool.title} loading="lazy" className="w-full h-full object-cover" />
+                        <img
+                          src={tool.image}
+                          alt={tool.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                        />
                         <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-overlay"></div>
                       </>
                     ) : (
@@ -528,7 +591,9 @@ export default function Tools() {
                     )}
                   </div>
                   <div>
-                    <h2 className="font-nunito font-bold text-2xl text-on-background mb-3 group-hover:text-primary transition-colors">{t(tool.title, tool.titleEn)}</h2>
+                    <h2 className="font-nunito font-bold text-2xl text-on-background mb-3 group-hover:text-primary transition-colors">
+                      {t(tool.title, tool.titleEn)}
+                    </h2>
                     <span className="inline-block px-3 py-1.5 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-primary-container/30 text-on-primary-container">
                       {t(tool.category, tool.categoryEn)}
                     </span>
@@ -545,9 +610,15 @@ export default function Tools() {
                         ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
                         : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
                     }`}
-                    aria-label={favoriteIds.includes(tool.id) ? t('取消收藏', 'Remove favorite') : t('收藏', 'Add favorite')}
+                    aria-label={
+                      favoriteIds.includes(tool.id)
+                        ? t('取消收藏', 'Remove favorite')
+                        : t('收藏', 'Add favorite')
+                    }
                   >
-                    <Heart className={`w-5 h-5 ${favoriteIds.includes(tool.id) ? 'fill-current' : ''}`} />
+                    <Heart
+                      className={`w-5 h-5 ${favoriteIds.includes(tool.id) ? 'fill-current' : ''}`}
+                    />
                   </button>
                   <motion.button
                     onClick={() => handleOpen(tool.id)}

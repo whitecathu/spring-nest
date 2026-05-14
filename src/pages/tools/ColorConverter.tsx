@@ -12,12 +12,15 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 }
 
 function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+  return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
 }
 
 function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
-  r /= 255; g /= 255; b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
   const l = (max + min) / 2;
   if (max === min) return { h: 0, s: 0, l: Math.round(l * 100) };
   const d = max - min;
@@ -30,7 +33,9 @@ function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: n
 }
 
 function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
-  h /= 360; s /= 100; l /= 100;
+  h /= 360;
+  s /= 100;
+  l /= 100;
   if (s === 0) {
     const v = Math.round(l * 255);
     return { r: v, g: v, b: v };
@@ -77,19 +82,27 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
 
   // Sync all from RGB
   const syncFromRgb = useCallback((nr: number, ng: number, nb: number) => {
-    setR(nr); setG(ng); setB(nb);
+    setR(nr);
+    setG(ng);
+    setB(nb);
     const newHex = rgbToHex(nr, ng, nb);
     setHex(newHex);
     setHexInput(newHex);
     const hsl = rgbToHsl(nr, ng, nb);
-    setH(hsl.h); setS(hsl.s); setL(hsl.l);
+    setH(hsl.h);
+    setS(hsl.s);
+    setL(hsl.l);
   }, []);
 
   // Sync all from HSL
   const syncFromHsl = useCallback((nh: number, ns: number, nl: number) => {
-    setH(nh); setS(ns); setL(nl);
+    setH(nh);
+    setS(ns);
+    setL(nl);
     const rgb = hslToRgb(nh, ns, nl);
-    setR(rgb.r); setG(rgb.g); setB(rgb.b);
+    setR(rgb.r);
+    setG(rgb.g);
+    setB(rgb.b);
     const newHex = rgbToHex(rgb.r, rgb.g, rgb.b);
     setHex(newHex);
     setHexInput(newHex);
@@ -101,9 +114,13 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
     setHexInput(newHex);
     const rgb = hexToRgb(newHex);
     if (!rgb) return;
-    setR(rgb.r); setG(rgb.g); setB(rgb.b);
+    setR(rgb.r);
+    setG(rgb.g);
+    setB(rgb.b);
     const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-    setH(hsl.h); setS(hsl.s); setL(hsl.l);
+    setH(hsl.h);
+    setS(hsl.s);
+    setL(hsl.l);
   }, []);
 
   // Initialize on mount
@@ -136,13 +153,22 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('颜色转换器', 'Color Converter')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('颜色转换器', 'Color Converter')}
+        </h2>
 
         {/* Color Preview + Picker */}
         <div className="flex items-center gap-4 mb-6">
@@ -151,7 +177,9 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
             style={{ backgroundColor: hex }}
           />
           <div className="flex-1">
-            <label className="block text-xs font-medium text-secondary mb-1">{t('颜色拾取器', 'Color Picker')}</label>
+            <label className="block text-xs font-medium text-secondary mb-1">
+              {t('颜色拾取器', 'Color Picker')}
+            </label>
             <input
               type="color"
               value={hex}
@@ -177,7 +205,11 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
               onClick={() => handleCopy(hex, 'hex')}
               className="px-4 rounded-xl bg-surface-container-high text-secondary hover:text-primary transition-colors flex items-center gap-1.5 text-sm font-medium"
             >
-              {copied === 'hex' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              {copied === 'hex' ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
               {copied === 'hex' ? t('已复制', 'Copied') : t('复制', 'Copy')}
             </button>
           </div>
@@ -191,18 +223,41 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
               onClick={() => handleCopy(`rgb(${r}, ${g}, ${b})`, 'rgb')}
               className="px-3 py-1 rounded-lg bg-surface-container-high text-secondary hover:text-primary transition-colors flex items-center gap-1.5 text-xs font-medium"
             >
-              {copied === 'rgb' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied === 'rgb' ? (
+                <Check className="w-3.5 h-3.5 text-green-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
               <span className="font-mono">{`rgb(${r}, ${g}, ${b})`}</span>
             </button>
           </div>
           <div className="space-y-3">
             {[
-              { label: 'R', value: r, color: 'bg-red-500', onChange: (v: number) => syncFromRgb(v, g, b) },
-              { label: 'G', value: g, color: 'bg-green-500', onChange: (v: number) => syncFromRgb(r, v, b) },
-              { label: 'B', value: b, color: 'bg-blue-500', onChange: (v: number) => syncFromRgb(r, g, v) },
+              {
+                label: 'R',
+                value: r,
+                color: 'bg-red-500',
+                onChange: (v: number) => syncFromRgb(v, g, b),
+              },
+              {
+                label: 'G',
+                value: g,
+                color: 'bg-green-500',
+                onChange: (v: number) => syncFromRgb(r, v, b),
+              },
+              {
+                label: 'B',
+                value: b,
+                color: 'bg-blue-500',
+                onChange: (v: number) => syncFromRgb(r, g, v),
+              },
             ].map(({ label, value, color, onChange }) => (
               <div key={label} className="flex items-center gap-3">
-                <span className={`w-6 h-6 rounded-lg ${color} flex items-center justify-center text-white text-xs font-bold`}>{label}</span>
+                <span
+                  className={`w-6 h-6 rounded-lg ${color} flex items-center justify-center text-white text-xs font-bold`}
+                >
+                  {label}
+                </span>
                 <input
                   type="range"
                   min={0}
@@ -225,18 +280,47 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
               onClick={() => handleCopy(`hsl(${h}, ${s}%, ${l}%)`, 'hsl')}
               className="px-3 py-1 rounded-lg bg-surface-container-high text-secondary hover:text-primary transition-colors flex items-center gap-1.5 text-xs font-medium"
             >
-              {copied === 'hsl' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied === 'hsl' ? (
+                <Check className="w-3.5 h-3.5 text-green-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
               <span className="font-mono">{`hsl(${h}, ${s}%, ${l}%)`}</span>
             </button>
           </div>
           <div className="space-y-3">
             {[
-              { label: 'H', value: h, max: 360, suffix: '°', color: 'bg-gradient-to-r from-red-500 via-green-500 to-blue-500', onChange: (v: number) => syncFromHsl(v, s, l) },
-              { label: 'S', value: s, max: 100, suffix: '%', color: 'bg-primary', onChange: (v: number) => syncFromHsl(h, v, l) },
-              { label: 'L', value: l, max: 100, suffix: '%', color: 'bg-primary', onChange: (v: number) => syncFromHsl(h, s, v) },
+              {
+                label: 'H',
+                value: h,
+                max: 360,
+                suffix: '°',
+                color: 'bg-gradient-to-r from-red-500 via-green-500 to-blue-500',
+                onChange: (v: number) => syncFromHsl(v, s, l),
+              },
+              {
+                label: 'S',
+                value: s,
+                max: 100,
+                suffix: '%',
+                color: 'bg-primary',
+                onChange: (v: number) => syncFromHsl(h, v, l),
+              },
+              {
+                label: 'L',
+                value: l,
+                max: 100,
+                suffix: '%',
+                color: 'bg-primary',
+                onChange: (v: number) => syncFromHsl(h, s, v),
+              },
             ].map(({ label, value, max, suffix, color, onChange }) => (
               <div key={label} className="flex items-center gap-3">
-                <span className={`w-6 h-6 rounded-lg ${color} flex items-center justify-center text-white text-xs font-bold`}>{label}</span>
+                <span
+                  className={`w-6 h-6 rounded-lg ${color} flex items-center justify-center text-white text-xs font-bold`}
+                >
+                  {label}
+                </span>
                 <input
                   type="range"
                   min={0}
@@ -245,7 +329,10 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
                   onChange={(e) => onChange(Number(e.target.value))}
                   className="flex-1 h-2 bg-surface-container-high rounded-full appearance-none cursor-pointer accent-primary"
                 />
-                <span className="w-12 text-right text-sm font-mono text-on-surface">{value}{suffix}</span>
+                <span className="w-12 text-right text-sm font-mono text-on-surface">
+                  {value}
+                  {suffix}
+                </span>
               </div>
             ))}
           </div>
@@ -253,7 +340,9 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
 
         {/* Preset Colors */}
         <div>
-          <h3 className="text-sm font-bold text-secondary mb-3">{t('春日色板', 'Spring Palette')}</h3>
+          <h3 className="text-sm font-bold text-secondary mb-3">
+            {t('春日色板', 'Spring Palette')}
+          </h3>
           <div className="grid grid-cols-4 gap-3">
             {PRESETS.map((preset) => (
               <button

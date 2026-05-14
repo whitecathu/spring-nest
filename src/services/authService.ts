@@ -33,7 +33,8 @@ function getUsers(): UserAccount[] {
         typeof u === 'object' &&
         'id' in (u as Record<string, unknown>) &&
         'email' in (u as Record<string, unknown>) &&
-        ('passwordHash' in (u as Record<string, unknown>) || 'password' in (u as Record<string, unknown>))
+        ('passwordHash' in (u as Record<string, unknown>) ||
+          'password' in (u as Record<string, unknown>)),
     ) as UserAccount[];
   } catch {
     return [];
@@ -86,7 +87,7 @@ export function register(email: string, password: string, username?: string): Re
   }
 
   const users = getUsers();
-  if (users.find(u => u.email === email)) {
+  if (users.find((u) => u.email === email)) {
     return { success: false, error: '该邮箱已注册' };
   }
 
@@ -116,7 +117,7 @@ export function login(email: string, password: string): LoginResult {
   }
 
   const users = getUsers();
-  const user = users.find(u => {
+  const user = users.find((u) => {
     if (u.email !== email) return false;
     if (u.passwordHash) return u.passwordHash === hashPassword(email, password);
     return u.password === password;
@@ -141,12 +142,14 @@ export function logout(): void {
   setCurrentUser(null);
 }
 
-export function updateProfile(updates: Partial<Omit<UserAccount, 'id' | 'createdAt' | 'password' | 'passwordHash'>>): PublicUserAccount | null {
+export function updateProfile(
+  updates: Partial<Omit<UserAccount, 'id' | 'createdAt' | 'password' | 'passwordHash'>>,
+): PublicUserAccount | null {
   const current = getCurrentUser();
   if (!current) return null;
 
   const users = getUsers();
-  const idx = users.findIndex(u => u.id === current.id);
+  const idx = users.findIndex((u) => u.id === current.id);
   if (idx === -1) return null;
 
   if (updates.email) {
@@ -178,7 +181,7 @@ export function isUsingSupabase(): boolean {
 export async function supabaseSignUp(
   email: string,
   password: string,
-  username?: string
+  username?: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
   try {
@@ -207,7 +210,7 @@ export async function supabaseSignUp(
 /** Sign in with Supabase Auth */
 export async function supabaseSignIn(
   email: string,
-  password: string
+  password: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
   try {
@@ -231,7 +234,7 @@ export async function supabaseSignOut(): Promise<void> {
 
 /** Send password reset email */
 export async function supabaseResetPassword(
-  email: string
+  email: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
   try {
@@ -245,7 +248,7 @@ export async function supabaseResetPassword(
 
 /** Update current user's password */
 export async function supabaseUpdatePassword(
-  newPassword: string
+  newPassword: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
   try {
@@ -261,7 +264,9 @@ export async function supabaseUpdatePassword(
 export async function supabaseGetCurrentUser() {
   if (!supabase) return null;
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     return user;
   } catch {
     return null;
@@ -272,7 +277,9 @@ export async function supabaseGetCurrentUser() {
 export async function supabaseGetSession() {
   if (!supabase) return null;
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     return session;
   } catch {
     return null;
@@ -281,7 +288,7 @@ export async function supabaseGetSession() {
 
 /** Listen for Supabase auth state changes */
 export function onAuthStateChange(
-  callback: (event: string, session: import('@supabase/supabase-js').Session | null) => void
+  callback: (event: string, session: import('@supabase/supabase-js').Session | null) => void,
 ) {
   if (!supabase) {
     return { data: { subscription: { unsubscribe: () => {} } } };

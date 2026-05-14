@@ -4,9 +4,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
+import PwaUpdatePrompt from './components/PwaUpdatePrompt';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { useReducedMotion, pageTransitionVariants, softEase, floatingParticles } from './lib/animations';
+import {
+  useReducedMotion,
+  pageTransitionVariants,
+  softEase,
+  floatingParticles,
+} from './lib/animations';
 import { trackPageView } from './lib/analytics';
 import { Leaf } from 'lucide-react';
 
@@ -22,6 +28,7 @@ const Admin = lazy(() => import('./pages/Admin'));
 const Feedback = lazy(() => import('./pages/Feedback'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
+const Offline = lazy(() => import('./pages/Offline'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 const LoadingFallback = () => {
@@ -29,7 +36,7 @@ const LoadingFallback = () => {
 
   return (
     <motion.div
-      className="flex-grow flex items-center justify-center min-h-[50vh] bg-gradient-to-b from-[#E8F5EE]/40 to-[#FFF9F2]/40 dark:from-[#1a2c1f]/40 dark:to-background/40"
+      className="flex-grow flex items-center justify-center min-h-[100svh] bg-gradient-to-b from-[#E8F5EE]/40 to-[#FFF9F2]/40 dark:from-[#1a2c1f]/40 dark:to-background/40"
       animate={
         reducedMotion
           ? {}
@@ -46,25 +53,32 @@ const LoadingFallback = () => {
       <div className="flex flex-col items-center gap-6">
         <div className="relative">
           {/* Floating particles — softer easing curves */}
-          {!reducedMotion && floatingParticles.map((p, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-primary/20"
-              style={{ width: p.size, height: p.size, left: '50%', top: '50%', willChange: 'transform, opacity' }}
-              animate={{
-                x: [0, p.x, 0],
-                y: [0, p.y, 0],
-                opacity: [0, 0.55, 0],
-                scale: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 3.5,
-                repeat: Infinity,
-                delay: p.delay,
-                ease: softEase,
-              }}
-            />
-          ))}
+          {!reducedMotion &&
+            floatingParticles.map((p, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full bg-primary/20"
+                style={{
+                  width: p.size,
+                  height: p.size,
+                  left: '50%',
+                  top: '50%',
+                  willChange: 'transform, opacity',
+                }}
+                animate={{
+                  x: [0, p.x, 0],
+                  y: [0, p.y, 0],
+                  opacity: [0, 0.55, 0],
+                  scale: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 3.5,
+                  repeat: Infinity,
+                  delay: p.delay,
+                  ease: softEase,
+                }}
+              />
+            ))}
           {/* Pulsing logo */}
           <motion.div
             animate={reducedMotion ? {} : { y: [0, -8, 0], scale: [1, 1.05, 1] }}
@@ -97,12 +111,17 @@ const LoadingFallback = () => {
 };
 
 function applyFormControlAccessibleNames() {
-  const controls = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
-    'input:not([type="hidden"]), textarea, select',
-  );
+  const controls = document.querySelectorAll<
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  >('input:not([type="hidden"]), textarea, select');
 
   controls.forEach((control) => {
-    if (control.getAttribute('aria-label') || control.getAttribute('aria-labelledby') || control.getAttribute('title')) return;
+    if (
+      control.getAttribute('aria-label') ||
+      control.getAttribute('aria-labelledby') ||
+      control.getAttribute('title')
+    )
+      return;
     if (control.closest('label')) return;
 
     const id = control.getAttribute('id');
@@ -119,15 +138,16 @@ function applyFormControlAccessibleNames() {
   });
 }
 
-function PageWrapper({ children, reducedMotion }: { children: React.ReactNode; reducedMotion: boolean }) {
+function PageWrapper({
+  children,
+  reducedMotion,
+}: {
+  children: React.ReactNode;
+  reducedMotion: boolean;
+}) {
   if (reducedMotion) return children;
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageTransitionVariants}
-    >
+    <motion.div initial="initial" animate="animate" exit="exit" variants={pageTransitionVariants}>
       {children}
     </motion.div>
   );
@@ -158,26 +178,140 @@ export default function App() {
               <Suspense fallback={<LoadingFallback />}>
                 <AnimatePresence mode="wait">
                   <Routes location={location} key={location.pathname}>
-                    <Route path="/" element={<PageWrapper reducedMotion={reducedMotion}><Home /></PageWrapper>} />
-                    <Route path="/games" element={<PageWrapper reducedMotion={reducedMotion}><Games /></PageWrapper>} />
-                    <Route path="/games/:slug" element={<PageWrapper reducedMotion={reducedMotion}><Games /></PageWrapper>} />
-                    <Route path="/tools" element={<PageWrapper reducedMotion={reducedMotion}><Tools /></PageWrapper>} />
-                    <Route path="/tools/:slug" element={<PageWrapper reducedMotion={reducedMotion}><Tools /></PageWrapper>} />
-                    <Route path="/about" element={<PageWrapper reducedMotion={reducedMotion}><About /></PageWrapper>} />
-                    <Route path="/profile" element={<PageWrapper reducedMotion={reducedMotion}><Profile /></PageWrapper>} />
-                    <Route path="/favorites" element={<PageWrapper reducedMotion={reducedMotion}><Favorites /></PageWrapper>} />
-                    <Route path="/leaderboard" element={<PageWrapper reducedMotion={reducedMotion}><Leaderboard /></PageWrapper>} />
-                    <Route path="/admin" element={<PageWrapper reducedMotion={reducedMotion}><Admin /></PageWrapper>} />
-                    <Route path="/feedback" element={<PageWrapper reducedMotion={reducedMotion}><Feedback /></PageWrapper>} />
-                    <Route path="/privacy" element={<PageWrapper reducedMotion={reducedMotion}><Privacy /></PageWrapper>} />
-                    <Route path="/terms" element={<PageWrapper reducedMotion={reducedMotion}><Terms /></PageWrapper>} />
-                    <Route path="/search" element={<PageWrapper reducedMotion={reducedMotion}><SearchResults /></PageWrapper>} />
-                    <Route path="*" element={<PageWrapper reducedMotion={reducedMotion}><NotFound /></PageWrapper>} />
+                    <Route
+                      path="/"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Home />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/games"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Games />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/games/:slug"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Games />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/tools"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Tools />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/tools/:slug"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Tools />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/about"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <About />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/profile"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Profile />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/favorites"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Favorites />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/leaderboard"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Leaderboard />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/admin"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Admin />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/feedback"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Feedback />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/privacy"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Privacy />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/terms"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Terms />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/offline"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <Offline />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="/search"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <SearchResults />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="*"
+                      element={
+                        <PageWrapper reducedMotion={reducedMotion}>
+                          <NotFound />
+                        </PageWrapper>
+                      }
+                    />
                   </Routes>
                 </AnimatePresence>
               </Suspense>
             </main>
             <Footer />
+            <PwaUpdatePrompt />
           </div>
         </ErrorBoundary>
       </UserProvider>

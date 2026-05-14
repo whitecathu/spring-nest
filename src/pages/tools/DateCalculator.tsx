@@ -36,7 +36,7 @@ function addDays(dateStr: string, days: number): string | null {
 
 export default function DateCalculator({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
-  const lang = t('zh', 'en') === 'zh' ? 'zh' as const : 'en' as const;
+  const lang = t('zh', 'en') === 'zh' ? ('zh' as const) : ('en' as const);
   const [mode, setMode] = useState<Mode>('diff');
 
   // Diff mode
@@ -59,10 +59,11 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
     const remainDays = absDays % 7;
     const months = (absDays / 30.44).toFixed(1);
     const sign = diffResult >= 0 ? '' : '-';
-    const parts = [
-      `${sign}${absDays} ${t('天', 'days')}`,
-    ];
-    if (weeks > 0) parts.push(`${weeks} ${t('周', 'weeks')} ${remainDays > 0 ? `${remainDays} ${t('天', 'days')}` : ''}`.trim());
+    const parts = [`${sign}${absDays} ${t('天', 'days')}`];
+    if (weeks > 0)
+      parts.push(
+        `${weeks} ${t('周', 'weeks')} ${remainDays > 0 ? `${remainDays} ${t('天', 'days')}` : ''}`.trim(),
+      );
     parts.push(`≈ ${months} ${t('个月', 'months')}`);
     return parts.join('  |  ');
   }, [diffResult, t]);
@@ -84,7 +85,18 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
         `${t('结果', 'Result')}: ${offsetResult} (${getDayOfWeek(offsetResult, lang)})`,
       ].join('\n');
     }
-  }, [mode, startDate, endDate, diffResult, offsetDate, offsetDays, offsetResult, lang, t, getDiffSummary]);
+  }, [
+    mode,
+    startDate,
+    endDate,
+    diffResult,
+    offsetDate,
+    offsetDays,
+    offsetResult,
+    lang,
+    t,
+    getDiffSummary,
+  ]);
 
   const handleCopy = useCallback(async () => {
     const text = getCopyText();
@@ -105,20 +117,31 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('日期计算器', 'Date Calculator')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('日期计算器', 'Date Calculator')}
+        </h2>
 
         {/* Mode Selector */}
         <div className="flex justify-center gap-2 mb-6">
           <button
             onClick={() => setMode('diff')}
             className={`px-5 py-2.5 rounded-full font-semibold text-sm transition-all ${
-              mode === 'diff' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
+              mode === 'diff'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
             }`}
           >
             {t('日期差', 'Date Diff')}
@@ -126,7 +149,9 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
           <button
             onClick={() => setMode('offset')}
             className={`px-5 py-2.5 rounded-full font-semibold text-sm transition-all ${
-              mode === 'offset' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
+              mode === 'offset'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
             }`}
           >
             {t('日期推算', 'Date Offset')}
@@ -137,7 +162,9 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
           <>
             {/* Start Date */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-secondary mb-2">{t('起始日期', 'Start Date')}</label>
+              <label className="block text-sm font-medium text-secondary mb-2">
+                {t('起始日期', 'Start Date')}
+              </label>
               <div className="flex gap-2">
                 <input
                   type="date"
@@ -154,13 +181,17 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
                 </button>
               </div>
               {startDate && (
-                <span className="text-xs text-secondary/60 mt-1 block">{getDayOfWeek(startDate, lang)}</span>
+                <span className="text-xs text-secondary/60 mt-1 block">
+                  {getDayOfWeek(startDate, lang)}
+                </span>
               )}
             </div>
 
             {/* End Date */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-secondary mb-2">{t('结束日期', 'End Date')}</label>
+              <label className="block text-sm font-medium text-secondary mb-2">
+                {t('结束日期', 'End Date')}
+              </label>
               <div className="flex gap-2">
                 <input
                   type="date"
@@ -177,7 +208,9 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
                 </button>
               </div>
               {endDate && (
-                <span className="text-xs text-secondary/60 mt-1 block">{getDayOfWeek(endDate, lang)}</span>
+                <span className="text-xs text-secondary/60 mt-1 block">
+                  {getDayOfWeek(endDate, lang)}
+                </span>
               )}
             </div>
 
@@ -187,9 +220,7 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
                 <div className="text-3xl font-bold text-on-surface text-center mb-2">
                   {Math.abs(diffResult)} {t('天', 'days')}
                 </div>
-                <div className="text-sm text-secondary text-center">
-                  {getDiffSummary()}
-                </div>
+                <div className="text-sm text-secondary text-center">{getDiffSummary()}</div>
               </div>
             )}
           </>
@@ -197,7 +228,9 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
           <>
             {/* Date Input */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-secondary mb-2">{t('起始日期', 'Start Date')}</label>
+              <label className="block text-sm font-medium text-secondary mb-2">
+                {t('起始日期', 'Start Date')}
+              </label>
               <div className="flex gap-2">
                 <input
                   type="date"
@@ -214,13 +247,17 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
                 </button>
               </div>
               {offsetDate && (
-                <span className="text-xs text-secondary/60 mt-1 block">{getDayOfWeek(offsetDate, lang)}</span>
+                <span className="text-xs text-secondary/60 mt-1 block">
+                  {getDayOfWeek(offsetDate, lang)}
+                </span>
               )}
             </div>
 
             {/* Days Offset */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-secondary mb-2">{t('偏移天数', 'Days Offset')}</label>
+              <label className="block text-sm font-medium text-secondary mb-2">
+                {t('偏移天数', 'Days Offset')}
+              </label>
               <div className="flex gap-2">
                 <button
                   onClick={() => setOffsetDays(String((parseInt(offsetDays, 10) || 0) - 1))}

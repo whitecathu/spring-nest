@@ -121,31 +121,37 @@
 ### 1. `codex/audit-doc-baseline`
 
 负责：
+
 - 提交本优化主干文档。
 - 不改运行时代码、不改 DNS、不改域名配置。
 
 不要改：
+
 - 不修改 `SEO.tsx`、`robots.txt`、`sitemap.xml`。
 - 不修改工具/游戏功能。
 
 验证：
+
 - `npm run lint`
 - `npm run build`
 
 ### 2. `codex/seo-indexing-foundation`
 
 负责：
+
 - 统一站点 URL 来源，避免把 Cloudflare Pages 分支预览域名写死为长期正式域名。
 - 更新或生成 sitemap，覆盖全部公开工具/游戏详情页。
 - 检查 robots、OG URL、canonical、JSON-LD 的一致性。
 
 不要改：
+
 - 不绑定正式域名。
 - 不改 DNS。
 - 不改页面视觉与交互。
 - 不删除现有 sitemap 公开页面，除非确认是非公开路由。
 
 验证：
+
 - `npm run lint`
 - `npm run build`
 - 人工检查 `dist/sitemap.xml`、`dist/robots.txt`
@@ -153,16 +159,19 @@
 ### 3. `codex/ci-test-alignment`
 
 负责：
+
 - 修正 CI 分支触发策略，使当前主分支能触发 CI。
 - 检查 Playwright manifest 断言与当前 PWA 配置是否一致。
 - 明确 `lint`、`typecheck`、`test` 命令边界；如果新增 `typecheck` 脚本，只应指向 `tsc --noEmit`。
 
 不要改：
+
 - 不调整部署平台。
 - 不改应用功能逻辑。
 - 不引入大型测试框架。
 
 验证：
+
 - `npm run lint`
 - `npm run test`
 - `npm run test:e2e`
@@ -171,16 +180,19 @@
 ### 4. `codex/security-permissions-policy`
 
 负责：
+
 - 审查 `public/_headers` 中的 Permissions-Policy。
 - 确保相机类功能与策略一致，例如 Scanner 的 `getUserMedia`。
 - 检查外部请求能力：天气 `wttr.in`、IP 查询服务、Supabase 可选接入。
 
 不要改：
+
 - 不重写工具功能。
 - 不放宽无关权限。
 - 不处理正式域名。
 
 验证：
+
 - `npm run lint`
 - `npm run build`
 - 浏览器手测 Scanner、Weather、IP Lookup、Compass
@@ -188,16 +200,19 @@
 ### 5. `codex/pwa-offline-hardening`
 
 负责：
+
 - 验证 manifest、icons、service worker 注册、更新策略、离线访问。
 - 判断 `offline.html` 是否需要纳入导航 fallback。
 - 补齐 PWA E2E 或构建后检查。
 
 不要改：
+
 - 不大幅替换 PWA 插件。
 - 不改变核心路由方式。
 - 不引入复杂运行时缓存库。
 
 验证：
+
 - `npm run lint`
 - `npm run build`
 - `npm run test:e2e`
@@ -206,30 +221,36 @@
 ### 6. `codex/docs-content-sync`
 
 负责：
+
 - 同步 README、技术架构、部署说明、产品说明中的工具/游戏数量、路由、测试状态。
 - 修正不存在或命名不一致的文档链接。
 
 不要改：
+
 - 不改代码行为。
 - 不新增营销性描述盖过真实功能。
 
 验证：
+
 - `npm run build`
 - 人工检查文档链接
 
 ### 7. `codex/performance-accessibility-pass`
 
 负责：
+
 - 对首页、工具列表、游戏列表、详情页做性能与可访问性专项检查。
 - 优化过重动效、图片/字体加载、tap target、焦点顺序、ARIA 文案。
 - 优先使用现有 Tailwind、motion、lucide，不新增大型依赖。
 
 不要改：
+
 - 不改变工具/游戏核心玩法。
 - 不做大规模组件重构。
 - 不引入 UI 框架。
 
 验证：
+
 - `npm run lint`
 - `npm run build`
 - `npm run test:e2e`
@@ -238,15 +259,18 @@
 ### 8. `codex/games-tools-maintainability`
 
 负责：
+
 - 在不改变功能的前提下，轻量整理 `Games.tsx` 与 `Tools.tsx` 的组件映射、路由查找、分类逻辑。
 - 为新增工具/游戏建立更不容易漏 sitemap、组件映射和测试的流程。
 
 不要改：
+
 - 不删除任何工具或游戏。
 - 不重写现有小游戏引擎。
 - 不合并成大型抽象，除非能明显减少重复。
 
 验证：
+
 - `npm run lint`
 - `npm run test`
 - `npm run test:e2e`

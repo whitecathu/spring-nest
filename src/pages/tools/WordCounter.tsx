@@ -19,9 +19,9 @@ function computeStats(text: string): Stats {
   const englishWords = text
     .replace(/[一-鿿]/g, ' ')
     .split(/\s+/)
-    .filter(w => /[a-zA-Z]/.test(w)).length;
+    .filter((w) => /[a-zA-Z]/.test(w)).length;
   const lines = text === '' ? 0 : text.split('\n').length;
-  const paragraphs = text.split('\n').filter(l => l.trim().length > 0).length;
+  const paragraphs = text.split('\n').filter((l) => l.trim().length > 0).length;
   return { totalChars, charsNoSpace, chineseChars, englishWords, lines, paragraphs };
 }
 
@@ -73,13 +73,22 @@ export default function WordCounter({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('字数统计', 'Word Counter')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('字数统计', 'Word Counter')}
+        </h2>
 
         {/* Textarea */}
         <div className="mb-4">
@@ -107,7 +116,9 @@ export default function WordCounter({ onBack }: { onBack: () => void }) {
           <button
             onClick={handleCopy}
             className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-1.5 ${
-              copied ? 'bg-green-100 text-green-600' : 'bg-primary-container/50 text-primary hover:bg-primary-container'
+              copied
+                ? 'bg-green-100 text-green-600'
+                : 'bg-primary-container/50 text-primary hover:bg-primary-container'
             }`}
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}

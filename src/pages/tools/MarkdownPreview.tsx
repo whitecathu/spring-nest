@@ -17,7 +17,9 @@ function parseInline(text: string): string {
   // Protect code spans first
   const codeSpans: string[] = [];
   let processed = text.replace(/`([^`]+)`/g, (_, code) => {
-    codeSpans.push(`<code class="bg-surface-container-high px-1.5 py-0.5 rounded text-sm text-primary font-mono">${escapeHtml(code)}</code>`);
+    codeSpans.push(
+      `<code class="bg-surface-container-high px-1.5 py-0.5 rounded text-sm text-primary font-mono">${escapeHtml(code)}</code>`,
+    );
     return `__CODESPAN_${codeSpans.length - 1}__`;
   });
 
@@ -28,7 +30,10 @@ function parseInline(text: string): string {
   // Italic
   processed = processed.replace(/\*(.+?)\*/g, '<em>$1</em>');
   // Links
-  processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline" target="_blank" rel="noopener noreferrer">$1</a>');
+  processed = processed.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    '<a href="$2" class="text-primary underline" target="_blank" rel="noopener noreferrer">$1</a>',
+  );
 
   // Restore code spans
   processed = processed.replace(/__CODESPAN_(\d+)__/g, (_, i) => codeSpans[parseInt(i)]);
@@ -92,7 +97,14 @@ function parseMarkdown(md: string): string {
       closeList();
       const level = headingMatch[1].length;
       const sizes = ['text-2xl', 'text-xl', 'text-lg', 'text-base', 'text-sm', 'text-xs'];
-      const weights = ['font-bold', 'font-bold', 'font-bold', 'font-semibold', 'font-semibold', 'font-semibold'];
+      const weights = [
+        'font-bold',
+        'font-bold',
+        'font-bold',
+        'font-semibold',
+        'font-semibold',
+        'font-semibold',
+      ];
       html += `<h${level} class="${sizes[level - 1]} ${weights[level - 1]} text-on-surface mt-4 mb-2">${parseInline(headingMatch[2])}</h${level}>`;
       continue;
     }
@@ -146,7 +158,9 @@ type MobileTab = 'edit' | 'preview';
 
 export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
-  const [markdown, setMarkdown] = useState('# Hello\n\n**Bold** and *italic* text.\n\n- Item 1\n- Item 2\n\n> A blockquote\n\n`inline code`\n\n---\n\n[Link](https://example.com)');
+  const [markdown, setMarkdown] = useState(
+    '# Hello\n\n**Bold** and *italic* text.\n\n- Item 1\n- Item 2\n\n> A blockquote\n\n`inline code`\n\n---\n\n[Link](https://example.com)',
+  );
   const [copied, setCopied] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('edit');
 
@@ -175,20 +189,31 @@ export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-2xl mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-4">{t('Markdown 预览', 'Markdown Preview')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-4">
+          {t('Markdown 预览', 'Markdown Preview')}
+        </h2>
 
         {/* Action Buttons */}
         <div className="flex gap-2 mb-4">
           <button
             onClick={handleCopyHtml}
             className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-1.5 ${
-              copied ? 'bg-green-100 text-green-600' : 'bg-primary-container/50 text-primary hover:bg-primary-container'
+              copied
+                ? 'bg-green-100 text-green-600'
+                : 'bg-primary-container/50 text-primary hover:bg-primary-container'
             }`}
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}

@@ -8,10 +8,13 @@ type Difficulty = 'easy' | 'medium' | 'hard';
 type Board = (number | 0)[][];
 type Solution = number[][];
 
-const DIFFICULTIES: Record<Difficulty, { clues: number; label: [string, string]; desc: [string, string] }> = {
-  easy:   { clues: 38, label: ['简单', 'Easy'],   desc: ['适合新手', 'For beginners'] },
+const DIFFICULTIES: Record<
+  Difficulty,
+  { clues: number; label: [string, string]; desc: [string, string] }
+> = {
+  easy: { clues: 38, label: ['简单', 'Easy'], desc: ['适合新手', 'For beginners'] },
   medium: { clues: 30, label: ['中等', 'Medium'], desc: ['需要思考', 'Requires thinking'] },
-  hard:   { clues: 24, label: ['困难', 'Hard'],   desc: ['高难度挑战', 'High difficulty'] },
+  hard: { clues: 24, label: ['困难', 'Hard'], desc: ['高难度挑战', 'High difficulty'] },
 };
 
 const GRID_SIZE = 9;
@@ -65,9 +68,9 @@ function generatePuzzle(difficulty: Difficulty): { puzzle: Board; solution: Solu
   solveSudoku(solution);
 
   // Remove cells to create puzzle
-  const puzzle: Board = solution.map(row => [...row]);
+  const puzzle: Board = solution.map((row) => [...row]);
   const positions = shuffleInPlace(
-    Array.from({ length: 81 }, (_, i) => [Math.floor(i / 9), i % 9] as [number, number])
+    Array.from({ length: 81 }, (_, i) => [Math.floor(i / 9), i % 9] as [number, number]),
   );
 
   const clues = DIFFICULTIES[difficulty].clues;
@@ -82,7 +85,11 @@ function generatePuzzle(difficulty: Difficulty): { puzzle: Board; solution: Solu
 }
 
 function loadBestTime(d: Difficulty): number {
-  try { return JSON.parse(localStorage.getItem(`spring_nest_sudoku_best_${d}`) || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem(`spring_nest_sudoku_best_${d}`) || '0');
+  } catch {
+    return 0;
+  }
 }
 
 function saveBestTime(d: Difficulty, time: number) {
@@ -96,9 +103,23 @@ function formatTime(s: number) {
 }
 
 const SudokuCell = memo(function SudokuCell({
-  value, isOriginal, isSelected, isError, isHighlight, onClick, isHint, isCorrectBrief
+  value,
+  isOriginal,
+  isSelected,
+  isError,
+  isHighlight,
+  onClick,
+  isHint,
+  isCorrectBrief,
 }: {
-  value: number; isOriginal: boolean; isSelected: boolean; isError: boolean; isHighlight: boolean; onClick: () => void; isHint: boolean; isCorrectBrief: boolean;
+  value: number;
+  isOriginal: boolean;
+  isSelected: boolean;
+  isError: boolean;
+  isHighlight: boolean;
+  onClick: () => void;
+  isHint: boolean;
+  isCorrectBrief: boolean;
 }) {
   return (
     <motion.button
@@ -180,7 +201,7 @@ function WinConfetti() {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {particles.map(p => (
+      {particles.map((p) => (
         <motion.div
           key={p.id}
           className="absolute left-1/2 top-1/2"
@@ -232,20 +253,26 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
   const [isNewRecord, setIsNewRecord] = useState(false);
 
   const clearTimer = useCallback(() => {
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
 
-  useEffect(() => () => {
-    clearTimer();
-    timeoutsRef.current.forEach(clearTimeout);
-    timeoutsRef.current = [];
-  }, [clearTimer]);
+  useEffect(
+    () => () => {
+      clearTimer();
+      timeoutsRef.current.forEach(clearTimeout);
+      timeoutsRef.current = [];
+    },
+    [clearTimer],
+  );
 
   const startGame = useCallback(() => {
     clearTimer();
     const { puzzle: p, solution: s } = generatePuzzle(difficulty);
     setPuzzle(p);
-    setBoard(p.map(r => [...r]));
+    setBoard(p.map((r) => [...r]));
     setSolution(s);
     setSelected(null);
     setErrors(new Set());
@@ -284,45 +311,59 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     }
   }, [clearTimer, difficulty]);
 
-  const handleCellClick = useCallback((r: number, c: number) => {
-    if (gameState !== 'playing') return;
-    if (puzzle[r][c] !== 0) return; // Can't select original cells
-    setSelected([r, c]);
-  }, [gameState, puzzle]);
+  const handleCellClick = useCallback(
+    (r: number, c: number) => {
+      if (gameState !== 'playing') return;
+      if (puzzle[r][c] !== 0) return; // Can't select original cells
+      setSelected([r, c]);
+    },
+    [gameState, puzzle],
+  );
 
-  const handleNumber = useCallback((num: number) => {
-    if (!selected || gameState !== 'playing') return;
-    const [r, c] = selected;
-    if (puzzle[r][c] !== 0) return;
+  const handleNumber = useCallback(
+    (num: number) => {
+      if (!selected || gameState !== 'playing') return;
+      const [r, c] = selected;
+      if (puzzle[r][c] !== 0) return;
 
-    const newBoard = board.map(row => [...row]);
-    newBoard[r][c] = num;
-    setBoard(newBoard);
+      const newBoard = board.map((row) => [...row]);
+      newBoard[r][c] = num;
+      setBoard(newBoard);
 
-    // Check if this cell is correct
-    const newErrors = new Set(errors);
-    const key = `${r}-${c}`;
-    if (num !== 0 && num !== solution[r][c]) {
-      if (!newErrors.has(key)) {
-        setMistakeCount(prev => prev + 1);
+      // Check if this cell is correct
+      const newErrors = new Set(errors);
+      const key = `${r}-${c}`;
+      if (num !== 0 && num !== solution[r][c]) {
+        if (!newErrors.has(key)) {
+          setMistakeCount((prev) => prev + 1);
+        }
+        newErrors.add(key);
+        setCorrectCells((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
+      } else {
+        newErrors.delete(key);
+        if (num !== 0 && num === solution[r][c]) {
+          // Brief green glow on correct placement
+          setCorrectCells((prev) => new Set(prev).add(key));
+          const glowTimeout = setTimeout(() => {
+            setCorrectCells((prev) => {
+              const next = new Set(prev);
+              next.delete(key);
+              return next;
+            });
+          }, 500);
+          timeoutsRef.current.push(glowTimeout);
+        }
       }
-      newErrors.add(key);
-      setCorrectCells(prev => { const next = new Set(prev); next.delete(key); return next; });
-    } else {
-      newErrors.delete(key);
-      if (num !== 0 && num === solution[r][c]) {
-        // Brief green glow on correct placement
-        setCorrectCells(prev => new Set(prev).add(key));
-        const glowTimeout = setTimeout(() => {
-          setCorrectCells(prev => { const next = new Set(prev); next.delete(key); return next; });
-        }, 500);
-        timeoutsRef.current.push(glowTimeout);
-      }
-    }
-    setErrors(newErrors);
+      setErrors(newErrors);
 
-    if (checkWin(newBoard) && newErrors.size === 0) handleWin();
-  }, [selected, gameState, puzzle, board, solution, errors, checkWin, handleWin]);
+      if (checkWin(newBoard) && newErrors.size === 0) handleWin();
+    },
+    [selected, gameState, puzzle, board, solution, errors, checkWin, handleWin],
+  );
 
   const handleErase = useCallback(() => {
     if (!selected || gameState !== 'playing') return;
@@ -336,13 +377,13 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     const [r, c] = selected;
     if (puzzle[r][c] !== 0 || board[r][c] === solution[r][c]) return;
 
-    const newBoard = board.map(row => [...row]);
+    const newBoard = board.map((row) => [...row]);
     newBoard[r][c] = solution[r][c];
     setBoard(newBoard);
-    setHints(h => h - 1);
+    setHints((h) => h - 1);
 
     // Track hint cells for golden glow
-    setHintCells(prev => new Set(prev).add(`${r}-${c}`));
+    setHintCells((prev) => new Set(prev).add(`${r}-${c}`));
 
     // Remove error if any
     const newErrors = new Set(errors);
@@ -370,7 +411,10 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -380,7 +424,9 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('数独', 'Sudoku')}</h1>
-            <p className="text-sm text-secondary">{t('填入 1-9，每行每列每宫不重复', 'Fill 1-9, no repeats in row/col/box')}</p>
+            <p className="text-sm text-secondary">
+              {t('填入 1-9，每行每列每宫不重复', 'Fill 1-9, no repeats in row/col/box')}
+            </p>
           </div>
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center">
@@ -388,8 +434,13 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
               <div className="text-lg font-bold text-primary tabular-nums">{formatTime(time)}</div>
             </div>
             {bestTime > 0 && (
-              <div className={`bg-surface-container-high rounded-xl px-3 py-2 text-center relative ${isNewRecord ? 'ring-2 ring-amber-400' : ''}`}>
-                <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+              <div
+                className={`bg-surface-container-high rounded-xl px-3 py-2 text-center relative ${isNewRecord ? 'ring-2 ring-amber-400' : ''}`}
+              >
+                <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                  <Trophy className="w-3 h-3" />
+                  {t('最佳', 'Best')}
+                </div>
                 <motion.div
                   className="text-lg font-bold text-tertiary tabular-nums"
                   animate={isNewRecord ? { scale: [1, 1.25, 1] } : {}}
@@ -411,17 +462,22 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
 
         {/* Difficulty */}
         <div className="flex justify-center gap-2 mb-4">
-          {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
+          {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
             <motion.button
               key={d}
-              onClick={() => { if (gameState === 'playing') return; setDifficulty(d); }}
+              onClick={() => {
+                if (gameState === 'playing') return;
+                setDifficulty(d);
+              }}
               disabled={gameState === 'playing'}
               whileTap={{ scale: 0.93 }}
               whileHover={{ scale: 1.05 }}
               animate={difficulty === d ? { scale: [1, 1.08, 1] } : { scale: 1 }}
               transition={springBouncy}
               className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[48px] transition-all ${
-                difficulty === d ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
+                difficulty === d
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
               }`}
             >
               {t(...DIFFICULTIES[d].label)}
@@ -467,14 +523,21 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                   row.map((val, c) => {
                     const isSelected = selected?.[0] === r && selected?.[1] === c;
                     const isError = errors.has(`${r}-${c}`);
-                    const isHighlight = selected !== null && (
-                      selected[0] === r || selected[1] === c ||
-                      (Math.floor(selected[0] / 3) === Math.floor(r / 3) &&
-                       Math.floor(selected[1] / 3) === Math.floor(c / 3))
-                    );
+                    const isHighlight =
+                      selected !== null &&
+                      (selected[0] === r ||
+                        selected[1] === c ||
+                        (Math.floor(selected[0] / 3) === Math.floor(r / 3) &&
+                          Math.floor(selected[1] / 3) === Math.floor(c / 3)));
                     const isHint = hintCells.has(`${r}-${c}`);
-                    const borderRight = (c + 1) % 3 === 0 && c < 8 ? 'border-r-2 border-on-surface/20' : 'border-r border-on-surface/10';
-                    const borderBottom = (r + 1) % 3 === 0 && r < 8 ? 'border-b-2 border-on-surface/20' : 'border-b border-on-surface/10';
+                    const borderRight =
+                      (c + 1) % 3 === 0 && c < 8
+                        ? 'border-r-2 border-on-surface/20'
+                        : 'border-r border-on-surface/10';
+                    const borderBottom =
+                      (r + 1) % 3 === 0 && r < 8
+                        ? 'border-b-2 border-on-surface/20'
+                        : 'border-b border-on-surface/10';
 
                     const isCorrectBrief = correctCells.has(`${r}-${c}`);
 
@@ -492,7 +555,7 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                         />
                       </div>
                     );
-                  })
+                  }),
                 )}
               </div>
             </motion.div>
@@ -522,7 +585,9 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                 disabled={hints <= 0}
                 whileTap={{ scale: 0.9 }}
                 className={`px-4 py-2 rounded-full font-semibold text-sm flex items-center gap-1.5 min-h-[48px] ${
-                  hints > 0 ? 'bg-amber-100 text-amber-700' : 'bg-surface-container-low text-secondary/30'
+                  hints > 0
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-surface-container-low text-secondary/30'
                 }`}
               >
                 <Lightbulb className="w-4 h-4" />
@@ -532,18 +597,18 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
 
             {/* Number Pad */}
             <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-            <div className="grid grid-cols-9 gap-1.5 min-w-[320px]">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                <motion.button
-                  key={num}
-                  onClick={() => handleNumber(num)}
-                  whileTap={{ scale: 0.85 }}
-                  className="aspect-square rounded-lg bg-primary text-on-primary font-bold text-lg flex items-center justify-center min-h-[48px]"
-                >
-                  {num}
-                </motion.button>
-              ))}
-            </div>
+              <div className="grid grid-cols-9 gap-1.5 min-w-[320px]">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                  <motion.button
+                    key={num}
+                    onClick={() => handleNumber(num)}
+                    whileTap={{ scale: 0.85 }}
+                    className="aspect-square rounded-lg bg-primary text-on-primary font-bold text-lg flex items-center justify-center min-h-[48px]"
+                  >
+                    {num}
+                  </motion.button>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
@@ -567,9 +632,15 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                   className="text-center mb-2"
                 >
                   <p className="text-4xl mb-2">🎉</p>
-                  <p className="text-2xl font-bold text-on-surface">{t('恭喜通关！', 'You Win!')}</p>
-                  <p className="text-sm text-secondary">{t('用时', 'Time')}: {formatTime(time)}</p>
-                  <p className="text-xs text-secondary mt-1">{t('错误', 'Mistakes')}: {mistakeCount}</p>
+                  <p className="text-2xl font-bold text-on-surface">
+                    {t('恭喜通关！', 'You Win!')}
+                  </p>
+                  <p className="text-sm text-secondary">
+                    {t('用时', 'Time')}: {formatTime(time)}
+                  </p>
+                  <p className="text-xs text-secondary mt-1">
+                    {t('错误', 'Mistakes')}: {mistakeCount}
+                  </p>
                   {isNewRecord && (
                     <motion.p
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -597,9 +668,7 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
         </AnimatePresence>
 
         {/* Confetti on win */}
-        <AnimatePresence>
-          {gameState === 'won' && <WinConfetti />}
-        </AnimatePresence>
+        <AnimatePresence>{gameState === 'won' && <WinConfetti />}</AnimatePresence>
 
         {/* Instructions */}
         <div className="mt-4 text-center text-xs text-secondary/50">

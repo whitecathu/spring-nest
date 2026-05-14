@@ -1,4 +1,10 @@
-import { useState, useRef, useEffect, useCallback, type ChangeEvent as ReactChangeEvent } from 'react';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  type ChangeEvent as ReactChangeEvent,
+} from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft,
@@ -38,6 +44,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
 
   const [hasCamera, setHasCamera] = useState(true);
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState('');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [activePreset, setActivePreset] = useState<FilterPreset>('none');
@@ -58,6 +65,32 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
 
   const startCamera = useCallback(async () => {
     stopCamera();
+    setCameraError('');
+
+    if (!window.isSecureContext) {
+      setCameraActive(false);
+      setHasCamera(true);
+      setCameraError(
+        t(
+          '浏览器要求在 HTTPS 或 localhost 环境下使用相机。你仍可上传图片进行扫描。',
+          'Camera access requires HTTPS or localhost. You can still upload an image to scan.',
+        ),
+      );
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraActive(false);
+      setHasCamera(false);
+      setCameraError(
+        t(
+          '当前浏览器不支持摄像头访问，请改用图片上传。',
+          'This browser does not support camera access. Please upload an image instead.',
+        ),
+      );
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
@@ -70,10 +103,46 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
       }
       setCameraActive(true);
       setHasCamera(true);
-    } catch {
-      setHasCamera(false);
+    } catch (error) {
+      stopCamera();
+      const name = error instanceof DOMException ? error.name : '';
+      const denied = name === 'NotAllowedError' || name === 'SecurityError';
+      const missing = name === 'NotFoundError' || name === 'OverconstrainedError';
+      const blocked = name === 'NotReadableError' || name === 'AbortError';
+
+      setCameraActive(false);
+      setHasCamera(!missing);
+      if (denied) {
+        setCameraError(
+          t(
+            '相机权限被拒绝或被权限策略拦截。请在浏览器地址栏允许相机，或上传图片继续。',
+            'Camera permission was denied or blocked by policy. Allow camera access in the browser, or upload an image instead.',
+          ),
+        );
+      } else if (missing) {
+        setCameraError(
+          t(
+            '未检测到可用摄像头，请上传图片继续。',
+            'No available camera was detected. Please upload an image instead.',
+          ),
+        );
+      } else if (blocked) {
+        setCameraError(
+          t(
+            '摄像头暂时无法打开，可能被其他应用占用。请关闭占用后重试，或上传图片继续。',
+            'The camera could not be opened, possibly because another app is using it. Close that app and retry, or upload an image.',
+          ),
+        );
+      } else {
+        setCameraError(
+          t(
+            '无法访问相机。你可以重试，或上传图片继续。',
+            'Cannot access the camera. You can retry or upload an image instead.',
+          ),
+        );
+      }
     }
-  }, [facingMode, stopCamera]);
+  }, [facingMode, stopCamera, t]);
 
   useEffect(() => {
     return () => stopCamera();
@@ -181,7 +250,10 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
           {t('轻量扫描仪', 'Lite Scanner')}
         </h2>
         <p className="text-sm text-secondary text-center mb-6">
-          {t('拍摄或上传文档，调整滤镜后下载', 'Capture or upload a document, adjust filters, and download')}
+          {t(
+            '拍摄或上传文档，调整滤镜后下载',
+            'Capture or upload a document, adjust filters, and download',
+          )}
         </p>
 
         <div className="relative w-full aspect-[4/3] bg-black rounded-2xl overflow-hidden mb-4">
@@ -216,16 +288,24 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
                     ) : (
                       <>
                         <Camera className="w-12 h-12 text-secondary/40 mb-3" />
-                        <p className="text-secondary text-sm mb-3">
-                          {t('无法访问相机', 'Cannot access camera')}
+                        <p className="max-w-[260px] px-4 text-center text-sm leading-relaxed text-secondary mb-3">
+                          {cameraError || t('无法访问相机', 'Cannot access camera')}
                         </p>
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold text-sm flex items-center gap-2"
-                        >
-                          <Upload className="w-4 h-4" />
-                          {t('上传图片', 'Upload Image')}
-                        </button>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          <button
+                            onClick={startCamera}
+                            className="px-5 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold text-sm"
+                          >
+                            {t('重试相机', 'Retry Camera')}
+                          </button>
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-5 py-3 bg-primary text-on-primary rounded-full font-semibold text-sm flex items-center gap-2"
+                          >
+                            <Upload className="w-4 h-4" />
+                            {t('上传图片', 'Upload Image')}
+                          </button>
+                        </div>
                       </>
                     )}
                   </div>
@@ -294,10 +374,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
         />
 
         {capturedImage && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
               {(['none', 'grayscale', 'highContrast', 'brighten'] as FilterPreset[]).map(
                 (preset) => {
@@ -321,7 +398,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
                       {t(zh, en)}
                     </button>
                   );
-                }
+                },
               )}
               <button
                 onClick={() => setShowCustom(!showCustom)}
@@ -440,7 +517,12 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
         )}
 
         {!capturedImage && !cameraActive && hasCamera && (
-          <div className="flex gap-3 mt-2">
+          <div className="mt-2 flex flex-col gap-3">
+            {cameraError && (
+              <p className="rounded-xl bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-600 dark:bg-red-900/20 dark:text-red-300">
+                {cameraError}
+              </p>
+            )}
             <button
               onClick={() => fileInputRef.current?.click()}
               className="flex-1 py-3 bg-surface-container-high text-on-surface rounded-xl font-semibold text-sm hover:bg-surface-variant transition-colors flex items-center justify-center gap-2"

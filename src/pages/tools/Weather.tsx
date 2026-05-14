@@ -68,9 +68,10 @@ function getDayName(dateStr: string, lang: string): string {
   if (diff === 0) return lang === 'zh' ? '今天' : 'Today';
   if (diff === 1) return lang === 'zh' ? '明天' : 'Tomorrow';
   if (diff === 2) return lang === 'zh' ? '后天' : 'Day after';
-  const days = lang === 'zh'
-    ? ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const days =
+    lang === 'zh'
+      ? ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   return days[date.getDay()];
 }
 
@@ -84,20 +85,23 @@ async function fetchWeather(query: string): Promise<WeatherData> {
   const nearest = data.nearest_area?.[0];
   if (!current || !nearest) throw new Error('Invalid data');
 
-  const forecast: ForecastDay[] = (data.weather || []).slice(0, 3).map((day: Record<string, unknown>) => {
-    const hourly = day.hourly as Record<string, unknown>[] | undefined;
-    const weatherDesc = hourly?.[4]?.weatherDesc as Record<string, string>[] | undefined;
-    return {
-      date: day.date as string,
-      dayName: '',
-      maxTempC: parseInt(day.maxtempC as string, 10),
-      minTempC: parseInt(day.mintempC as string, 10),
-      maxTempF: parseInt(day.maxtempF as string, 10),
-      minTempF: parseInt(day.mintempF as string, 10),
-      condition: weatherDesc?.[0]?.value || '',
-      conditionIcon: (day.hourly as Record<string, unknown>[])?.[4]?.weatherCode as string || '1000',
-    };
-  });
+  const forecast: ForecastDay[] = (data.weather || [])
+    .slice(0, 3)
+    .map((day: Record<string, unknown>) => {
+      const hourly = day.hourly as Record<string, unknown>[] | undefined;
+      const weatherDesc = hourly?.[4]?.weatherDesc as Record<string, string>[] | undefined;
+      return {
+        date: day.date as string,
+        dayName: '',
+        maxTempC: parseInt(day.maxtempC as string, 10),
+        minTempC: parseInt(day.mintempC as string, 10),
+        maxTempF: parseInt(day.maxtempF as string, 10),
+        minTempF: parseInt(day.mintempF as string, 10),
+        condition: weatherDesc?.[0]?.value || '',
+        conditionIcon:
+          ((day.hourly as Record<string, unknown>[])?.[4]?.weatherCode as string) || '1000',
+      };
+    });
 
   const currentDesc = (current.weatherDesc as Record<string, string>[])?.[0]?.value || '';
 
@@ -124,14 +128,16 @@ export default function Weather({ onBack }: { onBack: () => void }) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [locationNotice, setLocationNotice] = useState('');
+  const [locating, setLocating] = useState(false);
   const [unit, setUnit] = useState<TempUnit>('C');
   const [searchInput, setSearchInput] = useState('');
   const [city, setCity] = useState('');
 
   const loadWeather = useCallback(
-    async (query: string) => {
+    async (query: string, options?: { silent?: boolean }) => {
       setLoading(true);
-      setError('');
+      if (!options?.silent) setError('');
       try {
         const data = await fetchWeather(query);
         data.forecast.forEach((f) => {
@@ -139,22 +145,85 @@ export default function Weather({ onBack }: { onBack: () => void }) {
         });
         setWeather(data);
       } catch {
-        setError(t('天气数据获取失败，请检查网络或稍后重试', 'Failed to fetch weather data. Check your network and try again.'));
+        if (!options?.silent || !weather) {
+          setError(
+            t(
+              '天气数据获取失败，请检查网络或稍后重试',
+              'Failed to fetch weather data. Check your network and try again.',
+            ),
+          );
+        }
       } finally {
         setLoading(false);
       }
     },
-    [t, language]
+    [t, language, weather],
   );
 
+  const loadCurrentLocationWeather = useCallback(() => {
+    setLocationNotice('');
+
+    if (!window.isSecureContext) {
+      setLocationNotice(
+        t(
+          '浏览器要求在 HTTPS 或 localhost 环境下使用当前位置。你可以手动搜索城市。',
+          'Location access requires HTTPS or localhost. You can search for a city manually.',
+        ),
+      );
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setLocationNotice(
+        t(
+          '当前浏览器不支持定位。你可以手动搜索城市。',
+          'This browser does not support geolocation. You can search for a city manually.',
+        ),
+      );
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        // wttr.in accepts comma-separated latitude and longitude, so no extra geocoding API key is needed.
+        const coords = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+        setCity(coords);
+        setLocationNotice(
+          t('已使用当前位置更新天气。', 'Weather updated from your current location.'),
+        );
+        void loadWeather(coords, { silent: true }).finally(() => setLocating(false));
+      },
+      (geoError) => {
+        const denied = geoError.code === geoError.PERMISSION_DENIED;
+        setLocationNotice(
+          denied
+            ? t(
+                '你拒绝了定位权限。可继续手动搜索城市。',
+                'Location permission was denied. You can still search for a city manually.',
+              )
+            : t(
+                '当前位置获取失败。可继续手动搜索城市。',
+                'Could not get your current location. You can still search for a city manually.',
+              ),
+        );
+        setLocating(false);
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 10 * 60 * 1000 },
+    );
+  }, [loadWeather, t]);
+
   useEffect(() => {
-    loadWeather('');
+    void loadWeather('');
+    loadCurrentLocationWeather();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = () => {
     const q = searchInput.trim();
     if (!q) return;
     setCity(q);
+    setLocationNotice('');
     loadWeather(q);
     setSearchInput('');
   };
@@ -182,9 +251,7 @@ export default function Weather({ onBack }: { onBack: () => void }) {
         className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-on-surface">
-            {t('微风天气', 'Breeze Weather')}
-          </h2>
+          <h2 className="text-2xl font-bold text-on-surface">{t('微风天气', 'Breeze Weather')}</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
@@ -223,10 +290,30 @@ export default function Weather({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
+        <button
+          type="button"
+          onClick={loadCurrentLocationWeather}
+          disabled={locating}
+          className="mb-4 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-surface-container-low px-4 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-variant disabled:opacity-60"
+        >
+          <MapPin className="h-4 w-4 text-primary" />
+          {locating
+            ? t('正在定位...', 'Locating...')
+            : t('获取当前位置天气', 'Use current location')}
+        </button>
+
+        {locationNotice && (
+          <p className="mb-4 rounded-xl bg-primary-container/20 px-4 py-3 text-sm leading-relaxed text-on-surface-variant">
+            {locationNotice}
+          </p>
+        )}
+
         {loading && (
           <div className="flex flex-col items-center justify-center py-16">
             <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-            <p className="text-secondary font-medium">{t('正在获取天气...', 'Fetching weather...')}</p>
+            <p className="text-secondary font-medium">
+              {t('正在获取天气...', 'Fetching weather...')}
+            </p>
           </div>
         )}
 
@@ -264,9 +351,7 @@ export default function Weather({ onBack }: { onBack: () => void }) {
                 <div className="text-6xl font-bold text-on-surface tabular-nums tracking-tight mb-1">
                   {temp(weather.tempC, weather.tempF)}
                 </div>
-                <div className="text-lg text-secondary font-medium mb-1">
-                  {weather.condition}
-                </div>
+                <div className="text-lg text-secondary font-medium mb-1">{weather.condition}</div>
                 <div className="text-sm text-secondary/70">
                   {t('体感', 'Feels like')} {feelsLike(weather.feelsLikeC, weather.feelsLikeF)}
                 </div>
@@ -293,7 +378,9 @@ export default function Weather({ onBack }: { onBack: () => void }) {
                   <Eye className="w-5 h-5 text-purple-400 shrink-0" />
                   <div>
                     <div className="text-xs text-secondary">{t('能见度', 'Visibility')}</div>
-                    <div className="text-base font-bold text-on-surface">{weather.visibility} km</div>
+                    <div className="text-base font-bold text-on-surface">
+                      {weather.visibility} km
+                    </div>
                   </div>
                 </div>
                 <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">

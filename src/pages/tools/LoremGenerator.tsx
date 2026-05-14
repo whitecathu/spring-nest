@@ -4,23 +4,135 @@ import { ArrowLeft, Copy, Check, RefreshCw } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
 const LOREM_WORDS = [
-  'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
-  'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
-  'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud',
-  'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo',
-  'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate',
-  'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint',
-  'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia',
-  'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum', 'vitae', 'elementum',
-  'curabitur', 'blandit', 'tempus', 'porttitor', 'auctor', 'neque', 'sapien',
-  'faucibus', 'ornare', 'suspendisse', 'interdum', 'varius', 'natoque', 'penatibus',
-  'magnis', 'dis', 'parturient', 'montes', 'nascetur', 'ridiculus', 'mus',
-  'mauris', 'pellentesque', 'pulvinar', 'etiam', 'risus', 'feugiat', 'scelerisque',
-  'viverra', 'nam', 'libero', 'justo', 'laoreet', 'mattis', 'aliquam', 'fringilla',
-  'ultrices', 'posuere', 'cubilia', 'curae', 'donec', 'velit', 'pharetra', 'vel',
-  'turpis', 'nunc', 'eget', 'aliquet', 'nibh', 'praesent', 'tristique',
-  'senectus', 'netus', 'malesuada', 'fames', 'ac', 'congue', 'quisque',
-  'egestas', 'diam', 'arcu', 'pretium', 'vulputate', 'sagittis', 'accumsan',
+  'lorem',
+  'ipsum',
+  'dolor',
+  'sit',
+  'amet',
+  'consectetur',
+  'adipiscing',
+  'elit',
+  'sed',
+  'do',
+  'eiusmod',
+  'tempor',
+  'incididunt',
+  'ut',
+  'labore',
+  'et',
+  'dolore',
+  'magna',
+  'aliqua',
+  'enim',
+  'ad',
+  'minim',
+  'veniam',
+  'quis',
+  'nostrud',
+  'exercitation',
+  'ullamco',
+  'laboris',
+  'nisi',
+  'aliquip',
+  'ex',
+  'ea',
+  'commodo',
+  'consequat',
+  'duis',
+  'aute',
+  'irure',
+  'in',
+  'reprehenderit',
+  'voluptate',
+  'velit',
+  'esse',
+  'cillum',
+  'fugiat',
+  'nulla',
+  'pariatur',
+  'excepteur',
+  'sint',
+  'occaecat',
+  'cupidatat',
+  'non',
+  'proident',
+  'sunt',
+  'culpa',
+  'qui',
+  'officia',
+  'deserunt',
+  'mollit',
+  'anim',
+  'id',
+  'est',
+  'laborum',
+  'vitae',
+  'elementum',
+  'curabitur',
+  'blandit',
+  'tempus',
+  'porttitor',
+  'auctor',
+  'neque',
+  'sapien',
+  'faucibus',
+  'ornare',
+  'suspendisse',
+  'interdum',
+  'varius',
+  'natoque',
+  'penatibus',
+  'magnis',
+  'dis',
+  'parturient',
+  'montes',
+  'nascetur',
+  'ridiculus',
+  'mus',
+  'mauris',
+  'pellentesque',
+  'pulvinar',
+  'etiam',
+  'risus',
+  'feugiat',
+  'scelerisque',
+  'viverra',
+  'nam',
+  'libero',
+  'justo',
+  'laoreet',
+  'mattis',
+  'aliquam',
+  'fringilla',
+  'ultrices',
+  'posuere',
+  'cubilia',
+  'curae',
+  'donec',
+  'velit',
+  'pharetra',
+  'vel',
+  'turpis',
+  'nunc',
+  'eget',
+  'aliquet',
+  'nibh',
+  'praesent',
+  'tristique',
+  'senectus',
+  'netus',
+  'malesuada',
+  'fames',
+  'ac',
+  'congue',
+  'quisque',
+  'egestas',
+  'diam',
+  'arcu',
+  'pretium',
+  'vulputate',
+  'sagittis',
+  'accumsan',
 ];
 
 function capitalize(word: string): string {
@@ -69,7 +181,8 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
       const firstParagraph = firstParagraphEnd === -1 ? text : text.substring(0, firstParagraphEnd);
       const rest = firstParagraphEnd === -1 ? '' : text.substring(firstParagraphEnd);
       const firstSentenceEnd = firstParagraph.indexOf('. ');
-      const restOfFirst = firstSentenceEnd === -1 ? '' : firstParagraph.substring(firstSentenceEnd + 2);
+      const restOfFirst =
+        firstSentenceEnd === -1 ? '' : firstParagraph.substring(firstSentenceEnd + 2);
       text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' + restOfFirst + rest;
     }
     setOutput(text);
@@ -98,21 +211,36 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-2xl mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-2">{t('随机文本生成', 'Lorem Ipsum Generator')}</h2>
-        <p className="text-sm text-secondary text-center mb-6">{t('快速生成占位文本，用于设计和排版预览', 'Generate placeholder text for design and layout preview')}</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
+          {t('随机文本生成', 'Lorem Ipsum Generator')}
+        </h2>
+        <p className="text-sm text-secondary text-center mb-6">
+          {t(
+            '快速生成占位文本，用于设计和排版预览',
+            'Generate placeholder text for design and layout preview',
+          )}
+        </p>
 
         {/* Settings */}
         <div className="space-y-4 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-on-surface mb-2 block">
-                {t('段落数', 'Paragraphs')}: <span className="text-primary font-bold">{paragraphs}</span>
+                {t('段落数', 'Paragraphs')}:{' '}
+                <span className="text-primary font-bold">{paragraphs}</span>
               </label>
               <input
                 type="range"
@@ -129,7 +257,8 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
             </div>
             <div>
               <label className="text-sm font-medium text-on-surface mb-2 block">
-                {t('每段句数', 'Sentences per paragraph')}: <span className="text-primary font-bold">{sentencesPerParagraph}</span>
+                {t('每段句数', 'Sentences per paragraph')}:{' '}
+                <span className="text-primary font-bold">{sentencesPerParagraph}</span>
               </label>
               <input
                 type="range"
@@ -153,7 +282,9 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
               onChange={(e) => setStartWithLorem(e.target.checked)}
               className="w-5 h-5 rounded-md accent-primary"
             />
-            <span className="text-sm text-on-surface">{t('以 "Lorem ipsum..." 开头', 'Start with "Lorem ipsum..."')}</span>
+            <span className="text-sm text-on-surface">
+              {t('以 "Lorem ipsum..." 开头', 'Start with "Lorem ipsum..."')}
+            </span>
           </label>
         </div>
 
@@ -176,16 +307,20 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
                   {t('字数', 'Words')}: <strong className="text-on-surface">{wordCount}</strong>
                 </span>
                 <span className="text-xs text-secondary">
-                  {t('字符', 'Characters')}: <strong className="text-on-surface">{charCount}</strong>
+                  {t('字符', 'Characters')}:{' '}
+                  <strong className="text-on-surface">{charCount}</strong>
                 </span>
                 <span className="text-xs text-secondary">
-                  {t('段落', 'Paragraphs')}: <strong className="text-on-surface">{paragraphs}</strong>
+                  {t('段落', 'Paragraphs')}:{' '}
+                  <strong className="text-on-surface">{paragraphs}</strong>
                 </span>
               </div>
               <button
                 onClick={handleCopy}
                 className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
-                  copied ? 'bg-green-100 text-green-600' : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
+                  copied
+                    ? 'bg-green-100 text-green-600'
+                    : 'bg-surface-container-high text-secondary hover:bg-surface-variant'
                 }`}
               >
                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
@@ -202,7 +337,9 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
         {/* Empty state */}
         {!output && (
           <div className="text-center py-12 text-secondary/50">
-            <p className="text-lg">{t('点击上方按钮生成随机文本', 'Click the button above to generate random text')}</p>
+            <p className="text-lg">
+              {t('点击上方按钮生成随机文本', 'Click the button above to generate random text')}
+            </p>
           </div>
         )}
       </motion.div>

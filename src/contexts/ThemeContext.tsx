@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useCallback, useMemo, useEffect, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  type ReactNode,
+} from 'react';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -32,12 +40,14 @@ function applyTheme(mode: ThemeMode) {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>(getStoredMode);
   const [resolved, setResolved] = useState<'light' | 'dark'>(() =>
-    mode === 'system' ? getSystemTheme() : mode
+    mode === 'system' ? getSystemTheme() : mode,
   );
 
   const setMode = useCallback((m: ThemeMode) => {
     setModeState(m);
-    try { localStorage.setItem('spring_nest_theme', m); } catch {}
+    try {
+      localStorage.setItem('spring_nest_theme', m);
+    } catch {}
     applyTheme(m);
     setResolved(m === 'system' ? getSystemTheme() : m);
   }, []);

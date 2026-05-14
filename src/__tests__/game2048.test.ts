@@ -25,7 +25,7 @@ function addRandom(grid: Grid): void {
 }
 
 function slide(row: number[]): { row: number[]; score: number } {
-  let arr = row.filter(v => v !== 0);
+  let arr = row.filter((v) => v !== 0);
   let score = 0;
   for (let i = 0; i < arr.length - 1; i++) {
     if (arr[i] === arr[i + 1]) {
@@ -34,13 +34,13 @@ function slide(row: number[]): { row: number[]; score: number } {
       arr[i + 1] = 0;
     }
   }
-  arr = arr.filter(v => v !== 0);
+  arr = arr.filter((v) => v !== 0);
   while (arr.length < 4) arr.push(0);
   return { row: arr, score };
 }
 
 function moveGrid(grid: Grid, dir: Direction): { grid: Grid; score: number; moved: boolean } {
-  const newGrid: Grid = grid.map(r => [...r]);
+  const newGrid: Grid = grid.map((r) => [...r]);
   let totalScore = 0;
   let moved = false;
 
@@ -57,10 +57,19 @@ function moveGrid(grid: Grid, dir: Direction): { grid: Grid; score: number; move
     totalScore += result.score;
 
     for (let j = 0; j < 4; j++) {
-      if (dir === 'left') { if (newGrid[i][j] !== result.row[j]) moved = true; newGrid[i][j] = result.row[j]; }
-      else if (dir === 'right') { if (newGrid[i][3 - j] !== result.row[j]) moved = true; newGrid[i][3 - j] = result.row[j]; }
-      else if (dir === 'up') { if (newGrid[j][i] !== result.row[j]) moved = true; newGrid[j][i] = result.row[j]; }
-      else { if (newGrid[3 - j][i] !== result.row[j]) moved = true; newGrid[3 - j][i] = result.row[j]; }
+      if (dir === 'left') {
+        if (newGrid[i][j] !== result.row[j]) moved = true;
+        newGrid[i][j] = result.row[j];
+      } else if (dir === 'right') {
+        if (newGrid[i][3 - j] !== result.row[j]) moved = true;
+        newGrid[i][3 - j] = result.row[j];
+      } else if (dir === 'up') {
+        if (newGrid[j][i] !== result.row[j]) moved = true;
+        newGrid[j][i] = result.row[j];
+      } else {
+        if (newGrid[3 - j][i] !== result.row[j]) moved = true;
+        newGrid[3 - j][i] = result.row[j];
+      }
     }
   }
 
@@ -84,20 +93,23 @@ describe('2048 Game Logic', () => {
     it('should create a 4x4 grid', () => {
       const grid = initGrid();
       expect(grid).toHaveLength(4);
-      grid.forEach(row => expect(row).toHaveLength(4));
+      grid.forEach((row) => expect(row).toHaveLength(4));
     });
 
     it('should have exactly two non-zero tiles', () => {
       const grid = initGrid();
-      const nonZero = grid.flat().filter(v => v !== 0);
+      const nonZero = grid.flat().filter((v) => v !== 0);
       expect(nonZero).toHaveLength(2);
     });
 
     it('should only have 2 or 4 as initial values', () => {
       const grid = initGrid();
-      grid.flat().filter(v => v !== 0).forEach(v => {
-        expect([2, 4]).toContain(v);
-      });
+      grid
+        .flat()
+        .filter((v) => v !== 0)
+        .forEach((v) => {
+          expect([2, 4]).toContain(v);
+        });
     });
   });
 
@@ -129,7 +141,7 @@ describe('2048 Game Logic', () => {
 
     it('should handle all zeros', () => {
       const result = slide([0, 0, 0, 0]);
-      expect(result.row.every(v => v === 0)).toBe(true);
+      expect(result.row.every((v) => v === 0)).toBe(true);
       expect(result.score).toBe(0);
     });
 
@@ -185,7 +197,7 @@ describe('2048 Game Logic', () => {
         [0, 0, 0, 0],
       ];
       const result = moveGrid(grid, 'left');
-      const nonZero = result.grid.flat().filter(v => v !== 0);
+      const nonZero = result.grid.flat().filter((v) => v !== 0);
       expect(nonZero.length).toBe(2); // original 2 + 1 new
     });
   });
@@ -238,9 +250,9 @@ describe('2048 Game Logic', () => {
         [0, 0, 0, 0],
         [0, 0, 0, 0],
       ];
-      const nonZeroBefore = grid.flat().filter(v => v !== 0).length;
+      const nonZeroBefore = grid.flat().filter((v) => v !== 0).length;
       addRandom(grid);
-      const nonZeroAfter = grid.flat().filter(v => v !== 0).length;
+      const nonZeroAfter = grid.flat().filter((v) => v !== 0).length;
       expect(nonZeroAfter).toBe(nonZeroBefore + 1);
     });
 
@@ -251,9 +263,9 @@ describe('2048 Game Logic', () => {
         [512, 1024, 2048, 4096],
         [8192, 2, 4, 8],
       ];
-      const nonZeroBefore = grid.flat().filter(v => v !== 0).length;
+      const nonZeroBefore = grid.flat().filter((v) => v !== 0).length;
       addRandom(grid);
-      const nonZeroAfter = grid.flat().filter(v => v !== 0).length;
+      const nonZeroAfter = grid.flat().filter((v) => v !== 0).length;
       expect(nonZeroAfter).toBe(nonZeroBefore);
     });
   });

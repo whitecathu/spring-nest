@@ -12,18 +12,18 @@ describe('searchService', () => {
     it('should find Calculator tool by name', () => {
       const results = search('计算器');
       expect(results.length).toBeGreaterThan(0);
-      expect(results.some(r => r.item.id === 'tool-1')).toBe(true);
+      expect(results.some((r) => r.item.id === 'tool-1')).toBe(true);
     });
 
     it('should find by English name', () => {
       const results = search('Pomodoro');
       expect(results.length).toBeGreaterThan(0);
-      expect(results.some(r => r.item.id === 'tool-2')).toBe(true);
+      expect(results.some((r) => r.item.id === 'tool-2')).toBe(true);
     });
 
     it('should be case insensitive', () => {
       const results = search('CALCULATOR');
-      expect(results.some(r => r.item.id === 'tool-1')).toBe(true);
+      expect(results.some((r) => r.item.id === 'tool-1')).toBe(true);
     });
   });
 
@@ -31,7 +31,7 @@ describe('searchService', () => {
     it('should find items by Chinese category', () => {
       const results = search('益智解谜');
       expect(results.length).toBeGreaterThan(0);
-      expect(results.every(r => r.item.category === '益智解谜')).toBe(true);
+      expect(results.every((r) => r.item.category === '益智解谜')).toBe(true);
     });
 
     it('should find items by English category', () => {
@@ -43,12 +43,12 @@ describe('searchService', () => {
   describe('search by description', () => {
     it('should find by description keywords', () => {
       const results = search('合并');
-      expect(results.some(r => r.item.id === 'game-1')).toBe(true);
+      expect(results.some((r) => r.item.id === 'game-1')).toBe(true);
     });
 
     it('should find by English description', () => {
       const results = search('merge');
-      expect(results.some(r => r.item.id === 'game-1')).toBe(true);
+      expect(results.some((r) => r.item.id === 'game-1')).toBe(true);
     });
   });
 
@@ -60,7 +60,7 @@ describe('searchService', () => {
 
     it('should find by partial tag match', () => {
       const results = search('数字');
-      expect(results.some(r => r.item.id === 'game-1')).toBe(true);
+      expect(results.some((r) => r.item.id === 'game-1')).toBe(true);
     });
   });
 

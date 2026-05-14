@@ -37,7 +37,10 @@ async function generate() {
   console.log('✓ pwa-512x512.png');
 
   // pwa-maskable-512x512.png (maskable with safe zone padding)
-  await sharp(maskableBuffer).resize(512, 512).png().toFile(resolve(publicDir, 'pwa-maskable-512x512.png'));
+  await sharp(maskableBuffer)
+    .resize(512, 512)
+    .png()
+    .toFile(resolve(publicDir, 'pwa-maskable-512x512.png'));
   console.log('✓ pwa-maskable-512x512.png');
 
   // apple-touch-icon.png (180x180)

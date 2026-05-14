@@ -15,26 +15,37 @@ const GAME_TABS: { id: GameTab; label: string; labelEn: string; icon: string }[]
 ];
 
 function getRankIcon(rank: number) {
-  if (rank === 1) return (
-    <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}>
-      <Crown className="w-5 h-5 text-yellow-500" />
-    </motion.div>
+  if (rank === 1)
+    return (
+      <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+        <Crown className="w-5 h-5 text-yellow-500" />
+      </motion.div>
+    );
+  if (rank === 2)
+    return (
+      <motion.div
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ duration: 2.5, repeat: Infinity }}
+      >
+        <Medal className="w-5 h-5 text-gray-400" />
+      </motion.div>
+    );
+  if (rank === 3)
+    return (
+      <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity }}>
+        <Medal className="w-5 h-5 text-amber-600" />
+      </motion.div>
+    );
+  return (
+    <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-secondary">
+      {rank}
+    </span>
   );
-  if (rank === 2) return (
-    <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2.5, repeat: Infinity }}>
-      <Medal className="w-5 h-5 text-gray-400" />
-    </motion.div>
-  );
-  if (rank === 3) return (
-    <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity }}>
-      <Medal className="w-5 h-5 text-amber-600" />
-    </motion.div>
-  );
-  return <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-secondary">{rank}</span>;
 }
 
 function getRankBg(rank: number): string {
-  if (rank === 1) return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
+  if (rank === 1)
+    return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
   if (rank === 2) return 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800';
   if (rank === 3) return 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800';
   return 'bg-white dark:bg-surface-container-high border-surface-variant/30';
@@ -70,7 +81,10 @@ export default function Leaderboard() {
       <div className="flex-grow flex flex-col items-center justify-center py-20 px-6">
         <SEO
           title={t('排行榜 - Spring Nest 春日小筑', 'Leaderboard - Spring Nest')}
-          description={t('查看春日小筑小游戏排行榜。未配置云同步时，游戏分数优先保存在浏览器本地。', 'View Spring Nest game leaderboards. Without cloud sync, scores stay in local browser storage first.')}
+          description={t(
+            '查看春日小筑小游戏排行榜。未配置云同步时，游戏分数优先保存在浏览器本地。',
+            'View Spring Nest game leaderboards. Without cloud sync, scores stay in local browser storage first.',
+          )}
           canonical="/leaderboard"
         />
         <motion.div
@@ -85,7 +99,10 @@ export default function Leaderboard() {
             {t('排行榜', 'Leaderboard')}
           </h1>
           <p className="text-secondary text-sm mb-6">
-            {t('排行榜需要云同步功能，请配置 Supabase 环境变量', 'Leaderboard requires cloud sync. Please configure Supabase environment variables.')}
+            {t(
+              '排行榜需要云同步功能，请配置 Supabase 环境变量',
+              'Leaderboard requires cloud sync. Please configure Supabase environment variables.',
+            )}
           </p>
         </motion.div>
       </div>
@@ -96,7 +113,10 @@ export default function Leaderboard() {
     <div className="flex-grow w-full max-w-[800px] mx-auto px-6 py-10">
       <SEO
         title={t('排行榜 - Spring Nest 春日小筑', 'Leaderboard - Spring Nest')}
-        description={t('查看春日小筑小游戏排行榜，包含 2048、记忆翻牌和打地鼠等成绩。', 'View Spring Nest game leaderboards, including 2048, Memory Match, and Whack A Mole scores.')}
+        description={t(
+          '查看春日小筑小游戏排行榜，包含 2048、记忆翻牌和打地鼠等成绩。',
+          'View Spring Nest game leaderboards, including 2048, Memory Match, and Whack A Mole scores.',
+        )}
         canonical="/leaderboard"
       />
       <motion.div
@@ -117,7 +137,7 @@ export default function Leaderboard() {
 
       {/* Game Tabs */}
       <div className="flex gap-2 mb-8 justify-center">
-        {GAME_TABS.map(tab => (
+        {GAME_TABS.map((tab) => (
           <motion.button
             key={tab.id}
             whileHover={{ scale: 1.05 }}
@@ -156,9 +176,7 @@ export default function Leaderboard() {
             className="text-center py-16"
           >
             <Trophy className="w-12 h-12 text-secondary/20 mx-auto mb-4" />
-            <p className="text-secondary font-medium">
-              {t('暂无排名数据', 'No ranking data yet')}
-            </p>
+            <p className="text-secondary font-medium">{t('暂无排名数据', 'No ranking data yet')}</p>
             <p className="text-secondary/60 text-sm mt-1">
               {t('成为第一个上榜的玩家吧！', 'Be the first player on the board!')}
             </p>

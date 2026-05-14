@@ -1,4 +1,10 @@
-import { useState, useEffect, useRef, useCallback, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Compass as CompassIcon, Smartphone } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
@@ -37,7 +43,8 @@ export default function Compass({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     const handleOrientation = (e: DeviceOrientationEvent) => {
-      const h = (e as DeviceOrientationEvent & { webkitCompassHeading?: number }).webkitCompassHeading;
+      const h = (e as DeviceOrientationEvent & { webkitCompassHeading?: number })
+        .webkitCompassHeading;
       if (h !== undefined && h !== null) {
         setHeading(h);
         setHasOrientation(true);
@@ -93,7 +100,7 @@ export default function Compass({ onBack }: { onBack: () => void }) {
       headingAtDragStart.current = heading;
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
     },
-    [hasOrientation, heading, getAngleFromEvent]
+    [hasOrientation, heading, getAngleFromEvent],
   );
 
   const handlePointerMove = useCallback(
@@ -106,7 +113,7 @@ export default function Compass({ onBack }: { onBack: () => void }) {
       const newHeading = (headingAtDragStart.current - delta + 360) % 360;
       setHeading(newHeading);
     },
-    [isDragging, hasOrientation, getAngleFromEvent]
+    [isDragging, hasOrientation, getAngleFromEvent],
   );
 
   const handlePointerUp = useCallback(() => {
@@ -228,29 +235,93 @@ export default function Compass({ onBack }: { onBack: () => void }) {
               <circle cx="150" cy="150" r="12" fill="white" stroke="#3f6751" strokeWidth="2" />
               <circle cx="150" cy="150" r="5" fill="#3f6751" />
 
-              <text x="150" y="38" textAnchor="middle" fill="#e74c3c" fontSize="18" fontWeight="bold" fontFamily="Nunito, sans-serif">
+              <text
+                x="150"
+                y="38"
+                textAnchor="middle"
+                fill="#e74c3c"
+                fontSize="18"
+                fontWeight="bold"
+                fontFamily="Nunito, sans-serif"
+              >
                 N
               </text>
-              <text x="150" y="272" textAnchor="middle" fill="#3f6751" fontSize="16" fontWeight="bold" fontFamily="Nunito, sans-serif">
+              <text
+                x="150"
+                y="272"
+                textAnchor="middle"
+                fill="#3f6751"
+                fontSize="16"
+                fontWeight="bold"
+                fontFamily="Nunito, sans-serif"
+              >
                 S
               </text>
-              <text x="272" y="156" textAnchor="middle" fill="#3f6751" fontSize="16" fontWeight="bold" fontFamily="Nunito, sans-serif">
+              <text
+                x="272"
+                y="156"
+                textAnchor="middle"
+                fill="#3f6751"
+                fontSize="16"
+                fontWeight="bold"
+                fontFamily="Nunito, sans-serif"
+              >
                 E
               </text>
-              <text x="28" y="156" textAnchor="middle" fill="#3f6751" fontSize="16" fontWeight="bold" fontFamily="Nunito, sans-serif">
+              <text
+                x="28"
+                y="156"
+                textAnchor="middle"
+                fill="#3f6751"
+                fontSize="16"
+                fontWeight="bold"
+                fontFamily="Nunito, sans-serif"
+              >
                 W
               </text>
 
-              <text x="232" y="78" textAnchor="middle" fill="#795648" fontSize="11" fontWeight="600" fontFamily="Nunito, sans-serif">
+              <text
+                x="232"
+                y="78"
+                textAnchor="middle"
+                fill="#795648"
+                fontSize="11"
+                fontWeight="600"
+                fontFamily="Nunito, sans-serif"
+              >
                 NE
               </text>
-              <text x="232" y="232" textAnchor="middle" fill="#795648" fontSize="11" fontWeight="600" fontFamily="Nunito, sans-serif">
+              <text
+                x="232"
+                y="232"
+                textAnchor="middle"
+                fill="#795648"
+                fontSize="11"
+                fontWeight="600"
+                fontFamily="Nunito, sans-serif"
+              >
                 SE
               </text>
-              <text x="68" y="232" textAnchor="middle" fill="#795648" fontSize="11" fontWeight="600" fontFamily="Nunito, sans-serif">
+              <text
+                x="68"
+                y="232"
+                textAnchor="middle"
+                fill="#795648"
+                fontSize="11"
+                fontWeight="600"
+                fontFamily="Nunito, sans-serif"
+              >
                 SW
               </text>
-              <text x="68" y="78" textAnchor="middle" fill="#795648" fontSize="11" fontWeight="600" fontFamily="Nunito, sans-serif">
+              <text
+                x="68"
+                y="78"
+                textAnchor="middle"
+                fill="#795648"
+                fontSize="11"
+                fontWeight="600"
+                fontFamily="Nunito, sans-serif"
+              >
                 NW
               </text>
             </svg>
@@ -274,15 +345,11 @@ export default function Compass({ onBack }: { onBack: () => void }) {
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-surface-container-low rounded-xl p-3 text-center">
-            <div className="text-xs text-secondary font-medium mb-1">
-              {t('方位角', 'Azimuth')}
-            </div>
+            <div className="text-xs text-secondary font-medium mb-1">{t('方位角', 'Azimuth')}</div>
             <div className="text-lg font-bold text-on-surface tabular-nums">{displayDeg}°</div>
           </div>
           <div className="bg-surface-container-low rounded-xl p-3 text-center">
-            <div className="text-xs text-secondary font-medium mb-1">
-              {t('方向', 'Direction')}
-            </div>
+            <div className="text-xs text-secondary font-medium mb-1">{t('方向', 'Direction')}</div>
             <div className="text-lg font-bold text-on-surface">{cardinal}</div>
           </div>
         </div>
@@ -293,7 +360,7 @@ export default function Compass({ onBack }: { onBack: () => void }) {
             <p className="text-sm text-on-surface-variant">
               {t(
                 '在移动设备上打开可使用电子罗盘，桌面端请拖动罗盘。',
-                'Open on a mobile device for the electronic compass. On desktop, drag the compass.'
+                'Open on a mobile device for the electronic compass. On desktop, drag the compass.',
               )}
             </p>
           </div>

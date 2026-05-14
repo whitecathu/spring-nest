@@ -1,6 +1,21 @@
 import { useState, useMemo, useEffect, useRef, useCallback, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Search, User, Leaf, X, Trophy, Shield, Menu, Gamepad2, Wrench, Heart, Moon, Monitor, Sun } from 'lucide-react';
+import {
+  Bell,
+  Search,
+  User,
+  Leaf,
+  X,
+  Trophy,
+  Shield,
+  Menu,
+  Gamepad2,
+  Wrench,
+  Heart,
+  Moon,
+  Monitor,
+  Sun,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import LoginModal from './LoginModal';
 import { useUser } from '../contexts/UserContext';
@@ -33,7 +48,9 @@ export default function Navigation() {
   // Offline status monitoring
   useEffect(() => {
     const handleOffline = () => {
-      setToastMessage(t('网络已断开，请检查网络连接', 'You are offline. Please check your network connection.'));
+      setToastMessage(
+        t('网络已断开，请检查网络连接', 'You are offline. Please check your network connection.'),
+      );
     };
     const handleOnline = () => {
       setToastMessage(t('网络已恢复', 'Network connection restored.'));
@@ -104,13 +121,16 @@ export default function Navigation() {
     navigate(result.item.type === 'game' ? `/games/${slug}` : `/tools/${slug}`);
   };
 
-  const navItems = useMemo(() => [
-    { id: 'home', path: '/', label: '首页', enLabel: 'Home' },
-    { id: 'games', path: '/games', label: '游戏天堂', enLabel: 'Games' },
-    { id: 'tools', path: '/tools', label: '实用小筑', enLabel: 'Tools' },
-    { id: 'leaderboard', path: '/leaderboard', label: '排行榜', enLabel: 'Leaderboard' },
-    { id: 'about', path: '/about', label: '关于我们', enLabel: 'About' },
-  ], []);
+  const navItems = useMemo(
+    () => [
+      { id: 'home', path: '/', label: '首页', enLabel: 'Home' },
+      { id: 'games', path: '/games', label: '游戏天堂', enLabel: 'Games' },
+      { id: 'tools', path: '/tools', label: '实用小筑', enLabel: 'Tools' },
+      { id: 'leaderboard', path: '/leaderboard', label: '排行榜', enLabel: 'Leaderboard' },
+      { id: 'about', path: '/about', label: '关于我们', enLabel: 'About' },
+    ],
+    [],
+  );
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -134,7 +154,11 @@ export default function Navigation() {
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]"
           >
-            <div role="status" aria-live="polite" className="bg-surface-container-high text-on-surface px-6 py-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] font-sans text-sm font-medium border border-surface-variant flex items-center gap-3">
+            <div
+              role="status"
+              aria-live="polite"
+              className="bg-surface-container-high text-on-surface px-6 py-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] font-sans text-sm font-medium border border-surface-variant flex items-center gap-3"
+            >
               <Search className="w-4 h-4 text-primary" />
               {toastMessage}
             </div>
@@ -144,7 +168,6 @@ export default function Navigation() {
 
       <header className="sticky top-0 w-full z-50 bg-[#FFF9F2]/70 dark:bg-surface/70 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_4px_30px_rgba(184,228,201,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)] transition-all duration-300">
         <div className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto relative">
-
           <AnimatePresence>
             {showSearch && (
               <motion.div
@@ -171,7 +194,12 @@ export default function Navigation() {
                     />
                     <button
                       type="button"
-                      onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); setHasSearched(false); }}
+                      onClick={() => {
+                        setShowSearch(false);
+                        setSearchQuery('');
+                        setSearchResults([]);
+                        setHasSearched(false);
+                      }}
                       className="text-secondary/50 hover:text-primary p-2.5 shrink-0 transition-colors bg-surface-container-low dark:bg-surface-container rounded-full ml-3"
                       aria-label={t('关闭搜索', 'Close search')}
                     >
@@ -188,19 +216,30 @@ export default function Navigation() {
                             onClick={() => handleResultClick(result)}
                             className="w-full text-left px-5 py-3 hover:bg-surface-container-low dark:hover:bg-surface-container transition-colors flex items-center gap-3 border-b border-surface-variant/20 last:border-b-0"
                           >
-                            <span className={`w-10 h-10 rounded-lg ${result.item.iconBg || 'bg-surface-container'} flex items-center justify-center text-xl shrink-0`}>
+                            <span
+                              className={`w-10 h-10 rounded-lg ${result.item.iconBg || 'bg-surface-container'} flex items-center justify-center text-xl shrink-0`}
+                            >
                               {result.item.icon || (result.item.type === 'game' ? '🎮' : '🛠️')}
                             </span>
                             <div>
-                              <p className="font-semibold text-on-surface text-sm">{t(result.item.title, result.item.titleEn)}</p>
-                              <p className="text-xs text-secondary">{result.item.category} · {result.item.type === 'game' ? t('游戏', 'Game') : t('工具', 'Tool')}</p>
+                              <p className="font-semibold text-on-surface text-sm">
+                                {t(result.item.title, result.item.titleEn)}
+                              </p>
+                              <p className="text-xs text-secondary">
+                                {result.item.category} ·{' '}
+                                {result.item.type === 'game'
+                                  ? t('游戏', 'Game')
+                                  : t('工具', 'Tool')}
+                              </p>
                             </div>
                           </button>
                         ))
                       ) : (
                         <div className="text-center py-8 text-secondary text-sm">
                           <p className="font-medium">{t('未找到相关结果', 'No results found')}</p>
-                          <p className="text-xs mt-1">{t('试试其他关键词', 'Try different keywords')}</p>
+                          <p className="text-xs mt-1">
+                            {t('试试其他关键词', 'Try different keywords')}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -221,7 +260,10 @@ export default function Navigation() {
             </Link>
           </motion.div>
 
-          <nav className="hidden md:flex gap-10 items-center" aria-label={t('主导航', 'Main navigation')}>
+          <nav
+            className="hidden md:flex gap-10 items-center"
+            aria-label={t('主导航', 'Main navigation')}
+          >
             {navItems.map((item) => (
               <Link
                 key={item.id}
@@ -238,7 +280,7 @@ export default function Navigation() {
                     layoutId="activeTab"
                     className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-container"
                     initial={false}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 )}
               </Link>
@@ -250,12 +292,12 @@ export default function Navigation() {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
-                aria-label={t('菜单', 'Menu')}
-                aria-expanded={showMobileMenu}
-                aria-controls="mobile-navigation"
-              >
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
+              aria-label={t('菜单', 'Menu')}
+              aria-expanded={showMobileMenu}
+              aria-controls="mobile-navigation"
+            >
               <Menu className="w-5 h-5" />
             </motion.button>
 
@@ -266,7 +308,13 @@ export default function Navigation() {
               onClick={cycleTheme}
               className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
               aria-label={t('切换主题', 'Toggle theme')}
-              title={mode === 'light' ? t('浅色主题', 'Light theme') : mode === 'dark' ? t('深色主题', 'Dark theme') : t('跟随系统', 'System theme')}
+              title={
+                mode === 'light'
+                  ? t('浅色主题', 'Light theme')
+                  : mode === 'dark'
+                    ? t('深色主题', 'Dark theme')
+                    : t('跟随系统', 'System theme')
+              }
             >
               {mode === 'system' ? (
                 <Monitor className="h-5 w-5" />
@@ -309,7 +357,7 @@ export default function Navigation() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowUserMenu(open => !open)}
+                  onClick={() => setShowUserMenu((open) => !open)}
                   className="flex items-center gap-2 px-2 py-1 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 border border-primary/10 shadow-sm transition-colors"
                   aria-label={t('用户菜单', 'User menu')}
                   aria-expanded={showUserMenu}
@@ -322,12 +370,30 @@ export default function Navigation() {
 
                 <div
                   className={`absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 transition-all duration-200 transform origin-top-right flex flex-col p-2 z-50 ${
-                    showUserMenu ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1'
+                    showUserMenu
+                      ? 'opacity-100 visible translate-y-0'
+                      : 'opacity-0 invisible -translate-y-1'
                   }`}
                 >
-                  <Link to="/profile" onClick={() => setShowUserMenu(false)} className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('个人中心', 'Profile')}</Link>
-                  <Link to="/favorites" onClick={() => setShowUserMenu(false)} className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors">{t('我的收藏', 'Favorites')}</Link>
-                  <Link to="/admin" onClick={() => setShowUserMenu(false)} className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors flex items-center gap-2">
+                  <Link
+                    to="/profile"
+                    onClick={() => setShowUserMenu(false)}
+                    className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors"
+                  >
+                    {t('个人中心', 'Profile')}
+                  </Link>
+                  <Link
+                    to="/favorites"
+                    onClick={() => setShowUserMenu(false)}
+                    className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors"
+                  >
+                    {t('我的收藏', 'Favorites')}
+                  </Link>
+                  <Link
+                    to="/admin"
+                    onClick={() => setShowUserMenu(false)}
+                    className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors flex items-center gap-2"
+                  >
                     <Shield className="w-4 h-4" />
                     {t('管理后台', 'Admin')}
                   </Link>
@@ -340,7 +406,9 @@ export default function Navigation() {
                       setTimeout(() => setToastMessage(''), 3000);
                     }}
                     className="text-left px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                  >{t('退出登录', 'Log Out')}</button>
+                  >
+                    {t('退出登录', 'Log Out')}
+                  </button>
                 </div>
               </div>
             ) : (
@@ -378,7 +446,11 @@ export default function Navigation() {
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="fixed top-[72px] left-0 right-0 z-40 bg-[#FFF9F2]/95 dark:bg-surface/95 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden"
             >
-              <nav id="mobile-navigation" className="flex flex-col p-4 gap-2" aria-label={t('移动端导航', 'Mobile navigation')}>
+              <nav
+                id="mobile-navigation"
+                className="flex flex-col p-4 gap-2"
+                aria-label={t('移动端导航', 'Mobile navigation')}
+              >
                 {navItems.map((item, index) => (
                   <motion.div
                     key={item.id}

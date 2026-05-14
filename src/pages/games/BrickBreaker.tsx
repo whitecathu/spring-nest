@@ -86,46 +86,51 @@ const COLOR_HEX: Record<BrickColor, string> = {
   purple: '#c084fc',
 };
 const COLOR_POINTS: Record<BrickColor, number> = {
-  red: 60, orange: 50, yellow: 40, green: 30, blue: 20, purple: 10,
+  red: 60,
+  orange: 50,
+  yellow: 40,
+  green: 30,
+  blue: 20,
+  purple: 10,
 };
 
 // Level patterns: 2 = hard brick, 1 = normal brick, 0 = empty
 const LEVEL_PATTERNS: number[][][] = [
   // Level 1: full grid (all normal)
   [
-    [1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
   ],
   // Level 2: hard row at top, rest normal
   [
-    [2,2,2,2,2,2,2,2],
-    [1,1,1,1,1,1,1,1],
-    [1,0,1,1,1,1,0,1],
-    [1,1,1,1,1,1,1,1],
-    [0,1,1,0,0,1,1,0],
-    [1,1,0,1,1,0,1,1],
+    [2, 2, 2, 2, 2, 2, 2, 2],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 0, 0, 1, 1, 0],
+    [1, 1, 0, 1, 1, 0, 1, 1],
   ],
   // Level 3: diamond with hard bricks
   [
-    [0,0,0,2,2,0,0,0],
-    [0,0,2,1,1,2,0,0],
-    [0,2,1,1,1,1,2,0],
-    [2,1,1,1,1,1,1,2],
-    [0,2,1,1,1,1,2,0],
-    [0,0,2,1,1,2,0,0],
+    [0, 0, 0, 2, 2, 0, 0, 0],
+    [0, 0, 2, 1, 1, 2, 0, 0],
+    [0, 2, 1, 1, 1, 1, 2, 0],
+    [2, 1, 1, 1, 1, 1, 1, 2],
+    [0, 2, 1, 1, 1, 1, 2, 0],
+    [0, 0, 2, 1, 1, 2, 0, 0],
   ],
   // Level 4: checkerboard with hard bricks
   [
-    [2,0,2,0,2,0,2,0],
-    [0,1,0,1,0,1,0,1],
-    [2,0,2,0,2,0,2,0],
-    [0,1,0,1,0,1,0,1],
-    [2,0,2,0,2,0,2,0],
-    [0,1,0,1,0,1,0,1],
+    [2, 0, 2, 0, 2, 0, 2, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [2, 0, 2, 0, 2, 0, 2, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [2, 0, 2, 0, 2, 0, 2, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1],
   ],
 ];
 
@@ -144,7 +149,11 @@ function generateStars(): Star[] {
 }
 
 function loadBestScore(): number {
-  try { return JSON.parse(localStorage.getItem('spring_nest_brickbreaker_best') || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem('spring_nest_brickbreaker_best') || '0');
+  } catch {
+    return 0;
+  }
 }
 
 function saveBestScore(score: number) {
@@ -291,7 +300,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
   // Mobile detection
   useEffect(() => {
-    const check = () => setIsMobile(window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 640);
+    const check = () =>
+      setIsMobile(window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 640);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
@@ -323,7 +333,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     setTrail([]);
     setShakeIntensity(0);
     shakeIntensityRef.current = 0;
-    if (shakeTimeoutRef.current) { clearTimeout(shakeTimeoutRef.current); shakeTimeoutRef.current = null; }
+    if (shakeTimeoutRef.current) {
+      clearTimeout(shakeTimeoutRef.current);
+      shakeTimeoutRef.current = null;
+    }
     setLifeLostFlash(false);
     setComboDisplay(0);
     comboCountRef.current = 0;
@@ -336,7 +349,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
     setScorePopups([]);
     setCollisionFlashes([]);
     setPaddleMoving(false);
-    if (paddleMoveTimeoutRef.current) { clearTimeout(paddleMoveTimeoutRef.current); paddleMoveTimeoutRef.current = null; }
+    if (paddleMoveTimeoutRef.current) {
+      clearTimeout(paddleMoveTimeoutRef.current);
+      paddleMoveTimeoutRef.current = null;
+    }
     comboBarKeyRef.current = 0;
     setGameState('playing');
     launchBall();
@@ -386,61 +402,79 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
   }, [launchBall, level, isMobile]);
 
   // Paddle positioning helper
-  const updatePaddleFromX = useCallback((clientX: number) => {
-    if (!containerRef.current) return;
-    if (!containerRectRef.current) {
-      containerRectRef.current = containerRef.current.getBoundingClientRect();
-    }
-    const rect = containerRectRef.current;
-    const x = clientX - rect.left;
-    const scaledX = x / gameScale;
-    const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
-    const newX = Math.max(0, Math.min(GAME_WIDTH - pw, scaledX - pw / 2));
-    paddleXRef.current = newX;
-    setPaddleX(newX);
-  }, [gameScale, isMobile]);
+  const updatePaddleFromX = useCallback(
+    (clientX: number) => {
+      if (!containerRef.current) return;
+      if (!containerRectRef.current) {
+        containerRectRef.current = containerRef.current.getBoundingClientRect();
+      }
+      const rect = containerRectRef.current;
+      const x = clientX - rect.left;
+      const scaledX = x / gameScale;
+      const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
+      const newX = Math.max(0, Math.min(GAME_WIDTH - pw, scaledX - pw / 2));
+      paddleXRef.current = newX;
+      setPaddleX(newX);
+    },
+    [gameScale, isMobile],
+  );
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    updatePaddleFromX(e.touches[0].clientX);
-  }, [updatePaddleFromX]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      e.preventDefault();
+      updatePaddleFromX(e.touches[0].clientX);
+    },
+    [updatePaddleFromX],
+  );
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setTouchActive(true);
-    e.preventDefault();
-    updatePaddleFromX(e.touches[0].clientX);
-  }, [updatePaddleFromX]);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      setTouchActive(true);
+      e.preventDefault();
+      updatePaddleFromX(e.touches[0].clientX);
+    },
+    [updatePaddleFromX],
+  );
 
   const handleTouchEnd = useCallback(() => {
     setTouchActive(false);
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    updatePaddleFromX(e.clientX);
-  }, [updatePaddleFromX]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      updatePaddleFromX(e.clientX);
+    },
+    [updatePaddleFromX],
+  );
 
-  const movePaddleBy = useCallback((delta: number) => {
-    const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
-    const newX = Math.max(0, Math.min(GAME_WIDTH - pw, paddleXRef.current + delta));
-    paddleXRef.current = newX;
-    setPaddleX(newX);
-  }, [isMobile]);
+  const movePaddleBy = useCallback(
+    (delta: number) => {
+      const pw = isMobile ? PADDLE_WIDTH_MOBILE : PADDLE_WIDTH;
+      const newX = Math.max(0, Math.min(GAME_WIDTH - pw, paddleXRef.current + delta));
+      paddleXRef.current = newX;
+      setPaddleX(newX);
+    },
+    [isMobile],
+  );
 
-  const handleGameKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if ((e.key === 'Enter' || e.key === ' ') && gameState !== 'playing') {
-      e.preventDefault();
-      startGame();
-      return;
-    }
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      movePaddleBy(-24);
-    }
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      movePaddleBy(24);
-    }
-  }, [gameState, movePaddleBy, startGame]);
+  const handleGameKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if ((e.key === 'Enter' || e.key === ' ') && gameState !== 'playing') {
+        e.preventDefault();
+        startGame();
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        movePaddleBy(-24);
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        movePaddleBy(24);
+      }
+    },
+    [gameState, movePaddleBy, startGame],
+  );
 
   // Game loop
   useEffect(() => {
@@ -534,11 +568,12 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         const hitPos = (ballXRef.current + BALL_SIZE / 2 - paddleXRef.current) / pw;
         const normalizedHit = hitPos - 0.5; // -0.5 to 0.5
         // Slight quadratic curve for predictable feel near edges
-        const curvedHit = normalizedHit * 0.7 + Math.sign(normalizedHit) * normalizedHit * normalizedHit * 0.6;
+        const curvedHit =
+          normalizedHit * 0.7 + Math.sign(normalizedHit) * normalizedHit * normalizedHit * 0.6;
         let bounceAngle = -Math.PI / 2 + curvedHit * 1.5;
 
         // Add ±5° randomization to prevent repetitive patterns
-        bounceAngle += (Math.random() - 0.5) * (Math.PI / 180 * 10);
+        bounceAngle += (Math.random() - 0.5) * ((Math.PI / 180) * 10);
 
         // Clamp angle to prevent near-horizontal or near-vertical bounces
         const MIN_BOUND = 0.3;
@@ -578,9 +613,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         const flashX = ballXRef.current + BALL_SIZE / 2;
         const flashY = paddleTop;
         const cfId = collFlashIdRef.current++;
-        setCollisionFlashes(prev => [...prev, { x: flashX, y: flashY, id: cfId }]);
+        setCollisionFlashes((prev) => [...prev, { x: flashX, y: flashY, id: cfId }]);
         setTimeout(() => {
-          setCollisionFlashes(prev => prev.filter(f => f.id !== cfId));
+          setCollisionFlashes((prev) => prev.filter((f) => f.id !== cfId));
         }, 250);
 
         triggerShake(2, 200);
@@ -617,15 +652,18 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             const comboMult = comboCountRef.current >= 2 ? comboCountRef.current : 1;
             const popupText = comboMult >= 2 ? `+${baseScore * comboMult}` : `+${baseScore}`;
             const pId = popupIdRef.current++;
-            setScorePopups(prev => [...prev, {
-              x: popupX,
-              y: popupY,
-              text: popupText,
-              id: pId,
-              color: COLOR_HEX[brick.color],
-            }]);
+            setScorePopups((prev) => [
+              ...prev,
+              {
+                x: popupX,
+                y: popupY,
+                text: popupText,
+                id: pId,
+                color: COLOR_HEX[brick.color],
+              },
+            ]);
             setTimeout(() => {
-              setScorePopups(prev => prev.filter(p => p.id !== pId));
+              setScorePopups((prev) => prev.filter((p) => p.id !== pId));
             }, 1000);
 
             // Spawn 15-20 particles with varied sizes, vibrant colors, gravity
@@ -655,7 +693,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
           } else {
             // Hard brick hit but not destroyed: brief shake + smaller particle burst
             brick.shaking = true;
-            setTimeout(() => { brick.shaking = false; setBricks([...bricksRef.current]); }, 200);
+            setTimeout(() => {
+              brick.shaking = false;
+              setBricks([...bricksRef.current]);
+            }, 200);
             setBricks([...bricksRef.current]);
 
             // Small particle burst for hard brick hit
@@ -732,23 +773,23 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
       }
 
       if (newParticles.length > 0) {
-        const newIds = new Set(newParticles.map(p => p.id));
-        setParticles(prev => [...prev, ...newParticles]);
+        const newIds = new Set(newParticles.map((p) => p.id));
+        setParticles((prev) => [...prev, ...newParticles]);
         setTimeout(() => {
-          setParticles(prev => prev.filter(p => !newIds.has(p.id)));
+          setParticles((prev) => prev.filter((p) => !newIds.has(p.id)));
         }, 1100);
       }
 
       if (newFlashes.length > 0) {
-        const newFlashIds = new Set(newFlashes.map(f => f.id));
-        setBrickFlashes(prev => [...prev, ...newFlashes]);
+        const newFlashIds = new Set(newFlashes.map((f) => f.id));
+        setBrickFlashes((prev) => [...prev, ...newFlashes]);
         setTimeout(() => {
-          setBrickFlashes(prev => prev.filter(f => !newFlashIds.has(f.id)));
+          setBrickFlashes((prev) => prev.filter((f) => !newFlashIds.has(f.id)));
         }, 300);
       }
 
       // Check win
-      if (bricksRef.current.every(b => !b.alive)) {
+      if (bricksRef.current.every((b) => !b.alive)) {
         playingRef.current = false;
         setGameState('won');
         const s = scoreRef.current;
@@ -807,7 +848,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -817,7 +861,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('打砖块', 'Brick Breaker')}</h1>
-            <p className="text-sm text-secondary">{t('用挡板弹球消灭砖块！', 'Bounce the ball to break bricks!')}</p>
+            <p className="text-sm text-secondary">
+              {t('用挡板弹球消灭砖块！', 'Bounce the ball to break bricks!')}
+            </p>
           </div>
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center">
@@ -825,7 +871,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
               <div className="text-lg font-bold text-primary tabular-nums">{score}</div>
             </div>
             <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Trophy className="w-3 h-3" />
+                {t('最佳', 'Best')}
+              </div>
               <div className="text-lg font-bold text-tertiary tabular-nums">{bestScore}</div>
             </div>
           </div>
@@ -850,9 +899,11 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                 <div
                   className="h-full bg-primary rounded-full transition-all duration-300"
                   style={{
-                    width: `${bricks.length > 0
-                      ? ((bricks.filter(b => !b.alive).length) / bricks.length) * 100
-                      : 0}%`,
+                    width: `${
+                      bricks.length > 0
+                        ? (bricks.filter((b) => !b.alive).length / bricks.length) * 100
+                        : 0
+                    }%`,
                   }}
                 />
               </div>
@@ -863,19 +914,27 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         {/* Game Area */}
         <div ref={containerRef} className="flex justify-center mb-4">
           <motion.div
-            animate={shakeIntensity > 0 ? {
-              x: shakeIntensity >= 3 ? [0, -8, 8, -6, 6, -3, 3, 0] :
-                 shakeIntensity >= 2 ? [0, -4, 4, -2, 2, 0] :
-                 [0, -2, 2, -1, 1, 0],
-              y: shakeIntensity >= 3 ? [0, 3, -3, 2, -2, 0] : [0, 0, 0, 0, 0, 0],
-            } : {}}
+            animate={
+              shakeIntensity > 0
+                ? {
+                    x:
+                      shakeIntensity >= 3
+                        ? [0, -8, 8, -6, 6, -3, 3, 0]
+                        : shakeIntensity >= 2
+                          ? [0, -4, 4, -2, 2, 0]
+                          : [0, -2, 2, -1, 1, 0],
+                    y: shakeIntensity >= 3 ? [0, 3, -3, 2, -2, 0] : [0, 0, 0, 0, 0, 0],
+                  }
+                : {}
+            }
             transition={{ duration: shakeIntensity >= 3 ? 0.35 : 0.2 }}
             className="relative overflow-hidden rounded-2xl select-none touch-none"
             style={{
               width: GAME_WIDTH * gameScale,
               height: GAME_HEIGHT * gameScale,
               background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-              boxShadow: '0 0 20px rgba(99,102,241,0.2), 0 0 40px rgba(99,102,241,0.1), inset 0 0 20px rgba(99,102,241,0.05)',
+              boxShadow:
+                '0 0 20px rgba(99,102,241,0.2), 0 0 40px rgba(99,102,241,0.1), inset 0 0 20px rgba(99,102,241,0.05)',
               cursor: touchActive ? 'none' : 'default',
             }}
             onTouchMove={handleTouchMove}
@@ -884,7 +943,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             onMouseMove={handleMouseMove}
             onKeyDown={handleGameKeyDown}
             tabIndex={0}
-            aria-label={t('打砖块游戏区域，使用左右方向键移动挡板，回车或空格开始', 'Brick Breaker game area, use left and right arrows to move the paddle, Enter or Space to start')}
+            aria-label={t(
+              '打砖块游戏区域，使用左右方向键移动挡板，回车或空格开始',
+              'Brick Breaker game area, use left and right arrows to move the paddle, Enter or Space to start',
+            )}
           >
             {/* Subtle grid lines */}
             <div
@@ -945,7 +1007,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             })}
 
             {/* Brick destruction flash/glow effects - brighter */}
-            {brickFlashes.map(flash => (
+            {brickFlashes.map((flash) => (
               <motion.div
                 key={`flash-${flash.id}`}
                 initial={{ opacity: 1, scale: 1 }}
@@ -965,7 +1027,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             ))}
 
             {/* Particles with gravity and vibrant colors */}
-            {particles.map(p => {
+            {particles.map((p) => {
               const particleColor = COLOR_HEX[p.color as BrickColor] || '#ffffff';
               return (
                 <motion.div
@@ -1000,7 +1062,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                   top: (paddleTop - 4) * gameScale,
                   width: (pw + 12) * gameScale,
                   height: (PADDLE_HEIGHT + 8) * gameScale,
-                  background: 'radial-gradient(ellipse at center, rgba(96,165,250,0.3) 0%, transparent 70%)',
+                  background:
+                    'radial-gradient(ellipse at center, rgba(96,165,250,0.3) 0%, transparent 70%)',
                   filter: 'blur(4px)',
                   transition: 'left 0.05s linear',
                 }}
@@ -1068,7 +1131,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             />
 
             {/* Collision flash at paddle/ball impact */}
-            {collisionFlashes.map(flash => (
+            {collisionFlashes.map((flash) => (
               <motion.div
                 key={`cf-${flash.id}`}
                 initial={{ opacity: 0.9, scale: 0.3 }}
@@ -1080,14 +1143,15 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                   top: (flash.y - 15) * gameScale,
                   width: 30 * gameScale,
                   height: 30 * gameScale,
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(96,165,250,0.4) 50%, transparent 100%)',
+                  background:
+                    'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(96,165,250,0.4) 50%, transparent 100%)',
                   boxShadow: '0 0 20px rgba(96,165,250,0.6)',
                 }}
               />
             ))}
 
             {/* Score popups floating up from broken bricks */}
-            {scorePopups.map(popup => (
+            {scorePopups.map((popup) => (
               <motion.div
                 key={`sp-${popup.id}`}
                 initial={{ opacity: 1, y: 0, scale: 0.8 }}
@@ -1115,7 +1179,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                 transition={{ duration: 0.12 }}
                 className="absolute inset-0 pointer-events-none z-50"
                 style={{
-                  background: 'radial-gradient(ellipse at center, transparent 15%, rgba(239,68,68,0.65) 100%)',
+                  background:
+                    'radial-gradient(ellipse at center, transparent 15%, rgba(239,68,68,0.65) 100%)',
                 }}
               />
             )}
@@ -1141,12 +1206,14 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                   transition={{ type: 'spring', stiffness: 500, damping: 12 }}
                   className="absolute top-2 right-2 z-30 flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-full"
                   style={{
-                    background: comboDisplay >= 4
-                      ? 'linear-gradient(135deg, #f97316, #ef4444)'
-                      : 'linear-gradient(135deg, #facc15, #f97316)',
-                    boxShadow: comboDisplay >= 4
-                      ? '0 0 20px rgba(239,68,68,0.6), 0 0 40px rgba(239,68,68,0.3)'
-                      : '0 0 16px rgba(249,115,22,0.6), 0 0 32px rgba(249,115,22,0.2)',
+                    background:
+                      comboDisplay >= 4
+                        ? 'linear-gradient(135deg, #f97316, #ef4444)'
+                        : 'linear-gradient(135deg, #facc15, #f97316)',
+                    boxShadow:
+                      comboDisplay >= 4
+                        ? '0 0 20px rgba(239,68,68,0.6), 0 0 40px rgba(239,68,68,0.3)'
+                        : '0 0 16px rgba(249,115,22,0.6), 0 0 32px rgba(249,115,22,0.2)',
                   }}
                 >
                   <div className="flex items-center gap-1">
@@ -1181,7 +1248,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                   <div
                     className="px-8 py-4 rounded-2xl"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(99,102,241,0.9), rgba(139,92,246,0.9))',
+                      background:
+                        'linear-gradient(135deg, rgba(99,102,241,0.9), rgba(139,92,246,0.9))',
                       boxShadow: '0 0 30px rgba(99,102,241,0.5), 0 0 60px rgba(99,102,241,0.2)',
                     }}
                   >
@@ -1216,8 +1284,14 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="text-center cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); startGame(); }}
-                    onTouchStart={(e) => { e.stopPropagation(); startGame(); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startGame();
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      startGame();
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -1245,22 +1319,32 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4"
                   >
-                    <p className="text-2xl font-bold text-on-surface mb-2">{t('通关！', 'Level Clear!')}</p>
+                    <p className="text-2xl font-bold text-on-surface mb-2">
+                      {t('通关！', 'Level Clear!')}
+                    </p>
                     <p className="text-5xl mb-3">🎉</p>
                     <p className="text-3xl font-black text-primary mb-1">{score}</p>
                     <p className="text-sm text-secondary mb-1">{t('得分', 'Score')}</p>
                     {score > 0 && score === bestScore && (
-                      <p className="text-sm text-green-500 mb-3">🏆 {t('新纪录！', 'New Record!')}</p>
+                      <p className="text-sm text-green-500 mb-3">
+                        🏆 {t('新纪录！', 'New Record!')}
+                      </p>
                     )}
                     <div className="flex justify-center gap-3">
                       <button
-                        onClick={(e) => { e.stopPropagation(); nextLevel(); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          nextLevel();
+                        }}
                         className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]"
                       >
                         {t('下一关', 'Next Level')}
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); startGame(); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startGame();
+                        }}
                         className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold min-h-[48px]"
                       >
                         {t('重新开始', 'Restart')}
@@ -1275,15 +1359,22 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4"
                   >
-                    <p className="text-2xl font-bold text-on-surface mb-2">{t('游戏结束', 'Game Over')}</p>
+                    <p className="text-2xl font-bold text-on-surface mb-2">
+                      {t('游戏结束', 'Game Over')}
+                    </p>
                     <p className="text-5xl mb-3">😵</p>
                     <p className="text-3xl font-black text-primary mb-1">{score}</p>
                     <p className="text-sm text-secondary mb-1">{t('得分', 'Score')}</p>
                     {score > 0 && score === bestScore && (
-                      <p className="text-sm text-green-500 mb-3">🏆 {t('新纪录！', 'New Record!')}</p>
+                      <p className="text-sm text-green-500 mb-3">
+                        🏆 {t('新纪录！', 'New Record!')}
+                      </p>
                     )}
                     <button
-                      onClick={(e) => { e.stopPropagation(); startGame(); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startGame();
+                      }}
                       className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]"
                     >
                       {t('再来一局', 'Play Again')}
@@ -1312,10 +1403,12 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
-          {t('在游戏区域内滑动或移动鼠标来控制挡板', 'Swipe or move mouse within the game area to control the paddle')}
+          {t(
+            '在游戏区域内滑动或移动鼠标来控制挡板',
+            'Swipe or move mouse within the game area to control the paddle',
+          )}
         </div>
       </motion.div>
-
     </div>
   );
 }

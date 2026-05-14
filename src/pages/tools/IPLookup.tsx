@@ -1,6 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Copy, Check, Globe, MapPin, Wifi, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  Copy,
+  Check,
+  Globe,
+  MapPin,
+  Wifi,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
 interface IPInfo {
@@ -32,7 +42,9 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
       if (data.error) throw new Error(data.reason || 'Unknown error');
       setIpInfo(data);
     } catch {
-      setError(t('获取 IP 信息失败，请稍后重试', 'Failed to fetch IP info. Please try again later.'));
+      setError(
+        t('获取 IP 信息失败，请稍后重试', 'Failed to fetch IP info. Please try again later.'),
+      );
     } finally {
       setLoading(false);
     }
@@ -59,7 +71,17 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
     }
   }, []);
 
-  const InfoRow = ({ icon, label, value, field }: { icon: React.ReactNode; label: string; value: string; field: string }) => (
+  const InfoRow = ({
+    icon,
+    label,
+    value,
+    field,
+  }: {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+    field: string;
+  }) => (
     <div className="flex items-center justify-between py-3 border-b border-surface-variant/20 last:border-b-0">
       <div className="flex items-center gap-3 min-w-0">
         <div className="w-8 h-8 rounded-lg bg-primary-container/30 flex items-center justify-center shrink-0 text-primary">
@@ -75,7 +97,9 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
           onClick={() => handleCopy(value, field)}
           aria-label={t(`复制${label}`, `Copy ${label}`)}
           className={`p-2 rounded-lg shrink-0 transition-all ${
-            copiedField === field ? 'bg-green-100 text-green-600' : 'text-secondary/40 hover:text-primary hover:bg-primary-container/20'
+            copiedField === field
+              ? 'bg-green-100 text-green-600'
+              : 'text-secondary/40 hover:text-primary hover:bg-primary-container/20'
           }`}
         >
           {copiedField === field ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -86,14 +110,28 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-2xl mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-2">{t('IP 查询', 'IP Address Lookup')}</h2>
-        <p className="text-sm text-secondary text-center mb-6">{t('查看您的公网 IP 地址和地理位置信息', 'View your public IP address and geolocation info')}</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
+          {t('IP 查询', 'IP Address Lookup')}
+        </h2>
+        <p className="text-sm text-secondary text-center mb-6">
+          {t(
+            '查看您的公网 IP 地址和地理位置信息',
+            'View your public IP address and geolocation info',
+          )}
+        </p>
 
         {/* Refresh Button */}
         <button
@@ -129,7 +167,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
         {/* Loading skeleton */}
         {loading && !ipInfo && (
           <div className="space-y-3 animate-pulse">
-            {[1, 2, 3, 4, 5, 6].map(i => (
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="flex items-center gap-3 py-3">
                 <div className="w-8 h-8 rounded-lg bg-surface-container-high" />
                 <div className="flex-1">
@@ -150,15 +188,25 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
           >
             {/* Big IP display */}
             <div className="text-center mb-6 p-6 rounded-2xl bg-gradient-to-br from-primary-container/30 to-tertiary-container/20">
-              <p className="text-xs text-secondary mb-2">{t('您的公网 IP 地址', 'Your Public IP Address')}</p>
-              <p className="text-3xl sm:text-4xl font-mono font-bold text-primary break-all">{ipInfo.ip}</p>
+              <p className="text-xs text-secondary mb-2">
+                {t('您的公网 IP 地址', 'Your Public IP Address')}
+              </p>
+              <p className="text-3xl sm:text-4xl font-mono font-bold text-primary break-all">
+                {ipInfo.ip}
+              </p>
               <button
                 onClick={() => handleCopy(ipInfo.ip, 'ip-main')}
                 className={`mt-3 py-1.5 px-4 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1 ${
-                  copiedField === 'ip-main' ? 'bg-green-100 text-green-600' : 'bg-white/60 text-secondary hover:bg-white'
+                  copiedField === 'ip-main'
+                    ? 'bg-green-100 text-green-600'
+                    : 'bg-white/60 text-secondary hover:bg-white'
                 }`}
               >
-                {copiedField === 'ip-main' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                {copiedField === 'ip-main' ? (
+                  <Check className="w-3 h-3" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
                 {copiedField === 'ip-main' ? t('已复制!', 'Copied!') : t('复制 IP', 'Copy IP')}
               </button>
             </div>

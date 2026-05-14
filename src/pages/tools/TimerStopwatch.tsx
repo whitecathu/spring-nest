@@ -11,13 +11,22 @@ export default function TimerStopwatch({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">{t('倒计时与秒表', 'Timer & Stopwatch')}</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
+      >
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          {t('倒计时与秒表', 'Timer & Stopwatch')}
+        </h2>
 
         {/* Tab Switch */}
         <div className="flex justify-center mb-6">
@@ -91,7 +100,11 @@ function CountdownTab() {
         setIsRunning(false);
         setFinished(true);
         // Vibrate if available
-        try { navigator.vibrate?.([200, 100, 200]); } catch { /* ignore */ }
+        try {
+          navigator.vibrate?.([200, 100, 200]);
+        } catch {
+          /* ignore */
+        }
         return;
       }
       setTimeLeft(timeLeftRef.current);
@@ -127,7 +140,7 @@ function CountdownTab() {
     <div>
       {/* Quick Buttons */}
       <div className="flex gap-2 mb-4">
-        {[1, 3, 5, 10].map(m => (
+        {[1, 3, 5, 10].map((m) => (
           <button
             key={m}
             onClick={() => setQuickTime(m)}
@@ -152,7 +165,9 @@ function CountdownTab() {
               min={0}
               max={99}
               value={inputMinutes}
-              onChange={(e) => setInputMinutes(Math.max(0, Math.min(99, parseInt(e.target.value) || 0)))}
+              onChange={(e) =>
+                setInputMinutes(Math.max(0, Math.min(99, parseInt(e.target.value) || 0)))
+              }
               className="w-20 text-center text-3xl font-bold text-on-surface bg-surface-container-low rounded-2xl p-3 border border-surface-variant/30 focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             <span className="text-xs text-secondary mt-1">{t('分', 'min')}</span>
@@ -164,7 +179,9 @@ function CountdownTab() {
               min={0}
               max={59}
               value={inputSeconds}
-              onChange={(e) => setInputSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+              onChange={(e) =>
+                setInputSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))
+              }
               className="w-20 text-center text-3xl font-bold text-on-surface bg-surface-container-low rounded-2xl p-3 border border-surface-variant/30 focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             <span className="text-xs text-secondary mt-1">{t('秒', 'sec')}</span>
@@ -174,8 +191,12 @@ function CountdownTab() {
 
       {/* Display */}
       {started && (
-        <div className={`text-center mb-6 py-8 rounded-2xl ${finished ? 'bg-red-50 animate-pulse' : 'bg-surface-container-low'}`}>
-          <div className={`text-6xl font-bold tabular-nums ${finished ? 'text-red-500' : 'text-on-surface'}`}>
+        <div
+          className={`text-center mb-6 py-8 rounded-2xl ${finished ? 'bg-red-50 animate-pulse' : 'bg-surface-container-low'}`}
+        >
+          <div
+            className={`text-6xl font-bold tabular-nums ${finished ? 'text-red-500' : 'text-on-surface'}`}
+          >
             {String(displayMinutes).padStart(2, '0')}:{String(displaySeconds).padStart(2, '0')}
           </div>
           {finished && (
@@ -189,7 +210,7 @@ function CountdownTab() {
         {!isRunning ? (
           <button
             onClick={handleStart}
-            disabled={started ? false : (inputMinutes === 0 && inputSeconds === 0)}
+            disabled={started ? false : inputMinutes === 0 && inputSeconds === 0}
             className="px-8 py-3 bg-primary text-on-primary rounded-full font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-40 disabled:hover:translate-y-0"
           >
             <Play className="w-5 h-5 fill-on-primary" />
@@ -281,7 +302,7 @@ function StopwatchTab() {
       lapTime: elapsedRef.current - prevLapTotal,
       totalTime: elapsedRef.current,
     };
-    setLaps(prev => [newLap, ...prev]);
+    setLaps((prev) => [newLap, ...prev]);
   }, [isRunning, laps]);
 
   const formatTime = (ms: number): string => {
@@ -295,9 +316,7 @@ function StopwatchTab() {
     <div>
       {/* Display */}
       <div className="text-center mb-6 py-8 bg-surface-container-low rounded-2xl">
-        <div className="text-5xl font-bold tabular-nums text-on-surface">
-          {formatTime(elapsed)}
-        </div>
+        <div className="text-5xl font-bold tabular-nums text-on-surface">{formatTime(elapsed)}</div>
       </div>
 
       {/* Controls */}
@@ -346,10 +365,21 @@ function StopwatchTab() {
           </div>
           <div className="space-y-1.5 max-h-48 overflow-y-auto">
             {laps.map((lap) => (
-              <div key={lap.id} className="flex items-center justify-between bg-white rounded-xl px-3 py-2">
-                <span className="text-sm font-semibold text-on-surface w-12">{t('第', '#')}{lap.id}{t('圈', '')}</span>
-                <span className="text-sm font-mono text-secondary tabular-nums">{formatTime(lap.lapTime)}</span>
-                <span className="text-sm font-mono text-on-surface tabular-nums">{formatTime(lap.totalTime)}</span>
+              <div
+                key={lap.id}
+                className="flex items-center justify-between bg-white rounded-xl px-3 py-2"
+              >
+                <span className="text-sm font-semibold text-on-surface w-12">
+                  {t('第', '#')}
+                  {lap.id}
+                  {t('圈', '')}
+                </span>
+                <span className="text-sm font-mono text-secondary tabular-nums">
+                  {formatTime(lap.lapTime)}
+                </span>
+                <span className="text-sm font-mono text-on-surface tabular-nums">
+                  {formatTime(lap.totalTime)}
+                </span>
               </div>
             ))}
           </div>

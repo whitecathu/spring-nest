@@ -15,11 +15,11 @@ export function recordVisit(type: 'tool' | 'game', id: string) {
     const items: RecentItem[] = raw ? JSON.parse(raw) : [];
 
     const source = type === 'tool' ? tools : games;
-    const item = source.find(i => i.id === id);
+    const item = source.find((i) => i.id === id);
     if (!item) return;
 
     // Remove existing entry for same item
-    const filtered = items.filter(r => !(r.type === type && r.id === id));
+    const filtered = items.filter((r) => !(r.type === type && r.id === id));
 
     // Prepend new entry
     filtered.unshift({
@@ -63,8 +63,8 @@ export function getRecentItems(limit = 6): RecentItem[] {
     const allItems = [...tools, ...games];
 
     return items
-      .map(recent => {
-        const match = allItems.find(i => i.id === recent.id && i.type === recent.type);
+      .map((recent) => {
+        const match = allItems.find((i) => i.id === recent.id && i.type === recent.type);
         if (!match) return null;
         return {
           ...recent,

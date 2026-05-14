@@ -30,13 +30,21 @@ const HIT_EMOJIS = ['💥', '⭐', '✨', '💫', '🌟'];
 const DEATH_EMOJIS = ['😵', '💀', '🥴', '😵‍💫'];
 
 function loadBestScore(): number {
-  try { return JSON.parse(localStorage.getItem('spring_nest_whackamole_best') || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem('spring_nest_whackamole_best') || '0');
+  } catch {
+    return 0;
+  }
 }
 function saveBestScore(score: number) {
   localStorage.setItem('spring_nest_whackamole_best', JSON.stringify(score));
 }
 function loadBestCombo(): number {
-  try { return JSON.parse(localStorage.getItem('spring_nest_whackamole_best_combo') || '0'); } catch { return 0; }
+  try {
+    return JSON.parse(localStorage.getItem('spring_nest_whackamole_best_combo') || '0');
+  } catch {
+    return 0;
+  }
 }
 function saveBestCombo(combo: number) {
   localStorage.setItem('spring_nest_whackamole_best_combo', JSON.stringify(combo));
@@ -105,9 +113,18 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
   const { shake, trigger: triggerShake } = useScreenShake();
 
   const clearAllTimers = useCallback(() => {
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    if (moleTimerRef.current) { clearInterval(moleTimerRef.current); moleTimerRef.current = null; }
-    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (moleTimerRef.current) {
+      clearInterval(moleTimerRef.current);
+      moleTimerRef.current = null;
+    }
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
   }, []);
 
   // ── Spawn particles at position ──
@@ -127,24 +144,34 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
         life: 1,
       });
     }
-    setParticles(prev => [...prev, ...newParticles]);
+    setParticles((prev) => [...prev, ...newParticles]);
 
     // Auto-remove after animation
     setTimeout(() => {
-      setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
+      setParticles((prev) => prev.filter((p) => !newParticles.find((np) => np.id === p.id)));
     }, 800);
   }, []);
 
   // ── Spawn score popup ──
-  const spawnScorePopup = useCallback((x: number, y: number, points: number, currentCombo: number) => {
-    const id = popupIdRef.current++;
-    const text = currentCombo >= 5 ? `+${points} 🔥` : `+${points}`;
-    const color = currentCombo >= 10 ? '#ef4444' : currentCombo >= 7 ? '#f97316' : currentCombo >= 5 ? '#eab308' : '#22c55e';
-    setScorePopups(prev => [...prev, { id, x, y, text, color }]);
-    setTimeout(() => {
-      setScorePopups(prev => prev.filter(p => p.id !== id));
-    }, 1000);
-  }, []);
+  const spawnScorePopup = useCallback(
+    (x: number, y: number, points: number, currentCombo: number) => {
+      const id = popupIdRef.current++;
+      const text = currentCombo >= 5 ? `+${points} 🔥` : `+${points}`;
+      const color =
+        currentCombo >= 10
+          ? '#ef4444'
+          : currentCombo >= 7
+            ? '#f97316'
+            : currentCombo >= 5
+              ? '#eab308'
+              : '#22c55e';
+      setScorePopups((prev) => [...prev, { id, x, y, text, color }]);
+      setTimeout(() => {
+        setScorePopups((prev) => prev.filter((p) => p.id !== id));
+      }, 1000);
+    },
+    [],
+  );
 
   const startMoleMovement = useCallback(() => {
     const showMole = () => {
@@ -154,25 +181,28 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
       setActiveHole(Math.floor(Math.random() * HOLES));
     };
     showMole();
-    moleTimerRef.current = setInterval(() => {
-      if (!playingRef.current) return;
-      const keepActive = Math.random() < 0.3;
-      if (!keepActive) {
-        if (!wasHitRef.current) {
-          comboRef.current = 0;
-          setCombo(0);
+    moleTimerRef.current = setInterval(
+      () => {
+        if (!playingRef.current) return;
+        const keepActive = Math.random() < 0.3;
+        if (!keepActive) {
+          if (!wasHitRef.current) {
+            comboRef.current = 0;
+            setCombo(0);
+          }
+          // Gravity drop exit animation
+          setMoleExiting(true);
+          setTimeout(() => {
+            setActiveHole(null);
+            setMoleExiting(false);
+          }, 200);
         }
-        // Gravity drop exit animation
-        setMoleExiting(true);
         setTimeout(() => {
-          setActiveHole(null);
-          setMoleExiting(false);
-        }, 200);
-      }
-      setTimeout(() => {
-        showMole();
-      }, 300);
-    }, 800 + Math.random() * 600);
+          showMole();
+        }, 300);
+      },
+      800 + Math.random() * 600,
+    );
   }, []);
 
   const startGame = useCallback(() => {
@@ -198,13 +228,16 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
       count--;
       setCountdown(count);
       if (count <= 0) {
-        if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+        if (countdownRef.current) {
+          clearInterval(countdownRef.current);
+          countdownRef.current = null;
+        }
         setPlaying(true);
         playingRef.current = true;
         startMoleMovement();
 
         timerRef.current = setInterval(() => {
-          setTimeLeft(prev => {
+          setTimeLeft((prev) => {
             if (prev <= 1) {
               clearAllTimers();
               setPlaying(false);
@@ -227,71 +260,86 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
     };
   }, [clearAllTimers]);
 
-  const whack = useCallback((holeIndex: number) => {
-    if (!playingRef.current || gameOver) return;
-    if (activeHole === holeIndex && !freezeFrame) {
-      wasHitRef.current = true;
-      comboRef.current += 1;
-      const currentCombo = comboRef.current;
-      setCombo(currentCombo);
-      if (currentCombo > bestCombo) {
-        setBestCombo(currentCombo);
-        saveBestCombo(currentCombo);
-      }
-
-      const points = 1 + Math.max(0, currentCombo - 1);
-      setScore(s => {
-        const newScore = s + points;
-        if (newScore > bestScore) {
-          setBestScore(newScore);
-          saveBestScore(newScore);
+  const whack = useCallback(
+    (holeIndex: number) => {
+      if (!playingRef.current || gameOver) return;
+      if (activeHole === holeIndex && !freezeFrame) {
+        wasHitRef.current = true;
+        comboRef.current += 1;
+        const currentCombo = comboRef.current;
+        setCombo(currentCombo);
+        if (currentCombo > bestCombo) {
+          setBestCombo(currentCombo);
+          saveBestCombo(currentCombo);
         }
-        return newScore;
-      });
 
-      // ── Death expression ──
-      const death = DEATH_EMOJIS[Math.floor(Math.random() * DEATH_EMOJIS.length)];
-      setDeathEmoji(death);
-      setHitHole(holeIndex);
+        const points = 1 + Math.max(0, currentCombo - 1);
+        setScore((s) => {
+          const newScore = s + points;
+          if (newScore > bestScore) {
+            setBestScore(newScore);
+            saveBestScore(newScore);
+          }
+          return newScore;
+        });
 
-      // ── Freeze frame (2 frames / ~33ms) ──
-      setFreezeFrame(true);
-      setTimeout(() => setFreezeFrame(false), 40);
+        // ── Death expression ──
+        const death = DEATH_EMOJIS[Math.floor(Math.random() * DEATH_EMOJIS.length)];
+        setDeathEmoji(death);
+        setHitHole(holeIndex);
 
-      // ── Screen shake (intensity scales with combo) ──
-      const shakeIntensity = Math.min(12, 4 + currentCombo * 0.8);
-      triggerShake(shakeIntensity);
+        // ── Freeze frame (2 frames / ~33ms) ──
+        setFreezeFrame(true);
+        setTimeout(() => setFreezeFrame(false), 40);
 
-      // ── Particles ──
-      if (boardRef.current) {
-        const holes = boardRef.current.querySelectorAll('[data-hole]');
-        const hole = holes[holeIndex] as HTMLElement;
-        if (hole) {
-          const rect = hole.getBoundingClientRect();
-          const boardRect = boardRef.current.getBoundingClientRect();
-          const cx = ((rect.left + rect.width / 2 - boardRect.left) / boardRect.width) * 100;
-          const cy = ((rect.top + rect.height / 2 - boardRect.top) / boardRect.height) * 100;
-          const particleCount = Math.min(15, 8 + currentCombo);
-          spawnParticles(cx, cy, particleCount);
-          spawnScorePopup(cx, cy - 8, points, currentCombo);
+        // ── Screen shake (intensity scales with combo) ──
+        const shakeIntensity = Math.min(12, 4 + currentCombo * 0.8);
+        triggerShake(shakeIntensity);
+
+        // ── Particles ──
+        if (boardRef.current) {
+          const holes = boardRef.current.querySelectorAll('[data-hole]');
+          const hole = holes[holeIndex] as HTMLElement;
+          if (hole) {
+            const rect = hole.getBoundingClientRect();
+            const boardRect = boardRef.current.getBoundingClientRect();
+            const cx = ((rect.left + rect.width / 2 - boardRect.left) / boardRect.width) * 100;
+            const cy = ((rect.top + rect.height / 2 - boardRect.top) / boardRect.height) * 100;
+            const particleCount = Math.min(15, 8 + currentCombo);
+            spawnParticles(cx, cy, particleCount);
+            spawnScorePopup(cx, cy - 8, points, currentCombo);
+          }
         }
-      }
 
-      // ── Clear hit state after death expression shows ──
-      setTimeout(() => {
-        setHitHole(null);
-        setDeathEmoji('');
-        setActiveHole(null);
-      }, 400);
-    } else {
-      comboRef.current = 0;
-      setCombo(0);
-    }
-  }, [gameOver, activeHole, bestScore, bestCombo, freezeFrame, triggerShake, spawnParticles, spawnScorePopup]);
+        // ── Clear hit state after death expression shows ──
+        setTimeout(() => {
+          setHitHole(null);
+          setDeathEmoji('');
+          setActiveHole(null);
+        }, 400);
+      } else {
+        comboRef.current = 0;
+        setCombo(0);
+      }
+    },
+    [
+      gameOver,
+      activeHole,
+      bestScore,
+      bestCombo,
+      freezeFrame,
+      triggerShake,
+      spawnParticles,
+      spawnScorePopup,
+    ],
+  );
 
   return (
     <div className="flex-grow max-w-lg mx-auto w-full px-4 py-8">
-      <button onClick={onBack} className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
+      >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
       </button>
@@ -305,14 +353,29 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('打地鼠', 'Whack A Mole')}</h1>
-            <p className="text-sm text-secondary">{t('快速点击冒出的地鼠！', 'Whack the moles quickly!')}</p>
+            <p className="text-sm text-secondary">
+              {t('快速点击冒出的地鼠！', 'Whack the moles quickly!')}
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Clock className="w-3 h-3" />{t('时间', 'Time')}</div>
-              <div className={`text-xl font-bold ${timeLeft <= 5 ? 'text-red-500' : 'text-primary'} tabular-nums`}>{timeLeft}s</div>
+            <motion.div
+              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+              className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
+            >
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {t('时间', 'Time')}
+              </div>
+              <div
+                className={`text-xl font-bold ${timeLeft <= 5 ? 'text-red-500' : 'text-primary'} tabular-nums`}
+              >
+                {timeLeft}s
+              </div>
             </motion.div>
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
+            <motion.div
+              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+              className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
+            >
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
               <motion.div
                 key={score}
@@ -324,12 +387,23 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                 {score}
               </motion.div>
             </motion.div>
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
-              <div className="text-xs text-secondary font-medium flex items-center gap-1"><Trophy className="w-3 h-3" />{t('最佳', 'Best')}</div>
+            <motion.div
+              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+              className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
+            >
+              <div className="text-xs text-secondary font-medium flex items-center gap-1">
+                <Trophy className="w-3 h-3" />
+                {t('最佳', 'Best')}
+              </div>
               <div className="text-xl font-bold text-tertiary">{bestScore}</div>
             </motion.div>
-            <motion.div whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }} className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
-              <div className="text-xs text-secondary font-medium">🔥 {t('最佳连击', 'Best Combo')}</div>
+            <motion.div
+              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+              className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
+            >
+              <div className="text-xs text-secondary font-medium">
+                🔥 {t('最佳连击', 'Best Combo')}
+              </div>
               <div className="text-xl font-bold text-tertiary">{bestCombo}</div>
             </motion.div>
           </div>
@@ -382,15 +456,25 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                           key={`mole-${i}`}
                           initial={{ y: 60, scale: 0.6 }}
                           animate={{ y: moleExiting ? 60 : 0, scale: moleExiting ? 0.6 : 1 }}
-                          exit={{ y: 60, scale: 0.5, transition: { duration: 0.2, ease: 'easeIn' } }}
+                          exit={{
+                            y: 60,
+                            scale: 0.5,
+                            transition: { duration: 0.2, ease: 'easeIn' },
+                          }}
                           transition={{
                             type: 'spring',
                             stiffness: moleExiting ? 200 : 350,
                             damping: moleExiting ? 25 : 12,
                             mass: 0.8,
                           }}
-                          whileTap={{ scale: 0.75, transition: { type: 'spring', stiffness: 700, damping: 15 } }}
-                          onClick={(e) => { e.stopPropagation(); whack(i); }}
+                          whileTap={{
+                            scale: 0.75,
+                            transition: { type: 'spring', stiffness: 700, damping: 15 },
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            whack(i);
+                          }}
                           className="absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 cursor-pointer select-none"
                         >
                           <motion.span
@@ -428,7 +512,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
 
           {/* Particle layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {particles.map(p => (
+            {particles.map((p) => (
               <motion.div
                 key={p.id}
                 initial={{ x: `${p.x}%`, y: `${p.y}%`, scale: 1, opacity: 1 }}
@@ -450,7 +534,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
           {/* Score popup layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <AnimatePresence>
-              {scorePopups.map(p => (
+              {scorePopups.map((p) => (
                 <motion.div
                   key={p.id}
                   initial={{ x: `${p.x}%`, y: `${p.y}%`, scale: 0.5, opacity: 0 }}
@@ -485,10 +569,13 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                 }}
                 transition={{ duration: 0.4, repeat: combo >= 7 ? Infinity : 0 }}
                 className={`font-black inline-block ${
-                  combo >= 10 ? 'text-4xl text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
-                  combo >= 7 ? 'text-3xl text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]' :
-                  combo >= 5 ? 'text-2xl text-yellow-500' :
-                  'text-xl text-primary'
+                  combo >= 10
+                    ? 'text-4xl text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]'
+                    : combo >= 7
+                      ? 'text-3xl text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]'
+                      : combo >= 5
+                        ? 'text-2xl text-yellow-500'
+                        : 'text-xl text-primary'
                 }`}
               >
                 🔥 {combo} {t('连击！', 'Combo!')}
@@ -538,9 +625,17 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
               >
                 🎯
               </motion.p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">{t('时间到！', "Time's up!")}</p>
-              <p className="text-xl font-bold text-orange-500 mb-1">{t('得分', 'Score')}: {score}</p>
-              {bestCombo > 0 && <p className="text-sm text-orange-400 mb-1">🔥 {t('最佳连击', 'Best Combo')}: {bestCombo}</p>}
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
+                {t('时间到！', "Time's up!")}
+              </p>
+              <p className="text-xl font-bold text-orange-500 mb-1">
+                {t('得分', 'Score')}: {score}
+              </p>
+              {bestCombo > 0 && (
+                <p className="text-sm text-orange-400 mb-1">
+                  🔥 {t('最佳连击', 'Best Combo')}: {bestCombo}
+                </p>
+              )}
               {score > 0 && score === bestScore && (
                 <motion.p
                   initial={{ scale: 0 }}
@@ -551,7 +646,10 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                   🏆 {t('新纪录！', 'New Record!')}
                 </motion.p>
               )}
-              <button onClick={startGame} className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]">
+              <button
+                onClick={startGame}
+                className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]"
+              >
                 {t('再来一局', 'Play Again')}
               </button>
             </motion.div>

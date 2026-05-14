@@ -56,12 +56,19 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         const result = await supabaseResetPassword(email);
         setLoading(false);
         if (result.success) {
-          setSuccess(t('密码重置邮件已发送，请查收', 'Password reset email sent. Please check your inbox.'));
+          setSuccess(
+            t('密码重置邮件已发送，请查收', 'Password reset email sent. Please check your inbox.'),
+          );
         } else {
           setError(result.error || t('发送失败，请稍后重试', 'Failed to send. Please try again.'));
         }
       } else {
-        setError(t('请使用注册时的邮箱和密码直接登录。本地应用暂不支持密码重置。', 'Please login directly with your email and password. Password reset is not available in local mode.'));
+        setError(
+          t(
+            '请使用注册时的邮箱和密码直接登录。本地应用暂不支持密码重置。',
+            'Please login directly with your email and password. Password reset is not available in local mode.',
+          ),
+        );
       }
       return;
     }
@@ -131,11 +138,18 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       <div
-        className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity animate-fade-in-up" style={{ animationDuration: '0.3s' }}
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity animate-fade-in-up"
+        style={{ animationDuration: '0.3s' }}
         onClick={handleClose}
       ></div>
 
-      <div className="relative w-full max-w-md bg-white/95 backdrop-blur-xl rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-primary/10 overflow-hidden animate-fade-in-up" style={{ animationDuration: '0.4s' }} role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
+      <div
+        className="relative w-full max-w-md bg-white/95 backdrop-blur-xl rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-primary/10 overflow-hidden animate-fade-in-up"
+        style={{ animationDuration: '0.4s' }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="login-modal-title"
+      >
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary-container/30 rounded-full blur-[80px] pointer-events-none"></div>
         <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-tertiary-container/30 rounded-full blur-[80px] pointer-events-none"></div>
 
@@ -166,19 +180,29 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
             </div>
           </div>
 
-          <h2 id="login-modal-title" className="text-3xl font-bold font-nunito text-center text-on-surface mb-2">
+          <h2
+            id="login-modal-title"
+            className="text-3xl font-bold font-nunito text-center text-on-surface mb-2"
+          >
             {modalState === 'login' && t('欢迎回来', 'Welcome Back')}
             {modalState === 'register' && t('开启数字治愈之旅', 'Start Your Journey')}
             {modalState === 'forgot_password' && t('重置密码', 'Reset Password')}
           </h2>
           <p className="text-center text-on-surface-variant font-medium text-sm mb-8">
-            {modalState === 'login' && t('登录 Spring Nest 发现更多美好', 'Log in to discover more')}
-            {modalState === 'register' && t('注册 Spring Nest 享受宁静时光', 'Sign up to enjoy peaceful moments')}
-            {modalState === 'forgot_password' && (
-              isUsingSupabase()
-                ? t('输入邮箱地址，我们将发送密码重置链接', 'Enter your email and we\'ll send a password reset link')
-                : t('本地应用暂不支持密码重置，请直接登录', 'Password reset is not available for local apps')
-            )}
+            {modalState === 'login' &&
+              t('登录 Spring Nest 发现更多美好', 'Log in to discover more')}
+            {modalState === 'register' &&
+              t('注册 Spring Nest 享受宁静时光', 'Sign up to enjoy peaceful moments')}
+            {modalState === 'forgot_password' &&
+              (isUsingSupabase()
+                ? t(
+                    '输入邮箱地址，我们将发送密码重置链接',
+                    "Enter your email and we'll send a password reset link",
+                  )
+                : t(
+                    '本地应用暂不支持密码重置，请直接登录',
+                    'Password reset is not available for local apps',
+                  ))}
           </p>
 
           {error && (
@@ -260,8 +284,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                   ? t('登录', 'Log In')
                   : modalState === 'register'
                     ? t('注册', 'Sign Up')
-                    : t('发送重置邮件', 'Send Reset Email')
-              }
+                    : t('发送重置邮件', 'Send Reset Email')}
             </button>
           </form>
 
@@ -273,7 +296,9 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                   onClick={() => switchMode(modalState === 'login' ? 'register' : 'login')}
                   className="text-sm font-semibold text-secondary hover:text-primary transition-colors"
                 >
-                  {modalState === 'login' ? t('没有账号？去注册', 'No account? Sign up') : t('已有账号？去登录', 'Have an account? Log in')}
+                  {modalState === 'login'
+                    ? t('没有账号？去注册', 'No account? Sign up')
+                    : t('已有账号？去登录', 'Have an account? Log in')}
                 </button>
               </div>
             </>

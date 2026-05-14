@@ -25,7 +25,12 @@ export function websiteJsonLd() {
   ];
 }
 
-export function collectionJsonLd(name: string, description: string, route: string, items: AppItem[]) {
+export function collectionJsonLd(
+  name: string,
+  description: string,
+  route: string,
+  items: AppItem[],
+) {
   return {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -77,4 +82,3 @@ export function faqJsonLd(faq: { q: string; a: string }[]) {
     })),
   };
 }
-
