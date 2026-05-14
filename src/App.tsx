@@ -14,6 +14,7 @@ import {
   floatingParticles,
 } from './lib/animations';
 import { trackPageView } from './lib/analytics';
+import { useSwipeNavigation } from './lib/useSwipeNavigation';
 import { Leaf } from 'lucide-react';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -156,6 +157,7 @@ function PageWrapper({
 export default function App() {
   const location = useLocation();
   const reducedMotion = useReducedMotion();
+  const { onTouchStart, onTouchEnd } = useSwipeNavigation();
 
   useEffect(() => {
     trackPageView(`${location.pathname}${location.search}`);
@@ -172,7 +174,11 @@ export default function App() {
     <ThemeProvider>
       <UserProvider>
         <ErrorBoundary>
-          <div className="min-h-screen flex flex-col font-sans selection:bg-primary-container selection:text-on-primary-container relative bg-background text-on-surface transition-colors duration-300">
+          <div
+            className="min-h-screen flex flex-col font-sans selection:bg-primary-container selection:text-on-primary-container relative bg-background text-on-surface transition-colors duration-300"
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
             <Navigation />
             <main className="flex-grow flex flex-col relative overflow-hidden">
               <Suspense fallback={<LoadingFallback />}>

@@ -119,13 +119,13 @@ export default function About() {
           {[
             {
               icon: <Gamepad2 className="w-8 h-8" />,
-              value: '5',
+              value: '19',
               label: t('款游戏', 'Games'),
               color: 'bg-tertiary-container text-on-tertiary-container',
             },
             {
               icon: <Wrench className="w-8 h-8" />,
-              value: '8',
+              value: '25',
               label: t('款工具', 'Tools'),
               color: 'bg-primary-container text-on-primary-container',
             },
@@ -202,7 +202,7 @@ export default function About() {
           <motion.a
             whileHover={{ y: -5, scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            href="https://github.com"
+            href="https://github.com/whitecathu/spring-nest"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-4 bg-surface-container-high px-8 py-5 rounded-3xl border border-surface-variant hover:shadow-lg transition-all cursor-pointer"
