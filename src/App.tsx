@@ -180,7 +180,7 @@ export default function App() {
             onTouchEnd={onTouchEnd}
           >
             <Navigation />
-            <main className="flex-grow flex flex-col relative overflow-hidden">
+            <main className="flex-grow flex flex-col relative overflow-x-hidden">
               <Suspense fallback={<LoadingFallback />}>
                 <AnimatePresence mode="wait">
                   <Routes location={location} key={location.pathname}>
