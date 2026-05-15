@@ -53,7 +53,7 @@ export function FileParseResult({
       </div>
 
       <div className="rounded-2xl bg-[color:rgb(255_255_255_/_0.48)] p-3 text-sm text-[var(--color-muted)]">
-        本次识别新增题目约 {added} 道，warning 会保留在文件树中，方便后续补充后端解析。
+        本次识别新增题目约 {added} 道。解析提示会保留在文件树中，方便检查格式并修正来源文件。
       </div>
 
       <FileTree files={files} />

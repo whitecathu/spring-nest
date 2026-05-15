@@ -1,10 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Brain, Check, Eye, RotateCcw, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
+import {
+  BarChart3,
+  Brain,
+  Check,
+  Eye,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  Settings2,
+  Text,
+  X,
+} from 'lucide-react';
 import { createReviewMeta } from '../../lib/utils/normalize';
 import { getQuestionTypeLabel, useQuestionBankStore } from '../../store/questionBankStore';
 import type { Question } from '../../types/question';
 import { EmptyState } from '../common/EmptyState';
 import { GlassCard } from '../common/GlassCard';
+import { MobileBottomSheet } from '../common/MobileBottomSheet';
 import { SoftButton } from '../common/SoftButton';
 import { QuestionTypeBadge } from '../question/QuestionTypeBadge';
 import { AnswerPanel } from './AnswerPanel';
@@ -54,6 +66,7 @@ export function ReviewSession() {
   const actions = useQuestionBankStore((state) => state.actions);
 
   const activeIds = ids.length ? ids : questions.map((question) => question.id);
+  const activeIdsKey = activeIds.join('|');
   const question = useMemo(
     () => questions.find((item) => item.id === activeIds[index]) ?? questions[0],
     [activeIds, index, questions],
@@ -63,14 +76,23 @@ export function ReviewSession() {
   const [submitted, setSubmitted] = useState(false);
   const [correct, setCorrect] = useState<boolean | undefined>(undefined);
   const [answerVisible, setAnswerVisible] = useState(false);
+  const [largeText, setLargeText] = useState(false);
+  const [immersive, setImmersive] = useState(false);
+  const [mobileSheet, setMobileSheet] = useState<'settings' | 'stats' | null>(null);
+  const [sessionStats, setSessionStats] = useState({ answered: 0, correct: 0, wrong: 0 });
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setSelected([]);
     setSubmitted(false);
     setCorrect(undefined);
-    setAnswerVisible(false);
+    setAnswerVisible(reviewMode === 'analysis');
   }, [question?.id, reviewMode]);
+
+  useEffect(() => {
+    setSessionStats({ answered: 0, correct: 0, wrong: 0 });
+  }, [activeIdsKey, reviewMode]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!questions.length || !question) {
@@ -90,6 +112,7 @@ export function ReviewSession() {
   const isChoice =
     question.type === 'single' || question.type === 'multiple' || question.type === 'judge';
   const isMemorize = reviewMode === 'memorize';
+  const isAnalysis = reviewMode === 'analysis';
   const options = question.options?.length
     ? question.options
     : question.type === 'judge'
@@ -113,6 +136,11 @@ export function ReviewSession() {
     setSubmitted(true);
     setCorrect(result);
     setAnswerVisible(true);
+    setSessionStats((stats) => ({
+      answered: stats.answered + 1,
+      correct: stats.correct + (result ? 1 : 0),
+      wrong: stats.wrong + (result ? 0 : 1),
+    }));
     actions.recordAnswer(question.id, result);
   }
 
@@ -121,30 +149,69 @@ export function ReviewSession() {
     setSubmitted(true);
     setCorrect(result);
     setAnswerVisible(true);
+    setSessionStats((stats) => ({
+      answered: stats.answered + 1,
+      correct: stats.correct + (result ? 1 : 0),
+      wrong: stats.wrong + (result ? 0 : 1),
+    }));
     actions.recordAnswer(question.id, result);
   }
 
+  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (!touchStart.current) return;
+    const deltaX = event.changedTouches[0].clientX - touchStart.current.x;
+    const deltaY = event.changedTouches[0].clientY - touchStart.current.y;
+    touchStart.current = null;
+
+    if (Math.abs(deltaX) < 52 || Math.abs(deltaY) > Math.abs(deltaX) * 0.72) return;
+    if (deltaX < 0 && index < total - 1) actions.nextQuestion();
+    if (deltaX > 0 && index > 0) actions.previousQuestion();
+  }
+
+  const accuracy = sessionStats.answered
+    ? Math.round((sessionStats.correct / sessionStats.answered) * 100)
+    : 0;
+  const isRoundComplete = submitted && index >= total - 1;
+
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <div
+      className="no-swipe mx-auto max-w-4xl space-y-5"
+      data-swipe-ignore="true"
+      onTouchStart={(event) => {
+        const target = event.target as HTMLElement;
+        if (target.closest('button, input, textarea, select, a')) return;
+        touchStart.current = {
+          x: event.touches[0].clientX,
+          y: event.touches[0].clientY,
+        };
+      }}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-semibold text-[var(--color-primary)]">
-            {isMemorize ? '背答案模式' : '刷题复习'}
+            {isAnalysis ? '只看解析' : isMemorize ? '背答案模式' : '刷题复习'}
           </p>
-          <h1 className="mt-1 text-3xl font-bold text-[var(--color-ink)]">
-            {isMemorize ? '先回忆，再翻开答案' : '一次专注一道题'}
-          </h1>
+          {!immersive ? (
+            <h1 className="mt-1 text-3xl font-bold text-[var(--color-ink)]">
+              {isAnalysis
+                ? '先过思路，再决定是否重练'
+                : isMemorize
+                  ? '先回忆，再翻开答案'
+                  : '一次专注一道题'}
+            </h1>
+          ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="hidden flex-wrap items-center gap-3 md:flex">
           <div
             className="inline-flex rounded-full border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.72)] p-1 shadow-soft"
             aria-label="复习模式"
           >
             <button
               type="button"
-              aria-pressed={!isMemorize}
-              className={`inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-sm font-semibold transition ${
-                !isMemorize
+              aria-pressed={!isMemorize && !isAnalysis}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold transition ${
+                !isMemorize && !isAnalysis
                   ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
                   : 'text-[var(--color-muted)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]'
               }`}
@@ -156,7 +223,7 @@ export function ReviewSession() {
             <button
               type="button"
               aria-pressed={isMemorize}
-              className={`inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-sm font-semibold transition ${
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold transition ${
                 isMemorize
                   ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
                   : 'text-[var(--color-muted)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]'
@@ -166,32 +233,201 @@ export function ReviewSession() {
               <Brain size={15} aria-hidden="true" />
               背答案
             </button>
+            <button
+              type="button"
+              aria-pressed={isAnalysis}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold transition ${
+                isAnalysis
+                  ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
+                  : 'text-[var(--color-muted)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]'
+              }`}
+              onClick={() => actions.setReviewMode('analysis')}
+            >
+              <Eye size={15} aria-hidden="true" />
+              解析
+            </button>
           </div>
+          <div
+            className="inline-flex rounded-full border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.72)] p-1 shadow-soft"
+            aria-label="阅读设置"
+          >
+            <button
+              type="button"
+              aria-pressed={largeText}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold transition ${
+                largeText
+                  ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
+                  : 'text-[var(--color-muted)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]'
+              }`}
+              onClick={() => setLargeText((value) => !value)}
+            >
+              <Text size={15} aria-hidden="true" />
+              {largeText ? '大字' : '标准字'}
+            </button>
+            <button
+              type="button"
+              aria-pressed={immersive}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold transition ${
+                immersive
+                  ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
+                  : 'text-[var(--color-muted)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]'
+              }`}
+              onClick={() => setImmersive((value) => !value)}
+            >
+              {immersive ? (
+                <Minimize2 size={15} aria-hidden="true" />
+              ) : (
+                <Maximize2 size={15} aria-hidden="true" />
+              )}
+              {immersive ? '退出沉浸' : '沉浸'}
+            </button>
+          </div>
+          <ProgressPill current={Math.min(index + 1, total)} total={total} />
+        </div>
+        <div className="flex flex-wrap items-center gap-2 md:hidden">
+          <SoftButton
+            icon={<Settings2 size={17} aria-hidden="true" />}
+            onClick={() => setMobileSheet('settings')}
+          >
+            复习设置
+          </SoftButton>
+          <SoftButton
+            icon={<BarChart3 size={17} aria-hidden="true" />}
+            onClick={() => setMobileSheet('stats')}
+          >
+            本轮统计
+          </SoftButton>
           <ProgressPill current={Math.min(index + 1, total)} total={total} />
         </div>
       </div>
 
-      <GlassCard className="space-y-5 animate-soft-in">
-        <div className="flex flex-wrap items-center gap-2">
-          <QuestionTypeBadge type={question.type} />
-          <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
-            {question.sourceFile}
-          </span>
-          {question.sourcePath ? (
-            <span className="rounded-full bg-[var(--color-accent-yellow)] px-3 py-1 text-xs text-[var(--color-ink)]">
-              {question.sourcePath}
-            </span>
-          ) : null}
-          <span className="rounded-full bg-[color:rgb(255_255_255_/_0.64)] px-3 py-1 text-xs text-[var(--color-muted)]">
-            掌握度 {meta.masteryLevel}
-          </span>
+      <MobileBottomSheet
+        open={mobileSheet === 'settings'}
+        title="复习设置"
+        onClose={() => setMobileSheet(null)}
+      >
+        <div className="space-y-5">
+          <div>
+            <p className="mb-2 text-sm font-semibold text-[var(--color-muted)]">复习模式</p>
+            <div className="grid gap-2">
+              <SoftButton
+                className="w-full"
+                variant={!isMemorize && !isAnalysis ? 'primary' : 'secondary'}
+                aria-pressed={!isMemorize && !isAnalysis}
+                icon={<RotateCcw size={17} aria-hidden="true" />}
+                onClick={() => actions.setReviewMode('quiz')}
+              >
+                刷题
+              </SoftButton>
+              <SoftButton
+                className="w-full"
+                variant={isMemorize ? 'primary' : 'secondary'}
+                aria-pressed={isMemorize}
+                icon={<Brain size={17} aria-hidden="true" />}
+                onClick={() => actions.setReviewMode('memorize')}
+              >
+                背答案
+              </SoftButton>
+              <SoftButton
+                className="w-full"
+                variant={isAnalysis ? 'primary' : 'secondary'}
+                aria-pressed={isAnalysis}
+                icon={<Eye size={17} aria-hidden="true" />}
+                onClick={() => actions.setReviewMode('analysis')}
+              >
+                只看解析
+              </SoftButton>
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-semibold text-[var(--color-muted)]">阅读设置</p>
+            <div className="grid gap-2">
+              <SoftButton
+                className="w-full"
+                variant={largeText ? 'primary' : 'secondary'}
+                aria-pressed={largeText}
+                icon={<Text size={17} aria-hidden="true" />}
+                onClick={() => setLargeText((value) => !value)}
+              >
+                {largeText ? '大字模式' : '标准字号'}
+              </SoftButton>
+              <SoftButton
+                className="w-full"
+                variant={immersive ? 'primary' : 'secondary'}
+                aria-pressed={immersive}
+                icon={
+                  immersive ? (
+                    <Minimize2 size={17} aria-hidden="true" />
+                  ) : (
+                    <Maximize2 size={17} aria-hidden="true" />
+                  )
+                }
+                onClick={() => setImmersive((value) => !value)}
+              >
+                {immersive ? '退出沉浸' : '沉浸复习'}
+              </SoftButton>
+            </div>
+          </div>
         </div>
+      </MobileBottomSheet>
 
-        <h2 className="whitespace-pre-wrap text-2xl font-bold leading-9 text-[var(--color-ink)]">
+      <MobileBottomSheet
+        open={mobileSheet === 'stats'}
+        title="本轮统计"
+        onClose={() => setMobileSheet(null)}
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-[color:rgb(255_255_255_/_0.68)] p-4">
+            <p className="text-xs text-[var(--color-muted)]">本轮已答</p>
+            <p className="text-2xl font-bold text-[var(--color-ink)]">{sessionStats.answered}</p>
+          </div>
+          <div className="rounded-2xl bg-[color:rgb(255_255_255_/_0.68)] p-4">
+            <p className="text-xs text-[var(--color-muted)]">正确率</p>
+            <p className="text-2xl font-bold text-[var(--color-primary)]">{accuracy}%</p>
+          </div>
+          <div className="rounded-2xl bg-[var(--color-success-soft)] p-4">
+            <p className="text-xs text-[var(--color-success)]">正确</p>
+            <p className="text-2xl font-bold text-[var(--color-success)]">{sessionStats.correct}</p>
+          </div>
+          <div className="rounded-2xl bg-[var(--color-error-soft)] p-4">
+            <p className="text-xs text-[var(--color-error)]">错题</p>
+            <p className="text-2xl font-bold text-[var(--color-error)]">{sessionStats.wrong}</p>
+          </div>
+        </div>
+      </MobileBottomSheet>
+
+      <GlassCard className="space-y-5 animate-soft-in">
+        {!immersive ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <QuestionTypeBadge type={question.type} />
+            <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
+              {question.sourceFile}
+            </span>
+            {question.sourcePath ? (
+              <span className="rounded-full bg-[var(--color-accent-yellow)] px-3 py-1 text-xs text-[var(--color-ink)]">
+                {question.sourcePath}
+              </span>
+            ) : null}
+            {question.chapter ? (
+              <span className="rounded-full bg-[color:rgb(255_255_255_/_0.64)] px-3 py-1 text-xs text-[var(--color-muted)]">
+                {question.chapter}
+              </span>
+            ) : null}
+            <span className="rounded-full bg-[color:rgb(255_255_255_/_0.64)] px-3 py-1 text-xs text-[var(--color-muted)]">
+              掌握度 {meta.masteryLevel}
+            </span>
+          </div>
+        ) : null}
+
+        <h2
+          className={`whitespace-pre-wrap font-bold text-[var(--color-ink)] ${
+            largeText ? 'text-3xl leading-10' : 'text-2xl leading-9'
+          }`}
+        >
           {question.question}
         </h2>
 
-        {isMemorize && options.length ? (
+        {(isMemorize || isAnalysis) && options.length ? (
           <div className="space-y-3 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.54)] p-4">
             <p className="text-xs font-semibold text-[var(--color-muted)]">选项</p>
             <div className="grid gap-2 md:grid-cols-2">
@@ -207,7 +443,11 @@ export function ReviewSession() {
           </div>
         ) : null}
 
-        {isMemorize ? (
+        {isAnalysis ? (
+          <p className="rounded-2xl bg-[var(--color-primary-soft)] px-4 py-3 text-sm font-semibold leading-6 text-[var(--color-primary)]">
+            只看解析模式不会计入正确率。需要重练时，可以切回刷题或背答案模式。
+          </p>
+        ) : isMemorize ? (
           <div className="space-y-3">
             <SoftButton
               icon={<Eye size={17} aria-hidden="true" />}
@@ -349,6 +589,31 @@ export function ReviewSession() {
         ) : null}
       </GlassCard>
 
+      <GlassCard className="grid gap-3 sm:grid-cols-4">
+        <div>
+          <p className="text-xs text-[var(--color-muted)]">本轮已答</p>
+          <p className="text-xl font-bold text-[var(--color-ink)]">{sessionStats.answered}</p>
+        </div>
+        <div>
+          <p className="text-xs text-[var(--color-muted)]">正确</p>
+          <p className="text-xl font-bold text-[var(--color-success)]">{sessionStats.correct}</p>
+        </div>
+        <div>
+          <p className="text-xs text-[var(--color-muted)]">错题</p>
+          <p className="text-xl font-bold text-[var(--color-error)]">{sessionStats.wrong}</p>
+        </div>
+        <div>
+          <p className="text-xs text-[var(--color-muted)]">正确率</p>
+          <p className="text-xl font-bold text-[var(--color-primary)]">{accuracy}%</p>
+        </div>
+        {isRoundComplete ? (
+          <p className="rounded-2xl bg-[var(--color-primary-soft)] px-4 py-3 text-sm font-semibold text-[var(--color-primary)] sm:col-span-4">
+            本轮总结：完成 {sessionStats.answered} 题，正确 {sessionStats.correct}{' '}
+            题，错题已自动进入错题本，可继续重练。
+          </p>
+        ) : null}
+      </GlassCard>
+
       <ReviewControls
         favorite={meta.favorite}
         onPrevious={actions.previousQuestion}
@@ -357,11 +622,14 @@ export function ReviewSession() {
         onExit={() => actions.setActiveView('bank')}
         onFavorite={() => actions.toggleFavorite(question.id)}
         onWrong={() => actions.markWrong(question.id)}
+        canPrevious={index > 0}
+        canNext={index < total - 1}
       />
 
       <p className="text-center text-sm text-[var(--color-muted)]">
-        当前题型：{getQuestionTypeLabel(question.type)}，{isMemorize ? '背答案记录' : '复习记录'}
-        会自动保存到本地。
+        当前题型：{getQuestionTypeLabel(question.type)}，
+        {isAnalysis ? '解析浏览不改动记录' : isMemorize ? '背答案记录' : '复习记录'}
+        {isAnalysis ? '。' : '会自动保存到本地。'}
       </p>
     </div>
   );

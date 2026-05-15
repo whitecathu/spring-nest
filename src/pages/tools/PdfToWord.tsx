@@ -14,6 +14,8 @@ import { convertPdfToWord, type PdfToWordResult } from '../../lib/converters/pdf
 
 type ConversionStatus = 'idle' | 'ready' | 'converting' | 'success' | 'error';
 
+const conversionSteps = ['读取文件', '解析内容', '转换中', '生成结果', '完成'] as const;
+
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error && error.message ? error.message : fallback;
 }
@@ -28,7 +30,7 @@ export default function PdfToWord({ onBack }: { onBack: () => void }) {
   const [result, setResult] = useState<PdfToWordResult | null>(null);
 
   const isConverting = status === 'converting';
-  const canConvert = Boolean(file) && !isConverting && !error;
+  const canConvert = Boolean(file) && !isConverting;
 
   const resetResult = () => {
     setResult(null);
@@ -204,6 +206,24 @@ export default function PdfToWord({ onBack }: { onBack: () => void }) {
               />
             </div>
             <p className="mt-2 text-right text-xs font-semibold text-secondary">{progress}%</p>
+            <div className="mt-3 grid grid-cols-5 gap-2">
+              {conversionSteps.map((step, index) => {
+                const stepProgress = ((index + 1) / conversionSteps.length) * 100;
+                const active = progress >= stepProgress - 18;
+                return (
+                  <div
+                    key={step}
+                    className={`rounded-full px-2 py-1 text-center text-[11px] font-semibold ${
+                      active
+                        ? 'bg-primary-container/50 text-on-primary-container'
+                        : 'bg-surface-container text-secondary'
+                    }`}
+                  >
+                    {step}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -219,8 +239,32 @@ export default function PdfToWord({ onBack }: { onBack: () => void }) {
             </div>
             <div>
               <p className="font-bold text-on-surface">{result.emptyPageCount}</p>
-              <p>{t('空文本页', 'empty text pages')}</p>
+              <p>{t('已跳过空文本页', 'empty text pages skipped')}</p>
             </div>
+            {result.skippedPageNumbers.length > 0 && (
+              <div className="sm:col-span-3 rounded-xl bg-white/70 p-3 text-xs leading-relaxed text-secondary dark:bg-surface-container-high/70">
+                {t(
+                  `已跳过第 ${result.skippedPageNumbers.join('、')} 页空白或不可提取文本页面。${
+                    result.scannedPageCount
+                      ? `其中 ${result.scannedPageCount} 页可能是扫描图片，需要 OCR。`
+                      : ''
+                  }`,
+                  `Skipped pages ${result.skippedPageNumbers.join(', ')} because they contain no extractable text.${
+                    result.scannedPageCount
+                      ? ` ${result.scannedPageCount} page(s) may be scanned images and need OCR.`
+                      : ''
+                  }`,
+                )}
+              </div>
+            )}
+            {result.renderedImagePageNumbers.length > 0 && (
+              <div className="sm:col-span-3 rounded-xl bg-primary-container/60 p-3 text-xs leading-relaxed text-on-primary-container">
+                {t(
+                  `已将第 ${result.renderedImagePageNumbers.join('、')} 页作为图片写入 Word，若需编辑文字请先使用 OCR。`,
+                  `Rendered page(s) ${result.renderedImagePageNumbers.join(', ')} into the Word file as images. Use OCR if editable text is required.`,
+                )}
+              </div>
+            )}
           </div>
         )}
 

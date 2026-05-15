@@ -9,17 +9,21 @@ import type {
   ImportedFileReport,
   Question,
   QuestionBank,
+  ReviewPlan,
+  ReviewSessionMode,
+  ReviewSessionSnapshot,
   QuestionType,
   ReviewMeta,
 } from '../types/question';
 
 export type AppView = 'import' | 'bank' | 'review' | 'wrong' | 'settings';
 export type SortMode = 'recent' | 'reviewed' | 'wrong' | 'mastery';
-export type ReviewMode = 'quiz' | 'memorize';
+export type ReviewMode = ReviewSessionMode;
 
 export interface QuestionFilters {
   type: 'all' | QuestionType;
   sourceFile: string;
+  chapter: string;
   tag: string;
   favoriteOnly: boolean;
   wrongOnly: boolean;
@@ -39,6 +43,8 @@ interface QuestionBankState {
   searchQuery: string;
   sortMode: SortMode;
   reviewMode: ReviewMode;
+  reviewPlan: ReviewPlan;
+  lastReviewSession?: ReviewSessionSnapshot;
   currentReviewQuestionIds: string[];
   currentReviewIndex: number;
   activeView: AppView;
@@ -48,6 +54,12 @@ interface QuestionBankState {
   actions: {
     loadFromStorage: () => Promise<void>;
     importFiles: (files: File[]) => Promise<void>;
+    importReviewedQuestions: (
+      questions: Question[],
+      sourceName: string,
+      warnings?: string[],
+      files?: ImportedFileReport[],
+    ) => void;
     updateQuestion: (question: Question) => void;
     deleteQuestion: (questionId: string) => void;
     toggleFavorite: (questionId: string) => void;
@@ -56,12 +68,15 @@ interface QuestionBankState {
     recordAnswer: (questionId: string, correct: boolean) => void;
     clearBank: () => void;
     exportJson: () => Promise<void>;
+    importBackupJson: (file: File) => Promise<void>;
     setSearchQuery: (query: string) => void;
     setFilters: (filters: Partial<QuestionFilters>) => void;
     setSortMode: (sortMode: SortMode) => void;
     setReviewMode: (mode: ReviewMode) => void;
+    updateReviewPlan: (plan: Partial<Pick<ReviewPlan, 'dailyTarget' | 'sessionMinutes'>>) => void;
     setActiveView: (view: AppView) => void;
     startReview: (questionIds?: string[], mode?: ReviewMode) => void;
+    resumeReview: () => void;
     nextQuestion: () => void;
     previousQuestion: () => void;
     randomQuestion: () => void;
@@ -72,9 +87,17 @@ interface QuestionBankState {
 const defaultFilters: QuestionFilters = {
   type: 'all',
   sourceFile: '',
+  chapter: '',
   tag: '',
   favoriteOnly: false,
   wrongOnly: false,
+};
+
+export const defaultReviewPlan: ReviewPlan = {
+  dailyTarget: 30,
+  sessionMinutes: 15,
+  todayAnswered: 0,
+  streakDays: 0,
 };
 
 function createEmptyBank(): QuestionBank {
@@ -84,6 +107,7 @@ function createEmptyBank(): QuestionBank {
     name: appConfig.appName,
     questions: [],
     reviewMeta: {},
+    reviewPlan: defaultReviewPlan,
     importedFiles: [],
     createdAt: now,
     updatedAt: now,
@@ -109,7 +133,13 @@ function updateBank(
   updater: (bank: QuestionBank) => QuestionBank,
 ): Pick<
   QuestionBankState,
-  'currentBank' | 'questions' | 'reviewMeta' | 'importedFiles' | 'storageError'
+  | 'currentBank'
+  | 'questions'
+  | 'reviewMeta'
+  | 'importedFiles'
+  | 'reviewPlan'
+  | 'lastReviewSession'
+  | 'storageError'
 > {
   const updated = updater(ensureBank(state));
   const withTimestamp = { ...updated, updatedAt: new Date().toISOString() };
@@ -120,6 +150,8 @@ function updateBank(
       questions: withTimestamp.questions,
       reviewMeta: withTimestamp.reviewMeta,
       importedFiles: withTimestamp.importedFiles,
+      reviewPlan: normalizeReviewPlan(withTimestamp.reviewPlan),
+      lastReviewSession: withTimestamp.lastReviewSession,
       storageError: undefined,
     };
   } catch (error) {
@@ -128,6 +160,8 @@ function updateBank(
       questions: withTimestamp.questions,
       reviewMeta: withTimestamp.reviewMeta,
       importedFiles: withTimestamp.importedFiles,
+      reviewPlan: normalizeReviewPlan(withTimestamp.reviewPlan),
+      lastReviewSession: withTimestamp.lastReviewSession,
       storageError: error instanceof Error ? error.message : '本地保存失败',
     };
   }
@@ -136,6 +170,139 @@ function updateBank(
 function scoreMastery(meta: ReviewMeta, correct: boolean): number {
   const delta = correct ? 18 : -24;
   return Math.max(0, Math.min(100, meta.masteryLevel + delta));
+}
+
+function localDateKey(date = new Date()): string {
+  return date.toLocaleDateString('en-CA');
+}
+
+function previousDateKey(dateKey: string): string {
+  const date = new Date(`${dateKey}T00:00:00`);
+  date.setDate(date.getDate() - 1);
+  return localDateKey(date);
+}
+
+export function normalizeReviewPlan(value: unknown): ReviewPlan {
+  const plan = typeof value === 'object' && value !== null ? (value as Partial<ReviewPlan>) : {};
+  const dailyTarget = Number(plan.dailyTarget);
+  const sessionMinutes = Number(plan.sessionMinutes);
+  const todayAnswered = Number(plan.todayAnswered);
+  const streakDays = Number(plan.streakDays);
+
+  return {
+    dailyTarget: Number.isFinite(dailyTarget)
+      ? Math.max(1, Math.min(300, Math.round(dailyTarget)))
+      : defaultReviewPlan.dailyTarget,
+    sessionMinutes: Number.isFinite(sessionMinutes)
+      ? Math.max(1, Math.min(180, Math.round(sessionMinutes)))
+      : defaultReviewPlan.sessionMinutes,
+    todayAnswered: Number.isFinite(todayAnswered) ? Math.max(0, Math.round(todayAnswered)) : 0,
+    streakDays: Number.isFinite(streakDays) ? Math.max(0, Math.round(streakDays)) : 0,
+    lastStudiedDate: typeof plan.lastStudiedDate === 'string' ? plan.lastStudiedDate : undefined,
+    updatedAt: typeof plan.updatedAt === 'string' ? plan.updatedAt : undefined,
+  };
+}
+
+function isReviewMode(value: unknown): value is ReviewMode {
+  return value === 'quiz' || value === 'memorize' || value === 'analysis';
+}
+
+export function normalizeReviewSession(
+  value: unknown,
+  questions: Question[],
+): ReviewSessionSnapshot | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  const snapshot = value as Partial<ReviewSessionSnapshot>;
+  const knownIds = new Set(questions.map((question) => question.id));
+  const questionIds = Array.isArray(snapshot.questionIds)
+    ? snapshot.questionIds.filter((id): id is string => typeof id === 'string' && knownIds.has(id))
+    : [];
+  if (!questionIds.length) return undefined;
+  const index = Number(snapshot.index);
+  return {
+    questionIds,
+    index: Number.isFinite(index)
+      ? Math.max(0, Math.min(questionIds.length - 1, Math.round(index)))
+      : 0,
+    mode: isReviewMode(snapshot.mode) ? snapshot.mode : 'quiz',
+    updatedAt:
+      typeof snapshot.updatedAt === 'string' ? snapshot.updatedAt : new Date().toISOString(),
+  };
+}
+
+function createReviewSessionSnapshot(
+  state: Pick<QuestionBankState, 'questions' | 'currentReviewQuestionIds' | 'reviewMode'>,
+  index: number,
+  mode = state.reviewMode,
+  ids = state.currentReviewQuestionIds,
+): ReviewSessionSnapshot | undefined {
+  const knownIds = new Set(state.questions.map((question) => question.id));
+  const questionIds = (ids.length ? ids : state.questions.map((question) => question.id)).filter(
+    (id) => knownIds.has(id),
+  );
+  if (!questionIds.length) return undefined;
+  return {
+    questionIds,
+    index: Math.max(0, Math.min(questionIds.length - 1, index)),
+    mode,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function advanceReviewPlan(plan: ReviewPlan): ReviewPlan {
+  const today = localDateKey();
+  const lastDate = plan.lastStudiedDate;
+  const isSameDay = lastDate === today;
+  const isYesterday = lastDate === previousDateKey(today);
+
+  return {
+    ...plan,
+    todayAnswered: isSameDay ? plan.todayAnswered + 1 : 1,
+    streakDays: isSameDay ? plan.streakDays : isYesterday ? Math.max(1, plan.streakDays + 1) : 1,
+    lastStudiedDate: today,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function isQuestion(value: unknown): value is Question {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as Question).id === 'string' &&
+    typeof (value as Question).question === 'string' &&
+    typeof (value as Question).sourceFile === 'string' &&
+    typeof (value as Question).createdAt === 'string'
+  );
+}
+
+function readBackupQuestionBank(
+  value: unknown,
+): Pick<QuestionBank, 'questions' | 'reviewMeta' | 'reviewPlan' | 'lastReviewSession'> {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !Array.isArray((value as QuestionBank).questions)
+  ) {
+    throw new Error('备份文件需要包含 questions 数组。');
+  }
+
+  const questions = (value as QuestionBank).questions.filter(isQuestion);
+  if (!questions.length) {
+    throw new Error('备份文件中没有可导入的题目。');
+  }
+
+  const reviewMeta =
+    typeof (value as QuestionBank).reviewMeta === 'object' && (value as QuestionBank).reviewMeta
+      ? ((value as QuestionBank).reviewMeta as Record<string, ReviewMeta>)
+      : {};
+
+  const reviewPlan = normalizeReviewPlan((value as QuestionBank).reviewPlan);
+  const lastReviewSession = normalizeReviewSession(
+    (value as QuestionBank).lastReviewSession,
+    questions,
+  );
+
+  return { questions, reviewMeta, reviewPlan, lastReviewSession };
 }
 
 export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
@@ -147,6 +314,8 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
   searchQuery: '',
   sortMode: 'recent',
   reviewMode: 'quiz',
+  reviewPlan: defaultReviewPlan,
+  lastReviewSession: undefined,
   currentReviewQuestionIds: [],
   currentReviewIndex: 0,
   activeView: 'import',
@@ -157,11 +326,18 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
         const loaded = await localQuestionBankClient.loadQuestionBank();
         if (!loaded) return;
         const reviewMeta = createMetaMap(loaded.questions, loaded.reviewMeta ?? {});
-        const bank = { ...loaded, reviewMeta };
+        const reviewPlan = normalizeReviewPlan(loaded.reviewPlan);
+        const lastReviewSession = normalizeReviewSession(
+          loaded.lastReviewSession,
+          loaded.questions,
+        );
+        const bank = { ...loaded, reviewMeta, reviewPlan, lastReviewSession };
         set({
           currentBank: bank,
           questions: bank.questions,
           reviewMeta: bank.reviewMeta,
+          reviewPlan,
+          lastReviewSession,
           importedFiles: bank.importedFiles,
           storageError: undefined,
         });
@@ -206,6 +382,70 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
           },
         });
       }
+    },
+
+    importReviewedQuestions(
+      questions: Question[],
+      sourceName: string,
+      warnings: string[] = [],
+      files: ImportedFileReport[] = [],
+    ) {
+      if (!questions.length) {
+        if (files.length) {
+          set((state) => {
+            const bank = ensureBank(state);
+            return {
+              ...updateBank(state, () => ({
+                ...bank,
+                importedFiles: [...files, ...bank.importedFiles],
+              })),
+              activeView: 'import',
+              toast: {
+                kind: files.some((file) => file.status === 'error') ? 'error' : 'warning',
+                message: warnings.length ? warnings[0] : '未识别出可导入的题目。',
+              },
+            };
+          });
+          return;
+        }
+        set({
+          toast: { kind: 'warning', message: '预览中没有可导入的题目。' },
+        });
+        return;
+      }
+      set((state) => {
+        const bank = ensureBank(state);
+        const mergedQuestions = mergeUniqueQuestions(bank.questions, questions);
+        const added = mergedQuestions.length - bank.questions.length;
+        const reviewMeta = createMetaMap(mergedQuestions, bank.reviewMeta);
+        const reports = files.length
+          ? files
+          : [
+              {
+                id: createId('file'),
+                name: sourceName,
+                extension: 'text',
+                size: questions.reduce((total, question) => total + question.question.length, 0),
+                status: warnings.length ? 'warning' : 'success',
+                message: `预览确认导入：新增 ${added} 题。`,
+                questionCount: questions.length,
+                warnings,
+              } satisfies ImportedFileReport,
+            ];
+        return {
+          ...updateBank(state, () => ({
+            ...bank,
+            questions: mergedQuestions,
+            reviewMeta,
+            importedFiles: [...reports, ...bank.importedFiles],
+          })),
+          activeView: 'bank',
+          toast: {
+            kind: added ? 'success' : 'warning',
+            message: added ? `已导入 ${added} 题。` : '没有新增题目，可能已存在。',
+          },
+        };
+      });
     },
 
     updateQuestion(question: Question) {
@@ -258,7 +498,23 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
     },
 
     markWrong(questionId: string) {
-      get().actions.recordAnswer(questionId, false);
+      set((state) => {
+        const bank = ensureBank(state);
+        const current = bank.reviewMeta[questionId] ?? createReviewMeta(questionId);
+        const reviewMeta = {
+          ...bank.reviewMeta,
+          [questionId]: {
+            ...current,
+            wrongCount: Math.max(1, current.wrongCount),
+            lastWrongAt: new Date().toISOString(),
+            lastAnsweredCorrect: false,
+          },
+        };
+        return {
+          ...updateBank(state, () => ({ ...bank, reviewMeta })),
+          toast: { kind: 'warning', message: '已加入错题本。' },
+        };
+      });
     },
 
     removeWrong(questionId: string) {
@@ -284,18 +540,24 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
       set((state) => {
         const bank = ensureBank(state);
         const current = bank.reviewMeta[questionId] ?? createReviewMeta(questionId);
+        const answeredAt = new Date().toISOString();
         const reviewMeta = {
           ...bank.reviewMeta,
           [questionId]: {
             ...current,
             wrongCount: current.wrongCount + (correct ? 0 : 1),
             correctCount: current.correctCount + (correct ? 1 : 0),
-            lastReviewedAt: new Date().toISOString(),
+            lastReviewedAt: answeredAt,
+            lastWrongAt: correct ? current.lastWrongAt : answeredAt,
             lastAnsweredCorrect: correct,
             masteryLevel: scoreMastery(current, correct),
           },
         };
-        return updateBank(state, () => ({ ...bank, reviewMeta }));
+        const reviewPlan = advanceReviewPlan(state.reviewPlan);
+        return {
+          ...updateBank(state, () => ({ ...bank, reviewMeta, reviewPlan })),
+          reviewPlan,
+        };
       });
     },
 
@@ -311,6 +573,8 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
         activeFilters: defaultFilters,
         searchQuery: '',
         reviewMode: 'quiz',
+        reviewPlan: defaultReviewPlan,
+        lastReviewSession: undefined,
         activeView: 'import',
         toast: { kind: 'warning', message: '本地题库已清空。' },
       });
@@ -332,6 +596,61 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
       set({ toast: { kind: 'success', message: 'JSON 已导出。' } });
     },
 
+    async importBackupJson(file: File) {
+      try {
+        const parsed = JSON.parse(await file.text()) as unknown;
+        const backup = readBackupQuestionBank(parsed);
+        set((state) => {
+          const bank = ensureBank(state);
+          const questions = mergeUniqueQuestions(bank.questions, backup.questions);
+          const reviewMeta = createMetaMap(questions, {
+            ...bank.reviewMeta,
+            ...backup.reviewMeta,
+          });
+          const reviewPlan = normalizeReviewPlan({
+            ...state.reviewPlan,
+            ...backup.reviewPlan,
+          });
+          const lastReviewSession =
+            backup.lastReviewSession ?? normalizeReviewSession(state.lastReviewSession, questions);
+          const report: ImportedFileReport = {
+            id: createId('file'),
+            name: file.name,
+            extension: 'json',
+            size: file.size,
+            status: 'success',
+            message: `备份导入完成：读取 ${backup.questions.length} 题，当前题库 ${questions.length} 题。`,
+            questionCount: backup.questions.length,
+            warnings: [],
+          };
+          return {
+            ...updateBank(state, () => ({
+              ...bank,
+              questions,
+              reviewMeta,
+              reviewPlan,
+              lastReviewSession,
+              importedFiles: [report, ...bank.importedFiles],
+            })),
+            reviewPlan,
+            lastReviewSession,
+            activeView: 'bank',
+            toast: {
+              kind: 'success',
+              message: `备份已导入：当前题库 ${questions.length} 题。`,
+            },
+          };
+        });
+      } catch (error) {
+        set({
+          toast: {
+            kind: 'error',
+            message: error instanceof Error ? error.message : '备份导入失败。',
+          },
+        });
+      }
+    },
+
     setSearchQuery(query: string) {
       set({ searchQuery: query });
     },
@@ -347,7 +666,28 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
     },
 
     setReviewMode(mode: ReviewMode) {
-      set({ reviewMode: mode });
+      set((state) => {
+        const snapshot = createReviewSessionSnapshot(state, state.currentReviewIndex, mode);
+        if (!snapshot || state.activeView !== 'review') return { reviewMode: mode };
+        const bank = ensureBank(state);
+        return {
+          ...updateBank(state, () => ({ ...bank, lastReviewSession: snapshot })),
+          reviewMode: mode,
+          lastReviewSession: snapshot,
+        };
+      });
+    },
+
+    updateReviewPlan(plan: Partial<Pick<ReviewPlan, 'dailyTarget' | 'sessionMinutes'>>) {
+      set((state) => {
+        const bank = ensureBank(state);
+        const reviewPlan = normalizeReviewPlan({ ...state.reviewPlan, ...plan });
+        return {
+          ...updateBank(state, () => ({ ...bank, reviewPlan })),
+          reviewPlan,
+          toast: { kind: 'success', message: '复习目标已保存。' },
+        };
+      });
     },
 
     setActiveView(view: AppView) {
@@ -355,36 +695,88 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
     },
 
     startReview(questionIds?: string[], mode?: ReviewMode) {
-      const ids = questionIds?.length
-        ? questionIds
-        : get().questions.map((question) => question.id);
-      set({
-        currentReviewQuestionIds: ids,
-        currentReviewIndex: 0,
-        reviewMode: mode ?? get().reviewMode,
-        activeView: 'review',
+      set((state) => {
+        const ids = questionIds?.length
+          ? questionIds
+          : state.questions.map((question) => question.id);
+        const reviewMode = mode ?? state.reviewMode;
+        const snapshot = createReviewSessionSnapshot(state, 0, reviewMode, ids);
+        if (!snapshot) return {};
+        const bank = ensureBank(state);
+        return {
+          ...updateBank(state, () => ({ ...bank, lastReviewSession: snapshot })),
+          currentReviewQuestionIds: snapshot.questionIds,
+          currentReviewIndex: snapshot.index,
+          reviewMode: snapshot.mode,
+          lastReviewSession: snapshot,
+          activeView: 'review',
+        };
+      });
+    },
+
+    resumeReview() {
+      set((state) => {
+        const snapshot = normalizeReviewSession(state.lastReviewSession, state.questions);
+        if (!snapshot) {
+          return {
+            toast: { kind: 'warning', message: '没有可继续的复习进度。' },
+          };
+        }
+        return {
+          currentReviewQuestionIds: snapshot.questionIds,
+          currentReviewIndex: snapshot.index,
+          reviewMode: snapshot.mode,
+          activeView: 'review',
+          lastReviewSession: snapshot,
+        };
       });
     },
 
     nextQuestion() {
-      set((state) => ({
-        currentReviewIndex: Math.min(
+      set((state) => {
+        const currentReviewIndex = Math.min(
           state.currentReviewIndex + 1,
           Math.max(0, (state.currentReviewQuestionIds.length || state.questions.length) - 1),
-        ),
-      }));
+        );
+        const snapshot = createReviewSessionSnapshot(state, currentReviewIndex);
+        if (!snapshot) return { currentReviewIndex };
+        const bank = ensureBank(state);
+        return {
+          ...updateBank(state, () => ({ ...bank, lastReviewSession: snapshot })),
+          currentReviewIndex,
+          lastReviewSession: snapshot,
+        };
+      });
     },
 
     previousQuestion() {
-      set((state) => ({
-        currentReviewIndex: Math.max(0, state.currentReviewIndex - 1),
-      }));
+      set((state) => {
+        const currentReviewIndex = Math.max(0, state.currentReviewIndex - 1);
+        const snapshot = createReviewSessionSnapshot(state, currentReviewIndex);
+        if (!snapshot) return { currentReviewIndex };
+        const bank = ensureBank(state);
+        return {
+          ...updateBank(state, () => ({ ...bank, lastReviewSession: snapshot })),
+          currentReviewIndex,
+          lastReviewSession: snapshot,
+        };
+      });
     },
 
     randomQuestion() {
       const total = get().currentReviewQuestionIds.length || get().questions.length;
       if (!total) return;
-      set({ currentReviewIndex: Math.floor(Math.random() * total) });
+      set((state) => {
+        const currentReviewIndex = Math.floor(Math.random() * total);
+        const snapshot = createReviewSessionSnapshot(state, currentReviewIndex);
+        if (!snapshot) return { currentReviewIndex };
+        const bank = ensureBank(state);
+        return {
+          ...updateBank(state, () => ({ ...bank, lastReviewSession: snapshot })),
+          currentReviewIndex,
+          lastReviewSession: snapshot,
+        };
+      });
     },
 
     dismissToast() {
@@ -408,6 +800,7 @@ export function selectFilteredQuestions(
       question.explanation,
       question.sourceFile,
       question.sourcePath,
+      question.chapter,
       ...(question.tags ?? []),
     ]
       .filter(Boolean)
@@ -418,6 +811,8 @@ export function selectFilteredQuestions(
     if (state.activeFilters.type !== 'all' && question.type !== state.activeFilters.type)
       return false;
     if (state.activeFilters.sourceFile && question.sourceFile !== state.activeFilters.sourceFile)
+      return false;
+    if (state.activeFilters.chapter && question.chapter !== state.activeFilters.chapter)
       return false;
     if (state.activeFilters.tag && !(question.tags ?? []).includes(state.activeFilters.tag))
       return false;
@@ -443,6 +838,7 @@ export function getQuestionTypeLabel(type: QuestionType): string {
     single: '单选',
     multiple: '多选',
     judge: '判断',
+    blank: '填空',
     short: '简答',
     flashcard: '背诵卡',
   };

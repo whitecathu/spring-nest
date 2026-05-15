@@ -6,7 +6,6 @@ import { validateArchiveEntrySize, validateArchiveExpandedSize } from '../utils/
 import {
   addToArchiveTree,
   createBackendRequiredArchiveReport,
-  createPlaceholderArchiveReport,
   createUnsupportedArchiveReport,
   defaultTagsFromArchivePath,
   getArchiveEntrySupport,
@@ -151,17 +150,6 @@ export async function parseZip(file: File): Promise<ZipParseOutput> {
     const support = getArchiveEntrySupport(extension);
     if (support === 'backend') {
       const { report, message } = createBackendRequiredArchiveReport({
-        path: normalizedPath,
-        extension,
-        size,
-      });
-      addToArchiveTree(root, normalizedPath, report);
-      warnings.push(`${normalizedPath}: ${message}`);
-      continue;
-    }
-
-    if (support === 'placeholder') {
-      const { report, message } = createPlaceholderArchiveReport({
         path: normalizedPath,
         extension,
         size,

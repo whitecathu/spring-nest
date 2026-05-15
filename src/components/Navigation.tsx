@@ -167,7 +167,7 @@ export default function Navigation() {
       </AnimatePresence>
 
       <header className="sticky top-0 w-full z-50 bg-[#FFF9F2]/70 dark:bg-surface/70 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_4px_30px_rgba(184,228,201,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)] transition-all duration-300">
-        <div className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto relative">
+        <div className="flex justify-between items-center w-full px-3 py-4 sm:px-6 max-w-7xl mx-auto relative">
           <AnimatePresence>
             {showSearch && (
               <motion.div
@@ -252,11 +252,15 @@ export default function Navigation() {
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="text-2xl font-extrabold text-primary flex items-center gap-3 font-sans tracking-tight cursor-pointer transition-transform"
+            className="text-sm font-extrabold text-primary flex items-center gap-1 font-sans tracking-tight cursor-pointer transition-transform sm:gap-3 sm:text-2xl"
           >
-            <Link to="/" className="flex items-center gap-3">
-              <Leaf className="w-8 h-8 fill-primary" />
-              Spring Nest
+            <Link
+              to="/"
+              className="flex min-h-11 items-center gap-1 sm:gap-3"
+              aria-label="Spring Nest"
+            >
+              <Leaf className="h-6 w-6 fill-primary sm:h-8 sm:w-8" />
+              <span className="whitespace-nowrap">Spring Nest</span>
             </Link>
           </motion.div>
 
@@ -268,7 +272,7 @@ export default function Navigation() {
               <Link
                 key={item.id}
                 to={item.path}
-                className={`font-nunito text-base tracking-wide transition-all duration-300 hover:scale-105 relative ${
+                className={`relative inline-flex min-h-11 min-w-11 items-center justify-center font-nunito text-base tracking-wide transition-all duration-300 hover:scale-105 ${
                   isActive(item.path)
                     ? 'font-bold text-primary pb-1'
                     : 'font-semibold text-secondary hover:text-primary'
@@ -287,13 +291,13 @@ export default function Navigation() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4 text-primary relative">
+          <div className="flex items-center gap-1 sm:gap-4 text-primary relative">
             {/* Mobile menu button */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
+              className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
               aria-label={t('菜单', 'Menu')}
               aria-expanded={showMobileMenu}
               aria-controls="mobile-navigation"
@@ -306,7 +310,7 @@ export default function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={cycleTheme}
-              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+              className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
               aria-label={t('切换主题', 'Toggle theme')}
               title={
                 mode === 'light'
@@ -329,7 +333,7 @@ export default function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowSearch(!showSearch)}
-              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+              className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
               aria-label={t('搜索', 'Search')}
             >
               <Search className="w-5 h-5" />
@@ -339,7 +343,7 @@ export default function Navigation() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/favorites')}
-              className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 relative transition-colors"
+              className="hidden sm:inline-flex p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 relative transition-colors"
               aria-label={t('收藏', 'Favorites')}
             >
               <Bell className="w-5 h-5" />
@@ -358,7 +362,7 @@ export default function Navigation() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowUserMenu((open) => !open)}
-                  className="flex items-center gap-2 px-2 py-1 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 border border-primary/10 shadow-sm transition-colors"
+                  className="flex min-h-11 min-w-11 items-center justify-center gap-2 px-1.5 py-1 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 border border-primary/10 shadow-sm transition-colors sm:px-2"
                   aria-label={t('用户菜单', 'User menu')}
                   aria-expanded={showUserMenu}
                   aria-haspopup="true"
@@ -416,7 +420,7 @@ export default function Navigation() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowLoginModal(true)}
-                className="p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+                className="inline-flex min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
                 aria-label={t('登录', 'Log in')}
               >
                 <User className="w-5 h-5" />
@@ -477,6 +481,38 @@ export default function Navigation() {
                     </Link>
                   </motion.div>
                 ))}
+                <div className="mt-2 grid gap-2 border-t border-surface-variant/40 pt-3">
+                  <Link
+                    to="/favorites"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
+                  >
+                    <Bell className="h-5 w-5" />
+                    {t('我的收藏', 'Favorites')}
+                  </Link>
+                  {user ? (
+                    <Link
+                      to="/profile"
+                      onClick={() => setShowMobileMenu(false)}
+                      className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
+                    >
+                      <User className="h-5 w-5" />
+                      {t('个人中心', 'Profile')}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMobileMenu(false);
+                        setShowLoginModal(true);
+                      }}
+                      className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 text-left font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
+                    >
+                      <User className="h-5 w-5" />
+                      {t('登录', 'Log in')}
+                    </button>
+                  )}
+                </div>
               </nav>
             </motion.div>
           </>

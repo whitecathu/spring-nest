@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Leaf } from 'lucide-react';
-import { useReducedMotion, softEase, floatingParticles } from '../lib/animations';
+import ParticleBackground from './ParticleBackground';
+import { useReducedMotion, softEase } from '../lib/animations';
 
 const orbitDots = [
   { angle: 0, radius: 28, delay: 0, size: 4 },
@@ -23,33 +24,7 @@ export default function GameToolLoading() {
     >
       <div className="flex flex-col items-center gap-5">
         <div className="relative">
-          {/* Floating particles — softer easing curves */}
-          {!reducedMotion &&
-            floatingParticles.map((p, i) => (
-              <motion.div
-                key={`particle-${i}`}
-                className="absolute rounded-full bg-primary/20"
-                style={{
-                  width: p.size,
-                  height: p.size,
-                  left: '50%',
-                  top: '50%',
-                  willChange: 'transform, opacity',
-                }}
-                animate={{
-                  x: [0, p.x, 0],
-                  y: [0, p.y, 0],
-                  opacity: [0, 0.55, 0],
-                  scale: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 3.5,
-                  repeat: Infinity,
-                  delay: p.delay,
-                  ease: softEase,
-                }}
-              />
-            ))}
+          <ParticleBackground />
           {/* Floating orbit dots */}
           {!reducedMotion &&
             orbitDots.map((dot, i) => {

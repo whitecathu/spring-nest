@@ -275,12 +275,16 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
             </div>
           </div>
 
-          <label className="flex items-center gap-3 cursor-pointer">
+          <label className="relative flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl px-1">
             <input
               type="checkbox"
               checked={startWithLorem}
               onChange={(e) => setStartWithLorem(e.target.checked)}
-              className="w-5 h-5 rounded-md accent-primary"
+              className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            />
+            <span
+              aria-hidden="true"
+              className="grid h-5 w-5 place-items-center rounded-md border border-surface-variant/50 bg-white peer-checked:border-primary peer-checked:bg-primary after:hidden after:text-xs after:font-bold after:text-white after:content-['✓'] peer-checked:after:block"
             />
             <span className="text-sm text-on-surface">
               {t('以 "Lorem ipsum..." 开头', 'Start with "Lorem ipsum..."')}

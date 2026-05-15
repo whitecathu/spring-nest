@@ -46,7 +46,7 @@ export function AppShell({
         >
           <div className="flex items-center justify-between gap-4">
             <span>{toast.message}</span>
-            <button type="button" className="min-h-8 rounded-full px-2" onClick={onDismissToast}>
+            <button type="button" className="min-h-11 rounded-full px-3" onClick={onDismissToast}>
               关闭
             </button>
           </div>

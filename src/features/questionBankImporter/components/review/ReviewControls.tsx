@@ -9,6 +9,8 @@ interface ReviewControlsProps {
   onExit: () => void;
   onFavorite: () => void;
   onWrong: () => void;
+  canPrevious?: boolean;
+  canNext?: boolean;
 }
 
 export function ReviewControls({
@@ -19,13 +21,23 @@ export function ReviewControls({
   onExit,
   onFavorite,
   onWrong,
+  canPrevious = true,
+  canNext = true,
 }: ReviewControlsProps) {
   return (
-    <div className="flex flex-wrap justify-center gap-2">
-      <SoftButton icon={<ArrowLeft size={16} aria-hidden="true" />} onClick={onPrevious}>
+    <div className="sticky bottom-2 z-20 flex flex-wrap justify-center gap-2 rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[color:rgb(249_250_246_/_0.9)] p-2 shadow-soft backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:shadow-none">
+      <SoftButton
+        icon={<ArrowLeft size={16} aria-hidden="true" />}
+        onClick={onPrevious}
+        disabled={!canPrevious}
+      >
         上一题
       </SoftButton>
-      <SoftButton icon={<ArrowRight size={16} aria-hidden="true" />} onClick={onNext}>
+      <SoftButton
+        icon={<ArrowRight size={16} aria-hidden="true" />}
+        onClick={onNext}
+        disabled={!canNext}
+      >
         下一题
       </SoftButton>
       <SoftButton icon={<Shuffle size={16} aria-hidden="true" />} onClick={onRandom}>

@@ -1,5 +1,5 @@
 export const appConfig = {
-  appName: '题库导入与复习小筑',
+  appName: '复习小筑',
   appSlug: 'question-bank-importer',
   routePath: '/tools/question-bank-importer',
   description: '把散乱资料变成可搜索、可刷题、可背答案的题库。',

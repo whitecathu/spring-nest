@@ -22,6 +22,7 @@ const questionTypes: Array<'all' | QuestionType> = [
   'single',
   'multiple',
   'judge',
+  'blank',
   'short',
   'flashcard',
 ];
@@ -38,6 +39,7 @@ export function QuestionFilters({
   const sourceFiles = [...new Set(questions.map((question) => question.sourceFile))].filter(
     Boolean,
   );
+  const chapters = [...new Set(questions.map((question) => question.chapter))].filter(Boolean);
   const tags = [...new Set(questions.flatMap((question) => question.tags ?? []))].filter(Boolean);
 
   return (
@@ -51,15 +53,15 @@ export function QuestionFilters({
         <span className="flex min-h-11 items-center gap-2 rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 focus-within:border-[var(--color-primary)]">
           <Search size={17} className="text-[var(--color-muted)]" aria-hidden="true" />
           <input
-            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--color-muted)]"
+            className="min-h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--color-muted)]"
             value={searchQuery}
             onChange={(event) => onSearch(event.target.value)}
-            placeholder="题干、答案、解析、标签、来源"
+            placeholder="题干、答案、解析、章节、标签、来源"
           />
         </span>
       </label>
 
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
         <label className="block">
           <span className="mb-2 block text-sm font-semibold text-[var(--color-ink)]">题型</span>
           <select
@@ -105,6 +107,21 @@ export function QuestionFilters({
           </select>
         </label>
         <label className="block">
+          <span className="mb-2 block text-sm font-semibold text-[var(--color-ink)]">章节</span>
+          <select
+            className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 text-sm"
+            value={filters.chapter}
+            onChange={(event) => onFilters({ chapter: event.target.value })}
+          >
+            <option value="">全部章节</option>
+            {chapters.map((chapter) => (
+              <option key={chapter} value={chapter}>
+                {chapter}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
           <span className="mb-2 block text-sm font-semibold text-[var(--color-ink)]">排序</span>
           <select
             className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 text-sm"
@@ -120,19 +137,29 @@ export function QuestionFilters({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <label className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[color:rgb(255_255_255_/_0.64)] px-3 text-sm font-semibold">
+        <label className="relative inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-[color:rgb(255_255_255_/_0.64)] px-3 text-sm font-semibold">
           <input
             type="checkbox"
+            className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
             checked={filters.favoriteOnly}
             onChange={(event) => onFilters({ favoriteOnly: event.target.checked })}
           />
+          <span
+            aria-hidden="true"
+            className="grid h-5 w-5 place-items-center rounded-md border border-[var(--color-outline)] bg-[var(--color-surface)] peer-checked:border-[var(--color-primary)] peer-checked:bg-[var(--color-primary)] after:hidden after:text-xs after:font-bold after:text-white after:content-['✓'] peer-checked:after:block"
+          />
           收藏
         </label>
-        <label className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[color:rgb(255_255_255_/_0.64)] px-3 text-sm font-semibold">
+        <label className="relative inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-[color:rgb(255_255_255_/_0.64)] px-3 text-sm font-semibold">
           <input
             type="checkbox"
+            className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
             checked={filters.wrongOnly}
             onChange={(event) => onFilters({ wrongOnly: event.target.checked })}
+          />
+          <span
+            aria-hidden="true"
+            className="grid h-5 w-5 place-items-center rounded-md border border-[var(--color-outline)] bg-[var(--color-surface)] peer-checked:border-[var(--color-primary)] peer-checked:bg-[var(--color-primary)] after:hidden after:text-xs after:font-bold after:text-white after:content-['✓'] peer-checked:after:block"
           />
           错题
         </label>

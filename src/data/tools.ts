@@ -742,8 +742,8 @@ export const tools: AppItem[] = [
   {
     id: 'tool-28',
     type: 'tool',
-    title: '题库导入与复习小筑',
-    titleEn: 'Question Bank Importer',
+    title: '复习小筑',
+    titleEn: 'Review Nest',
     description:
       '把 txt、md、csv、json、zip、rar、docx 题库和兼容式 doc 文本整理成可搜索、可复习、可导出的本地学习卡片。',
     descriptionEn:
@@ -780,8 +780,8 @@ export const tools: AppItem[] = [
       {
         q: '哪些格式是真实支持的？',
         qEn: 'Which formats are supported?',
-        a: 'TXT、Markdown、CSV、JSON、ZIP、RAR 和 DOCX 可在浏览器端解析。旧版 DOC 做兼容式文本抽取，Excel、PDF 和 7Z 会给出明确提示，不伪装成完整支持。',
-        aEn: 'TXT, Markdown, CSV, JSON, ZIP, RAR, and DOCX can be parsed in the browser. Legacy DOC uses best-effort text extraction, while Excel, PDF, and 7Z show clear limitation messages instead of pretending to be fully supported.',
+        a: 'TXT、Markdown、CSV、JSON、ZIP、RAR 和 DOCX 可在浏览器端解析。旧版 DOC 做兼容式文本抽取；Excel、PDF 和 7Z 请先转为支持格式，或接入后端解析服务。',
+        aEn: 'TXT, Markdown, CSV, JSON, ZIP, RAR, and DOCX can be parsed in the browser. Legacy DOC uses best-effort text extraction; Excel, PDF, and 7Z should be converted first or handled by a backend parser.',
       },
     ],
   },

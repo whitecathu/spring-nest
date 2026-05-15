@@ -1,7 +1,6 @@
 import {
   archiveReadableExtensions,
   backendRequiredExtensions,
-  placeholderExtensions,
 } from '../../config/supportedFormats';
 import type { ImportedFileReport } from '../../types/question';
 import { getExtension } from '../utils/file';
@@ -102,26 +101,6 @@ export function createBackendRequiredArchiveReport(input: {
   };
 }
 
-export function createPlaceholderArchiveReport(input: {
-  path: string;
-  extension: string;
-  size: number;
-}) {
-  const message = `${input.extension.toUpperCase()} 当前建议后端解析，浏览器端仅保留 adapter。`;
-  return {
-    report: createFileReport({
-      name: input.path.split('/').pop() ?? input.path,
-      path: input.path,
-      extension: input.extension,
-      size: input.size,
-      status: 'warning',
-      message,
-      warnings: [message],
-    }),
-    message,
-  };
-}
-
 export function defaultTagsFromArchivePath(path: string): string[] {
   const fileName = path.split('/').pop() ?? path;
   const baseName = fileName.replace(/\.[^.]+$/, '');
@@ -160,7 +139,6 @@ export async function parseArchiveEntryData(input: {
 
 export function getArchiveEntrySupport(extension: string) {
   if (backendRequiredExtensions.has(extension)) return 'backend';
-  if (placeholderExtensions.has(extension)) return 'placeholder';
   if (!archiveReadableExtensions.has(extension) || extension === 'zip' || extension === 'rar')
     return 'unsupported';
   return 'readable';

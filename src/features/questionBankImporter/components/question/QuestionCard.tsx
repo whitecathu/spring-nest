@@ -42,6 +42,11 @@ export function QuestionCard({ question, meta }: QuestionCardProps) {
                 错 {meta.wrongCount}
               </span>
             ) : null}
+            {question.chapter ? (
+              <span className="rounded-full bg-[color:rgb(255_255_255_/_0.65)] px-3 py-1 text-xs font-semibold text-[var(--color-muted)]">
+                {question.chapter}
+              </span>
+            ) : null}
           </div>
           <h3 className="whitespace-pre-wrap text-lg font-bold leading-7 text-[var(--color-ink)]">
             {question.question}

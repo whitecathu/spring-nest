@@ -26,6 +26,7 @@ import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { games } from '../data/games';
 import SEO from '../components/SEO';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { trackGameStart } from '../lib/analytics';
 import { getRecentItems, recordVisit } from '../lib/recent';
 import {
@@ -304,7 +305,21 @@ export default function Games() {
           </header>
 
           <section aria-label={t('主游戏区域', 'Main game area')}>
-            <GameComponent onBack={handleBack} />
+            <ErrorBoundary
+              fallback={
+                <div className="rounded-2xl border border-red-200 bg-red-50/80 p-5 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+                  <h2 className="text-lg font-bold">{t('游戏运行时出错', 'Game runtime error')}</h2>
+                  <p className="mt-2 text-sm leading-6">
+                    {t(
+                      '这个游戏暂时无法继续运行，其他页面仍可继续使用。请返回列表或刷新后重试。',
+                      'This game cannot continue right now. The rest of the site remains available. Return to the list or refresh and try again.',
+                    )}
+                  </p>
+                </div>
+              }
+            >
+              <GameComponent onBack={handleBack} />
+            </ErrorBoundary>
           </section>
 
           <section className="mt-8 grid gap-4 md:grid-cols-3">
@@ -394,7 +409,10 @@ export default function Games() {
     return (
       <div className="flex-grow flex flex-col items-center justify-center py-20">
         <p className="text-xl text-secondary mb-4">
-          {t('此游戏正在开发中，敬请期待', 'This game is under development. Stay tuned.')}
+          {t(
+            '这个游戏暂时无法打开，请返回列表选择其他游戏。',
+            'This game cannot be opened right now. Please return to the list.',
+          )}
         </p>
         <button
           onClick={handleBack}

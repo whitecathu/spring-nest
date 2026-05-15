@@ -320,42 +320,20 @@ export default function Home() {
 
         {/* Hero content */}
         <div className="relative z-10 flex flex-col items-center">
-          <motion.p
-            initial={{ opacity: 0, y: 30, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="font-nunito text-base font-bold text-primary mb-3 tracking-wide"
-          >
+          <p className="font-nunito text-base font-bold text-primary mb-3 tracking-wide">
             Spring Nest
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-sans font-extrabold text-3xl sm:text-4xl lg:text-5xl text-primary mb-4 tracking-tight max-w-4xl"
-          >
+          </p>
+          <h1 className="font-sans font-extrabold text-3xl sm:text-4xl lg:text-5xl text-primary mb-4 tracking-tight max-w-4xl">
             {t('免费在线实用工具与休闲小游戏合集', 'Free Online Tools and Casual Games')}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="font-nunito text-lg text-secondary/80 max-w-2xl mx-auto mb-8"
-          >
+          </h1>
+          <p className="font-nunito text-lg text-secondary/80 max-w-2xl mx-auto mb-8">
             {t(
               '免费、轻量、无需登录、即开即用。搜索工具、小游戏、描述或标签，快速打开你需要的内容。',
               'Free, lightweight, no sign-in required, ready on open. Search tools, games, descriptions, or tags and jump straight in.',
             )}
-          </motion.p>
+          </p>
 
-          <motion.form
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-            onSubmit={handleHeroSearch}
-            className="w-full max-w-2xl mb-8"
-            role="search"
-          >
+          <form onSubmit={handleHeroSearch} className="w-full max-w-2xl mb-8" role="search">
             <label htmlFor="home-search" className="sr-only">
               {t('搜索工具和小游戏', 'Search tools and games')}
             </label>
@@ -380,14 +358,9 @@ export default function Home() {
                 {t('搜索', 'Search')}
               </button>
             </div>
-          </motion.form>
+          </form>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4"
-          >
+          <div className="flex flex-col sm:flex-row gap-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -406,7 +379,7 @@ export default function Home() {
               <Gamepad2 className="w-5 h-5" />
               {t('玩个小游戏', 'Play a Game')}
             </motion.button>
-          </motion.div>
+          </div>
         </div>
       </section>
 

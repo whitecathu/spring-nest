@@ -13,6 +13,7 @@ interface DraftQuestion {
   answer?: string | string[];
   explanationLines: string[];
   tags: string[];
+  chapter?: string;
   difficulty?: Difficulty;
   typeHint?: QuestionType;
 }
@@ -25,6 +26,7 @@ const answerPattern =
 const explanationPattern = /^\s*(?:解析|解释|Explanation)[:：]\s*(.*)$/i;
 const difficultyPattern = /^\s*(?:【\s*)?(?:难易程度|难易度|难度)(?:\s*】)?\s*[:：]?\s*(.+)$/i;
 const tagPattern = /^\s*(?:标签|Tags?)[:：]\s*(.+)$/i;
+const chapterPattern = /^\s*(?:章节|章|Chapter)[:：]\s*(.+)$/i;
 
 function cleanQuestionLead(line: string): string {
   return line
@@ -44,6 +46,7 @@ function detectSectionType(line: string): QuestionType | undefined {
   if (/多(项|选)|多项选择/.test(line)) return 'multiple';
   if (/单(项|选)|单项选择/.test(line)) return 'single';
   if (/判断/.test(line)) return 'judge';
+  if (/填空|补空/.test(line)) return 'blank';
   if (/简答|问答/.test(line)) return 'short';
   return undefined;
 }
@@ -55,6 +58,7 @@ function isSectionHeading(line: string, detectedType: QuestionType): boolean {
     single: /^(?:单项选择题?|单选题?)\d*$/,
     multiple: /^(?:多项选择题?|多选题?)\d*$/,
     judge: /^(?:判断题?)\d*$/,
+    blank: /^(?:填空题?|补空题?)\d*$/,
     short: /^(?:简答题?|问答题?)\d*$/,
     flashcard: /^(?:背诵卡|卡片)\d*$/,
   };
@@ -62,10 +66,17 @@ function isSectionHeading(line: string, detectedType: QuestionType): boolean {
 }
 
 function isNonQuestionHeading(line: string): boolean {
-  if (/^第[一二三四五六七八九十\d]+章\b/.test(line)) return true;
+  if (/^第[一二三四五六七八九十\d]+章/.test(line)) return true;
   if (/^[一二三四五六七八九十]+[、.．]\s*(?:选择题|练习题|测试题)\d*$/.test(line)) return true;
   if (/^(?:选择题|练习题|测试题)\d*$/.test(line)) return true;
   return false;
+}
+
+function detectChapter(line: string): string | undefined {
+  const explicit = line.match(chapterPattern);
+  if (explicit?.[1]?.trim()) return explicit[1].trim();
+  if (/^第[一二三四五六七八九十\d]+章/.test(line)) return line.trim();
+  return undefined;
 }
 
 function finalizeDraft(draft: DraftQuestion | undefined, context: ParserContext) {
@@ -84,6 +95,7 @@ function finalizeDraft(draft: DraftQuestion | undefined, context: ParserContext)
     answer,
     explanation: draft.explanationLines.join('\n').trim(),
     tags: [...(context.defaultTags ?? []), ...draft.tags],
+    chapter: draft.chapter,
     type: inferredType,
     difficulty: draft.difficulty,
   });
@@ -99,6 +111,7 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
   let current: DraftQuestion | undefined;
   let readingExplanation = false;
   let sectionType: QuestionType | undefined;
+  let currentChapter: string | undefined;
 
   const lines = text.replace(/\r\n/g, '\n').split('\n');
   for (const rawLine of lines) {
@@ -107,6 +120,13 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
 
     if (!trimmed) {
       readingExplanation = false;
+      continue;
+    }
+
+    const detectedChapter = detectChapter(trimmed);
+    if (detectedChapter) {
+      currentChapter = detectedChapter;
+      if (current) current.chapter = detectedChapter;
       continue;
     }
 
@@ -135,6 +155,7 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
         options: [],
         explanationLines: [],
         tags: [],
+        chapter: currentChapter,
         typeHint: sectionType,
       };
       readingExplanation = false;
@@ -147,6 +168,7 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
         options: [],
         explanationLines: [],
         tags: [],
+        chapter: currentChapter,
         typeHint: sectionType,
       };
       continue;
@@ -194,6 +216,7 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
         options: [],
         explanationLines: [],
         tags: [],
+        chapter: currentChapter,
         typeHint: sectionType,
       };
       continue;

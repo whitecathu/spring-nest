@@ -159,7 +159,7 @@ type MobileTab = 'edit' | 'preview';
 export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [markdown, setMarkdown] = useState(
-    '# Hello\n\n**Bold** and *italic* text.\n\n- Item 1\n- Item 2\n\n> A blockquote\n\n`inline code`\n\n---\n\n[Link](https://example.com)',
+    '## Hello\n\n**Bold** and *italic* text.\n\n- Item 1\n- Item 2\n\n> A blockquote\n\n`inline code`\n\n---\n\n[Link](https://example.com)',
   );
   const [copied, setCopied] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('edit');
@@ -202,9 +202,9 @@ export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-4">
+        <h1 className="text-2xl font-bold text-on-surface text-center mb-4">
           {t('Markdown 预览', 'Markdown Preview')}
-        </h2>
+        </h1>
 
         {/* Action Buttons */}
         <div className="flex gap-2 mb-4">

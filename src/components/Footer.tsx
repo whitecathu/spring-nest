@@ -94,40 +94,55 @@ export default function Footer() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.7 }}
-          className="flex items-center gap-4 text-sm text-secondary/60"
+          className="flex flex-wrap items-center justify-center gap-2 text-sm text-secondary/60"
         >
           <Link
             to="/"
-            className="hover:text-primary transition-colors inline-flex items-center gap-1"
+            className="inline-flex min-h-11 items-center gap-1 rounded-full px-2 transition-colors hover:text-primary"
           >
             <Home className="h-4 w-4" />
             {t('返回首页', 'Home')}
           </Link>
           <span>·</span>
-          <Link to="/privacy" className="hover:text-primary transition-colors">
+          <Link
+            to="/privacy"
+            className="inline-flex min-h-11 items-center rounded-full px-2 transition-colors hover:text-primary"
+          >
             {t('隐私政策', 'Privacy Policy')}
           </Link>
           <span>·</span>
-          <Link to="/terms" className="hover:text-primary transition-colors">
+          <Link
+            to="/terms"
+            className="inline-flex min-h-11 items-center rounded-full px-2 transition-colors hover:text-primary"
+          >
             {t('用户协议', 'Terms of Service')}
           </Link>
           <span>·</span>
-          <Link to="/leaderboard" className="hover:text-primary transition-colors">
+          <Link
+            to="/leaderboard"
+            className="inline-flex min-h-11 items-center rounded-full px-2 transition-colors hover:text-primary"
+          >
             {t('排行榜', 'Leaderboard')}
           </Link>
           <span>·</span>
-          <Link to="/feedback" className="hover:text-primary transition-colors">
+          <Link
+            to="/feedback"
+            className="inline-flex min-h-11 items-center rounded-full px-2 transition-colors hover:text-primary"
+          >
             {t('意见反馈', 'Feedback')}
           </Link>
           <span>·</span>
-          <Link to="/about" className="hover:text-primary transition-colors">
+          <Link
+            to="/about"
+            className="inline-flex min-h-11 items-center rounded-full px-2 transition-colors hover:text-primary"
+          >
             {t('关于我们', 'About')}
           </Link>
           <span>·</span>
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="hover:text-primary transition-colors inline-flex items-center gap-1"
+            className="inline-flex min-h-11 items-center gap-1 rounded-full px-2 transition-colors hover:text-primary"
           >
             <ArrowUp className="h-4 w-4" />
             {t('返回顶部', 'Back to top')}

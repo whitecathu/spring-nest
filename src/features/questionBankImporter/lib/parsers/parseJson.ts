@@ -14,6 +14,7 @@ const optionsFields = ['options', '选项'];
 const answerFields = ['answer', '答案', '正确答案', 'correctAnswer'];
 const explanationFields = ['explanation', '解析', 'analysis'];
 const tagsFields = ['tags', '标签'];
+const chapterFields = ['chapter', '章节', '章'];
 const typeFields = ['type', '类型', '题型'];
 const difficultyFields = ['difficulty', '难度'];
 
@@ -57,6 +58,7 @@ function parseQuestionRecord(record: Record<string, unknown>, context: ParserCon
   const difficulty = normalizeDifficulty(pick(record, difficultyFields));
   const explanation = String(pick(record, explanationFields) ?? '').trim();
   const tags = [...(context.defaultTags ?? []), ...normalizeTags(pick(record, tagsFields))];
+  const chapter = String(pick(record, chapterFields) ?? '').trim();
 
   return createQuestion({
     sourceFile: context.sourceFile,
@@ -66,6 +68,7 @@ function parseQuestionRecord(record: Record<string, unknown>, context: ParserCon
     answer,
     explanation,
     tags,
+    chapter,
     type: type as QuestionType,
     difficulty: difficulty as Difficulty | undefined,
   });

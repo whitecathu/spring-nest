@@ -1,6 +1,5 @@
 import {
   backendRequiredExtensions,
-  placeholderExtensions,
   textLocalExtensions,
   wordLocalExtensions,
 } from '../../config/supportedFormats';
@@ -127,27 +126,8 @@ export async function parseFile(file: File): Promise<ParseResult> {
     return parseWordFile(file, extension as 'doc' | 'docx');
   }
 
-  if (placeholderExtensions.has(extension)) {
-    const message = `${file.name} 当前为浏览器端 adapter 占位，建议后端解析。`;
-    return {
-      questions: [],
-      files: [
-        createFileReport({
-          name: file.name,
-          extension,
-          size: file.size,
-          status: 'warning',
-          message,
-          warnings: [message],
-        }),
-      ],
-      warnings: [message],
-      errors: [],
-    };
-  }
-
   if (backendRequiredExtensions.has(extension)) {
-    const message = `${file.name} 当前需要后端解压服务支持。`;
+    const message = `${file.name} 当前需要先转为 TXT、CSV、JSON 或 DOCX，或接入后端解析服务。`;
     return {
       questions: [],
       files: [

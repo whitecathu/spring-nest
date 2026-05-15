@@ -16,6 +16,7 @@ export function QuestionEditor({ question, onSave, onCancel }: QuestionEditorPro
     answer: Array.isArray(question.answer) ? question.answer.join(', ') : (question.answer ?? ''),
     explanation: question.explanation ?? '',
     tags: (question.tags ?? []).join(', '),
+    chapter: question.chapter ?? '',
     difficulty: question.difficulty ?? '',
   });
 
@@ -41,6 +42,7 @@ export function QuestionEditor({ question, onSave, onCancel }: QuestionEditorPro
         .split(/[，,、]/)
         .map((item) => item.trim())
         .filter(Boolean),
+      chapter: draft.chapter.trim() || undefined,
       difficulty: (draft.difficulty || undefined) as Difficulty | undefined,
     });
   }
@@ -60,7 +62,7 @@ export function QuestionEditor({ question, onSave, onCancel }: QuestionEditorPro
           placeholder="输入题干"
         />
       </label>
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-4">
         <label className="block">
           <span className="mb-2 block text-sm font-semibold text-[var(--color-ink)]">题型</span>
           <select
@@ -71,6 +73,7 @@ export function QuestionEditor({ question, onSave, onCancel }: QuestionEditorPro
             <option value="single">单选</option>
             <option value="multiple">多选</option>
             <option value="judge">判断</option>
+            <option value="blank">填空</option>
             <option value="short">简答</option>
             <option value="flashcard">背诵卡</option>
           </select>
@@ -95,6 +98,15 @@ export function QuestionEditor({ question, onSave, onCancel }: QuestionEditorPro
             value={draft.tags}
             onChange={(event) => setDraft({ ...draft, tags: event.target.value })}
             placeholder="标签用逗号分隔"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-2 block text-sm font-semibold text-[var(--color-ink)]">章节</span>
+          <input
+            className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[var(--color-surface)] px-3 text-sm"
+            value={draft.chapter}
+            onChange={(event) => setDraft({ ...draft, chapter: event.target.value })}
+            placeholder="例如 第一章"
           />
         </label>
       </div>

@@ -92,6 +92,7 @@ export function parseCsv(text: string, context: ParserContext): ParserOutput {
         answer,
         explanation: get(record, ['explanation', '解析']),
         tags: [...(context.defaultTags ?? []), ...normalizeTags(get(record, ['tags', '标签']))],
+        chapter: get(record, ['chapter', '章节', '章']),
         difficulty: normalizeDifficulty(get(record, ['difficulty', '难度'])),
         type,
       }),

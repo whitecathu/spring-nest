@@ -5,14 +5,11 @@ import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import PwaUpdatePrompt from './components/PwaUpdatePrompt';
+import StartupSplash from './components/StartupSplash';
+import ParticleBackground from './components/ParticleBackground';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import {
-  useReducedMotion,
-  pageTransitionVariants,
-  softEase,
-  floatingParticles,
-} from './lib/animations';
+import { useReducedMotion, pageTransitionVariants, softEase } from './lib/animations';
 import { trackPageView } from './lib/analytics';
 import { useSwipeNavigation } from './lib/useSwipeNavigation';
 import { Leaf } from 'lucide-react';
@@ -53,33 +50,7 @@ const LoadingFallback = () => {
     >
       <div className="flex flex-col items-center gap-6">
         <div className="relative">
-          {/* Floating particles — softer easing curves */}
-          {!reducedMotion &&
-            floatingParticles.map((p, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full bg-primary/20"
-                style={{
-                  width: p.size,
-                  height: p.size,
-                  left: '50%',
-                  top: '50%',
-                  willChange: 'transform, opacity',
-                }}
-                animate={{
-                  x: [0, p.x, 0],
-                  y: [0, p.y, 0],
-                  opacity: [0, 0.55, 0],
-                  scale: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 3.5,
-                  repeat: Infinity,
-                  delay: p.delay,
-                  ease: softEase,
-                }}
-              />
-            ))}
+          <ParticleBackground />
           {/* Pulsing logo */}
           <motion.div
             animate={reducedMotion ? {} : { y: [0, -8, 0], scale: [1, 1.05, 1] }}
@@ -177,7 +148,7 @@ export default function App() {
       <UserProvider>
         <ErrorBoundary>
           <div
-            className="h-screen flex flex-col font-sans selection:bg-primary-container selection:text-on-primary-container relative bg-background text-on-surface transition-colors duration-300 overflow-hidden"
+            className="relative flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden bg-background font-sans text-on-surface selection:bg-primary-container selection:text-on-primary-container transition-colors duration-300"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
@@ -323,6 +294,7 @@ export default function App() {
               <Footer />
             </main>
             <PwaUpdatePrompt />
+            <StartupSplash />
           </div>
         </ErrorBoundary>
       </UserProvider>

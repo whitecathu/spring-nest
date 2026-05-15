@@ -7,12 +7,19 @@ import {
   DEFAULT_DOCUMENT_MAX_SIZE,
   downloadBlob,
   formatFileSize,
+  getFileExtension,
   getFileStem,
   validateFile,
 } from '../../lib/documentFiles';
-import { convertWordToPdf } from '../../lib/converters/wordToPdf';
+import {
+  convertWordToPdf,
+  DEFAULT_WORD_TO_PDF_OPTIONS,
+  type WordToPdfOptions,
+} from '../../lib/converters/wordToPdf';
 
 type ConversionStatus = 'idle' | 'ready' | 'converting' | 'success' | 'error';
+
+const conversionSteps = ['读取文件', '解析内容', '转换中', '生成结果', '完成'] as const;
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error && error.message ? error.message : fallback;
@@ -27,9 +34,11 @@ export default function WordToPdf({ onBack }: { onBack: () => void }) {
   const [progress, setProgress] = useState(0);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [options, setOptions] = useState<WordToPdfOptions>(DEFAULT_WORD_TO_PDF_OPTIONS);
 
   const isConverting = status === 'converting';
-  const canConvert = Boolean(file) && !isConverting && !error;
+  const canConvert =
+    Boolean(file) && !isConverting && getFileExtension(file?.name ?? '') === 'docx';
 
   const resetResult = () => {
     setPdfBlob(null);
@@ -120,10 +129,14 @@ export default function WordToPdf({ onBack }: { onBack: () => void }) {
       setPdfBlob(null);
       setWarnings([]);
 
-      const result = await convertWordToPdf(file, (nextMessage, nextProgress) => {
-        setMessage(nextMessage);
-        setProgress(nextProgress);
-      });
+      const result = await convertWordToPdf(
+        file,
+        (nextMessage, nextProgress) => {
+          setMessage(nextMessage);
+          setProgress(nextProgress);
+        },
+        options,
+      );
 
       setPdfBlob(result.blob);
       setWarnings(result.warnings);
@@ -195,6 +208,88 @@ export default function WordToPdf({ onBack }: { onBack: () => void }) {
           onClear={handleClear}
         />
 
+        <div className="mt-4 rounded-2xl border border-surface-variant/30 bg-surface-container-low p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-bold text-on-surface">
+              {t('转换设置', 'Conversion settings')}
+            </h3>
+            <span className="text-xs text-secondary">
+              {t('默认适合 A4 中文文档', 'Defaults fit A4 documents')}
+            </span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1 text-sm font-semibold text-secondary">
+              {t('页面大小', 'Page size')}
+              <select
+                value={options.pageSize}
+                disabled={isConverting}
+                onChange={(event) =>
+                  setOptions((current) => ({
+                    ...current,
+                    pageSize: event.target.value as WordToPdfOptions['pageSize'],
+                  }))
+                }
+                className="min-h-[44px] rounded-xl border border-surface-variant/40 bg-white px-3 text-on-surface outline-none focus:border-primary dark:bg-surface-container-high"
+              >
+                <option value="a4">A4</option>
+                <option value="letter">Letter</option>
+              </select>
+            </label>
+            <label className="grid gap-1 text-sm font-semibold text-secondary">
+              {t('方向', 'Orientation')}
+              <select
+                value={options.orientation}
+                disabled={isConverting}
+                onChange={(event) =>
+                  setOptions((current) => ({
+                    ...current,
+                    orientation: event.target.value as WordToPdfOptions['orientation'],
+                  }))
+                }
+                className="min-h-[44px] rounded-xl border border-surface-variant/40 bg-white px-3 text-on-surface outline-none focus:border-primary dark:bg-surface-container-high"
+              >
+                <option value="auto">{t('自动识别', 'Auto')}</option>
+                <option value="portrait">{t('竖向', 'Portrait')}</option>
+                <option value="landscape">{t('横向', 'Landscape')}</option>
+              </select>
+            </label>
+            <label className="grid gap-1 text-sm font-semibold text-secondary">
+              {t('边距', 'Margins')}
+              <select
+                value={options.margin}
+                disabled={isConverting}
+                onChange={(event) =>
+                  setOptions((current) => ({
+                    ...current,
+                    margin: event.target.value as WordToPdfOptions['margin'],
+                  }))
+                }
+                className="min-h-[44px] rounded-xl border border-surface-variant/40 bg-white px-3 text-on-surface outline-none focus:border-primary dark:bg-surface-container-high"
+              >
+                <option value="standard">{t('标准', 'Standard')}</option>
+                <option value="compact">{t('紧凑', 'Compact')}</option>
+              </select>
+            </label>
+            <label className="grid gap-1 text-sm font-semibold text-secondary">
+              {t('图片质量', 'Image quality')}
+              <select
+                value={options.imageQuality}
+                disabled={isConverting}
+                onChange={(event) =>
+                  setOptions((current) => ({
+                    ...current,
+                    imageQuality: event.target.value as WordToPdfOptions['imageQuality'],
+                  }))
+                }
+                className="min-h-[44px] rounded-xl border border-surface-variant/40 bg-white px-3 text-on-surface outline-none focus:border-primary dark:bg-surface-container-high"
+              >
+                <option value="standard">{t('标准', 'Standard')}</option>
+                <option value="high">{t('高清', 'High')}</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
         {error && (
           <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm leading-relaxed text-red-600 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
             <FileWarning className="mt-0.5 h-4 w-4 shrink-0" />
@@ -223,6 +318,24 @@ export default function WordToPdf({ onBack }: { onBack: () => void }) {
               />
             </div>
             <p className="mt-2 text-right text-xs font-semibold text-secondary">{progress}%</p>
+            <div className="mt-3 grid grid-cols-5 gap-2">
+              {conversionSteps.map((step, index) => {
+                const stepProgress = ((index + 1) / conversionSteps.length) * 100;
+                const active = progress >= stepProgress - 18;
+                return (
+                  <div
+                    key={step}
+                    className={`rounded-full px-2 py-1 text-center text-[11px] font-semibold ${
+                      active
+                        ? 'bg-primary-container/50 text-on-primary-container'
+                        : 'bg-surface-container text-secondary'
+                    }`}
+                  >
+                    {step}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

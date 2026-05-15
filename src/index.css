@@ -424,6 +424,17 @@ body {
   border-radius: 8px;
 }
 
+/* ── Touch target floor for older tool modules ── */
+button,
+[role='button'] {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+input[type='range'] {
+  min-height: 44px;
+}
+
 /* ── Minesweeper cell reveal animation ── */
 @keyframes cell-reveal {
   from {

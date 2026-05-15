@@ -41,11 +41,14 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
     >
       <input
         ref={inputRef}
-        className="sr-only"
+        className="hidden"
         type="file"
         multiple
-        accept=".txt,.md,.csv,.json,.zip,.rar,.doc,.docx,.xlsx,.xls,.pdf,.7z"
-        onChange={(event) => handleFiles(event.target.files)}
+        accept=".txt,.md,.csv,.json,.zip,.rar,.doc,.docx"
+        onChange={(event) => {
+          handleFiles(event.target.files);
+          event.currentTarget.value = '';
+        }}
       />
       <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-4">
@@ -57,7 +60,8 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
               把散乱资料变成可复习题库
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)] md:text-base">
-              支持多格式题库和压缩包导入，自动整理成可刷题、可搜索、可复习的学习卡片。
+              支持 TXT、Markdown、CSV、JSON、Word
+              和压缩包题库，自动整理成可刷题、可搜索、可复习的学习卡片。
             </p>
           </div>
         </div>
@@ -72,7 +76,7 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {supportedFormats.slice(0, 9).map((format) => (
+        {browserFormats.map((format) => (
           <span
             key={format.extension}
             className="rounded-full bg-[var(--color-accent-yellow)] px-3 py-1 text-xs font-semibold text-[var(--color-ink)]"
@@ -85,8 +89,9 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
 
       <div className="mt-5 flex items-center gap-2 rounded-2xl bg-[var(--color-primary-soft)] px-4 py-3 text-sm text-[var(--color-primary)]">
         <ShieldCheck size={18} aria-hidden="true" />
-        <span>文件默认在本地浏览器解析，后续可切换到后端解析服务。</span>
+        <span>文件默认在本地浏览器解析；Excel、PDF 和 7Z 请先转为支持格式或接入后端解析。</span>
       </div>
     </div>
   );
 }
+const browserFormats = supportedFormats.filter((format) => format.level !== 'backend-required');

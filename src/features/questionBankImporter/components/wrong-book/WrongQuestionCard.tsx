@@ -27,6 +27,16 @@ export function WrongQuestionCard({ question }: { question: Question }) {
             <span className="rounded-full bg-[color:rgb(255_255_255_/_0.65)] px-3 py-1 text-xs text-[var(--color-muted)]">
               掌握度 {meta.masteryLevel}
             </span>
+            {meta.lastWrongAt ? (
+              <span className="rounded-full bg-[color:rgb(255_255_255_/_0.65)] px-3 py-1 text-xs text-[var(--color-muted)]">
+                最近错于 {new Date(meta.lastWrongAt).toLocaleDateString()}
+              </span>
+            ) : null}
+            {question.chapter ? (
+              <span className="rounded-full bg-[color:rgb(255_255_255_/_0.65)] px-3 py-1 text-xs text-[var(--color-muted)]">
+                {question.chapter}
+              </span>
+            ) : null}
           </div>
           <h3 className="whitespace-pre-wrap text-lg font-bold text-[var(--color-ink)]">
             {question.question}

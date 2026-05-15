@@ -16,6 +16,7 @@ import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { tools } from '../data/tools';
 import SEO from '../components/SEO';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { trackToolOpen } from '../lib/analytics';
 import { getRecentItems, recordVisit } from '../lib/recent';
 import {
@@ -322,7 +323,21 @@ export default function Tools() {
           </header>
 
           <section aria-label={t('主功能区域', 'Main tool area')}>
-            <ToolComponent onBack={handleBack} />
+            <ErrorBoundary
+              fallback={
+                <div className="rounded-2xl border border-red-200 bg-red-50/80 p-5 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+                  <h2 className="text-lg font-bold">{t('工具运行时出错', 'Tool runtime error')}</h2>
+                  <p className="mt-2 text-sm leading-6">
+                    {t(
+                      '这个工具暂时无法完成操作，其他页面仍可继续使用。请返回列表或刷新后重试。',
+                      'This tool cannot complete the action right now. The rest of the site remains available. Return to the list or refresh and try again.',
+                    )}
+                  </p>
+                </div>
+              }
+            >
+              <ToolComponent onBack={handleBack} />
+            </ErrorBoundary>
           </section>
 
           <section className="mt-8 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
@@ -402,7 +417,10 @@ export default function Tools() {
     return (
       <div className="flex-grow flex flex-col items-center justify-center py-20">
         <p className="text-xl text-secondary mb-4">
-          {t('此工具正在开发中，敬请期待', 'This tool is under development. Stay tuned.')}
+          {t(
+            '这个工具暂时无法打开，请返回列表选择其他工具。',
+            'This tool cannot be opened right now. Please return to the list.',
+          )}
         </p>
         <button
           onClick={handleBack}

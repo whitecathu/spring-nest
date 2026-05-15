@@ -77,6 +77,7 @@ export function normalizeQuestionType(
   if (['single', '单选', '单选题'].includes(text)) return 'single';
   if (['multiple', 'multi', '多选', '多选题'].includes(text)) return 'multiple';
   if (['judge', 'truefalse', '判断', '判断题'].includes(text)) return 'judge';
+  if (['blank', 'fill', 'fillblank', '填空', '填空题'].includes(text)) return 'blank';
   if (['short', '简答', '简答题'].includes(text)) return 'short';
   if (['flashcard', 'card', '背诵卡', '卡片'].includes(text)) return 'flashcard';
 
@@ -95,6 +96,7 @@ export function createQuestion(input: {
   answer?: string | string[];
   explanation?: string;
   tags?: string[];
+  chapter?: string;
   type?: QuestionType;
   difficulty?: Difficulty;
 }): Question {
@@ -109,6 +111,7 @@ export function createQuestion(input: {
     answer: input.answer,
     explanation: input.explanation?.trim() || undefined,
     tags: input.tags?.map((tag) => tag.trim()).filter(Boolean),
+    chapter: input.chapter?.trim() || undefined,
     difficulty: input.difficulty,
     createdAt: now,
   };

@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Download, Server, Trash2 } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Clock, Download, Server, Target, Trash2 } from 'lucide-react';
 import { routes } from './app/routes';
 import { AppShell } from './components/layout/AppShell';
 import { GlassCard } from './components/common/GlassCard';
@@ -15,12 +15,23 @@ import { useQuestionBankStore } from './store/questionBankStore';
 function SettingsPanel() {
   const questions = useQuestionBankStore((state) => state.questions);
   const importedFiles = useQuestionBankStore((state) => state.importedFiles);
+  const reviewPlan = useQuestionBankStore((state) => state.reviewPlan);
   const actions = useQuestionBankStore((state) => state.actions);
+  const [dailyTarget, setDailyTarget] = useState(String(reviewPlan.dailyTarget));
+  const [sessionMinutes, setSessionMinutes] = useState(String(reviewPlan.sessionMinutes));
 
   function clearData() {
     if (window.confirm('确认清空本地题库、错题、收藏和复习记录？此操作不可撤销。')) {
       actions.clearBank();
     }
+  }
+
+  function savePlan(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    actions.updateReviewPlan({
+      dailyTarget: Number(dailyTarget),
+      sessionMinutes: Number(sessionMinutes),
+    });
   }
 
   return (
@@ -34,7 +45,7 @@ function SettingsPanel() {
           <h2 className="text-xl font-bold text-[var(--color-ink)]">本地题库</h2>
           <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
             当前共有 {questions.length} 道题、{importedFiles.length} 份导入报告。数据保存在浏览器
-            localStorage 中。
+            本地存储中，并在可用时使用 IndexedDB 作为大题库备份。
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <SoftButton
@@ -57,12 +68,60 @@ function SettingsPanel() {
 
         <GlassCard>
           <div className="flex items-start gap-3">
+            <Target className="mt-1 text-[var(--color-primary)]" size={20} aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl font-bold text-[var(--color-ink)]">今日复习计划</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+                已完成 {reviewPlan.todayAnswered} / {reviewPlan.dailyTarget} 题，连续复习{' '}
+                {reviewPlan.streakDays} 天。目标只保存在本地。
+              </p>
+              <form className="mt-5 grid gap-3 sm:grid-cols-2" onSubmit={savePlan}>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-[var(--color-ink)]">
+                    每日题量
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={300}
+                    value={dailyTarget}
+                    onChange={(event) => setDailyTarget(event.target.value)}
+                    className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 text-sm"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-[var(--color-ink)]">
+                    计划分钟
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={180}
+                    value={sessionMinutes}
+                    onChange={(event) => setSessionMinutes(event.target.value)}
+                    className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 text-sm"
+                  />
+                </label>
+                <SoftButton
+                  variant="primary"
+                  type="submit"
+                  icon={<Clock size={17} aria-hidden="true" />}
+                >
+                  保存计划
+                </SoftButton>
+              </form>
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassCard>
+          <div className="flex items-start gap-3">
             <Server className="mt-1 text-[var(--color-primary)]" size={20} aria-hidden="true" />
             <div>
-              <h2 className="text-xl font-bold text-[var(--color-ink)]">后端解析预留</h2>
+              <h2 className="text-xl font-bold text-[var(--color-ink)]">高级格式说明</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                `backendQuestionBankClient` 已预留 parse、save、load、export 接口。当前 MVP 使用
-                local adapter，不会把文件上传到服务器。
+                当前使用本地解析与本地保存，不会把文件上传到服务器。Excel、PDF、OCR 或 7Z
+                不在浏览器端伪装支持，请先转为 CSV、JSON、TXT 或 DOCX，再导入复习。
               </p>
             </div>
           </div>
