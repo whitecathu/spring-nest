@@ -1,5 +1,5 @@
 import { Play } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getQuestionTypeLabel, useQuestionBankStore } from '../../store/questionBankStore';
 import type { Difficulty, QuestionType } from '../../types/question';
 import { EmptyState } from '../common/EmptyState';
@@ -17,6 +17,8 @@ const questionTypes: Array<'all' | QuestionType> = [
 ];
 
 const difficulties: Array<'all' | Difficulty> = ['all', 'easy', 'medium', 'hard'];
+
+const PAGE_SIZE = 20;
 
 export function WrongBook() {
   const questions = useQuestionBankStore((state) => state.questions);
@@ -47,6 +49,34 @@ export function WrongBook() {
         .sort((a, b) => (reviewMeta[b.id]?.wrongCount ?? 0) - (reviewMeta[a.id]?.wrongCount ?? 0)),
     [chapterFilter, difficultyFilter, questions, reviewMeta, tagFilter, typeFilter],
   );
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [typeFilter, difficultyFilter, chapterFilter, tagFilter]);
+
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0]?.isIntersecting) {
+        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, wrongQuestions.length));
+      }
+    },
+    [wrongQuestions.length],
+  );
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(handleIntersect, {
+      rootMargin: '200px',
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleIntersect]);
+
+  const visibleQuestions = wrongQuestions.slice(0, visibleCount);
 
   if (!wrongQuestions.length) {
     return (
@@ -139,10 +169,17 @@ export function WrongBook() {
         </label>
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
-        {wrongQuestions.map((question) => (
+        {visibleQuestions.map((question) => (
           <WrongQuestionCard key={question.id} question={question} />
         ))}
       </div>
+      {visibleCount < wrongQuestions.length ? (
+        <div ref={sentinelRef} className="flex justify-center py-4">
+          <span className="text-sm text-[var(--color-muted)]">
+            已显示 {visibleCount} / {wrongQuestions.length} 题，下滑加载更多…
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

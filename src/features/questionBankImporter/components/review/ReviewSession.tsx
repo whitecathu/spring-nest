@@ -93,6 +93,30 @@ export function ReviewSession() {
   useEffect(() => {
     setSessionStats({ answered: 0, correct: 0, wrong: 0 });
   }, [activeIdsKey, reviewMode]);
+
+  const total = activeIds.length || questions.length;
+
+  // Keyboard navigation: ArrowLeft / ArrowRight
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+      if (event.key === 'ArrowLeft' && index > 0) {
+        event.preventDefault();
+        actions.previousQuestion();
+      } else if (event.key === 'ArrowRight' && index < total - 1) {
+        event.preventDefault();
+        actions.nextQuestion();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [actions, index, total]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!questions.length || !question) {
@@ -107,7 +131,6 @@ export function ReviewSession() {
   }
 
   const meta = reviewMeta[question.id] ?? createReviewMeta(question.id);
-  const total = activeIds.length || questions.length;
   const expected = answerArray(question.answer);
   const isChoice =
     question.type === 'single' || question.type === 'multiple' || question.type === 'judge';

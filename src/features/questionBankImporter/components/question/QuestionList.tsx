@@ -9,7 +9,7 @@ import {
   SlidersHorizontal,
   Target,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { selectFilteredQuestions, useQuestionBankStore } from '../../store/questionBankStore';
 import { createReviewMeta } from '../../lib/utils/normalize';
 import { EmptyState } from '../common/EmptyState';
@@ -17,6 +17,8 @@ import { MobileBottomSheet } from '../common/MobileBottomSheet';
 import { SoftButton } from '../common/SoftButton';
 import { QuestionCard } from './QuestionCard';
 import { QuestionFilters } from './QuestionFilters';
+
+const PAGE_SIZE = 20;
 
 export function QuestionList() {
   const questions = useQuestionBankStore((state) => state.questions);
@@ -51,6 +53,36 @@ export function QuestionList() {
   const canResume = Boolean(
     lastReviewSession?.questionIds.some((id) => questions.some((question) => question.id === id)),
   );
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filters, searchQuery, sortMode]);
+
+  // IntersectionObserver for infinite scroll
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0]?.isIntersecting) {
+        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filtered.length));
+      }
+    },
+    [filtered.length],
+  );
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(handleIntersect, {
+      rootMargin: '200px',
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleIntersect]);
+
+  const visibleQuestions = filtered.slice(0, visibleCount);
 
   if (!questions.length) {
     return (
@@ -292,7 +324,7 @@ export function QuestionList() {
 
       {filtered.length ? (
         <div className="grid gap-4 xl:grid-cols-2">
-          {filtered.map((question) => (
+          {visibleQuestions.map((question) => (
             <QuestionCard
               key={question.id}
               question={question}
@@ -306,6 +338,13 @@ export function QuestionList() {
           description="换一个关键词，或清除收藏、错题、题型筛选后再试。"
         />
       )}
+      {visibleCount < filtered.length ? (
+        <div ref={sentinelRef} className="flex justify-center py-4">
+          <span className="text-sm text-[var(--color-muted)]">
+            已显示 {visibleCount} / {filtered.length} 题，下滑加载更多…
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }
