@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { appConfig } from '../config/appConfig';
-import { bundledMaoQuestionBank } from '../data/bundledQuestionBank';
 import { localQuestionBankClient } from '../lib/api/localQuestionBankClient';
 import { questionBankStorage } from '../lib/storage/questionBankStorage';
 import { createId } from '../lib/utils/id';
@@ -49,7 +48,6 @@ interface QuestionBankState {
   actions: {
     loadFromStorage: () => Promise<void>;
     importFiles: (files: File[]) => Promise<void>;
-    loadBundledMaoBank: () => Promise<void>;
     updateQuestion: (question: Question) => void;
     deleteQuestion: (questionId: string) => void;
     toggleFavorite: (questionId: string) => void;
@@ -205,28 +203,6 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
           toast: {
             kind: 'error',
             message: error instanceof Error ? error.message : '解析失败',
-          },
-        });
-      }
-    },
-
-    async loadBundledMaoBank() {
-      try {
-        const response = await fetch(bundledMaoQuestionBank.url);
-        if (!response.ok) {
-          throw new Error(`内置题库读取失败：${response.status}`);
-        }
-        const blob = await response.blob();
-        const file = new File([blob], bundledMaoQuestionBank.fileName, {
-          type: 'application/vnd.rar',
-        });
-        await get().actions.importFiles([file]);
-      } catch (error) {
-        set({
-          isParsing: false,
-          toast: {
-            kind: 'error',
-            message: error instanceof Error ? error.message : '内置题库读取失败',
           },
         });
       }

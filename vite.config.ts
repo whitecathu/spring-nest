@@ -70,15 +70,6 @@ export default defineConfig(({ mode }) => {
             },
           },
           {
-            urlPattern: ({ url }) =>
-              url.origin === self.location.origin && url.pathname.startsWith('/question-banks/'),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'spring-nest-question-banks',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-          {
             urlPattern: /^https:\/\/wttr\.in\/.*/i,
             handler: 'NetworkFirst',
             options: {

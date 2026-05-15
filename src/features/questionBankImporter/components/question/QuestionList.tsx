@@ -30,7 +30,7 @@ export function QuestionList() {
     return (
       <EmptyState
         title="题库还是空的"
-        description="先导入文件或内置题库，再回来管理、搜索和复习。"
+        description="先导入自己的题库文件，再回来管理、搜索和复习。"
         actionLabel="去导入"
         onAction={() => actions.setActiveView('import')}
       />

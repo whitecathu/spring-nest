@@ -77,7 +77,7 @@ export function ReviewSession() {
     return (
       <EmptyState
         title="还没有可复习的题目"
-        description="先导入题库或内置题库，再开始复习。"
+        description="先导入自己的题库文件，再开始复习。"
         actionLabel="去导入"
         onAction={() => actions.setActiveView('import')}
       />

@@ -755,9 +755,9 @@ export const tools: AppItem[] = [
     iconBg: 'bg-emerald-100',
     route: '/tools/question-bank-importer',
     instructions:
-      '导入内置毛概题库或上传自己的题库文件，系统会在浏览器本地解析并生成题目卡片。你可以搜索、筛选、刷题、背答案、标记错题，并导出 JSON 备份。',
+      '上传自己的题库文件，系统会在浏览器本地解析并生成题目卡片。你可以搜索、筛选、刷题、背答案、标记错题，并导出 JSON 备份。',
     instructionsEn:
-      'Import the bundled question bank or upload your own files. The browser parses them locally into question cards for search, filtering, review, memorization, wrong-book tracking, and JSON export.',
+      'Upload your own question bank files. The browser parses them locally into question cards for search, filtering, review, memorization, wrong-book tracking, and JSON export.',
     features: ['本地文件解析', '压缩包题库导入', '刷题与背答案模式', '错题本与收藏', 'JSON 导出'],
     featuresEn: [
       'Local file parsing',

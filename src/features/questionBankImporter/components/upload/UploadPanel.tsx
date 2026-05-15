@@ -1,6 +1,5 @@
-import { BookOpenCheck, Brain, Database, Download, FileArchive, Sparkles } from 'lucide-react';
+import { Brain, Database, FileArchive, Sparkles } from 'lucide-react';
 import { appConfig } from '../../config/appConfig';
-import { bundledMaoQuestionBank } from '../../data/bundledQuestionBank';
 import { useQuestionBankStore } from '../../store/questionBankStore';
 import { GlassCard } from '../common/GlassCard';
 import { SoftButton } from '../common/SoftButton';
@@ -20,41 +19,6 @@ export function UploadPanel() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
       <div className="space-y-5">
-        <GlassCard className="overflow-hidden bg-[linear-gradient(135deg,rgb(223_243_231_/_0.9),rgb(253_249_240_/_0.9)_54%,rgb(249_228_183_/_0.72))]">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[color:rgb(255_255_255_/_0.72)] px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
-                <BookOpenCheck size={15} aria-hidden="true" />
-                真实题库已内置
-              </div>
-              <h2 className="text-2xl font-bold leading-8 text-[var(--color-ink)]">
-                {bundledMaoQuestionBank.title}
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
-                {bundledMaoQuestionBank.description} 支持直接解析 RAR、兼容式 DOC 和
-                DOCX，导入后可搜索、刷题、背答案和加入错题本。
-              </p>
-            </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
-              <SoftButton
-                variant="primary"
-                icon={<Download size={17} aria-hidden="true" />}
-                onClick={actions.loadBundledMaoBank}
-                disabled={isParsing}
-              >
-                导入毛概题库
-              </SoftButton>
-              <SoftButton
-                icon={<Brain size={17} aria-hidden="true" />}
-                onClick={() => actions.startReview(undefined, 'memorize')}
-                disabled={!questions.length}
-              >
-                背答案
-              </SoftButton>
-            </div>
-          </div>
-        </GlassCard>
-
         <DragDropZone onFiles={actions.importFiles} disabled={isParsing} />
         {isParsing ? <ParseProgress /> : null}
         {storageError ? <ErrorState title="本地数据读取失败" message={storageError} /> : null}
@@ -70,10 +34,8 @@ export function UploadPanel() {
         ) : (
           <EmptyState
             title="还没有上传文件"
-            description="可先导入内置毛概题库，或拖拽 txt、md、csv、json、zip、rar、doc、docx 到上传区。"
-            actionLabel="导入内置题库"
-            onAction={actions.loadBundledMaoBank}
-            icon={<BookOpenCheck size={22} aria-hidden="true" />}
+            description="拖拽自己的 txt、md、csv、json、zip、rar、doc、docx 题库文件，或点击上方按钮选择文件。"
+            icon={<FileArchive size={22} aria-hidden="true" />}
           />
         )}
       </div>
@@ -97,6 +59,26 @@ export function UploadPanel() {
             <div className="rounded-2xl bg-[var(--color-accent-yellow)] p-3">
               <p className="font-bold text-[var(--color-ink)]">本地</p>
               <p className="text-[var(--color-muted)]">持久化</p>
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassCard>
+          <div className="flex items-start gap-3">
+            <Brain className="mt-1 text-[var(--color-primary)]" size={20} aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <h3 className="font-bold text-[var(--color-ink)]">复习入口</h3>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+                导入自己的题库后，可以直接进入背答案或刷题模式。
+              </p>
+              <SoftButton
+                className="mt-4 w-full"
+                onClick={() => actions.startReview(undefined, 'memorize')}
+                disabled={!questions.length}
+                icon={<Brain size={17} aria-hidden="true" />}
+              >
+                背答案
+              </SoftButton>
             </div>
           </div>
         </GlassCard>
@@ -132,16 +114,6 @@ export function UploadPanel() {
             </div>
           </div>
         </GlassCard>
-
-        <div className="grid gap-2">
-          <SoftButton
-            className="w-full"
-            onClick={actions.loadBundledMaoBank}
-            icon={<Download size={17} />}
-          >
-            导入 2024 修订版毛概题库
-          </SoftButton>
-        </div>
       </aside>
     </div>
   );
