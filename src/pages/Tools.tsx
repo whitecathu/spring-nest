@@ -26,7 +26,7 @@ import {
   gridCardVariants,
 } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
-import { getToolCategoryBySlug } from '../lib/catalogRoutes';
+import { getPrimaryToolCategorySlug, getToolCategoryBySlug } from '../lib/catalogRoutes';
 import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
 import type { AppItem } from '../types/app';
 import { toolComponents } from '../registries/toolRegistry';
@@ -131,12 +131,23 @@ export default function Tools() {
 
   const handleCategorySwitch = (catId: string) => {
     if (catId === activeCategory) return;
-    const params = new URLSearchParams(searchParams);
-    if (catId === 'all') params.delete('category');
-    else params.set('category', catId);
+    const params = new URLSearchParams();
     if (sortMode !== 'popular') params.set('sort', sortMode);
-    else params.delete('sort');
-    setSearchParams(params, { replace: false });
+
+    if (catId === 'all') {
+      navigate({ pathname: '/tools', search: params.toString() ? `?${params}` : '' });
+    } else {
+      const canonicalSlug = getPrimaryToolCategorySlug(catId);
+      if (canonicalSlug) {
+        navigate({
+          pathname: `/tools/${canonicalSlug}`,
+          search: params.toString() ? `?${params}` : '',
+        });
+      } else {
+        params.set('category', catId);
+        navigate({ pathname: '/tools', search: `?${params}` });
+      }
+    }
 
     requestAnimationFrame(() => {
       const container = pillContainerRef.current;
@@ -222,6 +233,13 @@ export default function Tools() {
     () => tools.find((t) => t.id === activeToolId) || null,
     [activeToolId],
   );
+  const activeToolFeatures = useMemo(
+    () =>
+      activeTool?.features?.map((feature, index) =>
+        t(feature, activeTool.featuresEn?.[index] ?? feature),
+      ) ?? [],
+    [activeTool, t],
+  );
 
   const handleOpen = (toolId: string) => {
     const tool = tools.find((t) => t.id === toolId);
@@ -237,8 +255,7 @@ export default function Tools() {
 
   const handleSortChange = (nextSort: SortMode) => {
     const params = new URLSearchParams(searchParams);
-    if (activeCategory !== 'all') params.set('category', activeCategory);
-    else params.delete('category');
+    params.delete('category');
     if (nextSort === 'popular') params.delete('sort');
     else params.set('sort', nextSort);
     setSearchParams(params, { replace: false });
@@ -328,7 +345,7 @@ export default function Tools() {
                 {t('适用场景', 'Best for')}
               </h2>
               <ul className="space-y-2 text-sm leading-relaxed text-secondary">
-                {(activeTool.features ?? []).slice(0, 4).map((feature, index) => (
+                {activeToolFeatures.slice(0, 4).map((feature, index) => (
                   <li key={feature} className="flex gap-2">
                     <span className="font-bold text-primary">{index + 1}.</span>
                     {feature}

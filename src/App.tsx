@@ -182,7 +182,10 @@ export default function App() {
             onTouchEnd={onTouchEnd}
           >
             <Navigation />
-            <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden relative overscroll-y-contain">
+            <main
+              ref={mainRef}
+              className="flex-1 overflow-y-auto overflow-x-hidden relative overscroll-y-contain"
+            >
               <Suspense fallback={<LoadingFallback />}>
                 <AnimatePresence mode="wait">
                   <Routes location={location} key={location.pathname}>

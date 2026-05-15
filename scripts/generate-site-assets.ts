@@ -72,7 +72,7 @@ async function updateReadme() {
 
   if (readme.includes('<!-- AUTO:TOOLS_START -->')) {
     readme = readme.replace(
-      /### 工具列表（共 \d+ 个）\n<!-- AUTO:TOOLS_START -->[\s\S]*?<!-- AUTO:TOOLS_END -->/,
+      /### 工具列表（共 \d+ 个）\s*<!-- AUTO:TOOLS_START -->[\s\S]*?<!-- AUTO:TOOLS_END -->/,
       generatedTable(tools, 'TOOLS'),
     );
   } else {
@@ -84,7 +84,7 @@ async function updateReadme() {
 
   if (readme.includes('<!-- AUTO:GAMES_START -->')) {
     readme = readme.replace(
-      /### 游戏列表（共 \d+ 个）\n<!-- AUTO:GAMES_START -->[\s\S]*?<!-- AUTO:GAMES_END -->/,
+      /### 游戏列表（共 \d+ 个）\s*<!-- AUTO:GAMES_START -->[\s\S]*?<!-- AUTO:GAMES_END -->/,
       generatedTable(games, 'GAMES'),
     );
   } else {

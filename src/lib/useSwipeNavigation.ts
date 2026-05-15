@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, type TouchEvent as ReactTouchEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const NAV_ORDER = ['/', '/games', '/tools', '/leaderboard', '/about'];
@@ -11,13 +11,10 @@ export function useSwipeNavigation() {
   const startTime = useRef(0);
   const swiping = useRef(false);
 
-  const onTouchStart = useCallback((e: TouchEvent) => {
+  const onTouchStart = useCallback((e: ReactTouchEvent<HTMLElement>) => {
     // Skip if target is inside an interactive element or a horizontally-scrollable container
     const target = e.target as HTMLElement;
-    if (
-      target.closest('input, textarea, select, button, a, [role="dialog"], .no-swipe')
-    )
-      return;
+    if (target.closest('input, textarea, select, button, a, [role="dialog"], .no-swipe')) return;
 
     // Skip if ancestor has horizontal overflow (e.g. card carousels)
     const scrollable = target.closest('[data-swipe-ignore]');
@@ -30,7 +27,7 @@ export function useSwipeNavigation() {
   }, []);
 
   const onTouchEnd = useCallback(
-    (e: TouchEvent) => {
+    (e: ReactTouchEvent<HTMLElement>) => {
       if (!swiping.current) return;
       swiping.current = false;
 
@@ -41,12 +38,7 @@ export function useSwipeNavigation() {
       const elapsed = Date.now() - startTime.current;
 
       // Only trigger on horizontal swipes: min 60px, max 500ms, horizontal > vertical
-      if (
-        Math.abs(deltaX) < 60 ||
-        Math.abs(deltaY) > Math.abs(deltaX) ||
-        elapsed > 500
-      )
-        return;
+      if (Math.abs(deltaX) < 60 || Math.abs(deltaY) > Math.abs(deltaX) || elapsed > 500) return;
 
       const currentPath = location.pathname === '/' ? '/' : location.pathname;
       const idx = NAV_ORDER.indexOf(currentPath);

@@ -1,0 +1,120 @@
+.question-bank-importer {
+  color-scheme: light;
+  --color-bg: #f9faf6;
+  --color-surface: #fdf9f0;
+  --color-card: rgb(253 249 240 / 0.88);
+  --color-ink: #1a1c1a;
+  --color-muted: #566159;
+  --color-primary: #14422d;
+  --color-primary-strong: #0f3424;
+  --color-primary-soft: #dff3e7;
+  --color-on-primary: #f9faf6;
+  --color-outline: #b8c6bb;
+  --color-outline-soft: rgb(113 121 115 / 0.18);
+  --color-accent-yellow: #f9e4b7;
+  --color-accent-peach: #f7c5b0;
+  --color-success: #2f6f4f;
+  --color-success-soft: #dff3e7;
+  --color-warning: #835917;
+  --color-warning-soft: #fff0c9;
+  --color-error: #9b1c1c;
+  --color-error-soft: #ffdad6;
+  --shadow-soft: 0 18px 50px rgb(26 51 38 / 0.12), 0 4px 14px rgb(26 51 38 / 0.08);
+  --font-body:
+    'HarmonyOS Sans SC', 'MiSans', 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC',
+    'Hiragino Sans GB', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading:
+    'HarmonyOS Sans SC', 'MiSans', 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', system-ui,
+    sans-serif;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.question-bank-importer *,
+.question-bank-importer *::before,
+.question-bank-importer *::after {
+  box-sizing: border-box;
+}
+
+.question-bank-importer button,
+.question-bank-importer input,
+.question-bank-importer select,
+.question-bank-importer textarea {
+  font: inherit;
+}
+
+.question-bank-importer h1,
+.question-bank-importer h2,
+.question-bank-importer h3 {
+  font-family: var(--font-heading);
+  letter-spacing: 0;
+}
+
+.question-bank-importer button {
+  cursor: pointer;
+}
+
+.question-bank-importer button:focus-visible,
+.question-bank-importer input:focus-visible,
+.question-bank-importer select:focus-visible,
+.question-bank-importer textarea:focus-visible {
+  outline: 3px solid rgb(20 66 45 / 0.26);
+  outline-offset: 2px;
+}
+
+.question-bank-importer button:disabled {
+  cursor: not-allowed;
+}
+
+.question-bank-importer .shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+.question-bank-importer .animate-soft-in {
+  animation: question-bank-soft-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.question-bank-importer .animate-answer-reveal {
+  animation: question-bank-answer-reveal 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes question-bank-soft-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes question-bank-answer-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .question-bank-importer *,
+  .question-bank-importer *::before,
+  .question-bank-importer *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

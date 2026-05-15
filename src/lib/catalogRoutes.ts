@@ -4,6 +4,7 @@ export const toolCategoryRoutes = [
   { slug: 'dev', category: '开发辅助', label: '开发辅助', labelEn: 'Developer Tools' },
   { slug: 'study', category: '学习写作', label: '学习工具', labelEn: 'Study Tools' },
   { slug: 'text', category: '学习写作', label: '文本工具', labelEn: 'Text Tools' },
+  { slug: 'document', category: '文档转换', label: '文档转换', labelEn: 'Document Tools' },
   { slug: 'security', category: '安全隐私', label: '安全隐私', labelEn: 'Security Tools' },
   { slug: 'random', category: '趣味工具', label: '随机工具', labelEn: 'Random Tools' },
 ];

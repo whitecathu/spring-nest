@@ -25,6 +25,9 @@ const CaseConverter = lazy(() => import('../pages/tools/CaseConverter'));
 const RandomNumber = lazy(() => import('../pages/tools/RandomNumber'));
 const BMICalculator = lazy(() => import('../pages/tools/BMICalculator'));
 const TextToSpeech = lazy(() => import('../pages/tools/TextToSpeech'));
+const WordToPdf = lazy(() => import('../pages/tools/WordToPdf'));
+const PdfToWord = lazy(() => import('../pages/tools/PdfToWord'));
+const QuestionBankImporter = lazy(() => import('../pages/tools/QuestionBankImporter'));
 
 export type ToolComponent = LazyExoticComponent<ComponentType<{ onBack: () => void }>>;
 
@@ -54,4 +57,7 @@ export const toolComponents: Record<string, ToolComponent> = {
   'tool-23': RandomNumber,
   'tool-24': BMICalculator,
   'tool-25': TextToSpeech,
+  'tool-26': WordToPdf,
+  'tool-27': PdfToWord,
+  'tool-28': QuestionBankImporter,
 };

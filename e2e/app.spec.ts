@@ -291,9 +291,10 @@ test.describe('Spring Nest App', () => {
     await expect(page.locator('text=404')).toBeVisible();
     await expect(page.locator('text=页面未找到')).toBeVisible();
     // Verify "返回首页" link exists
-    await expect(page.getByRole('main').getByRole('link', { name: '返回首页' })).toBeVisible();
+    const homeLink = page.getByRole('main').getByRole('link', { name: '返回首页' }).first();
+    await expect(homeLink).toBeVisible();
     // Click "返回首页" and verify navigation
-    await page.getByRole('main').getByRole('link', { name: '返回首页' }).click();
+    await homeLink.click();
     await expect(page).toHaveURL('/');
   });
 
@@ -488,6 +489,7 @@ test.describe('Spring Nest App', () => {
       'dev',
       'study',
       'text',
+      'document',
       'security',
       'random',
     ]);

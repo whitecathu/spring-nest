@@ -72,7 +72,7 @@ test.describe('route and URL-state production coverage', () => {
     await expect(page.locator('main .glass-card').first()).toContainText('学习写作');
 
     await page.getByRole('button', { name: '安全隐私' }).click();
-    await expect(page).toHaveURL(/category=%E5%AE%89%E5%85%A8%E9%9A%90%E7%A7%81/);
+    await expect(page).toHaveURL(/\/tools\/security/);
     await page.locator('select').selectOption('newest');
     await expect(page).toHaveURL(/sort=newest/);
 

@@ -42,7 +42,12 @@ export default defineConfig(({ mode }) => {
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,woff2}'],
+        globIgnores: [
+          '**/assets/word-to-pdf-vendor-*.js',
+          '**/assets/pdf-to-word-vendor-*.js',
+          '**/assets/pdf.worker-*.mjs',
+        ],
         navigateFallback: undefined,
         runtimeCaching: [
           {
@@ -62,6 +67,15 @@ export default defineConfig(({ mode }) => {
             options: {
               cacheName: 'spring-nest-static-assets',
               expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          {
+            urlPattern: ({ url }) =>
+              url.origin === self.location.origin && url.pathname.startsWith('/question-banks/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'spring-nest-question-banks',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
           {
@@ -120,6 +134,9 @@ export default defineConfig(({ mode }) => {
             motion: ['motion'],
             lucide: ['lucide-react'],
             qrcode: ['qrcode'],
+            'word-to-pdf-vendor': ['mammoth', 'html2pdf.js'],
+            'pdf-to-word-vendor': ['pdfjs-dist', 'docx'],
+            'question-bank-vendor': ['zustand', 'jszip', 'node-unrar-js'],
           },
         },
       },

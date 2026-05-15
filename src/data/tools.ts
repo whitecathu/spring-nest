@@ -651,4 +651,138 @@ export const tools: AppItem[] = [
     isNew: true,
     popularScore: 68,
   },
+  {
+    id: 'tool-26',
+    type: 'tool',
+    title: 'Word 转 PDF',
+    titleEn: 'Word to PDF',
+    description: '上传 .docx 文件，在浏览器本地生成 PDF，尽量保留文本、标题、表格和图片。',
+    descriptionEn:
+      'Upload a .docx file and generate a PDF locally in the browser, preserving text, headings, tables, and images as much as possible.',
+    category: '文档转换',
+    categoryEn: 'Document Conversion',
+    tags: ['word', 'docx', 'pdf', 'document', '文档', '转换', '本地处理'],
+    icon: 'PDF',
+    iconBg: 'bg-rose-100',
+    route: '/tools/word-to-pdf',
+    instructions:
+      '拖拽或选择 .docx 文件，点击开始转换，完成后下载 PDF。文件仅在本地处理，不会上传服务器。旧版 .doc 请先另存为 .docx。',
+    instructionsEn:
+      'Drop or choose a .docx file, start conversion, then download the PDF. Files are processed locally only and are not uploaded. Save legacy .doc files as .docx first.',
+    features: ['拖拽上传', '本地转换', 'PDF 下载', '复杂排版限制提示'],
+    featuresEn: [
+      'Drag-and-drop upload',
+      'Local conversion',
+      'PDF download',
+      'Clear layout limitation notes',
+    ],
+    related: ['tool-27', 'tool-12', 'tool-11'],
+    featured: true,
+    isNew: true,
+    popularScore: 86,
+    faq: [
+      {
+        q: '文件会上传到服务器吗？',
+        qEn: 'Will my file be uploaded?',
+        a: '不会。转换在浏览器本地完成，文件不会上传到服务器或第三方接口。',
+        aEn: 'No. Conversion runs locally in your browser. Files are not uploaded to a server or third-party API.',
+      },
+      {
+        q: '为什么复杂排版可能不同？',
+        qEn: 'Why can complex layouts differ?',
+        a: '本工具使用前端解析与 PDF 生成方案，会尽量保留文本、标题、段落、表格和图片，但页眉页脚、分栏、批注和精确分页可能与 Word 原文不同。',
+        aEn: 'This tool uses browser-side parsing and PDF generation. It preserves text, headings, paragraphs, tables, and images as much as possible, but headers, footers, columns, comments, and exact pagination can differ.',
+      },
+    ],
+  },
+  {
+    id: 'tool-27',
+    type: 'tool',
+    title: 'PDF 转 Word',
+    titleEn: 'PDF to Word',
+    description: '上传文本型 PDF，在浏览器本地提取文字并生成 .docx，适合整理可复制文本。',
+    descriptionEn:
+      'Upload a text-based PDF, extract text locally in the browser, and generate a .docx file for editable text cleanup.',
+    category: '文档转换',
+    categoryEn: 'Document Conversion',
+    tags: ['pdf', 'word', 'docx', 'document', '文档', '转换', '文本提取'],
+    icon: 'DOC',
+    iconBg: 'bg-emerald-100',
+    route: '/tools/pdf-to-word',
+    instructions:
+      '拖拽或选择文本型 PDF，点击开始转换，系统会逐页提取文字并生成 Word 文档。扫描件暂不支持 OCR 识别。',
+    instructionsEn:
+      'Drop or choose a text-based PDF and start conversion. The tool extracts text page by page and generates a Word document. Scanned files are not supported without OCR.',
+    features: ['PDF 文本提取', '逐页保留标题', 'DOCX 下载', '扫描件友好提示'],
+    featuresEn: [
+      'PDF text extraction',
+      'Page headings preserved',
+      'DOCX download',
+      'Friendly scanned-file hint',
+    ],
+    related: ['tool-26', 'tool-12', 'tool-11'],
+    featured: true,
+    isNew: true,
+    popularScore: 84,
+    faq: [
+      {
+        q: 'PDF 转 Word 会还原原始版式吗？',
+        qEn: 'Will PDF to Word restore the original layout?',
+        a: '不会承诺完全还原。当前是文本提取型转换，会按页保留文本，复杂表格、分栏和固定版式可能无法完全还原。',
+        aEn: 'Not fully. This is text extraction conversion. It preserves extracted text by page, while complex tables, columns, and fixed layouts may not be fully restored.',
+      },
+      {
+        q: '扫描件 PDF 可以转换吗？',
+        qEn: 'Can scanned PDFs be converted?',
+        a: '扫描件通常只有图片，没有可复制文本。本工具暂不支持 OCR，会提示该 PDF 可能是扫描件。',
+        aEn: 'Scanned PDFs usually contain images, not selectable text. This tool does not support OCR yet and will show a scanned-file hint.',
+      },
+    ],
+  },
+  {
+    id: 'tool-28',
+    type: 'tool',
+    title: '题库导入与复习小筑',
+    titleEn: 'Question Bank Importer',
+    description:
+      '把 txt、md、csv、json、zip、rar、docx 题库和兼容式 doc 文本整理成可搜索、可复习、可导出的本地学习卡片。',
+    descriptionEn:
+      'Turn txt, md, csv, json, zip, rar, docx, and best-effort doc question banks into searchable, reviewable local study cards.',
+    category: '学习写作',
+    categoryEn: 'Study & Writing',
+    tags: ['question bank', 'review', 'study', 'docx', 'rar', '题库', '刷题', '背答案', '错题本'],
+    icon: 'QB',
+    iconBg: 'bg-emerald-100',
+    route: '/tools/question-bank-importer',
+    instructions:
+      '导入内置毛概题库或上传自己的题库文件，系统会在浏览器本地解析并生成题目卡片。你可以搜索、筛选、刷题、背答案、标记错题，并导出 JSON 备份。',
+    instructionsEn:
+      'Import the bundled question bank or upload your own files. The browser parses them locally into question cards for search, filtering, review, memorization, wrong-book tracking, and JSON export.',
+    features: ['本地文件解析', '压缩包题库导入', '刷题与背答案模式', '错题本与收藏', 'JSON 导出'],
+    featuresEn: [
+      'Local file parsing',
+      'Archive question bank import',
+      'Quiz and memorization modes',
+      'Wrong-book and favorites',
+      'JSON export',
+    ],
+    related: ['tool-11', 'tool-12', 'tool-26'],
+    featured: true,
+    isNew: true,
+    popularScore: 89,
+    faq: [
+      {
+        q: '导入的题库会上传到服务器吗？',
+        qEn: 'Will imported question banks be uploaded?',
+        a: '不会。当前版本使用浏览器本地解析和 localStorage 保存，文件不会上传到服务器。',
+        aEn: 'No. This version parses files in the browser and stores data in localStorage. Files are not uploaded to a server.',
+      },
+      {
+        q: '哪些格式是真实支持的？',
+        qEn: 'Which formats are supported?',
+        a: 'TXT、Markdown、CSV、JSON、ZIP、RAR 和 DOCX 可在浏览器端解析。旧版 DOC 做兼容式文本抽取，Excel、PDF 和 7Z 会给出明确提示，不伪装成完整支持。',
+        aEn: 'TXT, Markdown, CSV, JSON, ZIP, RAR, and DOCX can be parsed in the browser. Legacy DOC uses best-effort text extraction, while Excel, PDF, and 7Z show clear limitation messages instead of pretending to be fully supported.',
+      },
+    ],
+  },
 ];

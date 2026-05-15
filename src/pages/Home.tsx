@@ -13,6 +13,7 @@ import {
   BookOpen,
   Timer,
   Code2,
+  FileText,
   Shield,
   Brain,
   GraduationCap,
@@ -144,6 +145,18 @@ export default function Home() {
   // --- Data ---
   const recentItems = useMemo(() => getRecentItems(6), []);
   const newItems = useMemo(() => getNewItems(8), []);
+  const homeToolPreview = useMemo(
+    () =>
+      tools
+        .filter((tool) => tool.isNew || tool.featured)
+        .sort((a, b) => {
+          const newDelta = Number(Boolean(b.isNew)) - Number(Boolean(a.isNew));
+          if (newDelta) return newDelta;
+          return (b.popularScore ?? 0) - (a.popularScore ?? 0);
+        })
+        .slice(0, 9),
+    [],
+  );
 
   const featuredTools = useMemo(
     () =>
@@ -188,6 +201,12 @@ export default function Home() {
       labelEn: 'Study & Writing',
       icon: BookOpen,
       color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+    },
+    {
+      label: '文档转换',
+      labelEn: 'Document Conversion',
+      icon: FileText,
+      color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
     },
     {
       label: '安全隐私',
@@ -614,7 +633,7 @@ export default function Home() {
             </Link>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tools.slice(0, 9).map((tool, i) => (
+            {homeToolPreview.map((tool, i) => (
               <FeaturedCard
                 key={tool.id}
                 item={tool}
@@ -781,7 +800,18 @@ export default function Home() {
                       transition: { type: 'spring', stiffness: 500, damping: 15 },
                     }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate(`/tools?category=${encodeURIComponent(cat.label)}`)}
+                    onClick={() => {
+                      const routeMap: Record<string, string> = {
+                        日常实用: '/tools/daily',
+                        时间效率: '/tools/time',
+                        开发辅助: '/tools/dev',
+                        学习写作: '/tools/study',
+                        文档转换: '/tools/document',
+                        安全隐私: '/tools/security',
+                        趣味工具: '/tools/random',
+                      };
+                      navigate(routeMap[cat.label] ?? '/tools');
+                    }}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 ${cat.color}`}
                   >
                     <Icon className="w-4 h-4" />
