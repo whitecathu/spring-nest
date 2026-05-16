@@ -462,28 +462,26 @@ export function ReviewSession() {
         </h2>
 
         {(isMemorize || isAnalysis) && options.length ? (
-          <div className="space-y-3 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.54)] p-4">
-            <p className="text-xs font-semibold text-[var(--color-muted)]">选项</p>
-            <div className="grid gap-2 md:grid-cols-2">
-              {options.map((option, index) => {
-                const key = optionKey(option);
-                const isCorrectOption =
-                  question.type === 'judge' ? isCorrect(question, [key]) : expected.includes(key);
-                return (
-                  <div
-                    key={`${index}-${option}`}
-                    className={`rounded-2xl px-3 py-2 text-sm font-semibold ${
-                      isCorrectOption
-                        ? 'border border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
-                        : 'bg-[color:rgb(255_255_255_/_0.72)] text-[var(--color-ink)]'
-                    }`}
-                  >
-                    {option}
-                    {isCorrectOption ? <Check size={14} className="ml-1 inline" aria-hidden="true" /> : null}
-                  </div>
-                );
-              })}
-            </div>
+          <div className="grid gap-3">
+            {options.map((option, index) => {
+              const key = optionKey(option);
+              const isCorrectOption =
+                question.type === 'judge' ? isCorrect(question, [key]) : expected.includes(key);
+              const showGreen = isAnalysis || (isMemorize && answerVisible);
+              return (
+                <div
+                  key={`${index}-${option}`}
+                  className={`flex min-h-12 items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold ${
+                    showGreen && isCorrectOption
+                      ? 'border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
+                      : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)]'
+                  }`}
+                >
+                  <span>{option}</span>
+                  {showGreen && isCorrectOption ? <Check size={17} aria-hidden="true" /> : null}
+                </div>
+              );
+            })}
           </div>
         ) : null}
 
@@ -615,7 +613,7 @@ export function ReviewSession() {
           </div>
         )}
 
-        <AnswerPanel question={question} visible={answerVisible} hideAnswer={isMemorize || isAnalysis} />
+        <AnswerPanel question={question} visible={answerVisible && !(isAnalysis && isChoice)} />
 
         {question.tags?.length ? (
           <div className="flex flex-wrap gap-2">
