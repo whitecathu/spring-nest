@@ -463,14 +463,37 @@ export function ReviewSession() {
 
         {isMemorize ? (
           <div className="space-y-3">
+            {options.length ? (
+              <div className="grid gap-3">
+                {options.map((option, index) => {
+                  const key = optionKey(option);
+                  const isCorrectOption =
+                    question.type === 'judge' ? isCorrect(question, [key]) : expected.includes(key);
+                  return (
+                    <div
+                      key={`${index}-${option}`}
+                      className={`flex min-h-12 items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold ${
+                        answerVisible && isCorrectOption
+                          ? 'border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
+                          : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)]'
+                      }`}
+                    >
+                      <span>{option}</span>
+                      {answerVisible && isCorrectOption ? <Check size={17} aria-hidden="true" /> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
             <SoftButton
               icon={<Eye size={17} aria-hidden="true" />}
               onClick={() => setAnswerVisible(true)}
               disabled={answerVisible}
+              className="w-full"
             >
               翻开答案
             </SoftButton>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <SoftButton
                 variant="primary"
                 icon={<Check size={17} aria-hidden="true" />}
@@ -539,26 +562,27 @@ export function ReviewSession() {
               })}
             </div>
             {!isAnalysis ? (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="space-y-2">
                 {question.type === 'multiple' ? (
                   <SoftButton
                     variant="primary"
                     onClick={submitChoice}
                     disabled={!selected.length || submitted}
+                    className="w-full"
                   >
                     提交答案
                   </SoftButton>
                 ) : null}
                 {submitted ? (
-                  <span
-                    className={`rounded-full px-3 py-2 text-sm font-semibold ${
+                  <p
+                    className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${
                       correct
                         ? 'bg-[var(--color-success-soft)] text-[var(--color-success)]'
                         : 'bg-[var(--color-error-soft)] text-[var(--color-error)]'
                     }`}
                   >
                     {correct ? '回答正确' : '回答错误，已写入错题本'}
-                  </span>
+                  </p>
                 ) : null}
               </div>
             ) : null}
@@ -569,10 +593,11 @@ export function ReviewSession() {
               icon={<Eye size={17} aria-hidden="true" />}
               onClick={() => setAnswerVisible(true)}
               disabled={answerVisible}
+              className="w-full"
             >
               显示答案
             </SoftButton>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <SoftButton
                 variant="primary"
                 icon={<Check size={17} aria-hidden="true" />}
