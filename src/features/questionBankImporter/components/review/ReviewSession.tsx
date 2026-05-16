@@ -461,30 +461,6 @@ export function ReviewSession() {
           {question.question}
         </h2>
 
-        {(isMemorize || isAnalysis) && options.length ? (
-          <div className="grid gap-3">
-            {options.map((option, index) => {
-              const key = optionKey(option);
-              const isCorrectOption =
-                question.type === 'judge' ? isCorrect(question, [key]) : expected.includes(key);
-              const showGreen = isAnalysis || (isMemorize && answerVisible);
-              return (
-                <div
-                  key={`${index}-${option}`}
-                  className={`flex min-h-12 items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold ${
-                    showGreen && isCorrectOption
-                      ? 'border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
-                      : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)]'
-                  }`}
-                >
-                  <span>{option}</span>
-                  {showGreen && isCorrectOption ? <Check size={17} aria-hidden="true" /> : null}
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
-
         {isMemorize ? (
           <div className="space-y-3">
             <SoftButton
@@ -524,7 +500,7 @@ export function ReviewSession() {
               </p>
             ) : null}
           </div>
-        ) : isChoice ? (
+        ) : isChoice || isAnalysis ? (
           <div className="space-y-3">
             <div className="grid gap-3">
               {options.map((option, index) => {
@@ -532,53 +508,60 @@ export function ReviewSession() {
                 const picked = selected.includes(key);
                 const expectedOption =
                   question.type === 'judge' ? isCorrect(question, [key]) : expected.includes(key);
-                const stateClass = submitted
+                const stateClass = isAnalysis
                   ? expectedOption
                     ? 'border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
+                    : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)]'
+                  : submitted
+                    ? expectedOption
+                      ? 'border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
+                      : picked
+                        ? 'border-[var(--color-error)] bg-[var(--color-error-soft)] text-[var(--color-error)]'
+                        : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)]'
                     : picked
-                      ? 'border-[var(--color-error)] bg-[var(--color-error-soft)] text-[var(--color-error)]'
-                      : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)]'
-                  : picked
-                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
-                    : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)] hover:border-[var(--color-primary)]';
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
+                      : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)] hover:border-[var(--color-primary)]';
+                const Wrapper = isAnalysis ? 'div' : 'button';
                 return (
-                  <button
-                    type="button"
+                  <Wrapper
                     key={`${index}-${option}`}
                     className={`flex min-h-12 items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${stateClass}`}
-                    onClick={() => toggleSelection(key)}
+                    {...(!isAnalysis ? { type: 'button', onClick: () => toggleSelection(key) } : {})}
                   >
                     <span>{option}</span>
-                    {submitted && expectedOption ? <Check size={17} aria-hidden="true" /> : null}
-                    {submitted && picked && !expectedOption ? (
+                    {isAnalysis && expectedOption ? <Check size={17} aria-hidden="true" /> : null}
+                    {!isAnalysis && submitted && expectedOption ? <Check size={17} aria-hidden="true" /> : null}
+                    {!isAnalysis && submitted && picked && !expectedOption ? (
                       <X size={17} aria-hidden="true" />
                     ) : null}
-                  </button>
+                  </Wrapper>
                 );
               })}
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {question.type === 'multiple' ? (
-                <SoftButton
-                  variant="primary"
-                  onClick={submitChoice}
-                  disabled={!selected.length || submitted}
-                >
-                  提交答案
-                </SoftButton>
-              ) : null}
-              {submitted ? (
-                <span
-                  className={`rounded-full px-3 py-2 text-sm font-semibold ${
-                    correct
-                      ? 'bg-[var(--color-success-soft)] text-[var(--color-success)]'
-                      : 'bg-[var(--color-error-soft)] text-[var(--color-error)]'
-                  }`}
-                >
-                  {correct ? '回答正确' : '回答错误，已写入错题本'}
-                </span>
-              ) : null}
-            </div>
+            {!isAnalysis ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {question.type === 'multiple' ? (
+                  <SoftButton
+                    variant="primary"
+                    onClick={submitChoice}
+                    disabled={!selected.length || submitted}
+                  >
+                    提交答案
+                  </SoftButton>
+                ) : null}
+                {submitted ? (
+                  <span
+                    className={`rounded-full px-3 py-2 text-sm font-semibold ${
+                      correct
+                        ? 'bg-[var(--color-success-soft)] text-[var(--color-success)]'
+                        : 'bg-[var(--color-error-soft)] text-[var(--color-error)]'
+                    }`}
+                  >
+                    {correct ? '回答正确' : '回答错误，已写入错题本'}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="space-y-3">
