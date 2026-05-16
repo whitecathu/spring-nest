@@ -22,6 +22,7 @@ import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { search } from '../services/searchService';
 import { trackSearch } from '../lib/analytics';
+import { MagneticButton } from './MotionSurface';
 
 export default function Navigation() {
   const [showSearch, setShowSearch] = useState(false);
@@ -293,9 +294,8 @@ export default function Navigation() {
 
           <div className="flex items-center gap-1 sm:gap-4 text-primary relative">
             {/* Mobile menu button */}
-            <motion.button
+            <MagneticButton
               whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
               aria-label={t('菜单', 'Menu')}
@@ -303,12 +303,11 @@ export default function Navigation() {
               aria-controls="mobile-navigation"
             >
               <Menu className="w-5 h-5" />
-            </motion.button>
+            </MagneticButton>
 
             {/* Theme toggle */}
-            <motion.button
+            <MagneticButton
               whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
               onClick={cycleTheme}
               className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
               aria-label={t('切换主题', 'Toggle theme')}
@@ -327,27 +326,25 @@ export default function Navigation() {
               ) : (
                 <Sun className="h-5 w-5" />
               )}
-            </motion.button>
+            </MagneticButton>
 
-            <motion.button
+            <MagneticButton
               whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
               onClick={() => setShowSearch(!showSearch)}
               className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
               aria-label={t('搜索', 'Search')}
             >
               <Search className="w-5 h-5" />
-            </motion.button>
+            </MagneticButton>
 
-            <motion.button
+            <MagneticButton
               whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/favorites')}
               className="hidden sm:inline-flex p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 relative transition-colors"
               aria-label={t('收藏', 'Favorites')}
             >
               <Bell className="w-5 h-5" />
-            </motion.button>
+            </MagneticButton>
 
             {user ? (
               <div
@@ -358,9 +355,8 @@ export default function Navigation() {
                   }
                 }}
               >
-                <motion.button
+                <MagneticButton
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => setShowUserMenu((open) => !open)}
                   className="flex min-h-11 min-w-11 items-center justify-center gap-2 px-1.5 py-1 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 border border-primary/10 shadow-sm transition-colors sm:px-2"
                   aria-label={t('用户菜单', 'User menu')}
@@ -370,7 +366,7 @@ export default function Navigation() {
                   <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
-                </motion.button>
+                </MagneticButton>
 
                 <div
                   className={`absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 transition-all duration-200 transform origin-top-right flex flex-col p-2 z-50 ${
@@ -416,15 +412,14 @@ export default function Navigation() {
                 </div>
               </div>
             ) : (
-              <motion.button
+              <MagneticButton
                 whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
                 onClick={() => setShowLoginModal(true)}
                 className="inline-flex min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
                 aria-label={t('登录', 'Log in')}
               >
                 <User className="w-5 h-5" />
-              </motion.button>
+              </MagneticButton>
             )}
           </div>
         </div>

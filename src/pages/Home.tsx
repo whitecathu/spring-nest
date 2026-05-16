@@ -1,11 +1,10 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   Gamepad2,
   Wrench,
   ArrowRight,
-  Cloud,
   Flower2,
   Sparkles,
   Clock,
@@ -29,6 +28,7 @@ import { getNewItems } from '../lib/recommendations';
 import { trackSearch } from '../lib/analytics';
 import SEO from '../components/SEO';
 import { websiteJsonLd } from '../lib/structuredData';
+import { MagneticButton, TiltGlareCard } from '../components/MotionSurface';
 
 // --- Shared card component for featured items (extracted for stable identity) ---
 function FeaturedCard({
@@ -62,7 +62,8 @@ function FeaturedCard({
   const isFavorite = favoriteIds.includes(item.id);
 
   return (
-    <motion.article
+    <TiltGlareCard
+      role="article"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
@@ -127,7 +128,7 @@ function FeaturedCard({
           </span>
         </div>
       </Link>
-    </motion.article>
+    </TiltGlareCard>
   );
 }
 
@@ -136,11 +137,6 @@ export default function Home() {
   const { favoriteIds, toggle } = useFavorites();
   const navigate = useNavigate();
   const [heroQuery, setHeroQuery] = useState('');
-
-  // Parallax for hero clouds
-  const { scrollY } = useScroll();
-  const cloudY1 = useTransform(scrollY, [0, 500], [0, -60]);
-  const cloudY2 = useTransform(scrollY, [0, 500], [0, -40]);
 
   // --- Data ---
   const recentItems = useMemo(() => getRecentItems(6), []);
@@ -267,57 +263,7 @@ export default function Home() {
       />
 
       {/* ========== 1. Hero Section ========== */}
-      <section className="relative w-full pt-20 pb-16 sm:pt-32 sm:pb-24 px-6 flex flex-col items-center justify-center text-center overflow-hidden bg-gradient-to-b from-[#E8F5EE] to-[#FFF9F2] dark:from-[#1a2c1f] dark:to-background">
-        {/* Floating decorations */}
-        <div
-          className="absolute inset-0 pointer-events-none overflow-hidden z-0"
-          style={{ willChange: 'transform' }}
-        >
-          <motion.div
-            style={{ y: cloudY1 }}
-            className="absolute top-20 left-[10%] opacity-40 text-primary-container"
-          >
-            <motion.div
-              animate={{ y: [0, -25, 0], x: [0, 10, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <Cloud className="w-20 h-20 fill-primary-container" />
-            </motion.div>
-          </motion.div>
-          <motion.div style={{ y: cloudY2 }} className="absolute top-40 right-[15%] opacity-30">
-            <motion.div
-              animate={{ y: [0, 30, 0], x: [0, -15, 0] }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            >
-              <Cloud className="w-24 h-24 fill-primary-container text-primary-container" />
-            </motion.div>
-          </motion.div>
-          <motion.div
-            animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-            className="absolute top-[30%] left-[25%] opacity-60 text-tertiary-container"
-            style={{ willChange: 'transform' }}
-          >
-            <Flower2 className="w-10 h-10 fill-tertiary-container" />
-          </motion.div>
-          <motion.div
-            animate={{ rotate: -360, scale: [1, 1.2, 1] }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-            className="absolute bottom-[20%] right-[25%] opacity-50 text-tertiary-container"
-            style={{ willChange: 'transform' }}
-          >
-            <Flower2 className="w-12 h-12 fill-tertiary-container" />
-          </motion.div>
-          <motion.div
-            animate={{ y: [0, -15, 0], rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute top-[10%] right-[30%] opacity-40 text-tertiary-container"
-            style={{ willChange: 'transform' }}
-          >
-            <Flower2 className="w-8 h-8 fill-tertiary-container" />
-          </motion.div>
-        </div>
-
+      <section className="relative w-full pt-20 pb-16 sm:pt-32 sm:pb-24 px-6 flex flex-col items-center justify-center text-center overflow-hidden">
         {/* Hero content */}
         <div className="relative z-10 flex flex-col items-center">
           <p className="font-nunito text-base font-bold text-primary mb-3 tracking-wide">
@@ -361,24 +307,22 @@ export default function Home() {
           </form>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <motion.button
+            <MagneticButton
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/tools')}
               className="bg-primary text-on-primary font-bold text-base py-3.5 px-8 rounded-2xl shadow-[0_6px_16px_rgba(63,103,81,0.3)] hover:shadow-[0_10px_24px_rgba(63,103,81,0.45)] transition-all duration-300 flex items-center justify-center gap-2.5"
             >
               <Wrench className="w-5 h-5" />
               {t('开始使用工具', 'Explore Tools')}
-            </motion.button>
-            <motion.button
+            </MagneticButton>
+            <MagneticButton
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/games')}
               className="bg-white text-primary font-bold text-base py-3.5 px-8 rounded-2xl shadow-[0_6px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_24px_rgba(184,228,201,0.4)] dark:bg-surface-container dark:hover:shadow-[0_10px_24px_rgba(47,67,55,0.4)] transition-all duration-300 flex items-center justify-center gap-2.5 border border-primary-container/30"
             >
               <Gamepad2 className="w-5 h-5" />
               {t('玩个小游戏', 'Play a Game')}
-            </motion.button>
+            </MagneticButton>
           </div>
         </div>
       </section>

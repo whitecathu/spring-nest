@@ -306,20 +306,77 @@ body {
 
 .hover-glow:hover {
   box-shadow:
-    0 15px 35px -5px rgba(184, 228, 201, 0.5),
-    0 8px 15px -5px rgba(184, 228, 201, 0.3);
-  transform: translateY(-4px);
+    0 15px 35px -8px rgba(184, 228, 201, 0.42),
+    0 8px 15px -8px rgba(184, 228, 201, 0.24);
 }
 
 .dark .hover-glow:hover {
   box-shadow:
-    0 15px 35px -5px rgba(47, 67, 55, 0.5),
-    0 8px 15px -5px rgba(47, 67, 55, 0.3);
+    0 15px 35px -8px rgba(47, 67, 55, 0.46),
+    0 8px 15px -8px rgba(47, 67, 55, 0.28);
 }
 
 .btn-gradient {
   background: linear-gradient(135deg, var(--color-primary-container) 0%, var(--color-primary) 100%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Motion surfaces: 3D glare without layout reads after pointer position ── */
+.tilt-card-shell {
+  position: relative;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  contain: layout paint style;
+  will-change: transform;
+}
+
+.tilt-card-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.34), transparent 35%),
+    linear-gradient(315deg, rgba(184, 228, 201, 0.28), transparent 42%);
+  transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+
+.tilt-card-shell:hover::after {
+  opacity: 1;
+}
+
+.tilt-card-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tilt-card-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .tilt-card-shell {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .tilt-card-shell::after,
+  .tilt-card-glare {
+    display: none;
+  }
 }
 
 /* ── Scroll-triggered reveal utilities ── */
@@ -372,18 +429,6 @@ body {
   }
   .scrollbar-hide > button {
     scroll-snap-align: center;
-  }
-}
-
-/* Touch feedback for interactive elements */
-@media (hover: none) and (pointer: coarse) {
-  .glass-card:active {
-    transform: scale(0.98);
-    transition: transform 0.1s ease;
-  }
-  .glass-pill:active {
-    transform: scale(0.95);
-    transition: transform 0.1s ease;
   }
 }
 

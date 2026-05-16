@@ -1,17 +1,19 @@
-import { Suspense, lazy, useEffect, useRef } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import PwaUpdatePrompt from './components/PwaUpdatePrompt';
 import StartupSplash from './components/StartupSplash';
 import ParticleBackground from './components/ParticleBackground';
+import DynamicSpringBackground from './components/animations/DynamicSpringBackground';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useReducedMotion, pageTransitionVariants, softEase } from './lib/animations';
 import { trackPageView } from './lib/analytics';
 import { useSwipeNavigation } from './lib/useSwipeNavigation';
+import { getBackgroundProfileForLocation } from './lib/backgroundProfiles';
 import { Leaf } from 'lucide-react';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -119,7 +121,13 @@ function PageWrapper({
 }) {
   if (reducedMotion) return children;
   return (
-    <motion.div initial="initial" animate="animate" exit="exit" variants={pageTransitionVariants}>
+    <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransitionVariants}
+      style={{ transformOrigin: '50% 18%', willChange: 'transform, opacity' }}
+    >
       {children}
     </motion.div>
   );
@@ -130,6 +138,10 @@ export default function App() {
   const reducedMotion = useReducedMotion();
   const { onTouchStart, onTouchEnd } = useSwipeNavigation();
   const mainRef = useRef<HTMLElement>(null);
+  const backgroundProfile = useMemo(
+    () => getBackgroundProfileForLocation(location.pathname, location.search),
+    [location.pathname, location.search],
+  );
 
   useEffect(() => {
     trackPageView(`${location.pathname}${location.search}`);
@@ -147,155 +159,158 @@ export default function App() {
     <ThemeProvider>
       <UserProvider>
         <ErrorBoundary>
-          <div
-            className="relative flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden bg-background font-sans text-on-surface selection:bg-primary-container selection:text-on-primary-container transition-colors duration-300"
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-          >
-            <Navigation />
-            <main
-              ref={mainRef}
-              className="flex-1 overflow-y-auto overflow-x-hidden relative overscroll-y-contain"
+          <MotionConfig reducedMotion="user">
+            <div
+              className="relative isolate flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden bg-background font-sans text-on-surface selection:bg-primary-container selection:text-on-primary-container transition-colors duration-300"
+              onTouchStart={onTouchStart}
+              onTouchEnd={onTouchEnd}
             >
-              <Suspense fallback={<LoadingFallback />}>
-                <AnimatePresence mode="wait">
-                  <Routes location={location} key={location.pathname}>
-                    <Route
-                      path="/"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Home />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/games"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Games />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/games/:slug"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Games />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/tools"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Tools />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/tools/:slug"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Tools />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/about"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <About />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/profile"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Profile />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/favorites"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Favorites />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/leaderboard"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Leaderboard />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/admin"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Admin />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/feedback"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Feedback />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/privacy"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Privacy />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/terms"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Terms />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/offline"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <Offline />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="/search"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <SearchResults />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="*"
-                      element={
-                        <PageWrapper reducedMotion={reducedMotion}>
-                          <NotFound />
-                        </PageWrapper>
-                      }
-                    />
-                  </Routes>
-                </AnimatePresence>
-              </Suspense>
-              <Footer />
-            </main>
-            <PwaUpdatePrompt />
-            <StartupSplash />
-          </div>
+              <DynamicSpringBackground profile={backgroundProfile} />
+              <Navigation />
+              <main
+                ref={mainRef}
+                className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain [perspective:1400px]"
+              >
+                <Suspense fallback={<LoadingFallback />}>
+                  <AnimatePresence mode="wait">
+                    <Routes location={location} key={location.pathname}>
+                      <Route
+                        path="/"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Home />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/games"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Games />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/games/:slug"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Games />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/tools"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Tools />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/tools/:slug"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Tools />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/about"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <About />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/profile"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Profile />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/favorites"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Favorites />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/leaderboard"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Leaderboard />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/admin"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Admin />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/feedback"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Feedback />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/privacy"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Privacy />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/terms"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Terms />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/offline"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <Offline />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="/search"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <SearchResults />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="*"
+                        element={
+                          <PageWrapper reducedMotion={reducedMotion}>
+                            <NotFound />
+                          </PageWrapper>
+                        }
+                      />
+                    </Routes>
+                  </AnimatePresence>
+                </Suspense>
+                <Footer />
+              </main>
+              <PwaUpdatePrompt />
+              <StartupSplash />
+            </div>
+          </MotionConfig>
         </ErrorBoundary>
       </UserProvider>
     </ThemeProvider>

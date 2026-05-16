@@ -6,7 +6,7 @@
 
 <!-- AUTO:STATS_START -->
 
-Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 28 个效率工具和 19 个休闲小游戏，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
+Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 29 个效率工具和 19 个休闲小游戏，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
 
 <!-- AUTO:STATS_END -->
 
@@ -43,7 +43,7 @@ Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，�
 - 排行榜系统（需配置 Supabase）
 - 后台管理页面（需配置 Supabase）
 
-### 工具列表（共 28 个）
+### 工具列表（共 29 个）
 
 <!-- AUTO:TOOLS_START -->
 
@@ -77,6 +77,7 @@ Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，�
 | [Word 转 PDF](/tools/word-to-pdf)         | 上传 .docx 文件，在浏览器本地生成 PDF，尽量保留文本、标题、表格和图片。                                 | 文档转换 |
 | [PDF 转 Word](/tools/pdf-to-word)         | 上传文本型 PDF，在浏览器本地提取文字并生成 .docx，适合整理可复制文本。                                  | 文档转换 |
 | [复习小筑](/tools/question-bank-importer) | 把 txt、md、csv、json、zip、rar、docx 题库和兼容式 doc 文本整理成可搜索、可复习、可导出的本地学习卡片。 | 学习写作 |
+| [本地记账](/tools/bookkeeping)            | 快速记录收入和支出，按月查看结余、分类占比和明细，并导出 CSV 备份。                                     | 日常实用 |
 
 <!-- AUTO:TOOLS_END -->
 
@@ -175,7 +176,7 @@ src/
 ├── components/          # 公共组件 (Navigation, Footer, LoginModal, ErrorBoundary)
 ├── pages/               # 页面组件
 │   ├── games/           # 19 个游戏
-│   └── tools/           # 28 个工具
+│   └── tools/           # 29 个工具
 ├── __tests__/           # 单元测试 (Vitest)
 ├── App.tsx              # 路由配置
 └── main.tsx             # 入口文件

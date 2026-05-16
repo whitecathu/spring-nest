@@ -1,6 +1,6 @@
 /**
  * Centralized animation presets for Spring Nest.
- * "Q弹丝滑" = bouncy springs + silky smooth transitions.
+ * Motion stays on transform and opacity so the playful layer keeps a stable frame budget.
  */
 
 import { useState, useEffect } from 'react';
@@ -15,41 +15,73 @@ export const springSmooth = { type: 'spring' as const, stiffness: 300, damping: 
 /** Snappy spring — fast, responsive (hover, focus) */
 export const springSnappy = { type: 'spring' as const, stiffness: 500, damping: 25, mass: 0.6 };
 
+/** Weighted hover spring for 3D cards and magnetic controls */
+export const springMagnetic = { type: 'spring' as const, stiffness: 180, damping: 22, mass: 0.35 };
+
+/** Confident ease-out curve for cinematic entrances */
+export const easeOutExpo = [0.16, 1, 0.3, 1] as const;
+
 // ── Shared Grid Variants (Games & Tools) ────────────────────
 /** Staggered container for card grids with smooth exit */
 export const gridContainerVariants = {
   initial: {},
   animate: {
-    transition: { staggerChildren: 0.04, delayChildren: 0.02 },
+    transition: { staggerChildren: 0.04, delayChildren: 0.035 },
   },
   exit: {
-    transition: { staggerChildren: 0.025, staggerDirection: -1 },
+    transition: { staggerChildren: 0.018, staggerDirection: -1 },
   },
 };
 
-/** Card entrance: spring-bouncy rise with scale */
+/** Card entrance: spatial matrix drop with transform-only motion */
 export const gridCardVariants = {
-  initial: { opacity: 0, y: 24, scale: 0.92 },
+  initial: {
+    opacity: 0,
+    y: 28,
+    scale: 0.96,
+    rotateX: -6,
+    transformPerspective: 1100,
+  },
   animate: {
     opacity: 1,
     y: 0,
+    rotateX: 0,
     scale: 1,
-    transition: springBouncy,
+    transition: { ...springBouncy, stiffness: 240, damping: 23 },
   },
   exit: {
     opacity: 0,
-    scale: 0.92,
-    y: -12,
-    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] as const },
+    scale: 0.985,
+    y: -10,
+    rotateX: 3,
+    transition: { duration: 0.18, ease: [0.4, 0, 1, 1] as const },
   },
 };
 
 // ── Page Transition ─────────────────────────────────────────
-/** Route-level page transition — fade + slide-up */
+/** Route-level page transition — spatial lift, no filters or layout animation */
 export const pageTransitionVariants = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const } },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
+  initial: {
+    opacity: 0,
+    y: 22,
+    scale: 0.985,
+    rotateX: 3,
+    transformPerspective: 1400,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    rotateX: 0,
+    transition: { duration: 0.36, ease: easeOutExpo },
+  },
+  exit: {
+    opacity: 0,
+    y: -12,
+    scale: 0.99,
+    rotateX: -2,
+    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] as const },
+  },
 };
 
 /** Tool page wrapper — fade + slide-up entrance, used by individual tool pages */

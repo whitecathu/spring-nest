@@ -28,6 +28,7 @@ const TextToSpeech = lazy(() => import('../pages/tools/TextToSpeech'));
 const WordToPdf = lazy(() => import('../pages/tools/WordToPdf'));
 const PdfToWord = lazy(() => import('../pages/tools/PdfToWord'));
 const QuestionBankImporter = lazy(() => import('../pages/tools/QuestionBankImporter'));
+const Bookkeeping = lazy(() => import('../pages/tools/Bookkeeping'));
 
 export type ToolComponent = LazyExoticComponent<ComponentType<{ onBack: () => void }>>;
 
@@ -60,4 +61,5 @@ export const toolComponents: Record<string, ToolComponent> = {
   'tool-26': WordToPdf,
   'tool-27': PdfToWord,
   'tool-28': QuestionBankImporter,
+  'tool-29': Bookkeeping,
 };

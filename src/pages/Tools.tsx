@@ -1,14 +1,4 @@
-import {
-  ArrowLeft,
-  ArrowUpDown,
-  BookOpen,
-  Heart,
-  Info,
-  Play,
-  Search,
-  Shield,
-  Wrench,
-} from 'lucide-react';
+import { ArrowLeft, ArrowUpDown, Heart, Info, Play, Search, Shield, Wrench } from 'lucide-react';
 import { useState, useMemo, Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -25,12 +15,15 @@ import {
   springSnappy,
   gridContainerVariants,
   gridCardVariants,
+  useReducedMotion,
 } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
 import { getPrimaryToolCategorySlug, getToolCategoryBySlug } from '../lib/catalogRoutes';
 import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
 import type { AppItem } from '../types/app';
 import { toolComponents } from '../registries/toolRegistry';
+import { TiltGlareCard, MagneticButton } from '../components/MotionSurface';
+import { setBackgroundIntent } from '../lib/backgroundIntent';
 
 const toolsWithInternalH1 = new Set([
   'tool-12',
@@ -108,10 +101,18 @@ export default function Tools() {
   const categoryRoute = getToolCategoryBySlug(slug);
   const [query, setQuery] = useState('');
   const pillContainerRef = useRef<HTMLDivElement>(null);
-  const [pillLayout, setPillLayout] = useState<{ left: number; width: number }>({
+  const [pillLayout, setPillLayout] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  }>({
     left: 0,
+    top: 0,
     width: 0,
+    height: 0,
   });
+  const reducedMotion = useReducedMotion();
 
   const categories = useMemo(() => {
     const cats = [...new Set(tools.map((t) => t.category))];
@@ -154,7 +155,11 @@ export default function Tools() {
       const container = pillContainerRef.current;
       if (!container) return;
       const activePill = container.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
-      activePill?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      activePill?.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        inline: 'nearest',
+        block: 'nearest',
+      });
     });
   };
 
@@ -166,10 +171,19 @@ export default function Tools() {
       const containerRect = container.getBoundingClientRect();
       const pillRect = activePill.getBoundingClientRect();
       const newLeft = pillRect.left - containerRect.left + container.scrollLeft;
+      const newTop = pillRect.top - containerRect.top + container.scrollTop;
       const newWidth = pillRect.width;
+      const newHeight = pillRect.height;
       setPillLayout((prev) => {
-        if (prev.left === newLeft && prev.width === newWidth) return prev;
-        return { left: newLeft, width: newWidth };
+        if (
+          prev.left === newLeft &&
+          prev.top === newTop &&
+          prev.width === newWidth &&
+          prev.height === newHeight
+        ) {
+          return prev;
+        }
+        return { left: newLeft, top: newTop, width: newWidth, height: newHeight };
       });
     }
   };
@@ -229,6 +243,16 @@ export default function Tools() {
       return (b.popularScore ?? 0) - (a.popularScore ?? 0);
     });
   }, [activeCategory, query, sortMode, t]);
+
+  useEffect(() => {
+    if (!query.trim()) {
+      setBackgroundIntent('none');
+      return;
+    }
+
+    setBackgroundIntent(filteredTools.length === 0 ? 'empty' : 'search');
+    return () => setBackgroundIntent('none');
+  }, [filteredTools.length, query]);
 
   const activeTool = useMemo(
     () => tools.find((t) => t.id === activeToolId) || null,
@@ -459,33 +483,12 @@ export default function Tools() {
         )}
       />
 
-      {/* Background blur orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-0 left-[10%] w-24 h-24 bg-tertiary-container/40 rounded-full blur-2xl animate-float"></div>
-        <div className="absolute top-10 right-[15%] w-32 h-32 bg-primary-container/30 rounded-full blur-3xl animate-float-slow"></div>
-      </div>
-
       <motion.header
-        initial={{ opacity: 0, y: 30 }}
+        initial={reducedMotion ? false : { opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={reducedMotion ? { duration: 0.01 } : { duration: 0.6 }}
         className="text-center mb-12 sm:mb-16 lg:mb-20 relative pt-16 pb-8"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-container/20 to-transparent -z-10 rounded-3xl blur-2xl"></div>
-
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-        >
-          <Wrench className="absolute top-4 right-[25%] text-primary/20 w-10 h-10 pointer-events-none" />
-        </motion.div>
-        <motion.div
-          animate={{ rotate: -360 }}
-          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-        >
-          <BookOpen className="absolute bottom-8 left-[20%] text-tertiary/20 w-8 h-8 pointer-events-none" />
-        </motion.div>
-
         <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#274e3a] dark:text-primary mb-6 flex items-center justify-center gap-4">
           {categoryRoute
             ? t(categoryRoute.label, categoryRoute.labelEn)
@@ -544,19 +547,29 @@ export default function Tools() {
         className="flex overflow-x-auto flex-nowrap sm:flex-wrap scrollbar-hide justify-center gap-4 mb-16 relative"
       >
         <motion.div
-          className="absolute top-0 h-full bg-primary rounded-full shadow-lg shadow-primary/30 pointer-events-none"
-          animate={{ left: pillLayout.left, width: pillLayout.width }}
-          transition={springSmooth}
-          style={{ zIndex: 0 }}
+          className="absolute left-0 top-0 bg-primary rounded-full shadow-lg shadow-primary/30 pointer-events-none"
+          initial={false}
+          animate={{
+            opacity: pillLayout.width ? 1 : 0,
+            x: Math.max(0, pillLayout.left),
+            y: Math.max(0, pillLayout.top),
+          }}
+          transition={reducedMotion ? { duration: 0.01 } : springSmooth}
+          style={{
+            zIndex: 0,
+            width: Math.max(1, pillLayout.width),
+            height: Math.max(1, pillLayout.height),
+            willChange: reducedMotion ? 'auto' : 'transform',
+          }}
         />
         {categories.map((cat) => (
           <motion.button
             key={cat.id}
             onClick={() => handleCategorySwitch(cat.id)}
             aria-pressed={activeCategory === cat.id}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            transition={springSnappy}
+            whileHover={reducedMotion ? undefined : { scale: 1.05 }}
+            whileTap={reducedMotion ? undefined : { scale: 0.95 }}
+            transition={reducedMotion ? undefined : springSnappy}
             className={`shrink-0 px-8 py-3 min-h-[48px] rounded-full font-semibold text-sm relative z-[1] transition-colors duration-300 ${
               activeCategory === cat.id
                 ? 'text-on-primary'
@@ -600,16 +613,20 @@ export default function Tools() {
             </motion.div>
           ) : (
             filteredTools.map((tool) => (
-              <motion.div
+              <TiltGlareCard
                 key={tool.id}
                 variants={gridCardVariants}
-                whileHover={{ y: -6, transition: springBouncy }}
-                whileTap={{ scale: 0.97 }}
-                className="glass-card rounded-3xl p-8 transition-all duration-500 hover-glow group"
+                whileHover={reducedMotion ? undefined : { y: -6, transition: springBouncy }}
+                whileTap={reducedMotion ? undefined : { scale: 0.97 }}
+                className="glass-card rounded-3xl p-8 transition-colors duration-500 hover-glow group"
               >
                 <div className="flex flex-col items-center text-center gap-6 mb-6">
                   <div
-                    className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)] transition-all duration-500 relative text-4xl`}
+                    className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner ${
+                      reducedMotion
+                        ? ''
+                        : 'group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)]'
+                    } transition-[box-shadow,transform] duration-500 relative text-4xl`}
                   >
                     {tool.image ? (
                       <>
@@ -640,7 +657,7 @@ export default function Tools() {
                 <div className="flex justify-between items-center">
                   <button
                     onClick={() => toggle(tool.id)}
-                    className={`p-2 min-h-[48px] min-w-[48px] rounded-full transition-all ${
+                    className={`p-2 min-h-[48px] min-w-[48px] rounded-full transition-colors ${
                       favoriteIds.includes(tool.id)
                         ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
                         : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
@@ -655,17 +672,18 @@ export default function Tools() {
                       className={`w-5 h-5 ${favoriteIds.includes(tool.id) ? 'fill-current' : ''}`}
                     />
                   </button>
-                  <motion.button
+                  <MagneticButton
                     onClick={() => handleOpen(tool.id)}
-                    whileHover={{ scale: 1.05, transition: springBouncy }}
-                    whileTap={{ scale: 0.93 }}
-                    className="py-4 px-8 rounded-xl btn-gradient text-on-primary font-semibold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all"
+                    whileHover={
+                      reducedMotion ? undefined : { scale: 1.04, transition: springBouncy }
+                    }
+                    className="py-4 px-8 rounded-xl btn-gradient text-on-primary font-semibold text-sm shadow-md flex items-center gap-2 transition-colors"
                   >
                     <Play className="w-4 h-4" />
                     {t('打开工具', 'Open Tool')}
-                  </motion.button>
+                  </MagneticButton>
                 </div>
-              </motion.div>
+              </TiltGlareCard>
             ))
           )}
         </motion.div>

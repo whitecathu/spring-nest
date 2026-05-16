@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Home, Search, ArrowLeft, Leaf, Cloud, Flower2 } from 'lucide-react';
+import { Home, Search, ArrowLeft, Leaf } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import SEO from '../components/SEO';
 import { tools } from '../data/tools';
@@ -21,31 +21,6 @@ export default function NotFound() {
         )}
         noindex
       />
-      {/* Floating background elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <motion.div
-          animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-20 left-[10%] opacity-20 text-primary-container"
-        >
-          <Cloud className="w-24 h-24 fill-primary-container" />
-        </motion.div>
-        <motion.div
-          animate={{ y: [0, 15, 0], x: [0, -10, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute bottom-20 right-[15%] opacity-15 text-tertiary-container"
-        >
-          <Cloud className="w-32 h-32 fill-tertiary-container" />
-        </motion.div>
-        <motion.div
-          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-          className="absolute top-[30%] right-[20%] opacity-20 text-tertiary-container"
-        >
-          <Flower2 className="w-12 h-12 fill-tertiary-container" />
-        </motion.div>
-      </div>
-
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

@@ -6,6 +6,7 @@ import { useUser } from '../contexts/UserContext';
 import { search, type SearchResult } from '../services/searchService';
 import { getRecommendedForEmpty } from '../lib/recommendations';
 import SEO from '../components/SEO';
+import { setBackgroundIntent } from '../lib/backgroundIntent';
 
 /** Safely highlight query matches in text without dangerouslySetInnerHTML */
 function HighlightText({ text, query }: { text: string; query: string }) {
@@ -85,6 +86,16 @@ export default function SearchResults() {
   useEffect(() => {
     setDraftQuery(query);
   }, [query]);
+
+  useEffect(() => {
+    if (!query.trim()) {
+      setBackgroundIntent('none');
+      return;
+    }
+
+    setBackgroundIntent(allResults.length === 0 ? 'empty' : 'search');
+    return () => setBackgroundIntent('none');
+  }, [allResults.length, query]);
 
   const tabs: { key: TypeFilter; label: string; count: number }[] = [
     { key: 'all', label: t('全部', 'All'), count: allResults.length },

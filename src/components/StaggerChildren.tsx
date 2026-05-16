@@ -1,5 +1,6 @@
 import { motion, useInView } from 'motion/react';
 import { useRef, type ReactNode } from 'react';
+import { useReducedMotion } from '../lib/animations';
 
 interface StaggerChildrenProps {
   children: ReactNode;
@@ -14,6 +15,11 @@ export default function StaggerChildren({
 }: StaggerChildrenProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-40px' });
+  const reducedMotion = useReducedMotion();
+
+  if (reducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <motion.div
