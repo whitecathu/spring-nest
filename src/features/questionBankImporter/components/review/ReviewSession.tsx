@@ -151,6 +151,17 @@ export function ReviewSession() {
       return;
     }
     setSelected([value]);
+    // Single/judge: auto-submit on click
+    const result = isCorrect(question, [value]);
+    setSubmitted(true);
+    setCorrect(result);
+    setAnswerVisible(true);
+    setSessionStats((stats) => ({
+      answered: stats.answered + 1,
+      correct: stats.correct + (result ? 1 : 0),
+      wrong: stats.wrong + (result ? 0 : 1),
+    }));
+    actions.recordAnswer(question.id, result);
   }
 
   function submitChoice() {
@@ -454,23 +465,29 @@ export function ReviewSession() {
           <div className="space-y-3 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.54)] p-4">
             <p className="text-xs font-semibold text-[var(--color-muted)]">选项</p>
             <div className="grid gap-2 md:grid-cols-2">
-              {options.map((option, index) => (
-                <div
-                  key={`${index}-${option}`}
-                  className="rounded-2xl bg-[color:rgb(255_255_255_/_0.72)] px-3 py-2 text-sm text-[var(--color-ink)]"
-                >
-                  {option}
-                </div>
-              ))}
+              {options.map((option, index) => {
+                const key = optionKey(option);
+                const isCorrectOption =
+                  question.type === 'judge' ? isCorrect(question, [key]) : expected.includes(key);
+                return (
+                  <div
+                    key={`${index}-${option}`}
+                    className={`rounded-2xl px-3 py-2 text-sm font-semibold ${
+                      isCorrectOption
+                        ? 'border border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
+                        : 'bg-[color:rgb(255_255_255_/_0.72)] text-[var(--color-ink)]'
+                    }`}
+                  >
+                    {option}
+                    {isCorrectOption ? <Check size={14} className="ml-1 inline" aria-hidden="true" /> : null}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : null}
 
-        {isAnalysis ? (
-          <p className="rounded-2xl bg-[var(--color-primary-soft)] px-4 py-3 text-sm font-semibold leading-6 text-[var(--color-primary)]">
-            只看解析模式不会计入正确率。需要重练时，可以切回刷题或背答案模式。
-          </p>
-        ) : isMemorize ? (
+        {isMemorize ? (
           <div className="space-y-3">
             <SoftButton
               icon={<Eye size={17} aria-hidden="true" />}
@@ -543,13 +560,15 @@ export function ReviewSession() {
               })}
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <SoftButton
-                variant="primary"
-                onClick={submitChoice}
-                disabled={!selected.length || submitted}
-              >
-                提交答案
-              </SoftButton>
+              {question.type === 'multiple' ? (
+                <SoftButton
+                  variant="primary"
+                  onClick={submitChoice}
+                  disabled={!selected.length || submitted}
+                >
+                  提交答案
+                </SoftButton>
+              ) : null}
               {submitted ? (
                 <span
                   className={`rounded-full px-3 py-2 text-sm font-semibold ${
@@ -596,7 +615,7 @@ export function ReviewSession() {
           </div>
         )}
 
-        <AnswerPanel question={question} visible={answerVisible} />
+        <AnswerPanel question={question} visible={answerVisible} hideAnswer={isMemorize || isAnalysis} />
 
         {question.tags?.length ? (
           <div className="flex flex-wrap gap-2">
