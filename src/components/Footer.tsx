@@ -13,12 +13,12 @@ export default function Footer() {
       <motion.div
         animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -top-32 -right-32 w-96 h-96 bg-primary-container/20 rounded-full blur-[100px] pointer-events-none"
+        className="pointer-events-none absolute right-0 top-0 h-56 w-56 rounded-full bg-primary-container/20 blur-[70px] sm:h-96 sm:w-96 sm:blur-[100px]"
       ></motion.div>
       <motion.div
         animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.7, 0.5] }}
         transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute -bottom-32 -left-32 w-96 h-96 bg-tertiary-container/20 rounded-full blur-[100px] pointer-events-none"
+        className="pointer-events-none absolute bottom-0 left-0 h-56 w-56 rounded-full bg-tertiary-container/20 blur-[70px] sm:h-96 sm:w-96 sm:blur-[100px]"
       ></motion.div>
 
       <div className="max-w-7xl mx-auto px-6 py-20 flex flex-col items-center text-center gap-10 relative z-10">

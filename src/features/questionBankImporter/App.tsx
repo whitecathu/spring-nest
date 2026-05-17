@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Clock, Download, Server, Target, Trash2 } from 'lucide-react';
+import { Clock, Download, HardDrive, Server, ShieldCheck, Target, Trash2 } from 'lucide-react';
 import { routes } from './app/routes';
 import { AppShell } from './components/layout/AppShell';
 import { GlassCard } from './components/common/GlassCard';
 import { SoftButton } from './components/common/SoftButton';
+import { ReviewWorkbench } from './components/dashboard/ReviewWorkbench';
 import { UploadPanel } from './components/upload/UploadPanel';
 import { QuestionList } from './components/question/QuestionList';
 import { ReviewSession } from './components/review/ReviewSession';
@@ -36,27 +37,68 @@ function SettingsPanel() {
 
   return (
     <div className="space-y-5">
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-semibold text-[var(--color-primary)]">设置</p>
-        <h1 className="mt-1 text-3xl font-bold text-[var(--color-ink)]">本地数据与后端接入</h1>
+        <h1 className="mt-1 text-2xl font-bold leading-8 text-[var(--color-ink)] md:text-3xl">
+          本地数据与备份
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
+          题库默认保存在本机浏览器，不上传服务器。换设备、清理浏览器或重装系统前，请先导出 JSON 备份。
+        </p>
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
-        <GlassCard>
-          <h2 className="text-xl font-bold text-[var(--color-ink)]">本地题库</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-            当前共有 {questions.length} 道题、{importedFiles.length} 份导入报告。数据保存在浏览器
-            本地存储中，并在可用时使用 IndexedDB 作为大题库备份。
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+        <GlassCard className="min-w-0">
+          <div className="flex items-start gap-3">
+            <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+              <HardDrive size={20} aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold text-[var(--color-ink)]">本地题库</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+                当前共有 {questions.length} 道题、{importedFiles.length}{' '}
+                份导入报告。数据保存在 localStorage，并在可用时写入 IndexedDB。
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3">
             <SoftButton
+              className="w-full justify-center"
               variant="primary"
               icon={<Download size={17} aria-hidden="true" />}
               onClick={actions.exportJson}
               disabled={!questions.length}
             >
-              导出 JSON
+              导出 JSON 备份
             </SoftButton>
+            <p className="text-xs leading-5 text-[var(--color-muted)]">
+              建议定期导出备份，尤其是手机浏览器空间清理前。
+            </p>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="min-w-0">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-1 shrink-0 text-[var(--color-primary)]" size={20} aria-hidden="true" />
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold text-[var(--color-ink)]">隐私与离线</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+                文件解析、搜索、复习记录都在本机完成。没有云同步，也不会伪装成云端保存；离线时可继续查看已导入题库和错题。
+              </p>
+              <p className="mt-3 rounded-2xl bg-[var(--color-primary-soft)] px-4 py-3 text-sm font-semibold text-[var(--color-primary)]">
+                可把 Spring Nest 添加到手机主屏幕，缓存后随时离线复习。
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="min-w-0">
+          <h2 className="text-xl font-bold text-[var(--color-ink)]">危险操作</h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+            清空会删除本地题库、错题、收藏和复习记录。此操作不会影响你已经导出的 JSON 备份。
+          </p>
+          <div className="mt-5">
             <SoftButton
+              className="w-full justify-center"
               variant="danger"
               icon={<Trash2 size={17} aria-hidden="true" />}
               onClick={clearData}
@@ -66,19 +108,19 @@ function SettingsPanel() {
           </div>
         </GlassCard>
 
-        <GlassCard>
+        <GlassCard className="min-w-0">
           <div className="flex items-start gap-3">
             <Target className="mt-1 text-[var(--color-primary)]" size={20} aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-bold text-[var(--color-ink)]">今日复习计划</h2>
+              <h2 className="text-xl font-bold text-[var(--color-ink)]">复习建议</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                已完成 {reviewPlan.todayAnswered} / {reviewPlan.dailyTarget} 题，连续复习{' '}
-                {reviewPlan.streakDays} 天。目标只保存在本地。
+                本地已记录 {reviewPlan.todayAnswered} 次复习反馈。本次建议数量为{' '}
+                {reviewPlan.dailyTarget} 题，偏好只保存在本地。
               </p>
               <form className="mt-5 grid gap-3 sm:grid-cols-2" onSubmit={savePlan}>
                 <label className="block">
                   <span className="mb-2 block text-sm font-semibold text-[var(--color-ink)]">
-                    每日题量
+                    建议题量
                   </span>
                   <input
                     type="number"
@@ -86,7 +128,7 @@ function SettingsPanel() {
                     max={300}
                     value={dailyTarget}
                     onChange={(event) => setDailyTarget(event.target.value)}
-                    className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 text-sm"
+                    className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 text-base md:text-sm"
                   />
                 </label>
                 <label className="block">
@@ -99,7 +141,7 @@ function SettingsPanel() {
                     max={180}
                     value={sessionMinutes}
                     onChange={(event) => setSessionMinutes(event.target.value)}
-                    className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 text-sm"
+                    className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.72)] px-3 text-base md:text-sm"
                   />
                 </label>
                 <SoftButton
@@ -114,10 +156,10 @@ function SettingsPanel() {
           </div>
         </GlassCard>
 
-        <GlassCard>
+        <GlassCard className="min-w-0">
           <div className="flex items-start gap-3">
             <Server className="mt-1 text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <div>
+            <div className="min-w-0">
               <h2 className="text-xl font-bold text-[var(--color-ink)]">高级格式说明</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
                 当前使用本地解析与本地保存，不会把文件上传到服务器。Excel、PDF、OCR 或 7Z
@@ -128,7 +170,7 @@ function SettingsPanel() {
         </GlassCard>
       </div>
 
-      <GlassCard>
+      <GlassCard className="min-w-0">
         <h2 className="text-xl font-bold text-[var(--color-ink)]">支持格式</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {supportedFormats.map((format) => (
@@ -156,6 +198,7 @@ function SettingsPanel() {
 function ActiveView() {
   const activeView = useQuestionBankStore((state) => state.activeView);
 
+  if (activeView === 'workbench') return <ReviewWorkbench />;
   if (activeView === 'bank') return <QuestionList />;
   if (activeView === 'review') return <ReviewSession />;
   if (activeView === 'wrong') return <WrongBook />;

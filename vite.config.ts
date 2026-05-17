@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,woff2,rar}'],
         globIgnores: [
           '**/assets/word-to-pdf-vendor-*.js',
           '**/assets/pdf-to-word-vendor-*.js',
@@ -128,6 +128,7 @@ export default defineConfig(({ mode }) => {
             'word-to-pdf-vendor': ['mammoth', 'html2pdf.js'],
             'pdf-to-word-vendor': ['pdfjs-dist', 'docx'],
             'question-bank-vendor': ['zustand', 'jszip', 'node-unrar-js'],
+            'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
           },
         },
       },

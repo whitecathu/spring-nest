@@ -35,7 +35,7 @@ function SingleSkeletonCard({ variant = 'game' }: Pick<SkeletonCardProps, 'varia
       <div
         role="status"
         aria-label="Loading"
-        className="glass-card rounded-3xl p-8 flex flex-col items-center gap-6 animate-fade-in"
+        className="surface-raised rounded-3xl p-8 flex flex-col items-center gap-6 animate-fade-in"
       >
         {/* Icon placeholder */}
         <div
@@ -103,7 +103,7 @@ function SingleSkeletonCard({ variant = 'game' }: Pick<SkeletonCardProps, 'varia
     <div
       role="status"
       aria-label="Loading"
-      className="bg-white dark:bg-surface-container-high rounded-xl p-6 shadow-[0_8px_30px_rgba(217,239,224,0.4)] dark:shadow-none flex flex-col gap-4 animate-fade-in"
+      className="surface-playful rounded-3xl p-6 flex flex-col gap-4 animate-fade-in"
     >
       {/* Image placeholder */}
       <div

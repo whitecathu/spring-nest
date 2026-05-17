@@ -14,9 +14,10 @@ import type {
   ReviewSessionSnapshot,
   QuestionType,
   ReviewMeta,
+  ReviewRecallResult,
 } from '../types/question';
 
-export type AppView = 'import' | 'bank' | 'review' | 'wrong' | 'settings';
+export type AppView = 'workbench' | 'import' | 'bank' | 'review' | 'wrong' | 'settings';
 export type SortMode = 'recent' | 'reviewed' | 'wrong' | 'mastery';
 export type ReviewMode = ReviewSessionMode;
 
@@ -66,6 +67,10 @@ interface QuestionBankState {
     markWrong: (questionId: string) => void;
     removeWrong: (questionId: string) => void;
     recordAnswer: (questionId: string, correct: boolean) => void;
+    recordRecall: (
+      questionId: string,
+      result: Exclude<ReviewRecallResult, 'correct' | 'wrong'>,
+    ) => void;
     clearBank: () => void;
     exportJson: () => Promise<void>;
     importBackupJson: (file: File) => Promise<void>;
@@ -170,6 +175,54 @@ function updateBank(
 function scoreMastery(meta: ReviewMeta, correct: boolean): number {
   const delta = correct ? 18 : -24;
   return Math.max(0, Math.min(100, meta.masteryLevel + delta));
+}
+
+function addDays(date: Date, days: number): string {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next.toISOString();
+}
+
+function nextIntervalDays(meta: ReviewMeta, result: ReviewRecallResult): number {
+  const current = Math.max(0, meta.intervalDays ?? 0);
+  if (result === 'remember' || result === 'correct') {
+    return current <= 0 ? 2 : Math.min(30, current * 2);
+  }
+  if (result === 'vague') return Math.max(1, Math.min(3, current || 1));
+  return 1;
+}
+
+function nextConfidence(result: ReviewRecallResult): 1 | 2 | 3 | 4 | 5 {
+  if (result === 'remember' || result === 'correct') return 4;
+  if (result === 'vague') return 2;
+  return 1;
+}
+
+function isPositiveRecall(result: ReviewRecallResult): boolean {
+  return result === 'remember' || result === 'correct';
+}
+
+function applyRecallResult(
+  meta: ReviewMeta,
+  result: ReviewRecallResult,
+  answeredAt: Date,
+): ReviewMeta {
+  const positive = isPositiveRecall(result);
+  const intervalDays = nextIntervalDays(meta, result);
+  return {
+    ...meta,
+    wrongCount: meta.wrongCount + (positive ? 0 : 1),
+    correctCount: meta.correctCount + (positive ? 1 : 0),
+    lastReviewedAt: answeredAt.toISOString(),
+    lastWrongAt: positive ? meta.lastWrongAt : answeredAt.toISOString(),
+    lastAnsweredCorrect: positive,
+    masteryLevel: scoreMastery(meta, positive),
+    confidence: nextConfidence(result),
+    intervalDays,
+    dueAt: addDays(answeredAt, intervalDays),
+    lapses: (meta.lapses ?? 0) + (positive ? 0 : 1),
+    lastResult: result,
+  };
 }
 
 function localDateKey(date = new Date()): string {
@@ -318,7 +371,7 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
   lastReviewSession: undefined,
   currentReviewQuestionIds: [],
   currentReviewIndex: 0,
-  activeView: 'import',
+  activeView: 'workbench',
   isParsing: false,
   actions: {
     async loadFromStorage() {
@@ -439,7 +492,7 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
             reviewMeta,
             importedFiles: [...reports, ...bank.importedFiles],
           })),
-          activeView: 'bank',
+          activeView: 'workbench',
           toast: {
             kind: added ? 'success' : 'warning',
             message: added ? `已导入 ${added} 题。` : '没有新增题目，可能已存在。',
@@ -540,18 +593,25 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
       set((state) => {
         const bank = ensureBank(state);
         const current = bank.reviewMeta[questionId] ?? createReviewMeta(questionId);
-        const answeredAt = new Date().toISOString();
         const reviewMeta = {
           ...bank.reviewMeta,
-          [questionId]: {
-            ...current,
-            wrongCount: current.wrongCount + (correct ? 0 : 1),
-            correctCount: current.correctCount + (correct ? 1 : 0),
-            lastReviewedAt: answeredAt,
-            lastWrongAt: correct ? current.lastWrongAt : answeredAt,
-            lastAnsweredCorrect: correct,
-            masteryLevel: scoreMastery(current, correct),
-          },
+          [questionId]: applyRecallResult(current, correct ? 'correct' : 'wrong', new Date()),
+        };
+        const reviewPlan = advanceReviewPlan(state.reviewPlan);
+        return {
+          ...updateBank(state, () => ({ ...bank, reviewMeta, reviewPlan })),
+          reviewPlan,
+        };
+      });
+    },
+
+    recordRecall(questionId, result) {
+      set((state) => {
+        const bank = ensureBank(state);
+        const current = bank.reviewMeta[questionId] ?? createReviewMeta(questionId);
+        const reviewMeta = {
+          ...bank.reviewMeta,
+          [questionId]: applyRecallResult(current, result, new Date()),
         };
         const reviewPlan = advanceReviewPlan(state.reviewPlan);
         return {
@@ -575,7 +635,7 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
         reviewMode: 'quiz',
         reviewPlan: defaultReviewPlan,
         lastReviewSession: undefined,
-        activeView: 'import',
+        activeView: 'workbench',
         toast: { kind: 'warning', message: '本地题库已清空。' },
       });
     },
@@ -591,8 +651,13 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
       const link = document.createElement('a');
       link.href = url;
       link.download = `${appConfig.appSlug}-${new Date().toISOString().slice(0, 10)}.json`;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => {
+        link.remove();
+        URL.revokeObjectURL(url);
+      }, 1500);
       set({ toast: { kind: 'success', message: 'JSON 已导出。' } });
     },
 
@@ -634,7 +699,7 @@ export const useQuestionBankStore = create<QuestionBankState>((set, get) => ({
             })),
             reviewPlan,
             lastReviewSession,
-            activeView: 'bank',
+            activeView: 'workbench',
             toast: {
               kind: 'success',
               message: `备份已导入：当前题库 ${questions.length} 题。`,

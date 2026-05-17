@@ -1,17 +1,20 @@
 import {
   AlertTriangle,
   Brain,
+  Clock3,
   Eye,
   Heart,
   History,
   ListChecks,
   Play,
+  Search,
   SlidersHorizontal,
   Target,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { selectFilteredQuestions, useQuestionBankStore } from '../../store/questionBankStore';
 import { createReviewMeta } from '../../lib/utils/normalize';
+import { getReviewQueueSummary } from '../../lib/reviewQueues';
 import { EmptyState } from '../common/EmptyState';
 import { MobileBottomSheet } from '../common/MobileBottomSheet';
 import { SoftButton } from '../common/SoftButton';
@@ -23,6 +26,7 @@ const PAGE_SIZE = 20;
 export function QuestionList() {
   const questions = useQuestionBankStore((state) => state.questions);
   const reviewMeta = useQuestionBankStore((state) => state.reviewMeta);
+  const reviewPlan = useQuestionBankStore((state) => state.reviewPlan);
   const filters = useQuestionBankStore((state) => state.activeFilters);
   const searchQuery = useQuestionBankStore((state) => state.searchQuery);
   const sortMode = useQuestionBankStore((state) => state.sortMode);
@@ -38,16 +42,33 @@ export function QuestionList() {
       }),
     [filters, questions, reviewMeta, searchQuery, sortMode],
   );
-  const favoriteQuestions = filtered.filter((question) => reviewMeta[question.id]?.favorite);
-  const wrongQuestions = filtered.filter(
-    (question) => (reviewMeta[question.id]?.wrongCount ?? 0) > 0,
+  const favoriteQuestions = useMemo(
+    () => filtered.filter((question) => reviewMeta[question.id]?.favorite),
+    [filtered, reviewMeta],
   );
-  const frequentWrongQuestions = wrongQuestions.filter(
-    (question) => (reviewMeta[question.id]?.wrongCount ?? 0) >= 2,
+  const wrongQuestions = useMemo(
+    () => filtered.filter((question) => (reviewMeta[question.id]?.wrongCount ?? 0) > 0),
+    [filtered, reviewMeta],
   );
-  const preExamQuestions = filtered
-    .filter((question) => (reviewMeta[question.id]?.masteryLevel ?? 0) < 80)
-    .slice(0, 30);
+  const frequentWrongQuestions = useMemo(
+    () =>
+      wrongQuestions.filter((question) => (reviewMeta[question.id]?.wrongCount ?? 0) >= 2),
+    [reviewMeta, wrongQuestions],
+  );
+  const preExamQuestions = useMemo(
+    () =>
+      filtered
+        .filter((question) => (reviewMeta[question.id]?.masteryLevel ?? 0) < 80)
+        .slice(0, 30),
+    [filtered, reviewMeta],
+  );
+  const reviewSummary = useMemo(
+    () => getReviewQueueSummary(questions, reviewMeta, reviewPlan),
+    [questions, reviewMeta, reviewPlan],
+  );
+  const todayQuestions = reviewSummary.dueQuestions.length
+    ? reviewSummary.dueQuestions
+    : filtered.slice(0, reviewPlan.dailyTarget);
   const actions = useQuestionBankStore((state) => state.actions);
   const [mobileSheet, setMobileSheet] = useState<'filters' | 'actions' | null>(null);
   const canResume = Boolean(
@@ -98,11 +119,14 @@ export function QuestionList() {
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-[var(--color-primary)]">题库管理</p>
-          <h1 className="mt-1 text-3xl font-bold text-[var(--color-ink)]">
+          <h1 className="mt-1 text-2xl font-bold leading-8 text-[var(--color-ink)] md:text-3xl">
             可搜索、可编辑、可复习
           </h1>
+          <p className="mt-1 text-sm text-[var(--color-muted)]">
+            当前结果 {filtered.length} / {questions.length} 题
+          </p>
         </div>
         <div className="flex flex-wrap gap-2 md:hidden">
           <SoftButton
@@ -121,6 +145,19 @@ export function QuestionList() {
         </div>
         <div className="hidden flex-wrap gap-2 md:flex">
           <SoftButton
+            variant="primary"
+            icon={<Clock3 size={17} aria-hidden="true" />}
+            onClick={() =>
+              actions.startReview(
+                todayQuestions.map((question) => question.id),
+                'quiz',
+              )
+            }
+            disabled={!todayQuestions.length}
+          >
+            本次建议
+          </SoftButton>
+          <SoftButton
             icon={<History size={17} aria-hidden="true" />}
             onClick={actions.resumeReview}
             disabled={!canResume}
@@ -128,7 +165,6 @@ export function QuestionList() {
             继续上次复习
           </SoftButton>
           <SoftButton
-            variant="primary"
             icon={<Play size={17} aria-hidden="true" />}
             onClick={() =>
               actions.startReview(
@@ -194,6 +230,21 @@ export function QuestionList() {
         </div>
       </div>
 
+      <div className="sticky top-[4.35rem] z-10 -mx-4 bg-[color:rgb(249_250_246_/_0.92)] px-4 py-2 backdrop-blur md:hidden">
+        <label className="block">
+          <span className="sr-only">搜索题库</span>
+          <span className="flex min-h-12 items-center gap-2 rounded-2xl border border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.82)] px-3 shadow-soft focus-within:border-[var(--color-primary)]">
+            <Search size={17} className="shrink-0 text-[var(--color-muted)]" aria-hidden="true" />
+            <input
+              className="min-h-11 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-[var(--color-muted)]"
+              value={searchQuery}
+              onChange={(event) => actions.setSearchQuery(event.target.value)}
+              placeholder="搜索题干、答案、解析"
+            />
+          </span>
+        </label>
+      </div>
+
       <div className="hidden md:block">
         <QuestionFilters
           questions={questions}
@@ -230,6 +281,21 @@ export function QuestionList() {
         <div className="grid gap-2">
           <SoftButton
             className="w-full"
+            variant="primary"
+            icon={<Clock3 size={17} aria-hidden="true" />}
+            onClick={() => {
+              actions.startReview(
+                todayQuestions.map((question) => question.id),
+                'quiz',
+              );
+              setMobileSheet(null);
+            }}
+            disabled={!todayQuestions.length}
+          >
+            本次建议
+          </SoftButton>
+          <SoftButton
+            className="w-full"
             icon={<History size={17} aria-hidden="true" />}
             onClick={() => {
               actions.resumeReview();
@@ -241,7 +307,6 @@ export function QuestionList() {
           </SoftButton>
           <SoftButton
             className="w-full"
-            variant="primary"
             icon={<Play size={17} aria-hidden="true" />}
             onClick={() => {
               actions.startReview(

@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpDown, Heart, Info, Play, Search, Shield, Wrench } from 'lucide-react';
+import { ArrowLeft, ArrowUpDown, Info, Search, Shield, Wrench } from 'lucide-react';
 import { useState, useMemo, Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -9,20 +9,14 @@ import SEO from '../components/SEO';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { trackToolOpen } from '../lib/analytics';
 import { getRecentItems, recordVisit } from '../lib/recent';
-import {
-  springSmooth,
-  springBouncy,
-  springSnappy,
-  gridContainerVariants,
-  gridCardVariants,
-  useReducedMotion,
-} from '../lib/animations';
+import { springSmooth, springSnappy, useReducedMotion } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
 import { getPrimaryToolCategorySlug, getToolCategoryBySlug } from '../lib/catalogRoutes';
 import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
 import type { AppItem } from '../types/app';
 import { toolComponents } from '../registries/toolRegistry';
-import { TiltGlareCard, MagneticButton } from '../components/MotionSurface';
+import CatalogItemCard from '../components/CatalogItemCard';
+import { MotionList } from '../components/MotionSurface';
 import { setBackgroundIntent } from '../lib/backgroundIntent';
 
 const toolsWithInternalH1 = new Set([
@@ -33,6 +27,7 @@ const toolsWithInternalH1 = new Set([
   'tool-24',
   'tool-25',
 ]);
+const immersiveToolIds = new Set(['tool-28']);
 
 type SortMode = 'popular' | 'newest' | 'name' | 'recent';
 
@@ -298,6 +293,7 @@ export default function Tools() {
     const faq = getToolFaq(activeTool, t);
     const relatedTools = tools.filter((tool) => activeTool.related?.includes(tool.id)).slice(0, 3);
     const jsonLd = [itemJsonLd(activeTool), faqJsonLd(faq)];
+    const immersiveTool = immersiveToolIds.has(activeTool.id);
 
     return (
       <Suspense fallback={<GameToolLoading />}>
@@ -308,43 +304,53 @@ export default function Tools() {
           type="website"
           jsonLd={jsonLd}
         />
-        <article className="w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-8">
+        <article
+          className={
+            immersiveTool
+              ? 'w-full max-w-[1180px] mx-auto px-0 sm:px-4 py-4 sm:py-6'
+              : 'w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-8'
+          }
+        >
           <Link
             to="/tools"
-            className="mb-5 inline-flex min-h-[48px] items-center gap-2 text-sm font-semibold text-secondary hover:text-primary"
+            className={`inline-flex min-h-[48px] items-center gap-2 text-sm font-semibold text-secondary hover:text-primary ${
+              immersiveTool ? 'mb-3 px-4 sm:px-0' : 'mb-5'
+            }`}
           >
             <ArrowLeft className="h-4 w-4" />
             {t('返回工具列表', 'Back to tools')}
           </Link>
-          <header className="mb-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
-            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
-              <span className="rounded-full bg-primary-container/40 px-3 py-1 text-on-primary-container">
-                {t(activeTool.category, activeTool.categoryEn)}
-              </span>
-              <span className="rounded-full bg-surface-container px-3 py-1 text-secondary">
-                {t('免费使用', 'Free to use')}
-              </span>
-            </div>
-            {toolsWithInternalH1.has(activeTool.id) ? (
-              <p className="mb-3 text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
-                {t(activeTool.title, activeTool.titleEn)}
-              </p>
-            ) : (
-              <h1 className="mb-3 text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
-                {t(activeTool.title, activeTool.titleEn)}
-              </h1>
-            )}
-            <p className="max-w-3xl text-base leading-relaxed text-secondary">
-              {t(activeTool.description, activeTool.descriptionEn)}
-            </p>
-            <p className="mt-4 flex items-start gap-2 rounded-xl bg-primary-container/20 p-3 text-sm leading-relaxed text-on-surface-variant">
-              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              {t(
-                '隐私提示：输入内容不会上传服务器，除非该工具明确说明需要联网功能。',
-                'Privacy note: your input is not uploaded to a server unless this tool clearly states that network access is required.',
+          {!immersiveTool ? (
+            <header className="surface-raised mb-6 rounded-3xl p-5">
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
+                <span className="rounded-full bg-primary-container/40 px-3 py-1 text-on-primary-container">
+                  {t(activeTool.category, activeTool.categoryEn)}
+                </span>
+                <span className="rounded-full bg-surface-container px-3 py-1 text-secondary">
+                  {t('免费使用', 'Free to use')}
+                </span>
+              </div>
+              {toolsWithInternalH1.has(activeTool.id) ? (
+                <p className="mb-3 text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
+                  {t(activeTool.title, activeTool.titleEn)}
+                </p>
+              ) : (
+                <h1 className="mb-3 text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
+                  {t(activeTool.title, activeTool.titleEn)}
+                </h1>
               )}
-            </p>
-          </header>
+              <p className="max-w-3xl text-base leading-relaxed text-secondary">
+                {t(activeTool.description, activeTool.descriptionEn)}
+              </p>
+              <p className="mt-4 flex items-start gap-2 rounded-xl bg-primary-container/20 p-3 text-sm leading-relaxed text-on-surface-variant">
+                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                {t(
+                  '隐私提示：输入内容不会上传服务器，除非该工具明确说明需要联网功能。',
+                  'Privacy note: your input is not uploaded to a server unless this tool clearly states that network access is required.',
+                )}
+              </p>
+            </header>
+          ) : null}
 
           <section aria-label={t('主功能区域', 'Main tool area')}>
             <ErrorBoundary
@@ -364,74 +370,78 @@ export default function Tools() {
             </ErrorBoundary>
           </section>
 
-          <section className="mt-8 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
-              <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
-                <Info className="h-5 w-5 text-primary" />
-                {t('使用方法', 'How to use')}
-              </h2>
-              <p className="leading-relaxed text-secondary">
-                {t(
-                  activeTool.instructions ||
-                    '打开工具后按页面提示输入或选择内容，结果会在浏览器本地即时生成。',
-                  activeTool.instructionsEn ||
-                    'Open the tool, enter or select values as prompted, and results will be generated locally in your browser.',
-                )}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
-              <h2 className="mb-3 text-xl font-bold text-on-surface">
-                {t('适用场景', 'Best for')}
-              </h2>
-              <ul className="space-y-2 text-sm leading-relaxed text-secondary">
-                {activeToolFeatures.slice(0, 4).map((feature, index) => (
-                  <li key={feature} className="flex gap-2">
-                    <span className="font-bold text-primary">{index + 1}.</span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
-            <h2 className="mb-4 text-xl font-bold text-on-surface">FAQ</h2>
-            <div className="space-y-4">
-              {faq.map((entry) => (
-                <div key={entry.q}>
-                  <h3 className="font-semibold text-on-surface">{entry.q}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-secondary">{entry.a}</p>
+          {!immersiveTool ? (
+            <>
+              <section className="mt-8 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
+                <div className="surface-raised rounded-3xl p-5">
+                  <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
+                    <Info className="h-5 w-5 text-primary" />
+                    {t('使用方法', 'How to use')}
+                  </h2>
+                  <p className="leading-relaxed text-secondary">
+                    {t(
+                      activeTool.instructions ||
+                        '打开工具后按页面提示输入或选择内容，结果会在浏览器本地即时生成。',
+                      activeTool.instructionsEn ||
+                        'Open the tool, enter or select values as prompted, and results will be generated locally in your browser.',
+                    )}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </section>
+                <div className="surface-raised rounded-3xl p-5">
+                  <h2 className="mb-3 text-xl font-bold text-on-surface">
+                    {t('适用场景', 'Best for')}
+                  </h2>
+                  <ul className="space-y-2 text-sm leading-relaxed text-secondary">
+                    {activeToolFeatures.slice(0, 4).map((feature, index) => (
+                      <li key={feature} className="flex gap-2">
+                        <span className="font-bold text-primary">{index + 1}.</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
 
-          {relatedTools.length > 0 && (
-            <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
-              <h2 className="mb-4 text-xl font-bold text-on-surface">
-                {t('相关工具', 'Related tools')}
-              </h2>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {relatedTools.map((tool) => (
-                  <Link
-                    key={tool.id}
-                    to={tool.route}
-                    className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-primary-container/20"
-                  >
-                    <span className="text-2xl" aria-hidden="true">
-                      {tool.icon}
-                    </span>
-                    <h3 className="mt-2 font-bold text-on-surface">
-                      {t(tool.title, tool.titleEn)}
-                    </h3>
-                    <p className="mt-1 line-clamp-2 text-xs text-secondary">
-                      {t(tool.description, tool.descriptionEn)}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+              <section className="surface-raised mt-6 rounded-3xl p-5">
+                <h2 className="mb-4 text-xl font-bold text-on-surface">FAQ</h2>
+                <div className="space-y-4">
+                  {faq.map((entry) => (
+                    <div key={entry.q}>
+                      <h3 className="font-semibold text-on-surface">{entry.q}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-secondary">{entry.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {relatedTools.length > 0 && (
+                <section className="surface-raised mt-6 rounded-3xl p-5">
+                  <h2 className="mb-4 text-xl font-bold text-on-surface">
+                    {t('相关工具', 'Related tools')}
+                  </h2>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {relatedTools.map((tool) => (
+                      <Link
+                        key={tool.id}
+                        to={tool.route}
+                        className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-primary-container/20"
+                      >
+                        <span className="text-2xl" aria-hidden="true">
+                          {tool.icon}
+                        </span>
+                        <h3 className="mt-2 font-bold text-on-surface">
+                          {t(tool.title, tool.titleEn)}
+                        </h3>
+                        <p className="mt-1 line-clamp-2 text-xs text-secondary">
+                          {t(tool.description, tool.descriptionEn)}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          ) : null}
         </article>
       </Suspense>
     );
@@ -582,12 +592,8 @@ export default function Tools() {
       </motion.div>
 
       <AnimatePresence mode="wait">
-        <motion.div
-          key={`grid-${activeCategory}`}
-          variants={gridContainerVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
+        <MotionList
+          key={`grid-${activeCategory}-${query}-${sortMode}`}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-20"
         >
           {filteredTools.length === 0 ? (
@@ -595,7 +601,7 @@ export default function Tools() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="col-span-full flex flex-col items-center justify-center py-20 text-secondary"
+              className="surface-raised col-span-full flex flex-col items-center justify-center rounded-3xl py-20 text-secondary"
             >
               <Wrench className="w-16 h-16 text-secondary/30 mb-4" />
               <p className="font-medium text-lg">
@@ -613,80 +619,19 @@ export default function Tools() {
             </motion.div>
           ) : (
             filteredTools.map((tool) => (
-              <TiltGlareCard
+              <CatalogItemCard
                 key={tool.id}
-                variants={gridCardVariants}
-                whileHover={reducedMotion ? undefined : { y: -6, transition: springBouncy }}
-                whileTap={reducedMotion ? undefined : { scale: 0.97 }}
-                className="glass-card rounded-3xl p-8 transition-colors duration-500 hover-glow group"
-              >
-                <div className="flex flex-col items-center text-center gap-6 mb-6">
-                  <div
-                    className={`w-24 h-24 rounded-2xl overflow-hidden shrink-0 ${tool.iconBg || 'bg-surface-container'} flex items-center justify-center shadow-inner ${
-                      reducedMotion
-                        ? ''
-                        : 'group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)]'
-                    } transition-[box-shadow,transform] duration-500 relative text-4xl`}
-                  >
-                    {tool.image ? (
-                      <>
-                        <img
-                          src={tool.image}
-                          alt={tool.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-overlay"></div>
-                      </>
-                    ) : (
-                      <span>{tool.icon}</span>
-                    )}
-                  </div>
-                  <div>
-                    <h2 className="font-nunito font-bold text-2xl text-on-background mb-3 group-hover:text-primary transition-colors">
-                      {t(tool.title, tool.titleEn)}
-                    </h2>
-                    <span className="inline-block px-3 py-1.5 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-primary-container/30 text-on-primary-container">
-                      {t(tool.category, tool.categoryEn)}
-                    </span>
-                  </div>
-                </div>
-                <p className="font-sans text-base text-on-surface-variant mb-8 line-clamp-3 text-center">
-                  {t(tool.description, tool.descriptionEn)}
-                </p>
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={() => toggle(tool.id)}
-                    className={`p-2 min-h-[48px] min-w-[48px] rounded-full transition-colors ${
-                      favoriteIds.includes(tool.id)
-                        ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
-                        : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
-                    }`}
-                    aria-label={
-                      favoriteIds.includes(tool.id)
-                        ? t('取消收藏', 'Remove favorite')
-                        : t('收藏', 'Add favorite')
-                    }
-                  >
-                    <Heart
-                      className={`w-5 h-5 ${favoriteIds.includes(tool.id) ? 'fill-current' : ''}`}
-                    />
-                  </button>
-                  <MagneticButton
-                    onClick={() => handleOpen(tool.id)}
-                    whileHover={
-                      reducedMotion ? undefined : { scale: 1.04, transition: springBouncy }
-                    }
-                    className="py-4 px-8 rounded-xl btn-gradient text-on-primary font-semibold text-sm shadow-md flex items-center gap-2 transition-colors"
-                  >
-                    <Play className="w-4 h-4" />
-                    {t('打开工具', 'Open Tool')}
-                  </MagneticButton>
-                </div>
-              </TiltGlareCard>
+                item={tool}
+                variant="tool"
+                actionLabel={t('打开工具', 'Open Tool')}
+                isFavorite={favoriteIds.includes(tool.id)}
+                onFavorite={toggle}
+                onAction={() => handleOpen(tool.id)}
+                t={t}
+              />
             ))
           )}
-        </motion.div>
+        </MotionList>
       </AnimatePresence>
     </div>
   );

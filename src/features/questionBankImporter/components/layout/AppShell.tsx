@@ -36,16 +36,16 @@ export function AppShell({
         onViewChange={onViewChange}
         questionCount={questionCount}
       />
-      <div className="animate-soft-in mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-8">
+      <div className="qb-mobile-content animate-soft-in mx-auto w-full max-w-7xl px-4 py-4 md:px-8 md:py-8">
         {children}
       </div>
       {toast ? (
         <div
           role="status"
-          className={`fixed bottom-4 left-4 right-4 z-30 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-soft md:left-auto md:right-8 md:w-[420px] ${toastColor[toast.kind]}`}
+          className={`qb-mobile-toast fixed left-4 right-4 z-40 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-soft md:left-auto md:right-8 md:w-[420px] ${toastColor[toast.kind]}`}
         >
           <div className="flex items-center justify-between gap-4">
-            <span>{toast.message}</span>
+            <span className="min-w-0 break-words">{toast.message}</span>
             <button type="button" className="min-h-11 rounded-full px-3" onClick={onDismissToast}>
               关闭
             </button>

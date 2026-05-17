@@ -28,11 +28,11 @@ export function SoftButton({
   return (
     <button
       type={type}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-[transform,background-color,border-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 ${variantClasses[variant]} ${className}`}
+      className={`inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-[transform,background-color,border-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 ${variantClasses[variant]} ${className}`}
       {...props}
     >
       {icon}
-      <span>{children}</span>
+      <span className="min-w-0 truncate">{children}</span>
     </button>
   );
 }

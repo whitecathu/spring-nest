@@ -3,8 +3,14 @@ import { test, expect } from '@playwright/test';
 test.describe('Spring Nest App', () => {
   test.describe.configure({ timeout: 45000 });
 
-  test.beforeEach(async ({ page }) => {
-    // Navigate once and clear localStorage — each test navigates to its own page anyway
+  test.beforeEach(async ({ page }, testInfo) => {
+    if (!testInfo.title.includes('glass garden startup can be skipped')) {
+      await page.addInitScript(() => {
+        sessionStorage.setItem('spring_nest_startup_splash_seen', '1');
+      });
+    }
+    // Navigate once and clear localStorage — each test navigates to its own page anyway.
+    // The splash skip flag is set before app scripts run so routine E2E tests do not load 3D startup.
     await page.goto('/', { timeout: 20000 });
     await page.evaluate(() => localStorage.clear());
   });
@@ -23,11 +29,7 @@ test.describe('Spring Nest App', () => {
     await page.goto('/tools');
     await expect(page.locator('h1')).toContainText('实用小筑');
     // Find the calculator card and click its "打开工具" button.
-    const calculatorCard = page
-      .locator('main .glass-card', {
-        has: page.getByRole('heading', { name: '计算器' }),
-      })
-      .first();
+    const calculatorCard = page.getByRole('article', { name: '计算器', exact: true });
     await expect(calculatorCard).toBeVisible();
     await calculatorCard.getByRole('button', { name: '打开工具' }).click();
     // Verify calculator page loads - should show calculator UI
@@ -457,19 +459,25 @@ test.describe('Spring Nest App', () => {
       '/',
       '/tools',
       '/tools/calculator',
+      '/tools/question-bank-importer',
       '/games',
       '/games/2048',
+      '/about',
       '/privacy',
       '/feedback',
       '/nonexistent',
     ];
-    for (const width of [390, 360]) {
+    for (const width of [320, 360, 375, 390, 414, 430, 768]) {
       await page.setViewportSize({ width, height: 844 });
       for (const route of mobileRoutes) {
         await page.goto(route);
         const dimensions = await page.evaluate(() => ({
           client: document.documentElement.clientWidth,
-          scroll: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+          scroll: Math.max(
+            document.documentElement.scrollWidth,
+            document.body.scrollWidth,
+            document.querySelector('main')?.scrollWidth ?? 0,
+          ),
         }));
         expect(dimensions.scroll, `${route} overflows at ${width}px`).toBeLessThanOrEqual(
           dimensions.client + 2,
@@ -478,7 +486,179 @@ test.describe('Spring Nest App', () => {
     }
   });
 
+  test('复习小筑 opens on practical review workbench without check-in copy', async ({ page }) => {
+    await page.goto('/tools/question-bank-importer');
+    await expect(page.getByRole('heading', { name: /复习工作台|先放进题库/ })).toBeVisible();
+    await expect(page.locator('main')).not.toContainText(/今日还差|连续复习|完成打卡|Pro|付费体验/);
+    await expect(page.getByRole('button', { name: /选择文件|开始复习/ })).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/tools/question-bank-importer');
+    const dimensions = await page.evaluate(() => ({
+      client: document.documentElement.clientWidth,
+      scroll: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+    }));
+    expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.client + 2);
+  });
+
+  test('复习小筑 mobile paste import to export workflow', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'mobile importer workflow is covered in the mobile project');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => {
+      localStorage.clear();
+      return new Promise<void>((resolve) => {
+        const request = indexedDB.deleteDatabase('spring-nest-question-bank');
+        request.onsuccess = () => resolve();
+        request.onerror = () => resolve();
+        request.onblocked = () => resolve();
+      });
+    });
+
+    async function expectNoHorizontalOverflow(label: string) {
+      const dimensions = await page.evaluate(() => ({
+        client: document.documentElement.clientWidth,
+        scroll: Math.max(
+          document.documentElement.scrollWidth,
+          document.body.scrollWidth,
+          document.querySelector('main')?.scrollWidth ?? 0,
+        ),
+      }));
+      expect(dimensions.scroll, `${label} overflows horizontally`).toBeLessThanOrEqual(
+        dimensions.client + 2,
+      );
+    }
+
+    const sampleBank = [
+      '1. 春日小筑主要把题库保存在哪里？',
+      'A. 本机浏览器',
+      'B. 云端服务器',
+      'C. 社交平台',
+      '答案：A',
+      '解析：复习小筑默认使用 localStorage 和 IndexedDB 保存。',
+      '',
+      '2. 移动端最常用的导入方式是什么？',
+      'A. 拖拽文件',
+      'B. 粘贴文本',
+      'C. 打开数据库',
+      '答案：B',
+      '解析：手机上复制粘贴最直接。',
+    ].join('\n');
+
+    await page.goto('/tools/question-bank-importer');
+    await expectNoHorizontalOverflow('initial');
+    await page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: '导入' }).click();
+    await page.getByLabel('题库文本').fill(sampleBank);
+    await page.getByRole('button', { name: '预览识别' }).click();
+    await expect(page.getByRole('heading', { name: '导入预览' })).toBeVisible();
+    await expect(page.getByText(/已识别 2 题/)).toBeVisible();
+    await expectNoHorizontalOverflow('preview');
+
+    await page.getByRole('button', { name: '导入到题库' }).click();
+    await expect(page.getByRole('heading', { name: /复习工作台|继续学习/ })).toBeVisible();
+
+    await page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: '题库' }).click();
+    await page.getByPlaceholder('搜索题干、答案、解析').fill('移动端');
+    await expect(page.locator('h3').filter({ hasText: '移动端最常用的导入方式是什么' })).toBeVisible();
+    await expectNoHorizontalOverflow('bank search');
+
+    await page.getByRole('button', { name: '复习入口' }).click();
+    await page.getByRole('dialog', { name: '复习入口' }).getByRole('button', { name: '复习当前结果' }).click();
+    await expect(page.getByRole('heading', { name: /移动端最常用的导入方式是什么/ })).toBeVisible();
+    await page.getByRole('button', { name: /A\. 拖拽文件/ }).click();
+    await expect(page.getByText('回答错误，已写入错题本')).toBeVisible();
+    await expectNoHorizontalOverflow('review wrong');
+
+    await page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: '错题' }).click();
+    await expect(page.getByRole('heading', { name: /1 道题需要复盘/ })).toBeVisible();
+    await expect(page.getByText('错 1 次')).toBeVisible();
+
+    await page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: '设置' }).click();
+    await expect(page.getByText('题库默认保存在本机浏览器，不上传服务器')).toBeVisible();
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: '导出 JSON 备份' }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/^question-bank-importer-\d{4}-\d{2}-\d{2}\.json$/);
+    await page.reload();
+    await expect(
+      page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: /题库 2/ }),
+    ).toBeVisible();
+    await expectNoHorizontalOverflow('settings export');
+  });
+
+  test('catalog card hover does not shift layout', async ({ page }) => {
+    await page.goto('/tools');
+    const firstCard = page.locator('main article').first();
+    await expect(firstCard).toBeVisible();
+    const before = await firstCard.boundingBox();
+    await firstCard.hover();
+    await page.waitForTimeout(250);
+    const after = await firstCard.boundingBox();
+
+    expect(before).not.toBeNull();
+    expect(after).not.toBeNull();
+    expect(Math.abs((before?.width ?? 0) - (after?.width ?? 0))).toBeLessThan(1);
+    expect(Math.abs((before?.height ?? 0) - (after?.height ?? 0))).toBeLessThan(1);
+  });
+
+  test('mobile menu remains readable and tappable', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await page.getByRole('button', { name: '菜单' }).click();
+    const mobileNav = page.getByRole('navigation', { name: '移动端导航' });
+    await expect(mobileNav).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: '游戏天堂' })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: '实用小筑' })).toBeVisible();
+  });
+
+  test('reduced motion keeps primary content visible', async ({ browser }) => {
+    const context = await browser.newContext({
+      reducedMotion: 'reduce',
+      viewport: { width: 1280, height: 800 },
+    });
+    const page = await context.newPage();
+    await page.goto('/games');
+    await expect(page.getByRole('heading', { name: /游戏天堂|Game Paradise/ })).toBeVisible();
+    await expect(page.locator('main article').first()).toBeVisible();
+    await context.close();
+  });
+
+  test('glass garden startup can be skipped and does not block the app', async ({ page }) => {
+    await page.evaluate(() => sessionStorage.removeItem('spring_nest_startup_splash_seen'));
+    await page.goto('/');
+    const splash = page.getByRole('status', { name: /Spring Nest loading/i });
+    await expect(splash).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(splash).not.toBeVisible({ timeout: 3000 });
+    await expect(page.locator('main')).toBeVisible();
+  });
+
+  test('desktop glass garden background stays behind interactive UI', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'canvas checks are only run on Chromium');
+    await page.goto('/');
+    await expect(page.locator('main')).toBeVisible();
+    const searchButton = page
+      .locator('header button')
+      .filter({ has: page.locator('svg.lucide-search') });
+    await searchButton.click();
+    await expect(page.getByRole('textbox', { name: '搜索游戏、工具' })).toBeVisible();
+  });
+
+  test('mobile viewport does not mount desktop glass garden background', async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(!isMobile, 'mobile fallback check only runs in mobile project');
+    await page.goto('/');
+    await expect(page.locator('.glass-garden-ambient-layer')).toHaveCount(0);
+    await expect(page.locator('main')).toBeVisible();
+  });
+
   test('15. sitemap 工具和游戏路由完整验收', async ({ page }) => {
+    test.setTimeout(120000);
+
     const sitemap = await (await page.request.get('/sitemap.xml')).text();
     const routes = [...sitemap.matchAll(/<loc>https?:\/\/[^/]+([^<]+)<\/loc>/g)].map(
       (match) => match[1],

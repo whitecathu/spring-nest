@@ -129,6 +129,8 @@
 html {
   overflow: hidden;
   height: 100%;
+  max-width: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -140,12 +142,27 @@ body {
   overflow: hidden;
   height: 100%;
   width: 100%;
+  max-width: 100%;
 }
 
 #root {
   overflow: hidden;
   height: 100%;
   width: 100%;
+  max-width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
 /* ── Mobile UX foundations ── */
@@ -294,6 +311,190 @@ body {
 .dark .glass-pill {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.surface-flat {
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+}
+
+.surface-raised {
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-surface-variant) 42%, transparent);
+  box-shadow:
+    0 18px 45px -28px rgba(63, 103, 81, 0.36),
+    0 8px 22px -18px rgba(63, 103, 81, 0.2);
+}
+
+.surface-playful {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary-container) 20%, transparent),
+      color-mix(in srgb, var(--color-tertiary-container) 18%, transparent)
+    ),
+    color-mix(in srgb, var(--color-surface-container-lowest) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary-container) 48%, transparent);
+  box-shadow:
+    0 22px 52px -30px rgba(63, 103, 81, 0.42),
+    0 12px 28px -24px rgba(121, 86, 72, 0.32);
+}
+
+.surface-glass {
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(1.08);
+  border: 1px solid color-mix(in srgb, white 56%, transparent);
+  box-shadow: 0 18px 48px -30px rgba(0, 0, 0, 0.24);
+}
+
+.dark .surface-raised {
+  background: color-mix(in srgb, var(--color-surface-container-high) 82%, transparent);
+  border-color: color-mix(in srgb, white 10%, transparent);
+  box-shadow: 0 22px 58px -36px rgba(0, 0, 0, 0.72);
+}
+
+.dark .surface-playful {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary-container) 32%, transparent),
+      color-mix(in srgb, var(--color-tertiary-container) 28%, transparent)
+    ),
+    color-mix(in srgb, var(--color-surface-container-high) 78%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary-container) 28%, transparent);
+}
+
+.dark .surface-glass {
+  background: color-mix(in srgb, var(--color-surface-container-high) 72%, transparent);
+  border-color: color-mix(in srgb, white 10%, transparent);
+}
+
+/* ── Glass Garden 3D atmosphere ── */
+.glass-garden-ambient-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.72;
+  mix-blend-mode: normal;
+  mask-image: radial-gradient(circle at 50% 28%, black, transparent 78%);
+}
+
+.glass-garden-canvas {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+}
+
+.glass-garden-readability-veil {
+  background:
+    radial-gradient(circle at 42% 18%, color-mix(in srgb, white 42%, transparent), transparent 34%),
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-background) 28%, transparent));
+}
+
+.dark .glass-garden-readability-veil {
+  background:
+    radial-gradient(circle at 42% 18%, color-mix(in srgb, white 10%, transparent), transparent 34%),
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-background) 34%, transparent));
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .glass-garden-ambient-layer {
+    display: none;
+  }
+}
+
+.motion-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  border-radius: 0.875rem;
+  font-weight: 700;
+  transition:
+    background-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.motion-button-primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 12px 28px -18px rgba(63, 103, 81, 0.58);
+}
+
+.motion-button-secondary {
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 78%, transparent);
+  color: var(--color-on-surface);
+  border: 1px solid color-mix(in srgb, var(--color-surface-variant) 46%, transparent);
+}
+
+.motion-button-icon,
+.motion-button-ghost {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 54%, transparent);
+}
+
+.motion-button-icon {
+  width: 44px;
+  padding: 0;
+  border-radius: 9999px;
+}
+
+.motion-button-ghost {
+  padding-inline: 0.875rem;
+}
+
+.motion-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  transform-style: preserve-3d;
+}
+
+.motion-card-tool,
+.motion-card-quiet,
+.motion-card-glassGarden {
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-surface-variant) 42%, transparent);
+  box-shadow:
+    0 18px 45px -28px rgba(63, 103, 81, 0.36),
+    0 8px 22px -18px rgba(63, 103, 81, 0.2);
+}
+
+.motion-card-glassGarden {
+  background:
+    radial-gradient(circle at 18% 8%, color-mix(in srgb, var(--color-primary-container) 18%, transparent), transparent 32%),
+    color-mix(in srgb, var(--color-surface-container-lowest) 88%, transparent);
+}
+
+.motion-card-game,
+.motion-card-playful {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary-container) 20%, transparent),
+      color-mix(in srgb, var(--color-tertiary-container) 18%, transparent)
+    ),
+    color-mix(in srgb, var(--color-surface-container-lowest) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary-container) 48%, transparent);
+  box-shadow:
+    0 22px 52px -30px rgba(63, 103, 81, 0.42),
+    0 12px 28px -24px rgba(121, 86, 72, 0.32);
+}
+
+.motion-panel {
+  border-radius: 1.5rem;
+}
+
+.motion-list {
+  transform-style: preserve-3d;
+}
+
+.motion-presence-block {
+  will-change: transform, opacity;
 }
 
 .cubic-bezier-transition {

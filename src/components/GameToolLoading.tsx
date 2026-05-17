@@ -15,14 +15,14 @@ export default function GameToolLoading() {
   const reducedMotion = useReducedMotion();
   return (
     <motion.div
-      className="flex-grow flex items-center justify-center min-h-[50vh]"
+      className="flex-grow flex items-center justify-center min-h-[50vh] px-4"
       role="status"
       aria-label="Loading"
       initial={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
       animate={reducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, ease: softEase }}
     >
-      <div className="flex flex-col items-center gap-5">
+      <div className="surface-glass flex flex-col items-center gap-5 rounded-3xl px-8 py-7">
         <div className="relative">
           <ParticleBackground />
           {/* Floating orbit dots */}

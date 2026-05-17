@@ -19,7 +19,8 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
 
   return (
     <div
-      className={`rounded-[2rem] border-2 border-dashed p-5 transition duration-200 md:p-8 ${
+      id="question-bank-upload-entry"
+      className={`rounded-[1.5rem] border border-dashed p-4 transition duration-200 md:rounded-[2rem] md:border-2 md:p-8 ${
         dragging
           ? 'border-[var(--color-primary)] bg-[color:rgb(188_238_207_/_0.45)]'
           : 'border-[var(--color-outline)] bg-[color:rgb(255_255_255_/_0.58)]'
@@ -51,17 +52,17 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
         }}
       />
       <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="grid size-14 shrink-0 place-items-center rounded-3xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-            <FileUp size={26} aria-hidden="true" />
+        <div className="flex min-w-0 items-start gap-3 md:gap-4">
+          <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[var(--color-primary-soft)] text-[var(--color-primary)] md:size-14 md:rounded-3xl">
+            <FileUp size={24} aria-hidden="true" />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-[var(--color-ink)] md:text-3xl">
-              把散乱资料变成可复习题库
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold leading-7 text-[var(--color-ink)] md:text-3xl">
+              选择题库文件
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)] md:text-base">
-              支持 TXT、Markdown、CSV、JSON、Word
-              和压缩包题库，自动整理成可刷题、可搜索、可复习的学习卡片。
+              手机上点按钮选择文件；桌面端也可以拖入 TXT、Markdown、CSV、JSON、Word
+              或压缩包。
             </p>
           </div>
         </div>
@@ -71,7 +72,7 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
           icon={<FileUp size={18} aria-hidden="true" />}
           onClick={() => inputRef.current?.click()}
         >
-          选择文件
+          选择题库文件
         </SoftButton>
       </div>
 
@@ -87,9 +88,11 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
         ))}
       </div>
 
-      <div className="mt-5 flex items-center gap-2 rounded-2xl bg-[var(--color-primary-soft)] px-4 py-3 text-sm text-[var(--color-primary)]">
+      <div className="mt-5 flex min-w-0 items-start gap-2 rounded-2xl bg-[var(--color-primary-soft)] px-4 py-3 text-sm text-[var(--color-primary)]">
         <ShieldCheck size={18} aria-hidden="true" />
-        <span>文件默认在本地浏览器解析；Excel、PDF 和 7Z 请先转为支持格式或接入后端解析。</span>
+        <span className="min-w-0 break-words">
+          文件默认在本地浏览器解析；Excel、PDF 和 7Z 请先转为支持格式或接入后端解析。
+        </span>
       </div>
     </div>
   );

@@ -110,7 +110,12 @@ async function extractDocxText(
   data: ArrayBuffer | Uint8Array,
 ): Promise<{ text: string; warnings: string[] }> {
   const mammoth = await loadMammoth();
-  const result = await mammoth.extractRawText({ arrayBuffer: toArrayBuffer(data) });
+  const arrayBuffer = toArrayBuffer(data);
+  const input =
+    typeof Buffer !== 'undefined'
+      ? ({ buffer: Buffer.from(arrayBuffer) } as Parameters<MammothApi['extractRawText']>[0])
+      : { arrayBuffer };
+  const result = await mammoth.extractRawText(input);
   return {
     text: normalizeExtractedDocumentText(result.value),
     warnings: result.messages.map((message) => message.message).filter(Boolean),

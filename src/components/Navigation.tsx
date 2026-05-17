@@ -22,7 +22,7 @@ import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { search } from '../services/searchService';
 import { trackSearch } from '../lib/analytics';
-import { MagneticButton } from './MotionSurface';
+import { MotionButton, MotionPanel } from './MotionSurface';
 
 export default function Navigation() {
   const [showSearch, setShowSearch] = useState(false);
@@ -138,6 +138,10 @@ export default function Navigation() {
     return location.pathname.startsWith(path);
   };
 
+  const iconButtonClass =
+    'bg-white/55 text-primary hover:bg-primary-container/35 dark:bg-white/10 dark:hover:bg-white/15';
+  const navPanelClass = 'surface-glass border-white/50 dark:border-white/10';
+
   const cycleTheme = () => {
     const order: ('light' | 'dark' | 'system')[] = ['light', 'dark', 'system'];
     const idx = order.indexOf(mode);
@@ -155,14 +159,14 @@ export default function Navigation() {
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]"
           >
-            <div
+            <MotionPanel
               role="status"
               aria-live="polite"
-              className="bg-surface-container-high text-on-surface px-6 py-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] font-sans text-sm font-medium border border-surface-variant flex items-center gap-3"
+              className="surface-glass flex items-center gap-3 rounded-full px-6 py-3 font-sans text-sm font-medium text-on-surface"
             >
               <Search className="w-4 h-4 text-primary" />
               {toastMessage}
-            </div>
+            </MotionPanel>
           </motion.div>
         )}
       </AnimatePresence>
@@ -283,7 +287,7 @@ export default function Navigation() {
                 {isActive(item.path) && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-container"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-primary-container shadow-[0_0_12px_rgba(63,103,81,0.18)]"
                     initial={false}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
@@ -294,22 +298,26 @@ export default function Navigation() {
 
           <div className="flex items-center gap-1 sm:gap-4 text-primary relative">
             {/* Mobile menu button */}
-            <MagneticButton
-              whileHover={{ scale: 1.1 }}
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors md:hidden"
-              aria-label={t('菜单', 'Menu')}
-              aria-expanded={showMobileMenu}
-              aria-controls="mobile-navigation"
-            >
-              <Menu className="w-5 h-5" />
-            </MagneticButton>
+            <span className="md:hidden">
+              <MotionButton
+                type="button"
+                tone="icon"
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className={iconButtonClass}
+                aria-label={t('菜单', 'Menu')}
+                aria-expanded={showMobileMenu}
+                aria-controls="mobile-navigation"
+              >
+                <Menu className="w-5 h-5" />
+              </MotionButton>
+            </span>
 
             {/* Theme toggle */}
-            <MagneticButton
-              whileHover={{ scale: 1.1 }}
+            <MotionButton
+              type="button"
+              tone="icon"
               onClick={cycleTheme}
-              className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+              className={iconButtonClass}
               aria-label={t('切换主题', 'Toggle theme')}
               title={
                 mode === 'light'
@@ -326,25 +334,29 @@ export default function Navigation() {
               ) : (
                 <Sun className="h-5 w-5" />
               )}
-            </MagneticButton>
+            </MotionButton>
 
-            <MagneticButton
-              whileHover={{ scale: 1.1 }}
+            <MotionButton
+              type="button"
+              tone="icon"
               onClick={() => setShowSearch(!showSearch)}
-              className="min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+              className={iconButtonClass}
               aria-label={t('搜索', 'Search')}
             >
               <Search className="w-5 h-5" />
-            </MagneticButton>
+            </MotionButton>
 
-            <MagneticButton
-              whileHover={{ scale: 1.1 }}
-              onClick={() => navigate('/favorites')}
-              className="hidden sm:inline-flex p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 relative transition-colors"
-              aria-label={t('收藏', 'Favorites')}
-            >
-              <Bell className="w-5 h-5" />
-            </MagneticButton>
+            <span className="hidden sm:inline-flex">
+              <MotionButton
+                type="button"
+                tone="icon"
+                onClick={() => navigate('/favorites')}
+                className={iconButtonClass}
+                aria-label={t('收藏', 'Favorites')}
+              >
+                <Bell className="w-5 h-5" />
+              </MotionButton>
+            </span>
 
             {user ? (
               <div
@@ -355,10 +367,11 @@ export default function Navigation() {
                   }
                 }}
               >
-                <MagneticButton
-                  whileHover={{ scale: 1.05 }}
+                <MotionButton
+                  type="button"
+                  tone="icon"
                   onClick={() => setShowUserMenu((open) => !open)}
-                  className="flex min-h-11 min-w-11 items-center justify-center gap-2 px-1.5 py-1 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 border border-primary/10 shadow-sm transition-colors sm:px-2"
+                  className={`${iconButtonClass} border border-primary/10 shadow-sm`}
                   aria-label={t('用户菜单', 'User menu')}
                   aria-expanded={showUserMenu}
                   aria-haspopup="true"
@@ -366,7 +379,7 @@ export default function Navigation() {
                   <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
-                </MagneticButton>
+                </MotionButton>
 
                 <div
                   className={`absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 transition-all duration-200 transform origin-top-right flex flex-col p-2 z-50 ${
@@ -412,14 +425,15 @@ export default function Navigation() {
                 </div>
               </div>
             ) : (
-              <MagneticButton
-                whileHover={{ scale: 1.1 }}
+              <MotionButton
+                type="button"
+                tone="icon"
                 onClick={() => setShowLoginModal(true)}
-                className="inline-flex min-h-11 min-w-11 p-2.5 bg-white/50 dark:bg-white/10 rounded-full hover:bg-primary-container/30 transition-colors"
+                className={iconButtonClass}
                 aria-label={t('登录', 'Log in')}
               >
                 <User className="w-5 h-5" />
-              </MagneticButton>
+              </MotionButton>
             )}
           </div>
         </div>
@@ -443,7 +457,7 @@ export default function Navigation() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed top-[72px] left-0 right-0 z-40 bg-[#FFF9F2]/95 dark:bg-surface/95 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden"
+              className={`fixed top-[72px] left-0 right-0 z-40 border-b shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden ${navPanelClass}`}
             >
               <nav
                 id="mobile-navigation"
@@ -463,8 +477,8 @@ export default function Navigation() {
                       onClick={() => setShowMobileMenu(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all min-h-[48px] ${
                         isActive(item.path)
-                          ? 'bg-primary-container/30 text-primary border-l-[3px] border-primary'
-                          : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container border-l-[3px] border-transparent'
+                          ? 'bg-primary-container/30 text-primary ring-1 ring-primary/25'
+                          : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container ring-1 ring-transparent'
                       }`}
                     >
                       {item.id === 'home' && <Leaf className="w-5 h-5" />}

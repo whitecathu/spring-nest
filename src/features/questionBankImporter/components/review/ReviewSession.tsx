@@ -21,6 +21,7 @@ import { SoftButton } from '../common/SoftButton';
 import { QuestionTypeBadge } from '../question/QuestionTypeBadge';
 import { AnswerPanel } from './AnswerPanel';
 import { ProgressPill } from './ProgressPill';
+import { ReviewActionDock } from './ReviewActionDock';
 import { ReviewControls } from './ReviewControls';
 
 function answerArray(answer: Question['answer']): string[] {
@@ -178,17 +179,18 @@ export function ReviewSession() {
     actions.recordAnswer(question.id, result);
   }
 
-  function recordShortAnswer(result: boolean) {
+  function recordShortAnswer(result: 'remember' | 'vague' | 'forgot') {
     if (submitted) return;
+    const remembered = result === 'remember';
     setSubmitted(true);
-    setCorrect(result);
+    setCorrect(remembered);
     setAnswerVisible(true);
     setSessionStats((stats) => ({
       answered: stats.answered + 1,
-      correct: stats.correct + (result ? 1 : 0),
-      wrong: stats.wrong + (result ? 0 : 1),
+      correct: stats.correct + (remembered ? 1 : 0),
+      wrong: stats.wrong + (remembered ? 0 : 1),
     }));
-    actions.recordAnswer(question.id, result);
+    actions.recordRecall(question.id, result);
   }
 
   function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
@@ -209,7 +211,7 @@ export function ReviewSession() {
 
   return (
     <div
-      className="no-swipe mx-auto max-w-4xl space-y-5"
+      className="no-swipe mx-auto max-w-4xl space-y-4 md:space-y-5"
       data-swipe-ignore="true"
       onTouchStart={(event) => {
         const target = event.target as HTMLElement;
@@ -222,12 +224,12 @@ export function ReviewSession() {
       onTouchEnd={handleTouchEnd}
     >
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-[var(--color-primary)]">
             {isAnalysis ? '只看解析' : isMemorize ? '背答案模式' : '刷题复习'}
           </p>
           {!immersive ? (
-            <h1 className="mt-1 text-3xl font-bold text-[var(--color-ink)]">
+            <h1 className="mt-1 text-2xl font-bold leading-8 text-[var(--color-ink)] md:text-3xl">
               {isAnalysis
                 ? '先过思路，再决定是否重练'
                 : isMemorize
@@ -318,7 +320,7 @@ export function ReviewSession() {
           </div>
           <ProgressPill current={Math.min(index + 1, total)} total={total} />
         </div>
-        <div className="flex flex-wrap items-center gap-2 md:hidden">
+        <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-2 md:hidden">
           <SoftButton
             icon={<Settings2 size={17} aria-hidden="true" />}
             onClick={() => setMobileSheet('settings')}
@@ -430,15 +432,15 @@ export function ReviewSession() {
         </div>
       </MobileBottomSheet>
 
-      <GlassCard className="space-y-5 animate-soft-in">
+      <GlassCard className="animate-soft-in min-w-0 space-y-5 rounded-[1.25rem] p-4 md:rounded-[1.6rem] md:p-6">
         {!immersive ? (
           <div className="flex flex-wrap items-center gap-2">
             <QuestionTypeBadge type={question.type} />
-            <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
+            <span className="max-w-full break-words rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
               {question.sourceFile}
             </span>
             {question.sourcePath ? (
-              <span className="rounded-full bg-[var(--color-accent-yellow)] px-3 py-1 text-xs text-[var(--color-ink)]">
+              <span className="max-w-full break-words rounded-full bg-[var(--color-accent-yellow)] px-3 py-1 text-xs text-[var(--color-ink)]">
                 {question.sourcePath}
               </span>
             ) : null}
@@ -454,8 +456,8 @@ export function ReviewSession() {
         ) : null}
 
         <h2
-          className={`whitespace-pre-wrap font-bold text-[var(--color-ink)] ${
-            largeText ? 'text-3xl leading-10' : 'text-2xl leading-9'
+          className={`whitespace-pre-wrap break-words font-bold text-[var(--color-ink)] ${
+            largeText ? 'text-[1.7rem] leading-10 md:text-3xl' : 'text-xl leading-8 md:text-2xl md:leading-9'
           }`}
         >
           {question.question}
@@ -472,14 +474,16 @@ export function ReviewSession() {
                   return (
                     <div
                       key={`${index}-${option}`}
-                      className={`flex min-h-12 items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold ${
+                      className={`flex min-h-12 min-w-0 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-semibold ${
                         answerVisible && isCorrectOption
                           ? 'border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
                           : 'border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)]'
                       }`}
                     >
-                      <span>{option}</span>
-                      {answerVisible && isCorrectOption ? <Check size={17} aria-hidden="true" /> : null}
+                      <span className="min-w-0 break-words">{option}</span>
+                      {answerVisible && isCorrectOption ? (
+                        <Check size={17} aria-hidden="true" />
+                      ) : null}
                     </div>
                   );
                 })}
@@ -493,22 +497,29 @@ export function ReviewSession() {
             >
               翻开答案
             </SoftButton>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="hidden grid-cols-3 gap-2 md:grid">
+              <SoftButton
+                variant="danger"
+                icon={<RotateCcw size={17} aria-hidden="true" />}
+                onClick={() => recordShortAnswer('forgot')}
+                disabled={!answerVisible || submitted}
+              >
+                重来
+              </SoftButton>
+              <SoftButton
+                icon={<X size={17} aria-hidden="true" />}
+                onClick={() => recordShortAnswer('vague')}
+                disabled={!answerVisible || submitted}
+              >
+                模糊
+              </SoftButton>
               <SoftButton
                 variant="primary"
                 icon={<Check size={17} aria-hidden="true" />}
-                onClick={() => recordShortAnswer(true)}
+                onClick={() => recordShortAnswer('remember')}
                 disabled={!answerVisible || submitted}
               >
-                记住了
-              </SoftButton>
-              <SoftButton
-                variant="danger"
-                icon={<X size={17} aria-hidden="true" />}
-                onClick={() => recordShortAnswer(false)}
-                disabled={!answerVisible || submitted}
-              >
-                没记住
+                掌握
               </SoftButton>
             </div>
             {submitted ? (
@@ -548,12 +559,16 @@ export function ReviewSession() {
                 return (
                   <Wrapper
                     key={`${index}-${option}`}
-                    className={`flex min-h-12 items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${stateClass}`}
-                    {...(!isAnalysis ? { type: 'button', onClick: () => toggleSelection(key) } : {})}
+                    className={`flex min-h-12 min-w-0 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${stateClass}`}
+                    {...(!isAnalysis
+                      ? { type: 'button', onClick: () => toggleSelection(key) }
+                      : {})}
                   >
-                    <span>{option}</span>
+                    <span className="min-w-0 break-words">{option}</span>
                     {isAnalysis && expectedOption ? <Check size={17} aria-hidden="true" /> : null}
-                    {!isAnalysis && submitted && expectedOption ? <Check size={17} aria-hidden="true" /> : null}
+                    {!isAnalysis && submitted && expectedOption ? (
+                      <Check size={17} aria-hidden="true" />
+                    ) : null}
                     {!isAnalysis && submitted && picked && !expectedOption ? (
                       <X size={17} aria-hidden="true" />
                     ) : null}
@@ -568,7 +583,7 @@ export function ReviewSession() {
                     variant="primary"
                     onClick={submitChoice}
                     disabled={!selected.length || submitted}
-                    className="w-full"
+                    className="hidden w-full md:inline-flex"
                   >
                     提交答案
                   </SoftButton>
@@ -593,24 +608,33 @@ export function ReviewSession() {
               icon={<Eye size={17} aria-hidden="true" />}
               onClick={() => setAnswerVisible(true)}
               disabled={answerVisible}
-              className="w-full"
+              className="hidden w-full md:inline-flex"
             >
               显示答案
             </SoftButton>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="hidden grid-cols-3 gap-2 md:grid">
+              <SoftButton
+                variant="danger"
+                icon={<RotateCcw size={17} aria-hidden="true" />}
+                onClick={() => recordShortAnswer('forgot')}
+                disabled={!answerVisible || submitted}
+              >
+                重来
+              </SoftButton>
+              <SoftButton
+                icon={<X size={17} aria-hidden="true" />}
+                onClick={() => recordShortAnswer('vague')}
+                disabled={!answerVisible || submitted}
+              >
+                模糊
+              </SoftButton>
               <SoftButton
                 variant="primary"
                 icon={<Check size={17} aria-hidden="true" />}
-                onClick={() => recordShortAnswer(true)}
+                onClick={() => recordShortAnswer('remember')}
+                disabled={!answerVisible || submitted}
               >
-                我答对了
-              </SoftButton>
-              <SoftButton
-                variant="danger"
-                icon={<X size={17} aria-hidden="true" />}
-                onClick={() => recordShortAnswer(false)}
-              >
-                我答错了
+                掌握
               </SoftButton>
             </div>
             {submitted && correct === false ? (
@@ -637,7 +661,7 @@ export function ReviewSession() {
         ) : null}
       </GlassCard>
 
-      <GlassCard className="grid gap-3 sm:grid-cols-4">
+      <GlassCard className="hidden gap-3 md:grid md:grid-cols-4">
         <div>
           <p className="text-xs text-[var(--color-muted)]">本轮已答</p>
           <p className="text-xl font-bold text-[var(--color-ink)]">{sessionStats.answered}</p>
@@ -662,12 +686,34 @@ export function ReviewSession() {
         ) : null}
       </GlassCard>
 
+      <ReviewActionDock
+        favorite={meta.favorite}
+        canPrevious={index > 0}
+        canNext={index < total - 1}
+        answerVisible={answerVisible}
+        submitted={submitted}
+        isMemorize={isMemorize}
+        isAnalysis={isAnalysis}
+        isMultipleChoice={question.type === 'multiple'}
+        selectedCount={selected.length}
+        onPrevious={actions.previousQuestion}
+        onNext={actions.nextQuestion}
+        onExit={() => actions.setActiveView('workbench')}
+        onFavorite={() => actions.toggleFavorite(question.id)}
+        onWrong={() => actions.markWrong(question.id)}
+        onRevealAnswer={() => setAnswerVisible(true)}
+        onSubmitChoice={submitChoice}
+        onForgot={() => recordShortAnswer('forgot')}
+        onVague={() => recordShortAnswer('vague')}
+        onRemember={() => recordShortAnswer('remember')}
+      />
+
       <ReviewControls
         favorite={meta.favorite}
         onPrevious={actions.previousQuestion}
         onNext={actions.nextQuestion}
         onRandom={actions.randomQuestion}
-        onExit={() => actions.setActiveView('bank')}
+        onExit={() => actions.setActiveView('workbench')}
         onFavorite={() => actions.toggleFavorite(question.id)}
         onWrong={() => actions.markWrong(question.id)}
         canPrevious={index > 0}

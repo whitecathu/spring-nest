@@ -2,9 +2,7 @@ import {
   ArrowLeft,
   ArrowUpDown,
   Gamepad2,
-  Heart,
   Info,
-  Play,
   RotateCcw,
   Search,
   Smartphone,
@@ -27,20 +25,14 @@ import SEO from '../components/SEO';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { trackGameStart } from '../lib/analytics';
 import { getRecentItems, recordVisit } from '../lib/recent';
-import {
-  springBouncy,
-  springSmooth,
-  springSnappy,
-  gridContainerVariants,
-  gridCardVariants,
-  useReducedMotion,
-} from '../lib/animations';
+import { springSmooth, springSnappy, useReducedMotion } from '../lib/animations';
 import GameToolLoading from '../components/GameToolLoading';
 import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
 import { getGameCategoryBySlug } from '../lib/catalogRoutes';
 import type { AppItem } from '../types/app';
 import { gameComponents } from '../registries/gameRegistry';
-import { TiltGlareCard, MagneticButton } from '../components/MotionSurface';
+import CatalogItemCard from '../components/CatalogItemCard';
+import { MotionList } from '../components/MotionSurface';
 import { setBackgroundIntent } from '../lib/backgroundIntent';
 
 type GameSortMode = 'popular' | 'newest' | 'name' | 'recent';
@@ -317,7 +309,7 @@ export default function Games() {
             <ArrowLeft className="h-4 w-4" />
             {t('返回游戏列表', 'Back to games')}
           </Link>
-          <header className="mb-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+          <header className="surface-playful mb-6 rounded-3xl p-5">
             <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
               <span className="rounded-full bg-tertiary-container/40 px-3 py-1 text-on-tertiary-container">
                 {t(activeGame.category, activeGame.categoryEn)}
@@ -353,7 +345,7 @@ export default function Games() {
           </section>
 
           <section className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+            <div className="surface-raised rounded-3xl p-5">
               <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
                 <Info className="h-5 w-5 text-primary" />
                 {t('玩法说明', 'How to play')}
@@ -366,7 +358,7 @@ export default function Games() {
                 )}
               </p>
             </div>
-            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+            <div className="surface-raised rounded-3xl p-5">
               <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
                 <RotateCcw className="h-5 w-5 text-primary" />
                 {t('键盘操作', 'Keyboard')}
@@ -378,7 +370,7 @@ export default function Games() {
                 )}
               </p>
             </div>
-            <div className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+            <div className="surface-raised rounded-3xl p-5">
               <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
                 <Smartphone className="h-5 w-5 text-primary" />
                 {t('移动端操作', 'Mobile')}
@@ -392,7 +384,7 @@ export default function Games() {
             </div>
           </section>
 
-          <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+          <section className="surface-playful mt-6 rounded-3xl p-5">
             <h2 className="mb-4 text-xl font-bold text-on-surface">FAQ</h2>
             <div className="space-y-4">
               {faq.map((entry) => (
@@ -405,7 +397,7 @@ export default function Games() {
           </section>
 
           {relatedGames.length > 0 && (
-            <section className="mt-6 rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5">
+            <section className="surface-playful mt-6 rounded-3xl p-5">
               <h2 className="mb-4 text-xl font-bold text-on-surface">
                 {t('相关游戏', 'Related games')}
               </h2>
@@ -584,19 +576,15 @@ export default function Games() {
 
       {/* Card grid with AnimatePresence */}
       <AnimatePresence mode="wait">
-        <motion.div
-          key={`grid-${activeCategory}`}
-          variants={gridContainerVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
+        <MotionList
+          key={`grid-${activeCategory}-${query}-${sortMode}`}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full mb-16"
         >
           {filteredGames.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="col-span-full flex flex-col items-center justify-center py-20 text-secondary"
+              className="surface-playful col-span-full flex flex-col items-center justify-center rounded-3xl py-20 text-secondary"
             >
               <motion.div
                 animate={reducedMotion ? undefined : { y: [0, -8, 0] }}
@@ -621,87 +609,19 @@ export default function Games() {
             </motion.div>
           ) : (
             filteredGames.map((game) => (
-              <TiltGlareCard
+              <CatalogItemCard
                 key={game.id}
-                variants={gridCardVariants}
-                whileHover={reducedMotion ? undefined : { y: -8, transition: springBouncy }}
-                whileTap={reducedMotion ? undefined : { scale: 0.97 }}
-                className="glass-card rounded-3xl p-6 transition-colors duration-500 hover-glow group"
-              >
-                {game.image ? (
-                  <div className="w-full h-48 rounded-2xl overflow-hidden bg-surface-container-low flex items-center justify-center relative">
-                    <img
-                      src={game.image}
-                      alt={game.title}
-                      loading="lazy"
-                      className={`w-full h-full object-cover ${
-                        reducedMotion ? '' : 'group-hover:scale-110'
-                      } transition-transform duration-700 ease-out`}
-                    />
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300"></div>
-                  </div>
-                ) : (
-                  <div
-                    className={`w-full h-48 rounded-2xl ${game.iconBg || 'bg-surface-container-low'} flex items-center justify-center text-6xl`}
-                  >
-                    {game.icon}
-                  </div>
-                )}
-                <div className="flex items-start gap-4 mt-4">
-                  <div
-                    className={`w-16 h-16 rounded-2xl ${game.iconBg || 'bg-surface-container'} flex items-center justify-center shrink-0 shadow-inner ${
-                      reducedMotion
-                        ? ''
-                        : 'group-hover:-translate-y-3 group-hover:rotate-12 group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)]'
-                    } transition-[box-shadow,transform] duration-500 text-2xl`}
-                  >
-                    {game.icon || <Gamepad2 className="text-primary w-8 h-8" />}
-                  </div>
-                  <div className="flex-grow">
-                    <h2 className="font-nunito text-lg text-on-surface font-bold group-hover:text-primary transition-colors">
-                      {t(game.title, game.titleEn)}
-                    </h2>
-                    <span className="inline-block px-3 py-1 rounded-full font-semibold text-[13px] backdrop-blur-sm bg-tertiary-container/30 text-on-tertiary-container">
-                      {t(game.category, game.categoryEn)}
-                    </span>
-                  </div>
-                </div>
-                <p className="font-sans text-base text-on-surface-variant line-clamp-2 mt-3">
-                  {t(game.description, game.descriptionEn)}
-                </p>
-                <div className="mt-auto pt-4 flex justify-between items-center">
-                  <button
-                    onClick={() => toggle(game.id)}
-                    className={`p-2 min-h-[48px] min-w-[48px] rounded-full transition-colors ${
-                      favoriteIds.includes(game.id)
-                        ? 'text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
-                        : 'text-secondary/40 hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/10'
-                    }`}
-                    aria-label={
-                      favoriteIds.includes(game.id)
-                        ? t('取消收藏', 'Remove favorite')
-                        : t('收藏', 'Add favorite')
-                    }
-                  >
-                    <Heart
-                      className={`w-5 h-5 ${favoriteIds.includes(game.id) ? 'fill-current' : ''}`}
-                    />
-                  </button>
-                  <MagneticButton
-                    onClick={() => handlePlay(game.id)}
-                    whileHover={
-                      reducedMotion ? undefined : { scale: 1.04, transition: springBouncy }
-                    }
-                    className="py-4 px-8 rounded-xl btn-gradient text-on-primary font-semibold text-sm shadow-md flex items-center gap-2 transition-colors"
-                  >
-                    <Play className="w-4 h-4" />
-                    {t('开始游戏', 'Play')}
-                  </MagneticButton>
-                </div>
-              </TiltGlareCard>
+                item={game}
+                variant="game"
+                actionLabel={t('开始游戏', 'Play')}
+                isFavorite={favoriteIds.includes(game.id)}
+                onFavorite={toggle}
+                onAction={() => handlePlay(game.id)}
+                t={t}
+              />
             ))
           )}
-        </motion.div>
+        </MotionList>
       </AnimatePresence>
     </div>
   );

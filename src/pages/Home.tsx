@@ -17,7 +17,6 @@ import {
   Brain,
   GraduationCap,
   Search,
-  Heart,
 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
@@ -28,109 +27,8 @@ import { getNewItems } from '../lib/recommendations';
 import { trackSearch } from '../lib/analytics';
 import SEO from '../components/SEO';
 import { websiteJsonLd } from '../lib/structuredData';
-import { MagneticButton, TiltGlareCard } from '../components/MotionSurface';
-
-// --- Shared card component for featured items (extracted for stable identity) ---
-function FeaturedCard({
-  item,
-  index,
-  actionLabel,
-  accentClass,
-  favoriteIds,
-  onFavorite,
-  t,
-}: {
-  item: {
-    id: string;
-    icon?: string;
-    iconBg?: string;
-    title: string;
-    titleEn: string;
-    description: string;
-    descriptionEn: string;
-    category: string;
-    categoryEn?: string;
-    route: string;
-  };
-  index: number;
-  actionLabel: string;
-  accentClass: string;
-  favoriteIds: string[];
-  onFavorite: (id: string) => void;
-  t: (zh: string, en: string) => string;
-}) {
-  const isFavorite = favoriteIds.includes(item.id);
-
-  return (
-    <TiltGlareCard
-      role="article"
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.45, delay: index * 0.08 }}
-      whileHover={{
-        y: -10,
-        scale: 1.02,
-        transition: { type: 'spring', stiffness: 400, damping: 15 },
-      }}
-      whileTap={{ scale: 0.97, transition: { type: 'spring', stiffness: 500, damping: 20 } }}
-      className="bg-white dark:bg-surface-container-high rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_12px_40px_rgba(184,228,201,0.2)] transition-all duration-300 flex flex-col gap-4 border border-surface-variant/20 hover:border-primary/20 group relative overflow-hidden"
-    >
-      <div
-        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-        style={{
-          background: 'linear-gradient(135deg, rgba(184,228,201,0.15), rgba(255,208,189,0.1))',
-        }}
-      />
-      <button
-        type="button"
-        onClick={() => onFavorite(item.id)}
-        className={`absolute right-4 top-4 z-[1] flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
-          isFavorite
-            ? 'bg-red-50 text-red-500 dark:bg-red-900/20'
-            : 'bg-white/70 text-secondary hover:bg-red-50 hover:text-red-500 dark:bg-surface-container/70'
-        }`}
-        aria-label={isFavorite ? t('取消收藏', 'Remove favorite') : t('收藏', 'Add favorite')}
-      >
-        <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
-      </button>
-      <Link
-        to={item.route}
-        className="relative z-0 flex flex-1 flex-col gap-4"
-        aria-label={t(`打开${item.title}`, `Open ${item.titleEn}`)}
-      >
-        <div className="flex items-start gap-4 pr-10">
-          <div
-            className={`w-14 h-14 rounded-xl ${item.iconBg || 'bg-surface-container'} flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-300`}
-          >
-            <span className="text-2xl" aria-hidden="true">
-              {item.icon}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-nunito font-bold text-lg text-on-surface group-hover:text-primary transition-colors truncate">
-              {t(item.title, item.titleEn)}
-            </h3>
-            <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container/40 text-on-primary-container">
-              {item.categoryEn ? t(item.category, item.categoryEn) : item.category}
-            </span>
-          </div>
-        </div>
-        <p className="text-sm text-secondary line-clamp-2 leading-relaxed">
-          {t(item.description, item.descriptionEn)}
-        </p>
-        <div className="mt-auto pt-2">
-          <span
-            className={`inline-flex items-center gap-2 px-5 py-2 ${accentClass} rounded-full font-bold text-sm shadow-sm group-hover:shadow-md transition-all`}
-          >
-            {actionLabel}
-            <ArrowRight className="w-3.5 h-3.5" />
-          </span>
-        </div>
-      </Link>
-    </TiltGlareCard>
-  );
-}
+import CatalogItemCard from '../components/CatalogItemCard';
+import { MagneticButton } from '../components/MotionSurface';
 
 export default function Home() {
   const { t } = useUser();
@@ -405,14 +303,14 @@ export default function Home() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredTools.map((tool, i) => (
-              <FeaturedCard
+            {featuredTools.map((tool) => (
+              <CatalogItemCard
                 key={tool.id}
                 item={tool}
-                index={i}
+                variant="feature"
                 actionLabel={t('打开工具', 'Open Tool')}
-                accentClass="bg-primary-container text-on-primary-container"
-                favoriteIds={favoriteIds}
+                to={tool.route}
+                isFavorite={favoriteIds.includes(tool.id)}
                 onFavorite={toggle}
                 t={t}
               />
@@ -446,14 +344,14 @@ export default function Home() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredGames.map((game, i) => (
-              <FeaturedCard
+            {featuredGames.map((game) => (
+              <CatalogItemCard
                 key={game.id}
                 item={game}
-                index={i}
+                variant="game"
                 actionLabel={t('开始游戏', 'Play')}
-                accentClass="bg-tertiary-container text-on-tertiary-container"
-                favoriteIds={favoriteIds}
+                to={game.route}
+                isFavorite={favoriteIds.includes(game.id)}
                 onFavorite={toggle}
                 t={t}
               />
@@ -550,14 +448,14 @@ export default function Home() {
             </Link>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {homeToolPreview.map((tool, i) => (
-              <FeaturedCard
+            {homeToolPreview.map((tool) => (
+              <CatalogItemCard
                 key={tool.id}
                 item={tool}
-                index={i}
+                variant="tool"
                 actionLabel={t('立即使用', 'Use now')}
-                accentClass="bg-primary-container text-on-primary-container"
-                favoriteIds={favoriteIds}
+                to={tool.route}
+                isFavorite={favoriteIds.includes(tool.id)}
                 onFavorite={toggle}
                 t={t}
               />
@@ -594,14 +492,14 @@ export default function Home() {
             </Link>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {games.slice(0, 9).map((game, i) => (
-              <FeaturedCard
+            {games.slice(0, 9).map((game) => (
+              <CatalogItemCard
                 key={game.id}
                 item={game}
-                index={i}
+                variant="game"
                 actionLabel={t('开始游戏', 'Play')}
-                accentClass="bg-tertiary-container text-on-tertiary-container"
-                favoriteIds={favoriteIds}
+                to={game.route}
+                isFavorite={favoriteIds.includes(game.id)}
                 onFavorite={toggle}
                 t={t}
               />

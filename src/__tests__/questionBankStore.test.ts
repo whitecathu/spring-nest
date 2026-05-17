@@ -49,8 +49,17 @@ describe('question bank store review metadata', () => {
       reviewMeta: { q1: meta },
       importedFiles: [],
       reviewPlan: defaultReviewPlan,
+      activeView: 'workbench',
       toast: undefined,
     });
+  });
+
+  it('opens the practical review workbench by default', () => {
+    useQuestionBankStore.setState({
+      activeView: 'workbench',
+    });
+
+    expect(useQuestionBankStore.getState().activeView).toBe('workbench');
   });
 
   it('manual wrong tagging does not count as a reviewed wrong answer', () => {
@@ -111,7 +120,7 @@ describe('question bank store review metadata', () => {
     expect(state.reviewPlan.dailyTarget).toBe(45);
     expect(state.reviewPlan.sessionMinutes).toBe(25);
     expect(state.reviewPlan.streakDays).toBe(5);
-    expect(state.activeView).toBe('bank');
+    expect(state.activeView).toBe('workbench');
   });
 
   it('counts answered questions toward the local review plan', () => {
@@ -130,6 +139,29 @@ describe('question bank store review metadata', () => {
     const state = useQuestionBankStore.getState();
     expect(state.reviewMeta.q1.wrongCount).toBe(1);
     expect(state.reviewMeta.q1.lastWrongAt).toBeTruthy();
+  });
+
+  it('records recall feedback for memorize mode without daily check-in language', () => {
+    useQuestionBankStore.getState().actions.recordRecall('q1', 'vague');
+
+    const state = useQuestionBankStore.getState();
+    expect(state.reviewMeta.q1.lastResult).toBe('vague');
+    expect(state.reviewMeta.q1.confidence).toBe(2);
+    expect(state.reviewMeta.q1.intervalDays).toBe(1);
+    expect(state.reviewMeta.q1.dueAt).toBeTruthy();
+    expect(state.reviewMeta.q1.wrongCount).toBe(1);
+    expect(state.reviewPlan.todayAnswered).toBe(1);
+  });
+
+  it('records remembered answers with longer review intervals', () => {
+    useQuestionBankStore.getState().actions.recordRecall('q1', 'remember');
+
+    const updated = useQuestionBankStore.getState().reviewMeta.q1;
+    expect(updated.lastResult).toBe('remember');
+    expect(updated.confidence).toBe(4);
+    expect(updated.intervalDays).toBe(2);
+    expect(updated.correctCount).toBe(3);
+    expect(updated.lastAnsweredCorrect).toBe(true);
   });
 
   it('clamps saved review plan settings to practical ranges', () => {
@@ -193,7 +225,7 @@ describe('question bank store review metadata', () => {
       currentReviewQuestionIds: [],
       currentReviewIndex: 0,
       reviewMode: 'quiz',
-      activeView: 'bank',
+      activeView: 'workbench',
     });
 
     useQuestionBankStore.getState().actions.startReview(['q1', 'q2'], 'analysis');
@@ -216,7 +248,7 @@ describe('question bank store review metadata', () => {
       currentReviewQuestionIds: [],
       currentReviewIndex: 0,
       reviewMode: 'quiz',
-      activeView: 'import',
+      activeView: 'workbench',
     });
 
     await useQuestionBankStore.getState().actions.loadFromStorage();
@@ -245,7 +277,7 @@ describe('question bank store review metadata', () => {
       .actions.importReviewedQuestions([reviewedQuestion], 'paste-preview.txt', ['格式提示']);
 
     const state = useQuestionBankStore.getState();
-    expect(state.activeView).toBe('bank');
+    expect(state.activeView).toBe('workbench');
     expect(state.questions.some((item) => item.id === 'preview-q1')).toBe(true);
     expect(state.importedFiles[0]).toMatchObject({
       name: 'paste-preview.txt',

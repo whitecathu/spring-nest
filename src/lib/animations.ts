@@ -21,6 +21,148 @@ export const springMagnetic = { type: 'spring' as const, stiffness: 180, damping
 /** Confident ease-out curve for cinematic entrances */
 export const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
+export const motionDurations = {
+  fast: 0.16,
+  normal: 0.28,
+  slow: 0.48,
+  ambient: 18,
+} as const;
+
+export const motionStaggers = {
+  tight: 0.025,
+  normal: 0.045,
+  relaxed: 0.075,
+} as const;
+
+export const springPlayful = {
+  type: 'spring' as const,
+  stiffness: 420,
+  damping: 18,
+  mass: 0.75,
+};
+
+export const springSoft = {
+  type: 'spring' as const,
+  stiffness: 260,
+  damping: 26,
+  mass: 0.9,
+};
+
+export const springUtility = {
+  type: 'spring' as const,
+  stiffness: 230,
+  damping: 32,
+  mass: 0.9,
+};
+
+export const springFocus = {
+  type: 'spring' as const,
+  stiffness: 360,
+  damping: 28,
+  mass: 0.7,
+};
+
+export const easeSpringNest = easeOutExpo;
+export const easeExitTight = [0.4, 0, 1, 1] as const;
+
+export type RouteMotionKind = 'home' | 'tool' | 'game' | 'detail' | 'quiet';
+
+export function getRouteMotionProfile(kind: RouteMotionKind) {
+  const transition =
+    kind === 'game'
+      ? springPlayful
+      : kind === 'tool' || kind === 'detail'
+        ? springUtility
+        : springSoft;
+
+  return {
+    initial: {
+      opacity: 0,
+      y: kind === 'quiet' ? 8 : 18,
+      scale: 1,
+      rotateX: kind === 'game' ? 2 : 0,
+      transformPerspective: 1400,
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      rotateX: 0,
+      transition,
+    },
+    exit: {
+      opacity: 0,
+      y: -8,
+      scale: 1,
+      transition: { duration: motionDurations.fast, ease: easeExitTight },
+    },
+  };
+}
+
+export type SurfaceMotionTone = 'tool' | 'game' | 'playful' | 'quiet' | 'glassGarden';
+
+export function getSurfaceMotionPreset(tone: SurfaceMotionTone = 'tool') {
+  if (tone === 'quiet') {
+    return {
+      hover: { y: 0, scale: 1 },
+      tap: { scale: 0.99 },
+      transition: springUtility,
+    };
+  }
+
+  if (tone === 'game' || tone === 'playful') {
+    return {
+      hover: { y: -8, scale: 1 },
+      tap: { scale: 0.97 },
+      transition: springPlayful,
+    };
+  }
+
+  if (tone === 'glassGarden') {
+    return {
+      hover: { y: -4, scale: 1.008, rotateX: 1.2 },
+      tap: { scale: 0.985 },
+      transition: springUtility,
+    };
+  }
+
+  return {
+    hover: { y: -5, scale: 1 },
+    tap: { scale: 0.98 },
+    transition: springUtility,
+  };
+}
+
+export const motionListVariants = {
+  initial: {},
+  animate: {
+    transition: {
+      staggerChildren: motionStaggers.normal,
+      delayChildren: motionStaggers.tight,
+    },
+  },
+  exit: {
+    transition: {
+      staggerChildren: motionStaggers.tight,
+      staggerDirection: -1,
+    },
+  },
+};
+
+export const presenceBlockVariants = {
+  initial: { opacity: 0, y: 10 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: motionDurations.normal, ease: easeSpringNest },
+  },
+  exit: {
+    opacity: 0,
+    y: -6,
+    transition: { duration: motionDurations.fast, ease: easeExitTight },
+  },
+};
+
 // ── Shared Grid Variants (Games & Tools) ────────────────────
 /** Staggered container for card grids with smooth exit */
 export const gridContainerVariants = {
@@ -60,29 +202,7 @@ export const gridCardVariants = {
 
 // ── Page Transition ─────────────────────────────────────────
 /** Route-level page transition — spatial lift, no filters or layout animation */
-export const pageTransitionVariants = {
-  initial: {
-    opacity: 0,
-    y: 22,
-    scale: 0.985,
-    rotateX: 3,
-    transformPerspective: 1400,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    rotateX: 0,
-    transition: { duration: 0.36, ease: easeOutExpo },
-  },
-  exit: {
-    opacity: 0,
-    y: -12,
-    scale: 0.99,
-    rotateX: -2,
-    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] as const },
-  },
-};
+export const pageTransitionVariants = getRouteMotionProfile('home');
 
 /** Tool page wrapper — fade + slide-up entrance, used by individual tool pages */
 export const toolPageEnter = {
@@ -109,11 +229,12 @@ export const floatingParticles = [
 /** Hook that returns true when user prefers reduced motion */
 export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
 
   useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
     mq.addEventListener('change', handler);

@@ -69,7 +69,7 @@ test.describe('route and URL-state production coverage', () => {
     await page.goto(`/tools?category=${encodeURIComponent('学习写作')}&sort=name`);
     await expect(page.locator('button[aria-pressed="true"]')).toContainText('学习写作');
     await expect(page.locator('select')).toHaveValue('name');
-    await expect(page.locator('main .glass-card').first()).toContainText('学习写作');
+    await expect(page.locator('main article.motion-card').first()).toContainText('学习写作');
 
     await page.getByRole('button', { name: '安全隐私' }).click();
     await expect(page).toHaveURL(/\/tools\/security/);
@@ -84,7 +84,7 @@ test.describe('route and URL-state production coverage', () => {
   test('games category and sort state are shareable via URL', async ({ page }) => {
     await page.goto(`/games?category=${encodeURIComponent('益智解谜')}&sort=popular`);
     await expect(page.locator('button[aria-pressed="true"]')).toContainText('益智解谜');
-    await expect(page.locator('main .glass-card').first()).toContainText('益智解谜');
+    await expect(page.locator('main article.motion-card').first()).toContainText('益智解谜');
 
     await page.getByRole('button', { name: '学习练习' }).click();
     await expect(page).toHaveURL(/category=%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0/);

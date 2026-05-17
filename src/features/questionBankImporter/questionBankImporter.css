@@ -32,6 +32,7 @@
   line-height: 1.5;
   color: var(--color-ink);
   background: var(--color-bg);
+  overflow-x: clip;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -59,7 +60,25 @@
 }
 
 .question-bank-importer button {
+  touch-action: manipulation;
   cursor: pointer;
+}
+
+.question-bank-importer img,
+.question-bank-importer svg,
+.question-bank-importer canvas,
+.question-bank-importer video {
+  max-width: 100%;
+}
+
+.question-bank-importer p,
+.question-bank-importer h1,
+.question-bank-importer h2,
+.question-bank-importer h3,
+.question-bank-importer h4,
+.question-bank-importer li,
+.question-bank-importer span {
+  overflow-wrap: anywhere;
 }
 
 .question-bank-importer button:focus-visible,
@@ -78,12 +97,50 @@
   box-shadow: var(--shadow-soft);
 }
 
+.question-bank-importer.qb-portal-root {
+  background: transparent;
+}
+
 .question-bank-importer .animate-soft-in {
   animation: question-bank-soft-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .question-bank-importer .animate-answer-reveal {
   animation: question-bank-answer-reveal 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.question-bank-importer .qb-mobile-content {
+  padding-bottom: calc(12rem + env(safe-area-inset-bottom));
+}
+
+.question-bank-importer .qb-mobile-bottom-nav {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.question-bank-importer .qb-mobile-sticky-actions {
+  bottom: calc(5.75rem + env(safe-area-inset-bottom));
+}
+
+.question-bank-importer .qb-mobile-action-dock {
+  bottom: calc(5.75rem + env(safe-area-inset-bottom));
+}
+
+.question-bank-importer .qb-mobile-toast {
+  bottom: calc(5.75rem + env(safe-area-inset-bottom));
+}
+
+.question-bank-importer .qb-bottom-sheet {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  .question-bank-importer .qb-mobile-content {
+    padding-bottom: 2rem;
+  }
+
+  .question-bank-importer .qb-mobile-toast {
+    bottom: 1rem;
+  }
 }
 
 @keyframes question-bank-soft-in {

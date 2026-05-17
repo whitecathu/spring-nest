@@ -124,6 +124,9 @@ export function createReviewMeta(questionId: string): ReviewMeta {
     wrongCount: 0,
     correctCount: 0,
     masteryLevel: 0,
+    confidence: 1,
+    intervalDays: 0,
+    lapses: 0,
   };
 }
 

@@ -4,6 +4,8 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export type ReviewSessionMode = 'quiz' | 'memorize' | 'analysis';
 
+export type ReviewRecallResult = 'remember' | 'vague' | 'forgot' | 'correct' | 'wrong';
+
 export interface Question {
   id: string;
   sourceFile: string;
@@ -29,6 +31,11 @@ export interface ReviewMeta {
   lastWrongAt?: string;
   lastAnsweredCorrect?: boolean;
   masteryLevel: number;
+  confidence?: 1 | 2 | 3 | 4 | 5;
+  intervalDays?: number;
+  dueAt?: string;
+  lapses?: number;
+  lastResult?: ReviewRecallResult;
 }
 
 export interface ReviewPlan {
