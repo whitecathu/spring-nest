@@ -40,35 +40,10 @@ function MetricTile({
           : 'bg-[color:rgb(255_255_255_/_0.62)] text-[var(--color-ink)]';
 
   return (
-    <div className={`rounded-[1.25rem] p-4 ${toneClass}`}>
-      <p className="text-2xl font-black">{value}</p>
-      <p className="mt-1 text-xs font-semibold opacity-80">{label}</p>
+    <div className={`rounded-[1.25rem] p-3 md:p-4 ${toneClass}`}>
+      <p className="text-xl font-black md:text-2xl">{value}</p>
+      <p className="mt-0.5 text-xs font-semibold opacity-80 md:mt-1">{label}</p>
     </div>
-  );
-}
-
-function WorkbenchReference() {
-  return (
-    <section className="grid gap-4 md:grid-cols-3" aria-label="复习小筑参考信息">
-      <GlassCard>
-        <h2 className="text-lg font-bold text-[var(--color-ink)]">使用方法</h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-          先从导入页预览题库，确认题干和答案后写入本地，再回到工作台选择开始复习、快速抽查或错题重练。
-        </p>
-      </GlassCard>
-      <GlassCard>
-        <h2 className="text-lg font-bold text-[var(--color-ink)]">常见问题</h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-          题库和复习记录保存在当前浏览器。更换设备或清理浏览器数据前，可以先在设置里导出 JSON 备份。
-        </p>
-      </GlassCard>
-      <GlassCard>
-        <h2 className="text-lg font-bold text-[var(--color-ink)]">相关入口</h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-          题库页适合搜索和编辑，错题页适合集中重练，设置页用于导出备份和调整本次建议题量。
-        </p>
-      </GlassCard>
-    </section>
   );
 }
 
@@ -96,18 +71,18 @@ export function ReviewWorkbench() {
 
   if (!questions.length) {
     return (
-      <div className="space-y-5">
-        <section className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-card)] p-5 shadow-soft md:p-7">
+      <div className="space-y-4 md:space-y-5">
+        <section className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-card)] p-4 shadow-soft md:p-7">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold text-[var(--color-primary)]">复习工作台</p>
-            <h1 className="mt-2 text-2xl font-black leading-tight text-[var(--color-ink)] md:text-4xl">
+            <h1 className="mt-2 text-xl font-black leading-tight text-[var(--color-ink)] md:text-4xl">
               先放进题库，再开始复习
             </h1>
-            <p className="mt-3 text-sm leading-6 text-[var(--color-muted)] md:text-base">
+            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)] md:mt-3 md:text-base">
               文件、粘贴文本和内置题库都会先在本地预览。确认无误后，再进入刷题、背答案和错题重练。
             </p>
           </div>
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <div className="mt-3 grid grid-cols-2 gap-2 md:mt-5 md:flex">
             <SoftButton
               variant="primary"
               icon={<FileUp size={17} aria-hidden="true" />}
@@ -124,51 +99,50 @@ export function ReviewWorkbench() {
           </div>
         </section>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <GlassCard>
+        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
+          <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <FileUp className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-3 text-lg font-bold text-[var(--color-ink)]">先预览</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">先预览</h2>
+            <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
               导入前可以检查题干、答案和解析，减少脏数据进入题库。
             </p>
           </GlassCard>
-          <GlassCard>
+          <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <Brain className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-3 text-lg font-bold text-[var(--color-ink)]">再回忆</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">再回忆</h2>
+            <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
               支持刷题、背答案和解析浏览，数据保存在浏览器本地。
             </p>
           </GlassCard>
-          <GlassCard>
+          <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <AlertTriangle className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-3 text-lg font-bold text-[var(--color-ink)]">错题回流</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">错题回流</h2>
+            <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
               模糊、重来和答错的题会进入更靠前的位置，方便短时间补弱。
             </p>
           </GlassCard>
         </div>
-        <WorkbenchReference />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-card)] p-5 shadow-soft md:p-7">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+    <div className="space-y-4 md:space-y-5">
+      <section className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-card)] p-4 shadow-soft md:p-7">
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] px-3 py-1 text-xs font-bold text-[var(--color-primary)]">
               <Target size={14} aria-hidden="true" />
               {summary.actionLabel}
             </div>
-            <h1 className="mt-3 text-2xl font-black leading-tight text-[var(--color-ink)] md:text-4xl">
+            <h1 className="mt-2 text-xl font-black leading-tight text-[var(--color-ink)] md:mt-3 md:text-4xl">
               复习工作台
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-muted)] md:text-base">
-              直接继续上次、抽查一组题，或把错题和薄弱题拉出来重练。所有复习记录只保存在本地。
+            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)] md:mt-3 md:text-base">
+              继续上次、抽查一组，或把错题和薄弱题拉出来重练。
             </p>
 
-            <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-3 grid grid-cols-2 gap-2 md:mt-5 md:grid-cols-4">
               <SoftButton
                 variant="primary"
                 icon={<Play size={17} aria-hidden="true" />}
@@ -200,7 +174,7 @@ export function ReviewWorkbench() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-4 gap-2 md:grid-cols-2 md:gap-3">
             <MetricTile label="题库总数" value={questions.length} tone="primary" />
             <MetricTile label="未复习" value={summary.unreviewedCount} />
             <MetricTile label="错题" value={summary.wrongQuestions.length} tone="danger" />
@@ -209,16 +183,16 @@ export function ReviewWorkbench() {
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <GlassCard>
+      <div className="grid gap-4 md:gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-4">
+          <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <AlertTriangle className="text-[var(--color-error)]" size={20} aria-hidden="true" />
-            <h2 className="mt-3 text-lg font-bold text-[var(--color-ink)]">错题重练</h2>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">错题重练</h2>
+            <p className="mt-1 text-sm text-[var(--color-muted)] md:mt-2">
               {summary.wrongQuestions.length} 题需要回看。
             </p>
             <SoftButton
-              className="mt-4 w-full"
+              className="mt-3 w-full md:mt-4"
               onClick={() => actions.startReview(wrongIds, 'quiz')}
               disabled={!wrongIds.length}
             >
@@ -226,14 +200,14 @@ export function ReviewWorkbench() {
             </SoftButton>
           </GlassCard>
 
-          <GlassCard>
+          <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <Target className="text-[var(--color-warning)]" size={20} aria-hidden="true" />
-            <h2 className="mt-3 text-lg font-bold text-[var(--color-ink)]">薄弱题</h2>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">薄弱题</h2>
+            <p className="mt-1 text-sm text-[var(--color-muted)] md:mt-2">
               {summary.weakQuestions.length} 题掌握度偏低。
             </p>
             <SoftButton
-              className="mt-4 w-full"
+              className="mt-3 w-full md:mt-4"
               onClick={() => actions.startReview(weakIds, 'memorize')}
               disabled={!weakIds.length}
             >
@@ -241,14 +215,14 @@ export function ReviewWorkbench() {
             </SoftButton>
           </GlassCard>
 
-          <GlassCard>
+          <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <Star className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-3 text-lg font-bold text-[var(--color-ink)]">收藏题</h2>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">收藏题</h2>
+            <p className="mt-1 text-sm text-[var(--color-muted)] md:mt-2">
               {summary.favoriteQuestions.length} 题已收藏。
             </p>
             <SoftButton
-              className="mt-4 w-full"
+              className="mt-3 w-full md:mt-4"
               onClick={() => actions.startReview(favoriteIds, 'analysis')}
               disabled={!favoriteIds.length}
             >
@@ -256,14 +230,14 @@ export function ReviewWorkbench() {
             </SoftButton>
           </GlassCard>
 
-          <GlassCard>
+          <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <Clock3 className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-3 text-lg font-bold text-[var(--color-ink)]">考前速刷</h2>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">考前速刷</h2>
+            <p className="mt-1 text-sm text-[var(--color-muted)] md:mt-2">
               {frequentWrongIds.length || wrongIds.length || suggestedIds.length} 题优先抽查。
             </p>
             <SoftButton
-              className="mt-4 w-full"
+              className="mt-3 w-full md:mt-4"
               onClick={() =>
                 actions.startReview(
                   frequentWrongIds.length
@@ -286,7 +260,7 @@ export function ReviewWorkbench() {
             <ListChecks size={20} className="text-[var(--color-primary)]" aria-hidden="true" />
             <h2 className="text-lg font-bold text-[var(--color-ink)]">最近导入</h2>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2 md:mt-4 md:space-y-3">
             {recentFiles.length ? (
               recentFiles.map((file) => (
                 <div key={file.id} className="rounded-2xl bg-[color:rgb(255_255_255_/_0.62)] p-3">
@@ -304,7 +278,28 @@ export function ReviewWorkbench() {
           </div>
         </GlassCard>
       </div>
-      <WorkbenchReference />
+
+      {/* 手机端：参考信息改为横向滚动 */}
+      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
+        <GlassCard className="w-[75vw] shrink-0 snap-start sm:w-72 md:w-auto">
+          <h2 className="text-base font-bold text-[var(--color-ink)] md:text-lg">使用方法</h2>
+          <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
+            先导入题库，确认后回到工作台，选择开始复习、快速抽查或错题重练。
+          </p>
+        </GlassCard>
+        <GlassCard className="w-[75vw] shrink-0 snap-start sm:w-72 md:w-auto">
+          <h2 className="text-base font-bold text-[var(--color-ink)] md:text-lg">常见问题</h2>
+          <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
+            数据保存在浏览器本地。更换设备前可在设置里导出 JSON 备份。
+          </p>
+        </GlassCard>
+        <GlassCard className="w-[75vw] shrink-0 snap-start sm:w-72 md:w-auto">
+          <h2 className="text-base font-bold text-[var(--color-ink)] md:text-lg">相关入口</h2>
+          <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
+            题库页搜索编辑，错题页集中重练，设置页导出备份。
+          </p>
+        </GlassCard>
+      </div>
     </div>
   );
 }

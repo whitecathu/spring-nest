@@ -165,6 +165,15 @@
   }
 }
 
+.question-bank-importer .scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.question-bank-importer .scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .question-bank-importer *,
   .question-bank-importer *::before,

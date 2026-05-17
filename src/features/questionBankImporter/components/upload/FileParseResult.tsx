@@ -1,7 +1,10 @@
 import { Download, FilePlus2, ListChecks, Play } from 'lucide-react';
+import { useMemo } from 'react';
 import type { ImportedFileReport } from '../../types/question';
+import { useQuestionBankStore } from '../../store/questionBankStore';
 import { GlassCard } from '../common/GlassCard';
 import { SoftButton } from '../common/SoftButton';
+import { QuestionTypeBadge } from '../question/QuestionTypeBadge';
 import { FileTree } from './FileTree';
 
 interface FileParseResultProps {
@@ -13,6 +16,8 @@ interface FileParseResultProps {
   onExport: () => void;
 }
 
+const PREVIEW_COUNT = 4;
+
 export function FileParseResult({
   files,
   questionCount,
@@ -21,11 +26,20 @@ export function FileParseResult({
   onImportMore,
   onExport,
 }: FileParseResultProps) {
+  const questions = useQuestionBankStore((state) => state.questions);
   const parsed = files.filter(
     (file) => file.status === 'success' || file.status === 'warning',
   ).length;
   const skipped = files.filter((file) => file.status === 'error').length;
   const added = files.reduce((sum, file) => sum + file.questionCount, 0);
+
+  const previewQuestions = useMemo(
+    () =>
+      [...questions]
+        .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+        .slice(0, PREVIEW_COUNT),
+    [questions],
+  );
 
   return (
     <GlassCard className="space-y-5">
@@ -55,6 +69,40 @@ export function FileParseResult({
       <div className="rounded-2xl bg-[color:rgb(255_255_255_/_0.48)] p-3 text-sm text-[var(--color-muted)]">
         本次识别新增题目约 {added} 道。解析提示会保留在文件树中，方便检查格式并修正来源文件。
       </div>
+
+      {previewQuestions.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-[var(--color-muted)]">最近导入预览</p>
+          {previewQuestions.map((q) => {
+            const answerText = Array.isArray(q.answer) ? q.answer.join(', ') : (q.answer ?? '');
+            const preview =
+              q.question.length > 80 ? `${q.question.slice(0, 80).trim()}...` : q.question;
+            return (
+              <div
+                key={q.id}
+                className="flex items-start gap-2 rounded-xl bg-[color:rgb(255_255_255_/_0.55)] px-3 py-2"
+              >
+                <QuestionTypeBadge type={q.type} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[var(--color-ink)]">{preview}</p>
+                  <p className="mt-0.5 truncate text-xs text-[var(--color-muted)]">
+                    答案：{answerText || '未填写'}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+          {questionCount > PREVIEW_COUNT && (
+            <button
+              type="button"
+              className="w-full rounded-xl py-2 text-center text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-soft)]"
+              onClick={onBank}
+            >
+              查看全部 {questionCount} 题 →
+            </button>
+          )}
+        </div>
+      )}
 
       <FileTree files={files} />
 
