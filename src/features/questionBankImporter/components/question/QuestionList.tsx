@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
   Target,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { selectFilteredQuestions, useQuestionBankStore } from '../../store/questionBankStore';
 import { createReviewMeta } from '../../lib/utils/normalize';
 import { getReviewQueueSummary } from '../../lib/reviewQueues';
@@ -29,6 +29,7 @@ export function QuestionList() {
   const reviewPlan = useQuestionBankStore((state) => state.reviewPlan);
   const filters = useQuestionBankStore((state) => state.activeFilters);
   const searchQuery = useQuestionBankStore((state) => state.searchQuery);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const sortMode = useQuestionBankStore((state) => state.sortMode);
   const lastReviewSession = useQuestionBankStore((state) => state.lastReviewSession);
   const filtered = useMemo(
@@ -37,10 +38,10 @@ export function QuestionList() {
         questions,
         reviewMeta,
         activeFilters: filters,
-        searchQuery,
+        searchQuery: deferredSearchQuery,
         sortMode,
       }),
-    [filters, questions, reviewMeta, searchQuery, sortMode],
+    [deferredSearchQuery, filters, questions, reviewMeta, sortMode],
   );
   const favoriteQuestions = useMemo(
     () => filtered.filter((question) => reviewMeta[question.id]?.favorite),
@@ -81,7 +82,7 @@ export function QuestionList() {
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [filters, searchQuery, sortMode]);
+  }, [deferredSearchQuery, filters, sortMode]);
 
   // IntersectionObserver for infinite scroll
   const handleIntersect = useCallback(
@@ -103,7 +104,8 @@ export function QuestionList() {
     return () => observer.disconnect();
   }, [handleIntersect]);
 
-  const visibleQuestions = filtered.slice(0, visibleCount);
+  const visibleQuestions = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const visibleTotal = Math.min(visibleCount, filtered.length);
 
   if (!questions.length) {
     return (
@@ -125,7 +127,7 @@ export function QuestionList() {
             可搜索、可编辑、可复习
           </h1>
           <p className="mt-1 text-sm text-[var(--color-muted)]">
-            当前结果 {filtered.length} / {questions.length} 题
+            当前结果 {filtered.length} / {questions.length} 题，已分批显示 {visibleTotal} 题
           </p>
         </div>
         <div className="flex flex-wrap gap-2 md:hidden">

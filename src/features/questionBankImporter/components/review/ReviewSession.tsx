@@ -207,6 +207,7 @@ export function ReviewSession() {
   const accuracy = sessionStats.answered
     ? Math.round((sessionStats.correct / sessionStats.answered) * 100)
     : 0;
+  const remaining = Math.max(total - index - 1, 0);
   const isRoundComplete = submitted && index >= total - 1;
 
   return (
@@ -337,6 +338,23 @@ export function ReviewSession() {
         </div>
       </div>
 
+      <div className="grid grid-cols-3 gap-2 md:hidden" aria-label="复习进度">
+        <div className="min-w-0 rounded-2xl border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.72)] px-3 py-2 shadow-soft">
+          <p className="text-[0.68rem] font-semibold text-[var(--color-muted)]">进度</p>
+          <p className="truncate text-sm font-bold text-[var(--color-ink)]">
+            第 {Math.min(index + 1, total)} / {total} 题
+          </p>
+        </div>
+        <div className="min-w-0 rounded-2xl border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.72)] px-3 py-2 shadow-soft">
+          <p className="text-[0.68rem] font-semibold text-[var(--color-muted)]">正确率</p>
+          <p className="truncate text-sm font-bold text-[var(--color-primary)]">{accuracy}%</p>
+        </div>
+        <div className="min-w-0 rounded-2xl border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.72)] px-3 py-2 shadow-soft">
+          <p className="text-[0.68rem] font-semibold text-[var(--color-muted)]">剩余</p>
+          <p className="truncate text-sm font-bold text-[var(--color-ink)]">{remaining} 题</p>
+        </div>
+      </div>
+
       <MobileBottomSheet
         open={mobileSheet === 'settings'}
         title="复习设置"
@@ -432,7 +450,10 @@ export function ReviewSession() {
         </div>
       </MobileBottomSheet>
 
-      <GlassCard className="animate-soft-in min-w-0 space-y-5 rounded-[1.25rem] p-4 md:rounded-[1.6rem] md:p-6">
+      <GlassCard
+        key={question.id}
+        className="animate-soft-in min-w-0 space-y-5 rounded-[1.25rem] p-4 md:rounded-[1.6rem] md:p-6"
+      >
         {!immersive ? (
           <div className="flex flex-wrap items-center gap-2">
             <QuestionTypeBadge type={question.type} />
@@ -695,6 +716,7 @@ export function ReviewSession() {
         isMemorize={isMemorize}
         isAnalysis={isAnalysis}
         isMultipleChoice={question.type === 'multiple'}
+        usesRecallGrading={!isChoice}
         selectedCount={selected.length}
         onPrevious={actions.previousQuestion}
         onNext={actions.nextQuestion}

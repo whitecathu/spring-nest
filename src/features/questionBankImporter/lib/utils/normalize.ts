@@ -34,18 +34,37 @@ export function normalizeOptions(value: unknown): string[] | undefined {
 
 export function normalizeAnswer(value: unknown): string | string[] | undefined {
   if (Array.isArray(value)) {
-    const answers = value.map((item) => String(item).trim()).filter(Boolean);
+    const answers = value
+      .flatMap((item) => {
+        const normalized = normalizeAnswer(item);
+        if (!normalized) return [];
+        return Array.isArray(normalized) ? normalized : [normalized];
+      })
+      .map((item) => String(item).trim())
+      .filter(Boolean);
     return answers.length > 1 ? answers : answers[0];
   }
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-    const text = String(value).trim();
+    const text = String(value)
+      .trim()
+      .replace(/^答案\s*[:：]?\s*/i, '')
+      .replace(/^正确答案\s*(?:是|为|[:：])?\s*/i, '')
+      .replace(/^参考答案\s*(?:是|为|[:：])?\s*/i, '')
+      .replace(/^标准答案\s*(?:是|为|[:：])?\s*/i, '')
+      .replace(/^正确选项\s*(?:是|为|[:：])?\s*/i, '');
     if (!text) return undefined;
-    const compactChoices = text.replace(/\s+/g, '').toUpperCase();
+    const selectedOption = text.match(/^选项\s*([A-F])$/i);
+    if (selectedOption) return selectedOption[1].toUpperCase();
+
+    const markedOption = text.match(/^([A-F])\s*[.、．):：]\s*.+$/i);
+    if (markedOption) return markedOption[1].toUpperCase();
+
+    const compactChoices = text.replace(/[\s,，、/|；;]+/g, '').toUpperCase();
     if (/^[A-F]{2,}$/.test(compactChoices)) {
       return compactChoices.split('');
     }
     const multi = text
-      .split(/[，,、]/)
+      .split(/[，,、/|；;\s]+/)
       .map((item) => item.trim())
       .filter(Boolean);
     if (multi.length > 1 && multi.every((item) => /^[A-Z]$/i.test(item))) {

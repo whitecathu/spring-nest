@@ -2,9 +2,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { defaultBuiltInQuestionBank } from '../features/questionBankImporter/config/builtInQuestionBanks';
+import { parseCsv } from '../features/questionBankImporter/lib/parsers/parseCsv';
+import { parseJson } from '../features/questionBankImporter/lib/parsers/parseJson';
 import { parseRar } from '../features/questionBankImporter/lib/parsers/parseRar';
 import { parseText } from '../features/questionBankImporter/lib/parsers/parseText';
-import { normalizeQuestionType } from '../features/questionBankImporter/lib/utils/normalize';
+import {
+  normalizeAnswer,
+  normalizeQuestionType,
+} from '../features/questionBankImporter/lib/utils/normalize';
 
 describe('question bank parsing', () => {
   afterEach(() => {
@@ -52,6 +57,77 @@ describe('question bank parsing', () => {
       chapter: '第一章 数据结构',
       type: 'single',
     });
+  });
+
+  it('parses inline exam-bank text with bracketed type and answer analysis labels', () => {
+    const result = parseText(
+      [
+        '【单选题】1. 下列协议用于域名解析的是？ A. HTTP B. FTP C. DNS D. SMTP 正确答案为 C 答案解析：DNS 用于域名解析。',
+        '【多选题】2. 以下属于浏览器本地存储的是？ A. localStorage B. IndexedDB C. 云数据库 D. Cookie 参考答案：A B D',
+      ].join('\n'),
+      { sourceFile: 'inline-bank.txt' },
+    );
+
+    expect(result.questions).toHaveLength(2);
+    expect(result.questions[0]).toMatchObject({
+      type: 'single',
+      answer: 'C',
+      explanation: 'DNS 用于域名解析。',
+    });
+    expect(result.questions[0].options).toEqual(['A. HTTP', 'B. FTP', 'C. DNS', 'D. SMTP']);
+    expect(result.questions[1]).toMatchObject({
+      type: 'multiple',
+      answer: ['A', 'B', 'D'],
+    });
+  });
+
+  it('parses TSV/CSV exports with common answer field aliases', () => {
+    const result = parseCsv(
+      [
+        '题干\t选项A\t选项B\t正确选项\t答案解析\t题型',
+        '复习小筑默认把题库保存在哪里？\t本机浏览器\t远程服务器\tA. 本机浏览器\t默认本地保存，可导出备份。\t单选题',
+      ].join('\n'),
+      { sourceFile: 'export.tsv' },
+    );
+
+    expect(result.questions).toHaveLength(1);
+    expect(result.questions[0]).toMatchObject({
+      type: 'single',
+      answer: 'A',
+      explanation: '默认本地保存，可导出备份。',
+    });
+  });
+
+  it('parses JSON wrapped in data records with snake_case answer fields', () => {
+    const result = parseJson(
+      JSON.stringify({
+        data: {
+          records: [
+            {
+              stem: '移动端复习时主要操作区应该放在哪里？',
+              option_a: '屏幕下半部分',
+              option_b: '隐藏到菜单里',
+              correct_answer: '选项A',
+              analysis: '单手操作时底部更容易触达。',
+              question_type: 'single',
+            },
+          ],
+        },
+      }),
+      { sourceFile: 'wrapped.json' },
+    );
+
+    expect(result.questions).toHaveLength(1);
+    expect(result.questions[0]).toMatchObject({
+      type: 'single',
+      answer: 'A',
+    });
+  });
+
+  it('normalizes common answer forms to option letters', () => {
+    expect(normalizeAnswer('A. 本机浏览器')).toBe('A');
+    expect(normalizeAnswer('选项B')).toBe('B');
+    expect(normalizeAnswer('A/B/D')).toEqual(['A', 'B', 'D']);
   });
 
   it('parses the built-in 2024 revised Maogai RAR question bank', async () => {

@@ -63,6 +63,7 @@ interface ReviewActionDockProps {
   isMemorize: boolean;
   isAnalysis: boolean;
   isMultipleChoice: boolean;
+  usesRecallGrading: boolean;
   selectedCount: number;
   onPrevious: () => void;
   onNext: () => void;
@@ -85,6 +86,7 @@ export function ReviewActionDock({
   isMemorize,
   isAnalysis,
   isMultipleChoice,
+  usesRecallGrading,
   selectedCount,
   onPrevious,
   onNext,
@@ -130,29 +132,46 @@ export function ReviewActionDock({
     );
   }
 
-  if (isMemorize || (!isMultipleChoice && answerVisible && !submitted)) {
+  if ((isMemorize && answerVisible) || (usesRecallGrading && answerVisible && !submitted)) {
     return (
       <DockFrame>
-        <div className="pointer-events-auto grid grid-cols-3 gap-2 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(249_250_246_/_0.94)] p-2 shadow-soft backdrop-blur">
+        <div className="pointer-events-auto grid grid-cols-5 gap-2 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(249_250_246_/_0.94)] p-2 shadow-soft backdrop-blur">
           <DockButton
-            label="重来"
+            label="上一题"
+            icon={<ArrowLeft size={17} aria-hidden="true" />}
+            onClick={onPrevious}
+            disabled={!canPrevious}
+          />
+          <DockButton
+            label="答错"
             icon={<RotateCcw size={17} aria-hidden="true" />}
             onClick={onForgot}
-            disabled={!answerVisible || submitted}
+            disabled={submitted}
             tone="danger"
           />
           <DockButton
             label="模糊"
             icon={<X size={17} aria-hidden="true" />}
             onClick={onVague}
-            disabled={!answerVisible || submitted}
+            disabled={submitted}
           />
           <DockButton
-            label="掌握"
+            label="答对"
             icon={<Check size={17} aria-hidden="true" />}
             onClick={onRemember}
-            disabled={!answerVisible || submitted}
+            disabled={submitted}
             tone="primary"
+          />
+          <DockButton
+            label={canNext ? '下一题' : '退出'}
+            icon={
+              canNext ? (
+                <ArrowRight size={17} aria-hidden="true" />
+              ) : (
+                <Home size={17} aria-hidden="true" />
+              )
+            }
+            onClick={canNext ? onNext : onExit}
           />
         </div>
       </DockFrame>
@@ -160,7 +179,13 @@ export function ReviewActionDock({
   }
 
   const primaryLabel =
-    isMultipleChoice && !submitted ? '提交' : answerVisible || submitted ? '下一题' : '答案';
+    isMultipleChoice && !submitted
+      ? '提交'
+      : answerVisible || submitted
+        ? canNext
+          ? '下一题'
+          : '退出'
+        : '答案';
   const primaryAction =
     isMultipleChoice && !submitted
       ? onSubmitChoice
@@ -173,7 +198,11 @@ export function ReviewActionDock({
 
   return (
     <DockFrame>
-      <div className="pointer-events-auto grid grid-cols-[1fr_1fr_1.4fr] gap-2 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(249_250_246_/_0.94)] p-2 shadow-soft backdrop-blur">
+      <div
+        className={`pointer-events-auto grid gap-2 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(249_250_246_/_0.94)] p-2 shadow-soft backdrop-blur ${
+          submitted ? 'grid-cols-4' : 'grid-cols-[1fr_1fr_1.4fr]'
+        }`}
+      >
         <DockButton
           label="上一题"
           icon={<ArrowLeft size={17} aria-hidden="true" />}
@@ -191,6 +220,10 @@ export function ReviewActionDock({
           icon={
             primaryLabel === '答案' ? (
               <Eye size={17} aria-hidden="true" />
+            ) : primaryLabel === '提交' ? (
+              <Check size={17} aria-hidden="true" />
+            ) : primaryLabel === '退出' ? (
+              <Home size={17} aria-hidden="true" />
             ) : (
               <ArrowRight size={17} aria-hidden="true" />
             )

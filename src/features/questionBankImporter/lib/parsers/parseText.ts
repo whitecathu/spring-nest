@@ -19,19 +19,60 @@ interface DraftQuestion {
 }
 
 const questionStartPattern =
-  /^(\s*(?:\d+[.、．、)]|[（(]\d+[）)]|题目[:：]|题干[:：]|问题[:：]|Q[:：]))\s*(.+)?$/i;
+  /^(\s*(?:第?\d+\s*题[.、．、):：]?|\d+[.、．、)]|[（(]\d+[）)]|题目[:：]|题干[:：]|问题[:：]|Q[:：]))\s*(.+)?$/i;
 const optionPattern = /^\s*([A-F])\s*[.、．)]\s*(.+)$/i;
-const answerPattern =
-  /^\s*(?:【\s*)?(?:参考答案|正确答案|答案|Answer|A)(?:\s*】)?\s*[:：]?\s*(.+)$/i;
-const explanationPattern = /^\s*(?:解析|解释|Explanation)[:：]\s*(.*)$/i;
+const answerLabel = String.raw`(?:参考答案|标准答案|正确答案|正确选项|答案(?!解析)|Answer|Correct\s*Answer|Correct|Ans)`;
+const namedAnswerPattern = new RegExp(
+  String.raw`^\s*(?:【\s*)?${answerLabel}(?:\s*】)?\s*(?:是|为|选|[:：])?\s*(.+)$`,
+  'i',
+);
+const qaAnswerPattern = /^\s*A\s*[:：]\s*(.+)$/i;
+const inlineAnswerPattern = new RegExp(
+  String.raw`(?:【\s*)?${answerLabel}(?:\s*】)?\s*(?:是|为|选|[:：])\s*(.+)$`,
+  'i',
+);
+const explanationPattern = /^\s*(?:答案解析|试题解析|解析|详解|解释|Analysis|Explanation)[:：]\s*(.*)$/i;
+const inlineExplanationPattern =
+  /\s*(?:答案解析|试题解析|解析|详解|解释|Analysis|Explanation)\s*[:：]\s*/i;
 const difficultyPattern = /^\s*(?:【\s*)?(?:难易程度|难易度|难度)(?:\s*】)?\s*[:：]?\s*(.+)$/i;
 const tagPattern = /^\s*(?:标签|Tags?)[:：]\s*(.+)$/i;
 const chapterPattern = /^\s*(?:章节|章|Chapter)[:：]\s*(.+)$/i;
 
+function stripTypePrefix(line: string): { line: string; typeHint?: QuestionType } {
+  let working = line.trim();
+  let typeHint: QuestionType | undefined;
+
+  for (let index = 0; index < 3; index += 1) {
+    const bracketed = working.match(
+      /^\s*[【\[(（]\s*(单项选择题?|单选题?|多项选择题?|多选题?|判断题?|填空题?|补空题?|简答题?|问答题?|背诵卡|卡片)\s*[】\])）]\s*/i,
+    );
+    if (bracketed) {
+      typeHint = detectSectionType(bracketed[1]) ?? typeHint;
+      working = working.slice(bracketed[0].length).trim();
+      continue;
+    }
+
+    const plain = working.match(
+      /^\s*(单项选择题?|单选题?|多项选择题?|多选题?|判断题?|填空题?|补空题?|简答题?|问答题?|背诵卡|卡片)\s*[:：]?\s*(?=(?:第?\d+\s*题|\d+[.、．、)]|[（(]\d+[）)]|题目[:：]|题干[:：]|问题[:：]|Q[:：]))/i,
+    );
+    if (plain) {
+      typeHint = detectSectionType(plain[1]) ?? typeHint;
+      working = working.slice(plain[0].length).trim();
+      continue;
+    }
+
+    break;
+  }
+
+  return { line: working, typeHint };
+}
+
 function cleanQuestionLead(line: string): string {
-  return line
-    .replace(/^\s*(?:\d+[.、．)]|[（(]\d+[）)]|题目[:：]|题干[:：]|问题[:：]|Q[:：])\s*/i, '')
-    .trim();
+  const withoutNumber = line.replace(
+    /^\s*(?:第?\d+\s*题[.、．、):：]?|\d+[.、．)]|[（(]\d+[）)]|题目[:：]|题干[:：]|问题[:：]|Q[:：])\s*/i,
+    '',
+  );
+  return stripTypePrefix(withoutNumber).line.trim();
 }
 
 function normalizeDifficultyText(text: string): Difficulty | undefined {
@@ -48,6 +89,7 @@ function detectSectionType(line: string): QuestionType | undefined {
   if (/判断/.test(line)) return 'judge';
   if (/填空|补空/.test(line)) return 'blank';
   if (/简答|问答/.test(line)) return 'short';
+  if (/背诵卡|卡片/.test(line)) return 'flashcard';
   return undefined;
 }
 
@@ -77,6 +119,74 @@ function detectChapter(line: string): string | undefined {
   if (explicit?.[1]?.trim()) return explicit[1].trim();
   if (/^第[一二三四五六七八九十\d]+章/.test(line)) return line.trim();
   return undefined;
+}
+
+function cleanAnswerText(text: string): string {
+  const [answerPart] = text.split(inlineExplanationPattern);
+  return answerPart.replace(/[。；;，,、\s]+$/, '').trim();
+}
+
+function matchAnswerText(line: string): string | undefined {
+  const qaMatch = line.match(qaAnswerPattern);
+  if (qaMatch?.[1]) return cleanAnswerText(qaMatch[1]);
+
+  const namedMatch = line.match(namedAnswerPattern);
+  if (namedMatch?.[1]) return cleanAnswerText(namedMatch[1]);
+
+  return undefined;
+}
+
+function splitInlineExplanation(text: string): { text: string; explanation?: string } {
+  const match = text.match(inlineExplanationPattern);
+  if (!match || match.index === undefined) return { text };
+  return {
+    text: text.slice(0, match.index).trim(),
+    explanation: text.slice(match.index + match[0].length).trim(),
+  };
+}
+
+function splitInlineAnswer(text: string): { text: string; answer?: string } {
+  const match = text.match(inlineAnswerPattern);
+  if (!match || match.index === undefined || !match[1]) return { text };
+  return {
+    text: text.slice(0, match.index).trim(),
+    answer: cleanAnswerText(match[1]),
+  };
+}
+
+function splitInlineOptions(text: string): { question: string; options: string[] } {
+  const optionMatches = [...text.matchAll(/([A-F])\s*[.、．):：]\s*/gi)].filter((match) => {
+    const index = match.index ?? 0;
+    const before = index > 0 ? text[index - 1] : ' ';
+    return index === 0 || /[\s　(（【\[]/.test(before);
+  });
+
+  if (optionMatches.length < 2) return { question: text.trim(), options: [] };
+
+  const firstIndex = optionMatches[0].index ?? 0;
+  const question = text.slice(0, firstIndex).trim();
+  const options = optionMatches
+    .map((match, index) => {
+      const start = (match.index ?? 0) + match[0].length;
+      const end = optionMatches[index + 1]?.index ?? text.length;
+      const body = text.slice(start, end).trim();
+      return body ? `${match[1].toUpperCase()}. ${body.replace(/^[A-F][.、．):：\s]+/i, '')}` : '';
+    })
+    .filter(Boolean);
+
+  return { question: question || text.trim(), options };
+}
+
+function parseQuestionPayload(text: string) {
+  const withExplanation = splitInlineExplanation(text);
+  const withAnswer = splitInlineAnswer(withExplanation.text);
+  const withOptions = splitInlineOptions(withAnswer.text);
+  return {
+    question: withOptions.question,
+    options: withOptions.options,
+    answer: withAnswer.answer,
+    explanation: withExplanation.explanation,
+  };
 }
 
 function finalizeDraft(draft: DraftQuestion | undefined, context: ParserContext) {
@@ -115,7 +225,7 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
 
   const lines = text.replace(/\r\n/g, '\n').split('\n');
   for (const rawLine of lines) {
-    const line = rawLine.trimEnd();
+    const line = rawLine.replace(/\uFEFF/g, '').replace(/\u00a0/g, ' ').trimEnd();
     const trimmed = line.trim();
 
     if (!trimmed) {
@@ -140,36 +250,44 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
       continue;
     }
 
-    const questionMatch = trimmed.match(questionStartPattern);
-    const optionMatch = trimmed.match(optionPattern);
-    const answerMatch = trimmed.match(answerPattern);
-    const explanationMatch = trimmed.match(explanationPattern);
-    const difficultyMatch = trimmed.match(difficultyPattern);
-    const tagMatch = trimmed.match(tagPattern);
+    const typedLine = stripTypePrefix(trimmed);
+    const workingLine = typedLine.line;
 
-    if (questionMatch) {
+    const questionMatch = trimmed.match(questionStartPattern);
+    const typedQuestionMatch = workingLine.match(questionStartPattern);
+    const optionMatch = workingLine.match(optionPattern);
+    const answerText = matchAnswerText(workingLine);
+    const explanationMatch = workingLine.match(explanationPattern);
+    const difficultyMatch = workingLine.match(difficultyPattern);
+    const tagMatch = workingLine.match(tagPattern);
+
+    if (questionMatch || typedQuestionMatch) {
       const complete = finalizeDraft(current, context);
       if (complete) questions.push(complete);
+      const parsed = parseQuestionPayload(cleanQuestionLead(workingLine));
       current = {
-        questionLines: [cleanQuestionLead(trimmed)],
-        options: [],
-        explanationLines: [],
+        questionLines: [parsed.question],
+        options: parsed.options,
+        answer: parsed.answer,
+        explanationLines: parsed.explanation ? [parsed.explanation] : [],
         tags: [],
         chapter: currentChapter,
-        typeHint: sectionType,
+        typeHint: typedLine.typeHint ?? sectionType,
       };
       readingExplanation = false;
       continue;
     }
 
     if (!current) {
+      const parsed = parseQuestionPayload(workingLine);
       current = {
-        questionLines: [cleanQuestionLead(trimmed)],
-        options: [],
-        explanationLines: [],
+        questionLines: [parsed.question],
+        options: parsed.options,
+        answer: parsed.answer,
+        explanationLines: parsed.explanation ? [parsed.explanation] : [],
         tags: [],
         chapter: currentChapter,
-        typeHint: sectionType,
+        typeHint: typedLine.typeHint ?? sectionType,
       };
       continue;
     }
@@ -180,8 +298,8 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
       continue;
     }
 
-    if (answerMatch) {
-      current.answer = answerMatch[1].trim();
+    if (answerText) {
+      current.answer = answerText;
       readingExplanation = false;
       continue;
     }
@@ -211,18 +329,20 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
     if (current.answer) {
       const complete = finalizeDraft(current, context);
       if (complete) questions.push(complete);
+      const parsed = parseQuestionPayload(workingLine);
       current = {
-        questionLines: [cleanQuestionLead(trimmed)],
-        options: [],
-        explanationLines: [],
+        questionLines: [parsed.question],
+        options: parsed.options,
+        answer: parsed.answer,
+        explanationLines: parsed.explanation ? [parsed.explanation] : [],
         tags: [],
         chapter: currentChapter,
-        typeHint: sectionType,
+        typeHint: typedLine.typeHint ?? sectionType,
       };
       continue;
     }
 
-    current.questionLines.push(trimmed.replace(/^[-*]\s+/, ''));
+    current.questionLines.push(workingLine.replace(/^[-*]\s+/, ''));
   }
 
   const complete = finalizeDraft(current, context);

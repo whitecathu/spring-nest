@@ -1,4 +1,5 @@
 import { Filter, Search } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   getQuestionTypeLabel,
   type QuestionFilters as Filters,
@@ -36,11 +37,18 @@ export function QuestionFilters({
   onFilters,
   onSort,
 }: QuestionFiltersProps) {
-  const sourceFiles = [...new Set(questions.map((question) => question.sourceFile))].filter(
-    Boolean,
+  const sourceFiles = useMemo(
+    () => [...new Set(questions.map((question) => question.sourceFile))].filter(Boolean),
+    [questions],
   );
-  const chapters = [...new Set(questions.map((question) => question.chapter))].filter(Boolean);
-  const tags = [...new Set(questions.flatMap((question) => question.tags ?? []))].filter(Boolean);
+  const chapters = useMemo(
+    () => [...new Set(questions.map((question) => question.chapter))].filter(Boolean),
+    [questions],
+  );
+  const tags = useMemo(
+    () => [...new Set(questions.flatMap((question) => question.tags ?? []))].filter(Boolean),
+    [questions],
+  );
 
   return (
     <GlassCard className="min-w-0 space-y-4">

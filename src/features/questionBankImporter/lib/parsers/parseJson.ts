@@ -9,22 +9,58 @@ import {
   normalizeTags,
 } from '../utils/normalize';
 
-const questionFields = ['question', '题目', '题干', '问题', 'title', 'content'];
-const optionsFields = ['options', '选项'];
-const answerFields = ['answer', '答案', '正确答案', 'correctAnswer'];
-const explanationFields = ['explanation', '解析', 'analysis'];
+const questionFields = [
+  'question',
+  'questionText',
+  'stem',
+  '题目',
+  '题目内容',
+  '题干',
+  '问题',
+  '问题描述',
+  'title',
+  'content',
+];
+const optionsFields = ['options', 'optionList', '选项', '选项内容'];
+const answerFields = [
+  'answer',
+  '答案',
+  '参考答案',
+  '标准答案',
+  '正确答案',
+  '正确选项',
+  '答案选项',
+  'correct',
+  'correctAnswer',
+  'correct_answer',
+  'rightAnswer',
+  'right_answer',
+  'key',
+];
+const explanationFields = ['explanation', '解析', '答案解析', '详解', 'analysis', 'solution'];
 const tagsFields = ['tags', '标签'];
 const chapterFields = ['chapter', '章节', '章'];
-const typeFields = ['type', '类型', '题型'];
+const typeFields = ['type', 'questionType', '类型', '题型'];
 const difficultyFields = ['difficulty', '难度'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function normalizeFieldKey(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '');
+}
+
 function pick(record: Record<string, unknown>, keys: string[]): unknown {
+  const normalizedRecord = new Map(
+    Object.entries(record).map(([key, value]) => [normalizeFieldKey(key), value]),
+  );
   for (const key of keys) {
-    if (key in record) return record[key];
+    const value = normalizedRecord.get(normalizeFieldKey(key));
+    if (value !== undefined && value !== null && value !== '') return value;
   }
   return undefined;
 }
@@ -36,10 +72,13 @@ function readOptions(record: Record<string, unknown>): string[] | undefined {
   const optionValues = ['A', 'B', 'C', 'D', 'E', 'F']
     .map((letter) => {
       const value =
-        record[`option${letter}`] ??
-        record[`选项${letter}`] ??
-        record[letter] ??
-        record[letter.toLowerCase()];
+        pick(record, [
+          `option${letter}`,
+          `option_${letter}`,
+          `选项${letter}`,
+          `${letter}选项`,
+          letter,
+        ]) ?? record[letter.toLowerCase()];
       if (value === undefined || value === null) return '';
       const text = String(value).trim();
       return text ? `${letter}. ${text.replace(/^[A-F][.、\s]+/i, '')}` : '';
@@ -74,6 +113,20 @@ function parseQuestionRecord(record: Record<string, unknown>, context: ParserCon
   });
 }
 
+function pickQuestionArray(value: unknown): unknown[] | undefined {
+  if (Array.isArray(value)) return value;
+  if (!isRecord(value)) return undefined;
+
+  const direct = pick(value, ['questions', 'questionList', 'items', 'list', 'rows', 'records']);
+  if (Array.isArray(direct)) return direct;
+
+  const data = pick(value, ['data', 'result']);
+  if (Array.isArray(data)) return data;
+  if (isRecord(data)) return pickQuestionArray(data);
+
+  return undefined;
+}
+
 export function parseJson(text: string, context: ParserContext): ParserOutput {
   const warnings: string[] = [];
   let parsed: unknown;
@@ -86,11 +139,7 @@ export function parseJson(text: string, context: ParserContext): ParserOutput {
     };
   }
 
-  const rawQuestions = Array.isArray(parsed)
-    ? parsed
-    : isRecord(parsed) && Array.isArray(parsed.questions)
-      ? parsed.questions
-      : undefined;
+  const rawQuestions = pickQuestionArray(parsed);
 
   if (!rawQuestions) {
     return {
