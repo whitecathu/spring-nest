@@ -136,6 +136,7 @@ export function UploadPanel() {
   );
   const [previewReports, setPreviewReports] = useState<ImportedFileReport[]>([]);
   const [warningsVisible, setWarningsVisible] = useState(true);
+  const [showAllPreview, setShowAllPreview] = useState(false);
   const [isPreviewParsing, setIsPreviewParsing] = useState(false);
   const backupInputRef = useRef<HTMLInputElement>(null);
   const questions = useQuestionBankStore((state) => state.questions);
@@ -186,6 +187,7 @@ export function UploadPanel() {
     setPreviewSourceType('');
     setPreviewReports([]);
     setWarningsVisible(true);
+    setShowAllPreview(false);
   }
 
   async function previewFileInput(
@@ -350,7 +352,7 @@ export function UploadPanel() {
                     <h4 className="font-bold text-[var(--color-ink)]">导入预览</h4>
                     <p className="mt-1 break-words text-xs text-[var(--color-muted)]">
                       {previewSourceName ? `来源：${previewSourceName}。` : ''}
-                      已识别 {previewQuestions.length} 题，可先修正题干、答案和解析。
+                      已识别 {previewQuestions.length} 题，可先修正后导入。
                     </p>
                   </div>
                   <div className="hidden flex-wrap gap-2 md:flex">
@@ -361,15 +363,26 @@ export function UploadPanel() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {previewQuestions.map((question, index) => (
-                    <PreviewQuestionCard
-                      key={question.id}
-                      question={question}
-                      index={index}
-                      onChange={updatePreviewQuestion}
-                    />
-                  ))}
+                  {(showAllPreview ? previewQuestions : previewQuestions.slice(0, 2)).map(
+                    (question, index) => (
+                      <PreviewQuestionCard
+                        key={question.id}
+                        question={question}
+                        index={index}
+                        onChange={updatePreviewQuestion}
+                      />
+                    ),
+                  )}
                 </div>
+                {!showAllPreview && previewQuestions.length > 2 && (
+                  <button
+                    type="button"
+                    className="w-full rounded-xl py-2 text-center text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-soft)]"
+                    onClick={() => setShowAllPreview(true)}
+                  >
+                    展开全部 {previewQuestions.length} 题
+                  </button>
+                )}
                 <div className="qb-mobile-sticky-actions sticky z-20 grid gap-2 rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(249_250_246_/_0.95)] p-2 shadow-soft backdrop-blur md:hidden">
                   <SoftButton className="w-full" variant="primary" onClick={importPreviewQuestions}>
                     导入到题库
