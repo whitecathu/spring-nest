@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "generate:miniapp": "tsx scripts/generate-miniapp-tools.ts",
     "generate:site-assets": "tsx scripts/generate-site-assets.ts",
     "generate:sitemap": "npm run generate:site-assets",
     "prebuild": "npm run generate:site-assets",
@@ -16,6 +17,7 @@
     "format:check": "prettier --check .",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
+    "verify:miniapp": "tsx scripts/verify-miniapp-foundation.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
