@@ -144,6 +144,19 @@ npm run test:e2e   # 运行 15 个 Playwright 生产预览 E2E 测试
 npm run lint       # TypeScript 类型检查
 ```
 
+## 工具小程序
+
+本仓库包含一个独立的工具小程序基础工程，目录为 `miniapp/`。小程序只包含工具，不包含游戏；当前 Web 端仍保留工具与游戏。
+
+常用命令：
+
+```bash
+npm run generate:miniapp # 从现有工具目录生成 miniapp/data/tools.js
+npm run verify:miniapp   # 校验三 Tab、29 个工具和无游戏入口
+```
+
+小程序设计文档见 `docs/superpowers/specs/2026-05-18-tools-mini-program-design.md`。
+
 ## 构建与测试
 
 ```bash
