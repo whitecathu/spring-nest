@@ -1,0 +1,14 @@
+<view class="tool-shell">
+  <view class="tool-shell__header">
+    <view>
+      <view class="tool-shell__category">{{tool.miniCategoryTitle}}</view>
+      <view class="tool-shell__title">{{tool.title}}</view>
+      <view class="tool-shell__desc">{{tool.description}}</view>
+    </view>
+    <button class="tool-shell__favorite" bindtap="toggleFavorite" aria-label="{{favorite ? '取消收藏' : '收藏'}}">
+      {{favorite ? '已藏' : '收藏'}}
+    </button>
+  </view>
+  <slot></slot>
+  <view class="tool-shell__privacy">默认本地处理。敏感内容不会写入最近使用明文。</view>
+</view>

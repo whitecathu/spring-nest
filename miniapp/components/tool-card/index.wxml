@@ -1,0 +1,8 @@
+<button class="tool-card {{compact ? 'tool-card--compact' : ''}}" bindtap="handleTap" hover-class="tool-card--active">
+  <view class="tool-card__icon">{{tool.icon || '工具'}}</view>
+  <view class="tool-card__body">
+    <view class="tool-card__title">{{tool.title}}</view>
+    <view class="tool-card__desc">{{tool.description}}</view>
+    <view class="tool-card__meta">{{tool.miniCategoryTitle}} · {{tool.workbenchType}}</view>
+  </view>
+</button>

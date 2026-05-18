@@ -1,0 +1,24 @@
+.preset-chips {
+  white-space: nowrap;
+}
+
+.preset-chip {
+  display: inline-flex;
+  min-height: 72rpx;
+  margin-right: 12rpx;
+  align-items: center;
+  border-radius: 999rpx;
+  background: #f1f2ee;
+  color: #615e59;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.preset-chip::after {
+  border: 0;
+}
+
+.preset-chip--active {
+  background: #3f6751;
+  color: #ffffff;
+}

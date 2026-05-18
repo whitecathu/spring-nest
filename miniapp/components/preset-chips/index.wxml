@@ -1,0 +1,12 @@
+<scroll-view scroll-x class="preset-chips">
+  <button
+    wx:for="{{options}}"
+    wx:key="value"
+    class="preset-chip {{value === item.value ? 'preset-chip--active' : ''}}"
+    data-value="{{item.value}}"
+    data-label="{{item.label}}"
+    bindtap="handleSelect"
+  >
+    {{item.label}}
+  </button>
+</scroll-view>

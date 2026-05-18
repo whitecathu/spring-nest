@@ -1,0 +1,4 @@
+<view class="bottom-action safe-bottom">
+  <button wx:if="{{secondaryText}}" class="bottom-action__secondary" bindtap="handleSecondary">{{secondaryText}}</button>
+  <button class="bottom-action__primary" bindtap="handlePrimary">{{primaryText}}</button>
+</view>
