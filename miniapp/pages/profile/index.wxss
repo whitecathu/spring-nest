@@ -1,0 +1,77 @@
+.profile-header {
+  padding: 30rpx;
+  border-radius: 30rpx;
+  background: linear-gradient(135deg, #ffffff, #eef8f2);
+}
+
+.profile-header__title {
+  color: #1a1c1a;
+  font-size: 44rpx;
+  font-weight: 950;
+}
+
+.profile-header__desc {
+  margin-top: 8rpx;
+  color: #615e59;
+  font-size: 26rpx;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.stat-card {
+  padding: 28rpx;
+  text-align: center;
+}
+
+.stat-card__value {
+  color: #3f6751;
+  font-size: 48rpx;
+  font-weight: 950;
+}
+
+.stat-card__label {
+  margin-top: 8rpx;
+  color: #615e59;
+  font-size: 24rpx;
+}
+
+.settings-list {
+  overflow: hidden;
+}
+
+.settings-row {
+  padding: 26rpx;
+  border-bottom: 1rpx solid rgba(226, 227, 223, 0.9);
+}
+
+.settings-row__title {
+  color: #1a1c1a;
+  font-size: 30rpx;
+  font-weight: 850;
+}
+
+.settings-row__desc {
+  margin-top: 8rpx;
+  color: #615e59;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.settings-action {
+  width: calc(100% - 40rpx);
+  min-height: 88rpx;
+  margin: 20rpx;
+  border-radius: 22rpx;
+  background: #fff3ed;
+  color: #c2410c;
+  font-size: 28rpx;
+  font-weight: 850;
+}
+
+.settings-action::after {
+  border: 0;
+}

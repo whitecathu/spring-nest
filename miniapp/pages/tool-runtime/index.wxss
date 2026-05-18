@@ -1,0 +1,32 @@
+.runtime-section {
+  margin-top: 24rpx;
+  padding: 26rpx;
+}
+
+.runtime-section__title,
+.runtime-empty__title {
+  color: #1a1c1a;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.runtime-section__desc,
+.runtime-empty__desc {
+  margin-top: 10rpx;
+  color: #615e59;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.runtime-section__meta {
+  margin-top: 12rpx;
+  color: #3f6751;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.runtime-empty {
+  margin-top: 180rpx;
+  padding: 36rpx;
+  text-align: center;
+}

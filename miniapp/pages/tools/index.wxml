@@ -1,0 +1,41 @@
+<view class="page tools-page">
+  <view class="tools-header">
+    <view class="tools-header__title">全部工具</view>
+    <view class="tools-header__desc">只包含工具，不包含游戏。</view>
+  </view>
+
+  <view class="search-box">
+    <input
+      class="search-box__input"
+      value="{{query}}"
+      placeholder="搜索工具、说明或标签"
+      confirm-type="search"
+      bindinput="handleSearchInput"
+    />
+  </view>
+
+  <scroll-view scroll-x class="category-strip">
+    <button
+      wx:for="{{categories}}"
+      wx:key="slug"
+      class="category-chip {{activeCategory === item.slug ? 'category-chip--active' : ''}}"
+      data-slug="{{item.slug}}"
+      bindtap="setCategory"
+    >
+      {{item.title}}
+    </button>
+  </scroll-view>
+
+  <view class="tool-count">已显示 {{visibleTools.length}} 个工具</view>
+
+  <view class="tool-list">
+    <block wx:for="{{visibleTools}}" wx:key="id">
+      <tool-card tool="{{item}}" bind:open="openTool" />
+    </block>
+  </view>
+
+  <view wx:if="{{!visibleTools.length}}" class="empty surface">
+    <view class="empty__title">没有找到工具</view>
+    <view class="empty__desc">换一个关键词，或切回全部分类。</view>
+  </view>
+</view>

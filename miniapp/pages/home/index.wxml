@@ -1,0 +1,64 @@
+<view class="page home-page">
+  <view class="home-hero">
+    <view class="home-hero__eyebrow">Spring Nest</view>
+    <view class="home-hero__title">工具箱</view>
+    <view class="home-hero__subtitle">打开就能用，数据默认留在本机。</view>
+  </view>
+
+  <view class="search-box">
+    <input
+      class="search-box__input"
+      value="{{query}}"
+      placeholder="搜索工具、说明或标签"
+      confirm-type="search"
+      bindinput="handleSearchInput"
+    />
+  </view>
+
+  <view wx:if="{{searchResults.length}}" class="section">
+    <view class="section-title">搜索结果</view>
+    <block wx:for="{{searchResults}}" wx:key="id">
+      <tool-card tool="{{item}}" compact bind:open="openTool" />
+    </block>
+  </view>
+
+  <view wx:if="{{recentTools.length}}" class="section">
+    <view class="section-title">最近使用</view>
+    <scroll-view scroll-x class="recent-strip">
+      <button
+        wx:for="{{recentTools}}"
+        wx:key="id"
+        class="recent-chip"
+        data-slug="{{item.slug}}"
+        bindtap="openTool"
+      >
+        {{item.icon}} {{item.title}}
+      </button>
+    </scroll-view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">高频工具</view>
+    <block wx:for="{{homeTools}}" wx:key="id">
+      <tool-card tool="{{item}}" bind:open="openTool" />
+    </block>
+  </view>
+
+  <view class="section category-panel surface">
+    <view class="section-title">按任务找工具</view>
+    <view class="category-grid">
+      <button
+        wx:for="{{categories}}"
+        wx:key="slug"
+        class="category-item"
+        data-slug="{{item.slug}}"
+        bindtap="openToolsTab"
+      >
+        <view class="category-item__title">{{item.title}}</view>
+        <view class="category-item__desc">{{item.description}}</view>
+      </button>
+    </view>
+  </view>
+
+  <result-card title="小程序范围" content="这里只放工具，不包含游戏。当前 Web 端保持原来的工具与游戏入口。" tone="success" />
+</view>

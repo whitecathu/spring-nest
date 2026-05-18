@@ -1,0 +1,24 @@
+<view class="page runtime-page">
+  <tool-shell wx:if="{{tool}}" tool="{{tool}}" favorite="{{favorite}}" bind:favorite="toggleFavorite">
+    <result-card title="{{statusTitle}}" content="{{statusContent}}" tone="success" />
+
+    <view class="runtime-section surface">
+      <view class="runtime-section__title">小程序任务流</view>
+      <view class="runtime-section__desc">{{tool.description}}</view>
+      <view class="runtime-section__meta">分类：{{tool.miniCategoryTitle}}</view>
+      <view class="runtime-section__meta">工作台类型：{{tool.workbenchType}}</view>
+    </view>
+  </tool-shell>
+
+  <view wx:else class="runtime-empty surface">
+    <view class="runtime-empty__title">{{statusTitle}}</view>
+    <view class="runtime-empty__desc">{{statusContent}}</view>
+  </view>
+
+  <bottom-action-bar
+    primaryText="{{tool ? '复制工具说明' : '返回工具'}}"
+    secondaryText="{{tool ? '返回工具' : ''}}"
+    bind:primary="handlePrimaryAction"
+    bind:secondary="backToTools"
+  />
+</view>
