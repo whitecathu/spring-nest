@@ -4,12 +4,20 @@ import path from 'node:path';
 import { parseText } from '../features/questionBankImporter/lib/parsers/parseText';
 
 describe('iTEST document format', () => {
-  it('parses the full iTEST docx through the Word pipeline', async () => {
+  const localDocx = 'C:/Users/22821/Desktop/试卷预览（研究生24-02）+-+iTEST系统.docx';
+  const hasLocalDocx = (() => {
+    try {
+      readFileSync(path.resolve(localDocx));
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  it.skipIf(!hasLocalDocx)('parses the full iTEST docx through the Word pipeline', async () => {
     const { parseWordDocument } =
       await import('../features/questionBankImporter/lib/parsers/parseWord');
-    const data = readFileSync(
-      path.resolve('C:/Users/22821/Desktop/试卷预览（研究生24-02）+-+iTEST系统.docx'),
-    );
+    const data = readFileSync(path.resolve(localDocx));
     const parsed = await parseWordDocument(data, { sourceFile: 'itest.docx' }, 'docx');
 
     expect(parsed.questions.length).toBeGreaterThan(100);
@@ -18,22 +26,16 @@ describe('iTEST document format', () => {
     const withOptions = parsed.questions.filter((q) => q.options?.length);
     const withBoth = parsed.questions.filter((q) => q.answer && q.options?.length);
 
-    // At least 80% should have answers
     expect(withAnswer.length).toBeGreaterThan(parsed.questions.length * 0.8);
-    // At least 80% should have options
     expect(withOptions.length).toBeGreaterThan(parsed.questions.length * 0.8);
-    // At least 75% should have both
     expect(withBoth.length).toBeGreaterThan(parsed.questions.length * 0.75);
 
-    // Check first question
     expect(parsed.questions[0].options).toHaveLength(4);
     expect(parsed.questions[0].answer).toBeTruthy();
 
-    // Check for blanks
     const withBlanks = parsed.questions.filter((q) => q.question.includes('____'));
     expect(withBlanks.length).toBeGreaterThan(100);
 
-    // Check no 答案 in options
     const answerInOpts = parsed.questions.filter((q) => q.options?.some((o) => o.includes('答案')));
     expect(answerInOpts).toHaveLength(0);
   });
