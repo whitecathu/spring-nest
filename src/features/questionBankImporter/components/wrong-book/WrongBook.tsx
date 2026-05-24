@@ -40,34 +40,31 @@ export function WrongBook() {
     () => [...new Set(questions.flatMap((question) => question.tags ?? []))].filter(Boolean),
     [questions],
   );
-  const wrongQuestions = useMemo(
-    () => {
-      const base = questions
-        .filter((question) => {
-          const meta = reviewMeta[question.id];
-          if ((meta?.wrongCount ?? 0) <= 0) return false;
-          if (group === 'frequent') return (meta?.wrongCount ?? 0) >= 2;
-          if (group === 'unmastered') return (meta?.masteryLevel ?? 0) < 60;
-          return true;
-        })
-        .filter((question) => typeFilter === 'all' || question.type === typeFilter)
-        .filter(
-          (question) => difficultyFilter === 'all' || question.difficulty === difficultyFilter,
-        )
-        .filter((question) => !chapterFilter || question.chapter === chapterFilter)
-        .filter((question) => !tagFilter || (question.tags ?? []).includes(tagFilter));
+  const wrongQuestions = useMemo(() => {
+    const base = questions
+      .filter((question) => {
+        const meta = reviewMeta[question.id];
+        if ((meta?.wrongCount ?? 0) <= 0) return false;
+        if (group === 'frequent') return (meta?.wrongCount ?? 0) >= 2;
+        if (group === 'unmastered') return (meta?.masteryLevel ?? 0) < 60;
+        return true;
+      })
+      .filter((question) => typeFilter === 'all' || question.type === typeFilter)
+      .filter((question) => difficultyFilter === 'all' || question.difficulty === difficultyFilter)
+      .filter((question) => !chapterFilter || question.chapter === chapterFilter)
+      .filter((question) => !tagFilter || (question.tags ?? []).includes(tagFilter));
 
-      if (group === 'recent') {
-        return base.sort(
-          (a, b) =>
-            Date.parse(reviewMeta[b.id]?.lastWrongAt ?? '0') -
-            Date.parse(reviewMeta[a.id]?.lastWrongAt ?? '0'),
-        );
-      }
-      return base.sort((a, b) => (reviewMeta[b.id]?.wrongCount ?? 0) - (reviewMeta[a.id]?.wrongCount ?? 0));
-    },
-    [chapterFilter, difficultyFilter, group, questions, reviewMeta, tagFilter, typeFilter],
-  );
+    if (group === 'recent') {
+      return base.sort(
+        (a, b) =>
+          Date.parse(reviewMeta[b.id]?.lastWrongAt ?? '0') -
+          Date.parse(reviewMeta[a.id]?.lastWrongAt ?? '0'),
+      );
+    }
+    return base.sort(
+      (a, b) => (reviewMeta[b.id]?.wrongCount ?? 0) - (reviewMeta[a.id]?.wrongCount ?? 0),
+    );
+  }, [chapterFilter, difficultyFilter, group, questions, reviewMeta, tagFilter, typeFilter]);
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);

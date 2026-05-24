@@ -183,7 +183,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
       setRecurringRules(updatedRules);
       saveRecurringRules(updatedRules);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -319,7 +319,9 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
 
   const handleBillImport = (importedEntries: BookkeepingEntry[]) => {
     setEntries((prev) => [...importedEntries, ...prev]);
-    showToast(t(`已导入 ${importedEntries.length} 笔记录`, `Imported ${importedEntries.length} records`));
+    showToast(
+      t(`已导入 ${importedEntries.length} 笔记录`, `Imported ${importedEntries.length} records`),
+    );
   };
 
   const handleLedgerAdd = (name: string, emoji: string) => {

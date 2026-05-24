@@ -478,7 +478,9 @@ export function ReviewSession() {
 
         <h2
           className={`whitespace-pre-wrap break-words font-bold text-[var(--color-ink)] ${
-            largeText ? 'text-[1.7rem] leading-10 md:text-3xl' : 'text-xl leading-8 md:text-2xl md:leading-9'
+            largeText
+              ? 'text-[1.7rem] leading-10 md:text-3xl'
+              : 'text-xl leading-8 md:text-2xl md:leading-9'
           }`}
         >
           {question.question}

@@ -37,7 +37,8 @@ export function createLedger(
   const trimmed = name.trim();
   if (!trimmed) return null;
   return {
-    id: options.id ?? `ledger_${options.now ?? Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    id:
+      options.id ?? `ledger_${options.now ?? Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     name: trimmed,
     emoji: emoji.trim(),
     createdAt: options.now ?? Date.now(),

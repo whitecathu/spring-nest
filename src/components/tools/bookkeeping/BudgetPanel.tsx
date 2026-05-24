@@ -64,7 +64,9 @@ export default function BudgetPanel({
           >
             <option value="">{t('选择分类', 'Select category')}</option>
             {unBudgetedCategories.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
           <input
@@ -81,7 +83,11 @@ export default function BudgetPanel({
             {t('确定', 'OK')}
           </button>
           <button
-            onClick={() => { setShowAdd(false); setNewCategory(''); setNewAmount(''); }}
+            onClick={() => {
+              setShowAdd(false);
+              setNewCategory('');
+              setNewAmount('');
+            }}
             className="p-2 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
           >
             <X className="w-4 h-4 text-neutral-500" />
@@ -111,9 +117,7 @@ export default function BudgetPanel({
                     <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
                       {item.category}
                     </span>
-                    {item.isOver && (
-                      <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
-                    )}
+                    {item.isOver && <AlertTriangle className="w-3.5 h-3.5 text-red-500" />}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-neutral-500">

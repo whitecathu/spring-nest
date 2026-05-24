@@ -52,15 +52,12 @@ export function QuestionList() {
     [filtered, reviewMeta],
   );
   const frequentWrongQuestions = useMemo(
-    () =>
-      wrongQuestions.filter((question) => (reviewMeta[question.id]?.wrongCount ?? 0) >= 2),
+    () => wrongQuestions.filter((question) => (reviewMeta[question.id]?.wrongCount ?? 0) >= 2),
     [reviewMeta, wrongQuestions],
   );
   const preExamQuestions = useMemo(
     () =>
-      filtered
-        .filter((question) => (reviewMeta[question.id]?.masteryLevel ?? 0) < 80)
-        .slice(0, 30),
+      filtered.filter((question) => (reviewMeta[question.id]?.masteryLevel ?? 0) < 80).slice(0, 30),
     [filtered, reviewMeta],
   );
   const reviewSummary = useMemo(

@@ -50,12 +50,14 @@ function GlareHoverInner({
     <div
       ref={containerRef}
       className={`glare-hover ${className}`}
-      style={{
-        '--glare-color': glareColor,
-        '--glare-size': `${glareSize}%`,
-        '--glare-duration': `${transitionDuration}ms`,
-        ...(borderRadius !== undefined ? { borderRadius: `${borderRadius}px` } : {}),
-      } as React.CSSProperties}
+      style={
+        {
+          '--glare-color': glareColor,
+          '--glare-size': `${glareSize}%`,
+          '--glare-duration': `${transitionDuration}ms`,
+          ...(borderRadius !== undefined ? { borderRadius: `${borderRadius}px` } : {}),
+        } as React.CSSProperties
+      }
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
     >

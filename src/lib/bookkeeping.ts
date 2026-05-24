@@ -110,7 +110,8 @@ export function filterBookkeepingEntries(
       if (month && getMonthKey(entry.date) !== month) return false;
       if (type !== 'all' && entry.type !== type) return false;
       if (filters.ledgerId && entry.ledgerId !== filters.ledgerId) return false;
-      if (filters.tags?.length && !filters.tags.some((tag) => entry.tags?.includes(tag))) return false;
+      if (filters.tags?.length && !filters.tags.some((tag) => entry.tags?.includes(tag)))
+        return false;
       if (!query) return true;
       return [entry.category, entry.account, entry.note, entry.date, ...(entry.tags ?? [])]
         .join(' ')

@@ -74,9 +74,7 @@ export async function mergeGuestBookkeeping(userId: string): Promise<void> {
     const newEntries = localEntries.filter((e) => !cloudIds.has(e.id));
 
     if (newEntries.length > 0) {
-      const merged = [...cloudEntries, ...newEntries].sort(
-        (a, b) => b.createdAt - a.createdAt,
-      );
+      const merged = [...cloudEntries, ...newEntries].sort((a, b) => b.createdAt - a.createdAt);
       await syncBookkeepingToCloud(userId, merged);
     }
   } catch {

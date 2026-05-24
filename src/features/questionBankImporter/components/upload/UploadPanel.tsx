@@ -42,9 +42,13 @@ function PreviewQuestionCard({
   onChange: (questionId: string, patch: Partial<Question>) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const answerReady = Boolean(previewAnswerText(question).trim() && previewAnswerText(question) !== '未填写');
+  const answerReady = Boolean(
+    previewAnswerText(question).trim() && previewAnswerText(question) !== '未填写',
+  );
   const summary =
-    question.question.length > 96 ? `${question.question.slice(0, 96).trim()}...` : question.question;
+    question.question.length > 96
+      ? `${question.question.slice(0, 96).trim()}...`
+      : question.question;
 
   return (
     <article className="min-w-0 rounded-2xl border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.72)] p-3">
@@ -78,16 +82,18 @@ function PreviewQuestionCard({
           </span>
         </span>
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-          {expanded ? <ChevronUp size={17} aria-hidden="true" /> : <ChevronDown size={17} aria-hidden="true" />}
+          {expanded ? (
+            <ChevronUp size={17} aria-hidden="true" />
+          ) : (
+            <ChevronDown size={17} aria-hidden="true" />
+          )}
         </span>
       </button>
 
       {expanded ? (
         <div className="mt-4 grid min-w-0 gap-3">
           <label className="block min-w-0">
-            <span className="mb-2 block text-xs font-semibold text-[var(--color-muted)]">
-              题干
-            </span>
+            <span className="mb-2 block text-xs font-semibold text-[var(--color-muted)]">题干</span>
             <textarea
               className="min-h-24 w-full resize-y rounded-2xl border border-[var(--color-outline)] bg-[var(--color-surface)] px-3 py-2 text-sm leading-6 text-[var(--color-ink)] outline-none focus:border-[var(--color-primary)]"
               value={question.question}

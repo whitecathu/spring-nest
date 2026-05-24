@@ -52,7 +52,14 @@ export default function LedgerSelector({
   };
 
   const handleDelete = (id: string) => {
-    if (confirm(t('确定删除此账本？关联的记录不会被删除。', 'Delete this ledger? Associated entries will not be deleted.'))) {
+    if (
+      confirm(
+        t(
+          '确定删除此账本？关联的记录不会被删除。',
+          'Delete this ledger? Associated entries will not be deleted.',
+        ),
+      )
+    ) {
       onDelete(id);
       if (selectedLedgerId === id) onSelect(DEFAULT_LEDGER_ID);
     }
@@ -69,7 +76,12 @@ export default function LedgerSelector({
         </div>
         {!showForm && (
           <button
-            onClick={() => { setEditingId(null); setFormName(''); setFormEmoji(''); setShowForm(true); }}
+            onClick={() => {
+              setEditingId(null);
+              setFormName('');
+              setFormEmoji('');
+              setShowForm(true);
+            }}
             className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-600 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -114,7 +126,10 @@ export default function LedgerSelector({
               {editingId ? t('保存', 'Save') : t('创建', 'Create')}
             </button>
             <button
-              onClick={() => { setShowForm(false); setEditingId(null); }}
+              onClick={() => {
+                setShowForm(false);
+                setEditingId(null);
+              }}
               className="p-2 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
             >
               <X className="w-4 h-4 text-neutral-500" />
@@ -153,11 +168,13 @@ export default function LedgerSelector({
               className="flex-1 flex items-center gap-2.5 text-left text-sm"
             >
               <span className="text-base">{ledger.emoji || '📋'}</span>
-              <span className={`${
-                selectedLedgerId === ledger.id
-                  ? 'text-indigo-700 dark:text-indigo-300 font-semibold'
-                  : 'text-neutral-600 dark:text-neutral-300'
-              }`}>
+              <span
+                className={`${
+                  selectedLedgerId === ledger.id
+                    ? 'text-indigo-700 dark:text-indigo-300 font-semibold'
+                    : 'text-neutral-600 dark:text-neutral-300'
+                }`}
+              >
                 {ledger.name}
               </span>
             </button>

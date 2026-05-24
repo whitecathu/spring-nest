@@ -25,7 +25,11 @@ export function AnswerPanel({ question, visible }: { question: Question; visible
             onClick={() => setAnalysisOpen((value) => !value)}
           >
             <span>查看解析</span>
-            {analysisOpen ? <ChevronUp size={17} aria-hidden="true" /> : <ChevronDown size={17} aria-hidden="true" />}
+            {analysisOpen ? (
+              <ChevronUp size={17} aria-hidden="true" />
+            ) : (
+              <ChevronDown size={17} aria-hidden="true" />
+            )}
           </button>
           {analysisOpen ? (
             <p className="mt-3 whitespace-pre-wrap break-words text-[var(--color-ink)]">

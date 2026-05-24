@@ -102,21 +102,27 @@ export function ReviewWorkbench() {
         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
           <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <FileUp className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">先预览</h2>
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">
+              先预览
+            </h2>
             <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
               导入前可以检查题干、答案和解析，减少脏数据进入题库。
             </p>
           </GlassCard>
           <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <Brain className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">再回忆</h2>
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">
+              再回忆
+            </h2>
             <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
               支持刷题、背答案和解析浏览，数据保存在浏览器本地。
             </p>
           </GlassCard>
           <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <AlertTriangle className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">错题回流</h2>
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">
+              错题回流
+            </h2>
             <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] md:mt-2">
               模糊、重来和答错的题会进入更靠前的位置，方便短时间补弱。
             </p>
@@ -187,7 +193,9 @@ export function ReviewWorkbench() {
         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-4">
           <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <AlertTriangle className="text-[var(--color-error)]" size={20} aria-hidden="true" />
-            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">错题重练</h2>
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">
+              错题重练
+            </h2>
             <p className="mt-1 text-sm text-[var(--color-muted)] md:mt-2">
               {summary.wrongQuestions.length} 题需要回看。
             </p>
@@ -202,7 +210,9 @@ export function ReviewWorkbench() {
 
           <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <Target className="text-[var(--color-warning)]" size={20} aria-hidden="true" />
-            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">薄弱题</h2>
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">
+              薄弱题
+            </h2>
             <p className="mt-1 text-sm text-[var(--color-muted)] md:mt-2">
               {summary.weakQuestions.length} 题掌握度偏低。
             </p>
@@ -217,7 +227,9 @@ export function ReviewWorkbench() {
 
           <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <Star className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">收藏题</h2>
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">
+              收藏题
+            </h2>
             <p className="mt-1 text-sm text-[var(--color-muted)] md:mt-2">
               {summary.favoriteQuestions.length} 题已收藏。
             </p>
@@ -232,7 +244,9 @@ export function ReviewWorkbench() {
 
           <GlassCard className="w-[72vw] shrink-0 snap-start sm:w-64 md:w-auto">
             <Clock3 className="text-[var(--color-primary)]" size={20} aria-hidden="true" />
-            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">考前速刷</h2>
+            <h2 className="mt-2 text-base font-bold text-[var(--color-ink)] md:mt-3 md:text-lg">
+              考前速刷
+            </h2>
             <p className="mt-1 text-sm text-[var(--color-muted)] md:mt-2">
               {frequentWrongIds.length || wrongIds.length || suggestedIds.length} 题优先抽查。
             </p>

@@ -52,9 +52,7 @@ export function getBudgetStatus(
   entries: BookkeepingEntry[],
   month: string,
 ): BudgetStatus[] {
-  const monthEntries = entries.filter(
-    (e) => e.type === 'expense' && e.date.startsWith(month),
-  );
+  const monthEntries = entries.filter((e) => e.type === 'expense' && e.date.startsWith(month));
 
   return Object.entries(budgets)
     .filter(([, budget]) => budget > 0)

@@ -31,7 +31,8 @@ const inlineAnswerPattern = new RegExp(
   String.raw`(?:【\s*)?${answerLabel}(?:\s*】)?\s*(?:是|为|选|[:：])\s*(.+)$`,
   'i',
 );
-const explanationPattern = /^\s*(?:答案解析|试题解析|解析|详解|解释|Analysis|Explanation)[:：]\s*(.*)$/i;
+const explanationPattern =
+  /^\s*(?:答案解析|试题解析|解析|详解|解释|Analysis|Explanation)[:：]\s*(.*)$/i;
 const inlineExplanationPattern =
   /\s*(?:答案解析|试题解析|解析|详解|解释|Analysis|Explanation)\s*[:：]\s*/i;
 const difficultyPattern = /^\s*(?:【\s*)?(?:难易程度|难易度|难度)(?:\s*】)?\s*[:：]?\s*(.+)$/i;
@@ -256,36 +257,43 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
     'i',
   );
 
-  const inlineBracketAnswerPattern = /【正确答案是】\s*[:：]?\s*([^\s：:】](?:[^\n]*[^\s：:】])?)\s*$/;
+  const inlineBracketAnswerPattern =
+    /【正确答案是】\s*[:：]?\s*([^\s：:】](?:[^\n]*[^\s：:】])?)\s*$/;
 
   const pendingInlineAnswers = new Map<number, string>();
-  const preprocessedLines = text.replace(/\r\n/g, '\n').split('\n').map((rawLine, lineIdx) => {
-    const line = rawLine.replace(/﻿/g, '').replace(/ /g, ' ').trimEnd();
-    const trimmed = line.trim();
-    if (optionPattern.test(trimmed)) {
-      const answerMatch = trailingAnswerPattern.exec(trimmed);
-      if (answerMatch) {
-        if (answerMatch[1]?.trim()) {
-          pendingInlineAnswers.set(lineIdx, answerMatch[1].trim());
+  const preprocessedLines = text
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((rawLine, lineIdx) => {
+      const line = rawLine.replace(/﻿/g, '').replace(/ /g, ' ').trimEnd();
+      const trimmed = line.trim();
+      if (optionPattern.test(trimmed)) {
+        const answerMatch = trailingAnswerPattern.exec(trimmed);
+        if (answerMatch) {
+          if (answerMatch[1]?.trim()) {
+            pendingInlineAnswers.set(lineIdx, answerMatch[1].trim());
+          }
+          return trimmed.replace(trailingAnswerPattern, '').trimEnd();
         }
-        return trimmed.replace(trailingAnswerPattern, '').trimEnd();
-      }
-      const bracketMatch = inlineBracketAnswerPattern.exec(trimmed);
-      if (bracketMatch) {
-        if (bracketMatch[1]?.trim()) {
-          pendingInlineAnswers.set(lineIdx, bracketMatch[1].trim());
+        const bracketMatch = inlineBracketAnswerPattern.exec(trimmed);
+        if (bracketMatch) {
+          if (bracketMatch[1]?.trim()) {
+            pendingInlineAnswers.set(lineIdx, bracketMatch[1].trim());
+          }
+          return trimmed.replace(inlineBracketAnswerPattern, '').trimEnd();
         }
-        return trimmed.replace(inlineBracketAnswerPattern, '').trimEnd();
       }
-    }
-    if (standaloneAnswerLabelPattern.test(trimmed)) return '';
-    return line;
-  });
+      if (standaloneAnswerLabelPattern.test(trimmed)) return '';
+      return line;
+    });
 
   let lineIdx = 0;
   for (const rawLine of preprocessedLines) {
     const currentLineIdx = lineIdx++;
-    const line = rawLine.replace(/\uFEFF/g, '').replace(/\u00a0/g, ' ').trimEnd();
+    const line = rawLine
+      .replace(/\uFEFF/g, '')
+      .replace(/\u00a0/g, ' ')
+      .trimEnd();
     const trimmed = line.trim();
 
     if (!trimmed) {
@@ -362,7 +370,10 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
       if (inlineOptions.length > 1) {
         current.options.push(...inlineOptions);
       } else {
-        current.options.push(extractSingleOption(workingLine) ?? `${optionMatch[1].toUpperCase()}. ${optionMatch[2].replace(/√/g, '').trim()}`);
+        current.options.push(
+          extractSingleOption(workingLine) ??
+            `${optionMatch[1].toUpperCase()}. ${optionMatch[2].replace(/√/g, '').trim()}`,
+        );
       }
       const pending = pendingInlineAnswers.get(currentLineIdx);
       if (pending && !current.answer) {

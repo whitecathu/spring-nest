@@ -546,7 +546,10 @@ test.describe('Spring Nest App', () => {
 
     await page.goto('/tools/question-bank-importer');
     await expectNoHorizontalOverflow('initial');
-    await page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: '导入' }).click();
+    await page
+      .getByRole('navigation', { name: '移动端主导航' })
+      .getByRole('button', { name: '导入' })
+      .click();
     await page.getByLabel('题库文本').fill(sampleBank);
     await page.getByRole('button', { name: '预览识别' }).click();
     await expect(page.getByRole('heading', { name: '导入预览' })).toBeVisible();
@@ -556,31 +559,49 @@ test.describe('Spring Nest App', () => {
     await page.getByRole('button', { name: '导入到题库' }).click();
     await expect(page.getByRole('heading', { name: /复习工作台|继续学习/ })).toBeVisible();
 
-    await page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: '题库' }).click();
+    await page
+      .getByRole('navigation', { name: '移动端主导航' })
+      .getByRole('button', { name: '题库' })
+      .click();
     await page.getByPlaceholder('搜索题干、答案、解析').fill('移动端');
-    await expect(page.locator('h3').filter({ hasText: '移动端最常用的导入方式是什么' })).toBeVisible();
+    await expect(
+      page.locator('h3').filter({ hasText: '移动端最常用的导入方式是什么' }),
+    ).toBeVisible();
     await expectNoHorizontalOverflow('bank search');
 
     await page.getByRole('button', { name: '复习入口' }).click();
-    await page.getByRole('dialog', { name: '复习入口' }).getByRole('button', { name: '复习当前结果' }).click();
+    await page
+      .getByRole('dialog', { name: '复习入口' })
+      .getByRole('button', { name: '复习当前结果' })
+      .click();
     await expect(page.getByRole('heading', { name: /移动端最常用的导入方式是什么/ })).toBeVisible();
     await page.getByRole('button', { name: /A\. 拖拽文件/ }).click();
     await expect(page.getByText('回答错误，已写入错题本')).toBeVisible();
     await expectNoHorizontalOverflow('review wrong');
 
-    await page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: '错题' }).click();
+    await page
+      .getByRole('navigation', { name: '移动端主导航' })
+      .getByRole('button', { name: '错题' })
+      .click();
     await expect(page.getByRole('heading', { name: /1 道题需要复盘/ })).toBeVisible();
     await expect(page.getByText('错 1 次')).toBeVisible();
 
-    await page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: '设置' }).click();
+    await page
+      .getByRole('navigation', { name: '移动端主导航' })
+      .getByRole('button', { name: '设置' })
+      .click();
     await expect(page.getByText('题库默认保存在本机浏览器，不上传服务器')).toBeVisible();
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: '导出 JSON 备份' }).click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toMatch(/^question-bank-importer-\d{4}-\d{2}-\d{2}\.json$/);
+    expect(download.suggestedFilename()).toMatch(
+      /^question-bank-importer-\d{4}-\d{2}-\d{2}\.json$/,
+    );
     await page.reload();
     await expect(
-      page.getByRole('navigation', { name: '移动端主导航' }).getByRole('button', { name: /题库 2/ }),
+      page
+        .getByRole('navigation', { name: '移动端主导航' })
+        .getByRole('button', { name: /题库 2/ }),
     ).toBeVisible();
     await expectNoHorizontalOverflow('settings export');
   });

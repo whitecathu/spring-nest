@@ -93,7 +93,6 @@ export function ToolHeader({ activeView, onViewChange, questionCount }: ToolHead
             })}
           </nav>
         </div>
-
       </header>
       <nav
         className="qb-mobile-bottom-nav fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-1 border-t border-[var(--color-outline-soft)] bg-[color:rgb(249_250_246_/_0.94)] px-2 pt-2 shadow-[0_-12px_34px_rgb(26_51_38_/_0.12)] backdrop-blur md:hidden"

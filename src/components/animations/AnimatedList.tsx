@@ -39,9 +39,7 @@ function AnimatedListInner({
           key={index}
           initial={{ opacity: 0, ...directionOffset[direction] }}
           animate={
-            isInView
-              ? { opacity: 1, x: 0, y: 0 }
-              : { opacity: 0, ...directionOffset[direction] }
+            isInView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, ...directionOffset[direction] }
           }
           transition={{
             duration: 0.45,

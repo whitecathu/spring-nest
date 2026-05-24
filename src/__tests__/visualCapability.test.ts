@@ -37,9 +37,7 @@ describe('visual capability detection', () => {
   });
 
   it('falls back for coarse pointers and narrow screens', () => {
-    expect(getVisualCapability(baseInput({ coarsePointer: true })).reason).toBe(
-      'coarse-pointer',
-    );
+    expect(getVisualCapability(baseInput({ coarsePointer: true })).reason).toBe('coarse-pointer');
     expect(getVisualCapability(baseInput({ width: 640 })).reason).toBe('narrow-viewport');
   });
 

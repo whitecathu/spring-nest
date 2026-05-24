@@ -461,13 +461,21 @@ body {
 .glass-garden-readability-veil {
   background:
     radial-gradient(circle at 42% 18%, color-mix(in srgb, white 42%, transparent), transparent 34%),
-    linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-background) 28%, transparent));
+    linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--color-background) 28%, transparent)
+    );
 }
 
 .dark .glass-garden-readability-veil {
   background:
     radial-gradient(circle at 42% 18%, color-mix(in srgb, white 10%, transparent), transparent 34%),
-    linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-background) 34%, transparent));
+    linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--color-background) 34%, transparent)
+    );
 }
 
 @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
@@ -538,7 +546,11 @@ body {
 
 .motion-card-glassGarden {
   background:
-    radial-gradient(circle at 18% 8%, color-mix(in srgb, var(--color-primary-container) 18%, transparent), transparent 32%),
+    radial-gradient(
+      circle at 18% 8%,
+      color-mix(in srgb, var(--color-primary-container) 18%, transparent),
+      transparent 32%
+    ),
     color-mix(in srgb, var(--color-surface-container-lowest) 88%, transparent);
 }
 

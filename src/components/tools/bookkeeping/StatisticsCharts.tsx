@@ -23,8 +23,16 @@ interface StatisticsChartsProps {
 }
 
 const COLORS = [
-  '#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6',
-  '#8b5cf6', '#ef4444', '#06b6d4', '#84cc16', '#f97316',
+  '#6366f1',
+  '#ec4899',
+  '#f59e0b',
+  '#10b981',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ef4444',
+  '#06b6d4',
+  '#84cc16',
+  '#f97316',
 ];
 
 export default function StatisticsCharts({ t, entries, selectedMonth }: StatisticsChartsProps) {
@@ -45,9 +53,8 @@ export default function StatisticsCharts({ t, entries, selectedMonth }: Statisti
   // Monthly comparison (this month vs last month)
   const comparisonData = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
-    const prevMonth = month === 1
-      ? `${year - 1}-12`
-      : `${year}-${String(month - 1).padStart(2, '0')}`;
+    const prevMonth =
+      month === 1 ? `${year - 1}-12` : `${year}-${String(month - 1).padStart(2, '0')}`;
 
     const currentExpenses = entries.filter(
       (e) => e.type === 'expense' && e.date.startsWith(selectedMonth),
@@ -59,9 +66,7 @@ export default function StatisticsCharts({ t, entries, selectedMonth }: Statisti
     const currentIncome = entries.filter(
       (e) => e.type === 'income' && e.date.startsWith(selectedMonth),
     );
-    const prevIncome = entries.filter(
-      (e) => e.type === 'income' && e.date.startsWith(prevMonth),
-    );
+    const prevIncome = entries.filter((e) => e.type === 'income' && e.date.startsWith(prevMonth));
 
     const sum = (arr: BookkeepingEntry[]) => arr.reduce((s, e) => s + e.amount, 0);
 
@@ -107,7 +112,9 @@ export default function StatisticsCharts({ t, entries, selectedMonth }: Statisti
     });
   }, [entries, selectedMonth, t]);
 
-  const hasData = categoryData.length > 0 || comparisonData.some((d) => (d[t('本月', 'This month')] as number) > 0);
+  const hasData =
+    categoryData.length > 0 ||
+    comparisonData.some((d) => (d[t('本月', 'This month')] as number) > 0);
 
   if (!hasData) {
     return (
@@ -190,16 +197,8 @@ export default function StatisticsCharts({ t, entries, selectedMonth }: Statisti
                 }}
               />
               <Legend />
-              <Bar
-                dataKey={t('本月', 'This month')}
-                fill="#6366f1"
-                radius={[6, 6, 0, 0]}
-              />
-              <Bar
-                dataKey={t('上月', 'Last month')}
-                fill="#a5b4fc"
-                radius={[6, 6, 0, 0]}
-              />
+              <Bar dataKey={t('本月', 'This month')} fill="#6366f1" radius={[6, 6, 0, 0]} />
+              <Bar dataKey={t('上月', 'Last month')} fill="#a5b4fc" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -207,9 +206,7 @@ export default function StatisticsCharts({ t, entries, selectedMonth }: Statisti
 
       {/* Yearly Trend */}
       <div>
-        <h4 className="text-sm font-bold text-on-surface mb-3">
-          {t('年度趋势', 'Yearly Trend')}
-        </h4>
+        <h4 className="text-sm font-bold text-on-surface mb-3">{t('年度趋势', 'Yearly Trend')}</h4>
         <div className="h-52">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData}>

@@ -139,16 +139,8 @@ function GlassSurfaceInner({
   };
 
   return (
-    <div
-      ref={containerRef}
-      className={`glass-surface ${className}`}
-      style={containerStyle}
-    >
-      <svg
-        className="glass-surface__filter"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
+    <div ref={containerRef} className={`glass-surface ${className}`} style={containerStyle}>
+      <svg className="glass-surface__filter" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <filter
             id={filterId}
@@ -167,12 +159,7 @@ function GlassSurfaceInner({
               preserveAspectRatio="none"
               result="map"
             />
-            <feDisplacementMap
-              ref={redChannelRef}
-              in="SourceGraphic"
-              in2="map"
-              result="dispRed"
-            />
+            <feDisplacementMap ref={redChannelRef} in="SourceGraphic" in2="map" result="dispRed" />
             <feColorMatrix
               in="dispRed"
               type="matrix"

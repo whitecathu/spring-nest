@@ -87,8 +87,11 @@ export function normalizeExtractedDocumentText(text: string): string {
   const compacted = compactDocumentLines(usefulText);
   const lastAnswer = compacted.lastIndexOf(String.raw`【正确答案是】`);
   if (lastAnswer > 0) {
-    const cutoff = compacted.indexOf(String.raw`
-`, lastAnswer + 20);
+    const cutoff = compacted.indexOf(
+      String.raw`
+`,
+      lastAnswer + 20,
+    );
     if (cutoff > 0) return compacted.slice(0, cutoff);
   }
   return compacted;

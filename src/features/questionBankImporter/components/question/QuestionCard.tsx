@@ -17,7 +17,9 @@ export function QuestionCard({ question, meta }: QuestionCardProps) {
   const [expanded, setExpanded] = useState(false);
   const actions = useQuestionBankStore((state) => state.actions);
   const questionSummary =
-    question.question.length > 118 ? `${question.question.slice(0, 118).trim()}...` : question.question;
+    question.question.length > 118
+      ? `${question.question.slice(0, 118).trim()}...`
+      : question.question;
   const answerText = Array.isArray(question.answer)
     ? question.answer.join(', ')
     : (question.answer ?? '未填写');

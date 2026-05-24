@@ -18,9 +18,7 @@ function SpringNestLogoMotion({ compact, dark, reducedMotion }: SpringNestLogoMo
   const markSize = compact ? 92 : 108;
   const progressDuration = compact ? 0.36 : 0.42;
 
-  const entrance = reducedMotion
-    ? { opacity: 1, y: 0, scale: 1 }
-    : { opacity: 1, y: 0, scale: 1 };
+  const entrance = reducedMotion ? { opacity: 1, y: 0, scale: 1 } : { opacity: 1, y: 0, scale: 1 };
 
   return (
     <motion.div
@@ -123,7 +121,10 @@ function SpringNestLogoMotion({ compact, dark, reducedMotion }: SpringNestLogoMo
         animate={reducedMotion ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.34, delay: 0.22, ease: easeOutExpo }}
       >
-        <p className="font-nunito text-2xl font-black leading-none sm:text-[1.7rem]" style={{ color: ink }}>
+        <p
+          className="font-nunito text-2xl font-black leading-none sm:text-[1.7rem]"
+          style={{ color: ink }}
+        >
           Spring Nest
         </p>
         <p className="mt-2 font-nunito text-sm font-bold" style={{ color: softInk }}>

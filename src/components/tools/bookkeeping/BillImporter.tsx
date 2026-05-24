@@ -1,6 +1,11 @@
 import { useState, useRef } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, X } from 'lucide-react';
-import { parseBillFile, importedRowToEntry, type ImportedRow, type BillFormat } from '../../../lib/bookkeepingImport';
+import {
+  parseBillFile,
+  importedRowToEntry,
+  type ImportedRow,
+  type BillFormat,
+} from '../../../lib/bookkeepingImport';
 import type { BookkeepingEntry } from '../../../lib/bookkeeping';
 
 interface BillImporterProps {
@@ -37,7 +42,9 @@ export default function BillImporter({ t, onImport, onClose }: BillImporterProps
           const end = Math.min(allLines.length, csvLineIdx + 5);
           preview = allLines.slice(start, end).join('\n').slice(0, 500);
           debugInfo = `\n行数:${allLines.length} CSV头行:${csvLineIdx >= 0 ? csvLineIdx + 1 : '未找到'}`;
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
 
         const hintText = preview
           ? `\n\n${t('疑似表头区域', 'Header area')}:${debugInfo}\n${preview}`
@@ -154,7 +161,11 @@ export default function BillImporter({ t, onImport, onClose }: BillImporterProps
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle className="w-4 h-4 text-emerald-500" />
                 <span className="text-neutral-600 dark:text-neutral-300">
-                  {format === 'wechat' ? t('微信账单', 'WeChat Bill') : t('支付宝账单', 'Alipay Bill')}
+                  {format === 'wechat'
+                    ? t('微信账单', 'WeChat Bill')
+                    : format === 'alipay'
+                      ? t('支付宝账单', 'Alipay Bill')
+                      : t('记账App账单', 'Accounting App Bill')}
                   {' · '}
                   {t(`共 ${rows.length} 笔`, `${rows.length} records`)}
                 </span>
@@ -167,7 +178,9 @@ export default function BillImporter({ t, onImport, onClose }: BillImporterProps
                 </div>
                 <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-3 text-center">
                   <div className="text-xs text-emerald-500">{t('收入', 'Income')}</div>
-                  <div className="text-lg font-bold text-emerald-600">¥{totalIncome.toFixed(2)}</div>
+                  <div className="text-lg font-bold text-emerald-600">
+                    ¥{totalIncome.toFixed(2)}
+                  </div>
                 </div>
               </div>
 
@@ -176,25 +189,40 @@ export default function BillImporter({ t, onImport, onClose }: BillImporterProps
                 <table className="w-full text-xs">
                   <thead className="bg-neutral-50 dark:bg-neutral-800 sticky top-0">
                     <tr>
-                      <th className="px-3 py-2 text-left text-neutral-500 font-medium">{t('日期', 'Date')}</th>
-                      <th className="px-3 py-2 text-left text-neutral-500 font-medium">{t('分类', 'Category')}</th>
-                      <th className="px-3 py-2 text-right text-neutral-500 font-medium">{t('金额', 'Amount')}</th>
-                      <th className="px-3 py-2 text-left text-neutral-500 font-medium">{t('备注', 'Note')}</th>
+                      <th className="px-3 py-2 text-left text-neutral-500 font-medium">
+                        {t('日期', 'Date')}
+                      </th>
+                      <th className="px-3 py-2 text-left text-neutral-500 font-medium">
+                        {t('分类', 'Category')}
+                      </th>
+                      <th className="px-3 py-2 text-right text-neutral-500 font-medium">
+                        {t('金额', 'Amount')}
+                      </th>
+                      <th className="px-3 py-2 text-left text-neutral-500 font-medium">
+                        {t('备注', 'Note')}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
                     {rows.slice(0, 50).map((row, i) => (
                       <tr key={i} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
-                        <td className="px-3 py-2 text-neutral-600 dark:text-neutral-300">{row.date}</td>
+                        <td className="px-3 py-2 text-neutral-600 dark:text-neutral-300">
+                          {row.date}
+                        </td>
                         <td className="px-3 py-2">
                           <span className="inline-block px-1.5 py-0.5 rounded text-xs bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300">
                             {row.category}
                           </span>
                         </td>
-                        <td className={`px-3 py-2 text-right font-medium ${row.type === 'income' ? 'text-emerald-600' : 'text-red-500'}`}>
-                          {row.type === 'income' ? '+' : '-'}{row.amount.toFixed(2)}
+                        <td
+                          className={`px-3 py-2 text-right font-medium ${row.type === 'income' ? 'text-emerald-600' : 'text-red-500'}`}
+                        >
+                          {row.type === 'income' ? '+' : '-'}
+                          {row.amount.toFixed(2)}
                         </td>
-                        <td className="px-3 py-2 text-neutral-500 dark:text-neutral-400 max-w-[120px] truncate">{row.note}</td>
+                        <td className="px-3 py-2 text-neutral-500 dark:text-neutral-400 max-w-[120px] truncate">
+                          {row.note}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -213,7 +241,11 @@ export default function BillImporter({ t, onImport, onClose }: BillImporterProps
         {rows.length > 0 && (
           <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-neutral-200 dark:border-neutral-700">
             <button
-              onClick={() => { setRows([]); setFormat('unknown'); setError(''); }}
+              onClick={() => {
+                setRows([]);
+                setFormat('unknown');
+                setError('');
+              }}
               className="px-4 py-2 text-sm rounded-lg text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
               {t('重新选择', 'Reselect')}

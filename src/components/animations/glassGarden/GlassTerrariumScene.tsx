@@ -146,11 +146,7 @@ function Sprout({ profile, phase, dark }: GlassTerrariumSceneProps) {
           metalness={0.02}
         />
       </mesh>
-      <mesh
-        position={[-0.04, 0.3, 0]}
-        rotation={[0.18, 0.2, 0.35]}
-        scale={[0.72, 0.72, 0.72]}
-      >
+      <mesh position={[-0.04, 0.3, 0]} rotation={[0.18, 0.2, 0.35]} scale={[0.72, 0.72, 0.72]}>
         <shapeGeometry args={[leftLeaf]} />
         <meshStandardMaterial
           color={dark ? '#9ee4b1' : '#77bd86'}
@@ -227,7 +223,11 @@ function GlassTerrariumScene({ profile, phase, dark }: GlassTerrariumSceneProps)
       <pointLight position={[1.8, 0.7, 1.4]} intensity={dark ? 0.55 : 0.36} color="#b8e4c9" />
       <mesh position={[0, -1.16, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[2.4, 1.12, 1]}>
         <circleGeometry args={[1, 96]} />
-        <meshStandardMaterial color={dark ? '#3d2a1f' : '#7a5639'} roughness={0.96} metalness={0.01} />
+        <meshStandardMaterial
+          color={dark ? '#3d2a1f' : '#7a5639'}
+          roughness={0.96}
+          metalness={0.01}
+        />
       </mesh>
       <RootCurves count={profile.rootCurves} dark={dark} />
       <SoilClumps count={profile.soilClumps} dark={dark} />

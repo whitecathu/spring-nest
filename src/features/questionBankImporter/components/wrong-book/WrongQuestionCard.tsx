@@ -14,7 +14,9 @@ export function WrongQuestionCard({ question }: { question: Question }) {
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const questionSummary =
-    question.question.length > 112 ? `${question.question.slice(0, 112).trim()}...` : question.question;
+    question.question.length > 112
+      ? `${question.question.slice(0, 112).trim()}...`
+      : question.question;
 
   return (
     <GlassCard className="min-w-0 space-y-4">
@@ -45,7 +47,9 @@ export function WrongQuestionCard({ question }: { question: Question }) {
             <span className="md:hidden">{expanded ? question.question : questionSummary}</span>
             <span className="hidden md:inline">{question.question}</span>
           </h3>
-          <p className="mt-2 break-words text-xs text-[var(--color-muted)]">{question.sourceFile}</p>
+          <p className="mt-2 break-words text-xs text-[var(--color-muted)]">
+            {question.sourceFile}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <SoftButton className="md:hidden" onClick={() => setExpanded((value) => !value)}>
@@ -79,8 +83,8 @@ export function WrongQuestionCard({ question }: { question: Question }) {
             <span className="font-semibold text-[var(--color-primary)]">答案：</span>
             <span className="break-words">
               {Array.isArray(question.answer)
-              ? question.answer.join(', ')
-              : (question.answer ?? '未填写')}
+                ? question.answer.join(', ')
+                : (question.answer ?? '未填写')}
             </span>
           </p>
           <p className="mt-2 whitespace-pre-wrap break-words text-[var(--color-muted)]">

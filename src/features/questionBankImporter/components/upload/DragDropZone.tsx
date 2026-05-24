@@ -61,8 +61,7 @@ export function DragDropZone({ onFiles, disabled }: DragDropZoneProps) {
               选择题库文件
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)] md:text-base">
-              手机上点按钮选择文件；桌面端也可以拖入 TXT、Markdown、CSV、JSON、Word
-              或压缩包。
+              手机上点按钮选择文件；桌面端也可以拖入 TXT、Markdown、CSV、JSON、Word 或压缩包。
             </p>
           </div>
         </div>

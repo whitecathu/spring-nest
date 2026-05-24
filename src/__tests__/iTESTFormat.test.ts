@@ -5,7 +5,8 @@ import { parseText } from '../features/questionBankImporter/lib/parsers/parseTex
 
 describe('iTEST document format', () => {
   it('parses the full iTEST docx through the Word pipeline', async () => {
-    const { parseWordDocument } = await import('../features/questionBankImporter/lib/parsers/parseWord');
+    const { parseWordDocument } =
+      await import('../features/questionBankImporter/lib/parsers/parseWord');
     const data = readFileSync(
       path.resolve('C:/Users/22821/Desktop/试卷预览（研究生24-02）+-+iTEST系统.docx'),
     );
@@ -60,7 +61,7 @@ describe('iTEST document format', () => {
   it('parses iTEST multi-line options with √ marker', () => {
     const text = [
       '语法及词汇_客观题2',
-      '2. Contrary to what some correspondents think, it doesn\'t ____ the unemployment rate.',
+      "2. Contrary to what some correspondents think, it doesn't ____ the unemployment rate.",
       'A)  have anything to do with √',
       'B)  have something to do with',
       'C)  have nothing to do with',
@@ -126,12 +127,7 @@ describe('iTEST document format', () => {
   });
 
   it('handles inline answer on same line as 答案 label', () => {
-    const text = [
-      '1. A test question?',
-      'A)  option A',
-      'B)  option B √',
-      '答案：B',
-    ].join('\n');
+    const text = ['1. A test question?', 'A)  option A', 'B)  option B √', '答案：B'].join('\n');
 
     const result = parseText(text, { sourceFile: 'itest.docx' });
     expect(result.questions).toHaveLength(1);
@@ -159,13 +155,7 @@ describe('iTEST document format', () => {
   });
 
   it('strips standalone 答案： lines and captures next-line answer', () => {
-    const text = [
-      '1. A question?',
-      'A)  option A',
-      'B)  option B √',
-      '答案：',
-      'B',
-    ].join('\n');
+    const text = ['1. A question?', 'A)  option A', 'B)  option B √', '答案：', 'B'].join('\n');
 
     const result = parseText(text, { sourceFile: 'itest.docx' });
     expect(result.questions).toHaveLength(1);
@@ -176,7 +166,7 @@ describe('iTEST document format', () => {
   it('handles inline 答案：D on option line with √ marker', () => {
     const text = [
       '21. What does "dementia" mean?',
-      'A) Alzheimer\'s disease √',
+      "A) Alzheimer's disease √",
       'B) Heart disease',
       'C) Dental disease',
       'D) Eye disease.',
@@ -191,6 +181,11 @@ describe('iTEST document format', () => {
     expect(result.questions).toHaveLength(2);
     expect(result.questions[0].answer).toBe('A');
     expect(result.questions[1].answer).toBe('D');
-    expect(result.questions[1].options).toEqual(['A. Cue.', 'B. Frustration.', 'C. Property.', 'D. Support.']);
+    expect(result.questions[1].options).toEqual([
+      'A. Cue.',
+      'B. Frustration.',
+      'C. Property.',
+      'D. Support.',
+    ]);
   });
 });

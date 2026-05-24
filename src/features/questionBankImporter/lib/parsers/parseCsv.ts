@@ -106,7 +106,9 @@ export function parseCsv(text: string, context: ParserContext): ParserOutput {
     ]);
     if (!question) return [];
 
-    const directOptions = normalizeOptions(get(record, ['options', 'optionList', '选项', '选项内容']));
+    const directOptions = normalizeOptions(
+      get(record, ['options', 'optionList', '选项', '选项内容']),
+    );
     const columnOptions = ['A', 'B', 'C', 'D', 'E', 'F']
       .map((letter) => {
         const value = get(record, [
@@ -150,7 +152,14 @@ export function parseCsv(text: string, context: ParserContext): ParserOutput {
         question,
         options,
         answer,
-        explanation: get(record, ['explanation', 'analysis', 'solution', '解析', '答案解析', '详解']),
+        explanation: get(record, [
+          'explanation',
+          'analysis',
+          'solution',
+          '解析',
+          '答案解析',
+          '详解',
+        ]),
         tags: [...(context.defaultTags ?? []), ...normalizeTags(get(record, ['tags', '标签']))],
         chapter: get(record, ['chapter', '章节', '章']),
         difficulty: normalizeDifficulty(get(record, ['difficulty', '难度'])),

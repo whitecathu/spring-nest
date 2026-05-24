@@ -174,24 +174,23 @@ export interface MiniProgramToolCategory {
   description: string;
 }
 
-export interface MiniProgramTool
-  extends Pick<
-    AppItem,
-    | 'id'
-    | 'type'
-    | 'title'
-    | 'titleEn'
-    | 'description'
-    | 'descriptionEn'
-    | 'category'
-    | 'categoryEn'
-    | 'tags'
-    | 'icon'
-    | 'route'
-    | 'features'
-    | 'featuresEn'
-    | 'popularScore'
-  > {
+export interface MiniProgramTool extends Pick<
+  AppItem,
+  | 'id'
+  | 'type'
+  | 'title'
+  | 'titleEn'
+  | 'description'
+  | 'descriptionEn'
+  | 'category'
+  | 'categoryEn'
+  | 'tags'
+  | 'icon'
+  | 'route'
+  | 'features'
+  | 'featuresEn'
+  | 'popularScore'
+> {
   slug: string;
   miniCategorySlug: string;
   miniCategoryTitle: string;
@@ -207,7 +206,12 @@ export const miniProgramTabs: MiniProgramTab[] = [
 ];
 
 export const miniProgramToolCategories: MiniProgramToolCategory[] = [
-  { slug: 'daily', title: '日常实用', titleEn: 'Daily', description: '计算、扫描、天气、记账等随手工具' },
+  {
+    slug: 'daily',
+    title: '日常实用',
+    titleEn: 'Daily',
+    description: '计算、扫描、天气、记账等随手工具',
+  },
   { slug: 'time', title: '时间效率', titleEn: 'Time', description: '专注、倒计时、日期推算' },
   { slug: 'text', title: '文本学习', titleEn: 'Text', description: '写作、格式化、朗读和复习' },
   { slug: 'dev', title: '开发辅助', titleEn: 'Dev', description: 'JSON、编码、颜色和网络查询' },
@@ -271,7 +275,16 @@ const homePriorityByToolId: Record<string, number> = {
   'tool-27': 78,
 };
 
-const sensitiveToolIds = new Set(['tool-4', 'tool-13', 'tool-14', 'tool-15', 'tool-26', 'tool-27', 'tool-28', 'tool-29']);
+const sensitiveToolIds = new Set([
+  'tool-4',
+  'tool-13',
+  'tool-14',
+  'tool-15',
+  'tool-26',
+  'tool-27',
+  'tool-28',
+  'tool-29',
+]);
 
 function getSlug(route: string) {
   return route.split('/').filter(Boolean).pop() ?? route;
@@ -393,11 +406,7 @@ const payload = {
 };
 
 mkdirSync(dirname(outputPath), { recursive: true });
-writeFileSync(
-  outputPath,
-  `module.exports = ${JSON.stringify(payload, null, 2)};\n`,
-  'utf8',
-);
+writeFileSync(outputPath, `module.exports = ${JSON.stringify(payload, null, 2)};\n`, 'utf8');
 
 console.log(`Generated ${miniProgramToolCatalog.length} mini program tools at ${outputPath}`);
 ```
@@ -444,9 +453,18 @@ assert(
 
 assert(generated.tabs.length === 3, 'generated tabs must have three entries');
 assert(generated.tools.length === 29, 'generated tool catalog must have 29 tools');
-assert(generated.tools.every((tool) => tool.type === 'tool'), 'generated catalog contains non-tool entries');
-assert(generated.tools.every((tool) => !tool.route.startsWith('/games')), 'generated catalog contains game routes');
-assert(generated.tools.some((tool) => tool.id === 'tool-28'), 'review nest tool missing');
+assert(
+  generated.tools.every((tool) => tool.type === 'tool'),
+  'generated catalog contains non-tool entries',
+);
+assert(
+  generated.tools.every((tool) => !tool.route.startsWith('/games')),
+  'generated catalog contains game routes',
+);
+assert(
+  generated.tools.some((tool) => tool.id === 'tool-28'),
+  'review nest tool missing',
+);
 assert(!generated.tabs.some((tab) => tab.id === 'review'), 'review tab must not exist');
 
 for (const file of [
@@ -597,7 +615,7 @@ page {
   min-height: 100vh;
   background: #fff9f2;
   color: #1a1c1a;
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', sans-serif;
 }
 
 .page {
@@ -1494,7 +1512,11 @@ function filterTools({ activeCategory, query, favoriteIds }) {
 
 Page({
   data: {
-    categories: [{ slug: 'all', title: '全部', description: '29 个工具' }, { slug: 'favorites', title: '收藏', description: '常用工具' }, ...categories],
+    categories: [
+      { slug: 'all', title: '全部', description: '29 个工具' },
+      { slug: 'favorites', title: '收藏', description: '常用工具' },
+      ...categories,
+    ],
     activeCategory: 'all',
     query: '',
     favoriteIds: [],
@@ -1942,11 +1964,7 @@ Create `miniapp/pages/tool-runtime/index.js` with:
 
 ```js
 const { tools } = require('../../data/tools');
-const {
-  isFavoriteTool,
-  recordRecentTool,
-  toggleFavoriteTool,
-} = require('../../utils/storage');
+const { isFavoriteTool, recordRecentTool, toggleFavoriteTool } = require('../../utils/storage');
 
 function findTool(slug) {
   return tools.find((tool) => tool.slug === slug);
@@ -1982,7 +2000,7 @@ Page({
       tool,
       favorite: isFavoriteTool(tool.id),
       statusTitle: tool.title,
-    statusContent: `${tool.miniCategoryTitle} · ${tool.workbenchType}`,
+      statusContent: `${tool.miniCategoryTitle} · ${tool.workbenchType}`,
     });
   },
 
@@ -2135,7 +2153,7 @@ git commit -m "feat: add mini program tool runtime shell"
 
 In `README.md`, add this section after the local run commands:
 
-```md
+````md
 ## 工具小程序
 
 本仓库包含一个独立的工具小程序基础工程，目录为 `miniapp/`。小程序只包含工具，不包含游戏；当前 Web 端仍保留工具与游戏。
@@ -2146,9 +2164,11 @@ In `README.md`, add this section after the local run commands:
 npm run generate:miniapp # 从现有工具目录生成 miniapp/data/tools.js
 npm run verify:miniapp   # 校验三 Tab、29 个工具和无游戏入口
 ```
+````
 
 小程序设计文档见 `docs/superpowers/specs/2026-05-18-tools-mini-program-design.md`。
-```
+
+````
 
 - [ ] **Step 2: Run all focused verification**
 
@@ -2159,7 +2179,7 @@ npm run generate:miniapp
 npm run verify:miniapp
 npm test -- miniProgramCatalog.test.ts
 npm run typecheck
-```
+````
 
 Expected:
 

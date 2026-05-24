@@ -64,7 +64,9 @@ export function createRecurringRule(
     return null;
 
   return {
-    id: options.id ?? `recurring_${options.now ?? Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    id:
+      options.id ??
+      `recurring_${options.now ?? Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     type: draft.type,
     amount,
     category,

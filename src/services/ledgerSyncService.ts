@@ -2,10 +2,7 @@ import { supabase } from '../lib/supabase';
 import type { Ledger } from '../lib/bookkeepingLedgers';
 
 /** Create a shared ledger in Supabase */
-export async function createSharedLedger(
-  ledger: Ledger,
-  ownerId: string,
-): Promise<boolean> {
+export async function createSharedLedger(ledger: Ledger, ownerId: string): Promise<boolean> {
   if (!supabase) return false;
   try {
     const { error } = await supabase.from('bookkeeping_ledgers').insert({

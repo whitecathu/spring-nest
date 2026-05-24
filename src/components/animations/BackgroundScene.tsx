@@ -149,7 +149,12 @@ function AbstractSymbol({ value, color, size }: { value: string; color: string; 
         }}
       >
         {[0, 1, 2, 3].map((dot) => (
-          <span key={dot} className="rounded-full" style={{ background: color }} aria-hidden="true" />
+          <span
+            key={dot}
+            className="rounded-full"
+            style={{ background: color }}
+            aria-hidden="true"
+          />
         ))}
       </span>
     );
@@ -221,7 +226,12 @@ function RingLayer({ profile, palette }: { profile: BackgroundProfile; palette: 
             willChange: 'transform, opacity',
           }}
           animate={{ scale: [0.94, 1.06, 0.94], opacity: [0.08, 0.26, 0.08] }}
-          transition={{ duration: 8 + index * 2, repeat: Infinity, delay: index * 0.6, ease: softEase }}
+          transition={{
+            duration: 8 + index * 2,
+            repeat: Infinity,
+            delay: index * 0.6,
+            ease: softEase,
+          }}
         />
       ))}
     </div>
@@ -251,7 +261,12 @@ function DocumentLayer({ profile, palette }: { profile: BackgroundProfile; palet
             rotate: [index * 5 - 8, index * 5 + 4, index * 5 - 8],
             opacity: [0.08, 0.2, 0.08],
           }}
-          transition={{ duration: 12 + index * 1.2, repeat: Infinity, delay: index * 0.5, ease: softEase }}
+          transition={{
+            duration: 12 + index * 1.2,
+            repeat: Infinity,
+            delay: index * 0.5,
+            ease: softEase,
+          }}
         />
       ))}
     </div>
@@ -282,7 +297,12 @@ function BubbleLayer({ profile, palette }: { profile: BackgroundProfile; palette
             opacity: [0, 0.28, 0],
             scale: [0.7, 1, 0.9],
           }}
-          transition={{ duration: 15 + index, repeat: Infinity, delay: index * 0.8, ease: softEase }}
+          transition={{
+            duration: 15 + index,
+            repeat: Infinity,
+            delay: index * 0.8,
+            ease: softEase,
+          }}
         />
       ))}
     </div>
@@ -291,7 +311,8 @@ function BubbleLayer({ profile, palette }: { profile: BackgroundProfile; palette
 
 function FlowLines({ profile, palette }: { profile: BackgroundProfile; palette: Palette }) {
   const lines = useMemo(() => makeLines(profile), [profile]);
-  const strokeDasharray = profile.animation === 'path' || profile.animation === 'nature' ? '8 16' : '2 14';
+  const strokeDasharray =
+    profile.animation === 'path' || profile.animation === 'nature' ? '8 16' : '2 14';
 
   return (
     <svg
@@ -405,7 +426,12 @@ function LeafLayer({
             rotate: [0, 120, 260],
             opacity: [0, 0.28, 0],
           }}
-          transition={{ duration: leaf.duration, repeat: Infinity, delay: leaf.delay, ease: softEase }}
+          transition={{
+            duration: leaf.duration,
+            repeat: Infinity,
+            delay: leaf.delay,
+            ease: softEase,
+          }}
         />
       ))}
     </div>
@@ -433,7 +459,12 @@ function SymbolLayer({ profile, palette }: { profile: BackgroundProfile; palette
             rotate: [-2, 2, -2],
             opacity: [symbol.opacity ?? 0.1, (symbol.opacity ?? 0.1) + 0.06, symbol.opacity ?? 0.1],
           }}
-          transition={{ duration: 12 + index, repeat: Infinity, delay: symbol.delay, ease: softEase }}
+          transition={{
+            duration: 12 + index,
+            repeat: Infinity,
+            delay: symbol.delay,
+            ease: softEase,
+          }}
         >
           <AbstractSymbol value={symbol.value} color={palette.symbol} size={symbol.size} />
         </motion.span>

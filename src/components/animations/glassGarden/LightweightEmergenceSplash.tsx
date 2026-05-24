@@ -134,7 +134,12 @@ function LightweightEmergenceSplash({
         transition={{ duration: 0.32, delay: reducedMotion ? 0 : 0.78, ease: easeOutExpo }}
       >
         <p className="font-nunito text-2xl font-black leading-none" style={{ color: ink }}>
-          <ShinyText text="Spring Nest" speed={3} color={ink} shineColor={dark ? 'oklch(90% 0.08 145)' : 'oklch(70% 0.1 145)'} />
+          <ShinyText
+            text="Spring Nest"
+            speed={3}
+            color={ink}
+            shineColor={dark ? 'oklch(90% 0.08 145)' : 'oklch(70% 0.1 145)'}
+          />
         </p>
         <p
           className="mt-2 font-nunito text-sm font-bold"

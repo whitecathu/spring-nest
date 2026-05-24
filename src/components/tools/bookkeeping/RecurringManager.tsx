@@ -77,7 +77,13 @@ export default function RecurringManager({
           {/* Type toggle */}
           <div className="flex gap-2">
             <button
-              onClick={() => setDraft((d) => ({ ...d, type: 'expense', category: expenseCategories[0] || '其他' }))}
+              onClick={() =>
+                setDraft((d) => ({
+                  ...d,
+                  type: 'expense',
+                  category: expenseCategories[0] || '其他',
+                }))
+              }
               className={`flex-1 py-1.5 text-sm rounded-lg transition-colors ${
                 draft.type === 'expense'
                   ? 'bg-red-500 text-white'
@@ -87,7 +93,13 @@ export default function RecurringManager({
               {t('支出', 'Expense')}
             </button>
             <button
-              onClick={() => setDraft((d) => ({ ...d, type: 'income', category: incomeCategories[0] || '其他收入' }))}
+              onClick={() =>
+                setDraft((d) => ({
+                  ...d,
+                  type: 'income',
+                  category: incomeCategories[0] || '其他收入',
+                }))
+              }
               className={`flex-1 py-1.5 text-sm rounded-lg transition-colors ${
                 draft.type === 'income'
                   ? 'bg-emerald-500 text-white'
@@ -106,7 +118,9 @@ export default function RecurringManager({
               className="text-sm px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200"
             >
               {categories.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
             <input
@@ -127,7 +141,10 @@ export default function RecurringManager({
               className="text-sm px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200"
             >
               {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
-                <option key={d} value={d}>{d}{t('号', '')}</option>
+                <option key={d} value={d}>
+                  {d}
+                  {t('号', '')}
+                </option>
               ))}
             </select>
             <span className="text-sm text-neutral-500">{t('自动生成', 'auto-generate')}</span>
@@ -190,7 +207,9 @@ export default function RecurringManager({
                   <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
                     {rule.category}
                   </span>
-                  <span className={`text-sm font-bold ${rule.type === 'expense' ? 'text-red-500' : 'text-emerald-500'}`}>
+                  <span
+                    className={`text-sm font-bold ${rule.type === 'expense' ? 'text-red-500' : 'text-emerald-500'}`}
+                  >
                     {rule.type === 'expense' ? '-' : '+'}¥{rule.amount.toFixed(2)}
                   </span>
                 </div>
@@ -204,7 +223,9 @@ export default function RecurringManager({
                 className="p-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
                 title={rule.active ? t('暂停', 'Pause') : t('启用', 'Enable')}
               >
-                <Power className={`w-4 h-4 ${rule.active ? 'text-indigo-500' : 'text-neutral-400'}`} />
+                <Power
+                  className={`w-4 h-4 ${rule.active ? 'text-indigo-500' : 'text-neutral-400'}`}
+                />
               </button>
               <button
                 onClick={() => onDelete(rule.id)}

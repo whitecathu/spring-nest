@@ -25,24 +25,23 @@ export interface MiniProgramToolCategory {
   description: string;
 }
 
-export interface MiniProgramTool
-  extends Pick<
-    AppItem,
-    | 'id'
-    | 'type'
-    | 'title'
-    | 'titleEn'
-    | 'description'
-    | 'descriptionEn'
-    | 'category'
-    | 'categoryEn'
-    | 'tags'
-    | 'icon'
-    | 'route'
-    | 'features'
-    | 'featuresEn'
-    | 'popularScore'
-  > {
+export interface MiniProgramTool extends Pick<
+  AppItem,
+  | 'id'
+  | 'type'
+  | 'title'
+  | 'titleEn'
+  | 'description'
+  | 'descriptionEn'
+  | 'category'
+  | 'categoryEn'
+  | 'tags'
+  | 'icon'
+  | 'route'
+  | 'features'
+  | 'featuresEn'
+  | 'popularScore'
+> {
   slug: string;
   miniCategorySlug: string;
   miniCategoryTitle: string;
@@ -58,7 +57,12 @@ export const miniProgramTabs: MiniProgramTab[] = [
 ];
 
 export const miniProgramToolCategories: MiniProgramToolCategory[] = [
-  { slug: 'daily', title: '日常实用', titleEn: 'Daily', description: '计算、扫描、天气、记账等随手工具' },
+  {
+    slug: 'daily',
+    title: '日常实用',
+    titleEn: 'Daily',
+    description: '计算、扫描、天气、记账等随手工具',
+  },
   { slug: 'time', title: '时间效率', titleEn: 'Time', description: '专注、倒计时、日期推算' },
   { slug: 'text', title: '文本学习', titleEn: 'Text', description: '写作、格式化、朗读和复习' },
   { slug: 'dev', title: '开发辅助', titleEn: 'Dev', description: 'JSON、编码、颜色和网络查询' },

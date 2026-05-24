@@ -50,8 +50,8 @@ export function detectWebGLAvailable() {
     const canvas = document.createElement('canvas');
     cachedWebGLAvailable = Boolean(
       canvas.getContext('webgl2') ||
-        canvas.getContext('webgl') ||
-        canvas.getContext('experimental-webgl'),
+      canvas.getContext('webgl') ||
+      canvas.getContext('experimental-webgl'),
     );
     return cachedWebGLAvailable;
   } catch {

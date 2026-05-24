@@ -17,7 +17,8 @@ export function MobileBottomSheet({ open, title, onClose, children }: MobileBott
   useEffect(() => {
     if (!open) return undefined;
     const previousOverflow = document.body.style.overflow;
-    const previousActiveElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousActiveElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();

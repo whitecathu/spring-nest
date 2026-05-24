@@ -90,9 +90,7 @@ export default function StartupSplash() {
   const baseBackground = dark
     ? 'linear-gradient(135deg, oklch(13% 0.018 152), oklch(10% 0.014 205) 58%, oklch(14% 0.018 78))'
     : 'linear-gradient(135deg, oklch(99% 0.012 85), oklch(97% 0.026 140) 58%, oklch(98% 0.018 55))';
-  const auroraColors = dark
-    ? ['#1a3a1a', '#3d7a4d', '#8fbc8f']
-    : ['#3d7a4d', '#8fbc8f', '#f5f0e0'];
+  const auroraColors = dark ? ['#1a3a1a', '#3d7a4d', '#8fbc8f'] : ['#3d7a4d', '#8fbc8f', '#f5f0e0'];
 
   return (
     <AnimatePresence>

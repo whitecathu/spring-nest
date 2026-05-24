@@ -59,36 +59,36 @@ function parseAmount(raw: string): number {
 // ─── Category Mapping ────────────────────────────────────────────────────────
 
 const WECHAT_CATEGORY_MAP: Record<string, string> = {
-  '商户消费': '购物',
-  '扫二维码付款': '购物',
-  '微信红包': '礼金',
-  '转账': '其他',
-  '群收款': '其他',
-  '充值缴费': '居住',
-  '交通出行': '交通',
-  '餐饮': '餐饮',
-  '外卖': '餐饮',
-  '滴滴': '交通',
-  '美团': '餐饮',
-  '京东': '购物',
-  '淘宝': '购物',
-  '拼多多': '购物',
+  商户消费: '购物',
+  扫二维码付款: '购物',
+  微信红包: '礼金',
+  转账: '其他',
+  群收款: '其他',
+  充值缴费: '居住',
+  交通出行: '交通',
+  餐饮: '餐饮',
+  外卖: '餐饮',
+  滴滴: '交通',
+  美团: '餐饮',
+  京东: '购物',
+  淘宝: '购物',
+  拼多多: '购物',
 };
 
 const ALIPAY_CATEGORY_MAP: Record<string, string> = {
-  '消费': '购物',
-  '转账': '其他',
-  '红包': '礼金',
-  '还款': '其他',
-  '充值': '其他',
-  '缴费': '居住',
-  '交通出行': '交通',
-  '餐饮美食': '餐饮',
-  '外卖': '餐饮',
-  '购物': '购物',
-  '娱乐': '娱乐',
-  '医疗健康': '健康',
-  '教育学习': '学习',
+  消费: '购物',
+  转账: '其他',
+  红包: '礼金',
+  还款: '其他',
+  充值: '其他',
+  缴费: '居住',
+  交通出行: '交通',
+  餐饮美食: '餐饮',
+  外卖: '餐饮',
+  购物: '购物',
+  娱乐: '娱乐',
+  医疗健康: '健康',
+  教育学习: '学习',
 };
 
 function guessCategory(note: string, format: BillFormat): string {
@@ -105,7 +105,7 @@ async function decodeFile(file: File): Promise<string> {
   let text = await file.text();
 
   // Remove BOM
-  if (text.charCodeAt(0) === 0xFEFF) {
+  if (text.charCodeAt(0) === 0xfeff) {
     text = text.slice(1);
   }
 
@@ -199,7 +199,10 @@ function findCol(headerCols: string[], ...keywords: string[]): number {
 // ─── WeChat Bill Parser ──────────────────────────────────────────────────────
 
 export function parseWechatBill(text: string): ImportedRow[] {
-  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   const rows: ImportedRow[] = [];
 
   // Find header row containing 交易时间 and 交易类型
@@ -253,7 +256,7 @@ export function parseWechatBill(text: string): ImportedRow[] {
     const note = [counterpart, product, txType].filter(Boolean).join(' ');
 
     const category = guessCategory(note, 'wechat');
-    const account = payMethodIdx >= 0 ? (cols[payMethodIdx] || '微信') : '微信';
+    const account = payMethodIdx >= 0 ? cols[payMethodIdx] || '微信' : '微信';
 
     rows.push({ date, type, amount, category, account, note });
   }
@@ -264,13 +267,17 @@ export function parseWechatBill(text: string): ImportedRow[] {
 // ─── Alipay Bill Parser ──────────────────────────────────────────────────────
 
 export function parseAlipayBill(text: string): ImportedRow[] {
-  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   const rows: ImportedRow[] = [];
 
   // Find header row
-  const headerIdx = findHeaderRow(lines, ['交易创建时间']) >= 0
-    ? findHeaderRow(lines, ['交易创建时间'])
-    : findHeaderRow(lines, ['交易号', '交易对方']);
+  const headerIdx =
+    findHeaderRow(lines, ['交易创建时间']) >= 0
+      ? findHeaderRow(lines, ['交易创建时间'])
+      : findHeaderRow(lines, ['交易号', '交易对方']);
   if (headerIdx === -1) return rows;
 
   const headerCols = parseCsvLine(normalizeWidth(lines[headerIdx]));
@@ -287,7 +294,8 @@ export function parseAlipayBill(text: string): ImportedRow[] {
 
   for (let i = headerIdx + 1; i < lines.length; i++) {
     const line = lines[i];
-    if (!line || line.startsWith('共') || line.startsWith('-') || line.startsWith('交易记录')) continue;
+    if (!line || line.startsWith('共') || line.startsWith('-') || line.startsWith('交易记录'))
+      continue;
 
     const cols = parseCsvLine(line);
     if (cols.length < 5) continue;
@@ -352,7 +360,10 @@ export function parseAlipayBill(text: string): ImportedRow[] {
 // Format: 记录时间,分类,收支类型,金额,备注,账户,来源,标签
 
 export function parseGenericBill(text: string): ImportedRow[] {
-  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   const rows: ImportedRow[] = [];
 
   const headerIdx = findHeaderRow(lines, ['记录时间', '分类', '收支']);
@@ -397,9 +408,9 @@ export function parseGenericBill(text: string): ImportedRow[] {
     if (amount <= 0) continue;
 
     // Category & note
-    const category = categoryIdx >= 0 ? (cols[categoryIdx] || '其他') : '其他';
-    const note = noteIdx >= 0 ? (cols[noteIdx] || '') : '';
-    const account = accountIdx >= 0 ? (cols[accountIdx] || '') : '';
+    const category = categoryIdx >= 0 ? cols[categoryIdx] || '其他' : '其他';
+    const note = noteIdx >= 0 ? cols[noteIdx] || '' : '';
+    const account = accountIdx >= 0 ? cols[accountIdx] || '' : '';
 
     rows.push({ date, type, amount, category, account, note });
   }
@@ -409,7 +420,9 @@ export function parseGenericBill(text: string): ImportedRow[] {
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
-export async function parseBillFile(file: File): Promise<{ format: BillFormat; rows: ImportedRow[] }> {
+export async function parseBillFile(
+  file: File,
+): Promise<{ format: BillFormat; rows: ImportedRow[] }> {
   const text = await decodeFile(file);
   return parseBillText(text);
 }
@@ -421,6 +434,7 @@ export function parseBillText(text: string): { format: BillFormat; rows: Importe
 
   if (format === 'wechat') return { format, rows: parseWechatBill(clean) };
   if (format === 'alipay') return { format, rows: parseAlipayBill(clean) };
+  if (format === 'generic') return { format, rows: parseGenericBill(clean) };
   return { format: 'unknown', rows: [] };
 }
 

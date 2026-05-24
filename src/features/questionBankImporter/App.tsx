@@ -43,7 +43,8 @@ function SettingsPanel() {
           本地数据与备份
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
-          题库默认保存在本机浏览器，不上传服务器。换设备、清理浏览器或重装系统前，请先导出 JSON 备份。
+          题库默认保存在本机浏览器，不上传服务器。换设备、清理浏览器或重装系统前，请先导出 JSON
+          备份。
         </p>
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
@@ -55,8 +56,8 @@ function SettingsPanel() {
             <div className="min-w-0">
               <h2 className="text-xl font-bold text-[var(--color-ink)]">本地题库</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                当前共有 {questions.length} 道题、{importedFiles.length}{' '}
-                份导入报告。数据保存在 localStorage，并在可用时写入 IndexedDB。
+                当前共有 {questions.length} 道题、{importedFiles.length} 份导入报告。数据保存在
+                localStorage，并在可用时写入 IndexedDB。
               </p>
             </div>
           </div>
@@ -78,7 +79,11 @@ function SettingsPanel() {
 
         <GlassCard className="min-w-0">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-1 shrink-0 text-[var(--color-primary)]" size={20} aria-hidden="true" />
+            <ShieldCheck
+              className="mt-1 shrink-0 text-[var(--color-primary)]"
+              size={20}
+              aria-hidden="true"
+            />
             <div className="min-w-0">
               <h2 className="text-xl font-bold text-[var(--color-ink)]">隐私与离线</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
