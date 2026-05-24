@@ -23,7 +23,13 @@ import {
   syncSettingsToCloud,
 } from '../services/cloudSyncService';
 import { loadFavoritesFromCloud } from '../services/favoriteService';
-import { loadBookkeepingFromCloud } from '../services/bookkeepingSyncService';
+import {
+  loadBookkeepingFromCloud,
+  loadBudgetsFromCloud,
+  loadCategoriesFromCloud,
+  loadRecurringFromCloud,
+  loadLedgersFromCloud,
+} from '../services/bookkeepingSyncService';
 import type { LoginResult, RegisterResult } from '../types/user';
 
 export interface UserProfile {
@@ -114,6 +120,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setLanguage(cloudSettings.language);
           }
         }
+
+        // Load bookkeeping budgets from cloud
+        await loadBudgetsFromCloud(supaUser.id);
+
+        // Load bookkeeping categories from cloud
+        await loadCategoriesFromCloud(supaUser.id);
+
+        // Load bookkeeping recurring rules from cloud
+        await loadRecurringFromCloud(supaUser.id);
+
+        // Load bookkeeping ledgers from cloud
+        await loadLedgersFromCloud(supaUser.id);
       } else if (event === 'SIGNED_OUT') {
         // Keep localStorage data, just clear current user
         setUser(null);

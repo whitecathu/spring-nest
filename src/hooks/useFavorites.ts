@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getUserId } from '../services/authService';
-import { getFavorites, toggleFavorite, isFavorited } from '../services/favoriteService';
+import { getFavorites, toggleFavorite, toggleFavoriteSync, isFavorited } from '../services/favoriteService';
 import { trackFavorite } from '../lib/analytics';
 
 export function useFavorites() {
@@ -17,6 +17,8 @@ export function useFavorites() {
     const nowFavorited = toggleFavorite(userId, itemId);
     trackFavorite(itemId);
     setFavoriteIds(getFavorites(userId));
+    // Fire-and-forget cloud sync
+    toggleFavoriteSync(userId, itemId).catch(() => {});
     return nowFavorited;
   }, []);
 

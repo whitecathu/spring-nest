@@ -1,6 +1,12 @@
 import { supabase } from '../lib/supabase';
 import { getFavorites } from './favoriteService';
-import { mergeGuestBookkeeping } from './bookkeepingSyncService';
+import {
+  mergeGuestBookkeeping,
+  mergeGuestBudgets,
+  mergeGuestCategories,
+  mergeGuestRecurring,
+  mergeGuestLedgers,
+} from './bookkeepingSyncService';
 
 // ─── Favorites Sync ─────────────────────────────────────────────────────────
 
@@ -172,6 +178,18 @@ export async function mergeGuestData(userId: string): Promise<void> {
 
     // Merge bookkeeping entries
     await mergeGuestBookkeeping(userId);
+
+    // Merge bookkeeping budgets
+    await mergeGuestBudgets(userId);
+
+    // Merge bookkeeping categories
+    await mergeGuestCategories(userId);
+
+    // Merge bookkeeping recurring rules
+    await mergeGuestRecurring(userId);
+
+    // Merge bookkeeping ledgers
+    await mergeGuestLedgers(userId);
   } catch {
     // Silently fail - localStorage data is preserved
   }

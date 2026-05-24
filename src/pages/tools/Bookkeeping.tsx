@@ -42,7 +42,13 @@ import {
   type CategoryConfig,
 } from '../../lib/bookkeepingCategories';
 import { springBouncy, springSmooth, toolPageEnter } from '../../lib/animations';
-import { syncBookkeepingToCloud } from '../../services/bookkeepingSyncService';
+import {
+  syncBookkeepingToCloud,
+  syncBudgetsToCloud,
+  syncCategoriesToCloud,
+  syncRecurringToCloud,
+  syncLedgersToCloud,
+} from '../../services/bookkeepingSyncService';
 import {
   loadBudgets,
   setBudget as setBudgetConfig,
@@ -144,7 +150,7 @@ function buildSampleEntries() {
 }
 
 export default function Bookkeeping({ onBack }: { onBack: () => void }) {
-  const { t, user } = useUser();
+  const { t, user, isSupabaseEnabled } = useUser();
   const lang = t('zh', 'en') === 'zh' ? 'zh' : 'en';
   const [entries, setEntries] = useState<BookkeepingEntry[]>(loadEntries);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
@@ -232,6 +238,34 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
       syncBookkeepingToCloud(user.id, entries);
     }
   }, [entries, user?.id]);
+
+  // Sync budgets to cloud
+  useEffect(() => {
+    if (user?.id && isSupabaseEnabled) {
+      syncBudgetsToCloud(user.id, budgets).catch(() => {});
+    }
+  }, [budgets, user?.id, isSupabaseEnabled]);
+
+  // Sync categories to cloud
+  useEffect(() => {
+    if (user?.id && isSupabaseEnabled) {
+      syncCategoriesToCloud(user.id, categories).catch(() => {});
+    }
+  }, [categories, user?.id, isSupabaseEnabled]);
+
+  // Sync recurring rules to cloud
+  useEffect(() => {
+    if (user?.id && isSupabaseEnabled) {
+      syncRecurringToCloud(user.id, recurringRules).catch(() => {});
+    }
+  }, [recurringRules, user?.id, isSupabaseEnabled]);
+
+  // Sync ledgers to cloud
+  useEffect(() => {
+    if (user?.id && isSupabaseEnabled) {
+      syncLedgersToCloud(user.id, ledgers).catch(() => {});
+    }
+  }, [ledgers, user?.id, isSupabaseEnabled]);
 
   useEffect(
     () => () => {

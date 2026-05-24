@@ -31,12 +31,15 @@ function LowFrequencyInvalidator() {
 
 function GlassGardenCanvas({ backgroundProfile, dark }: GlassGardenCanvasProps) {
   const glassProfile = getGlassGardenProfile(mapBackgroundProfileKey(backgroundProfile.key));
+  const canvasEventSource = typeof document === 'undefined' ? undefined : document.body;
 
   return (
     <div className="glass-garden-ambient-layer" aria-hidden="true">
       <Canvas
         className="glass-garden-canvas"
         dpr={[1, 1.35]}
+        eventPrefix="client"
+        eventSource={canvasEventSource}
         frameloop="demand"
         gl={{ alpha: true, antialias: true, powerPreference: 'low-power' }}
       >

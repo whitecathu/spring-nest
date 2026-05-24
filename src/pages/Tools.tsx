@@ -370,6 +370,94 @@ export default function Tools() {
             </ErrorBoundary>
           </section>
 
+          {immersiveTool ? (
+            <section
+              className="mt-6 grid gap-4 px-4 sm:px-0 lg:grid-cols-[1.05fr_0.95fr]"
+              aria-label={t('工具说明', 'Tool guide')}
+            >
+              <div className="surface-raised rounded-3xl p-5">
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold">
+                  <span className="rounded-full bg-primary-container/40 px-3 py-1 text-on-primary-container">
+                    {t(activeTool.category, activeTool.categoryEn)}
+                  </span>
+                  <span className="rounded-full bg-surface-container px-3 py-1 text-secondary">
+                    {t('本地处理', 'Local processing')}
+                  </span>
+                </div>
+                <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-on-surface">
+                  <Info className="h-5 w-5 text-primary" />
+                  {t('使用方法', 'How to use')}
+                </h2>
+                <p className="leading-relaxed text-secondary">
+                  {t(
+                    activeTool.instructions ||
+                      '打开工具后按页面提示输入或选择内容，结果会在浏览器本地即时生成。',
+                    activeTool.instructionsEn ||
+                      'Open the tool, enter or select values as prompted, and results will be generated locally in your browser.',
+                  )}
+                </p>
+                {activeToolFeatures.length > 0 && (
+                  <ul className="mt-4 grid gap-2 text-sm leading-relaxed text-secondary sm:grid-cols-2">
+                    {activeToolFeatures.slice(0, 4).map((feature) => (
+                      <li key={feature} className="flex gap-2">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="grid gap-4">
+                <section className="surface-raised rounded-3xl p-5">
+                  <h2 className="mb-4 text-xl font-bold text-on-surface">FAQ</h2>
+                  <div className="space-y-4">
+                    {faq.map((entry) => (
+                      <div key={entry.q}>
+                        <h3 className="font-semibold text-on-surface">{entry.q}</h3>
+                        <p className="mt-1 text-sm leading-relaxed text-secondary">{entry.a}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="surface-raised rounded-3xl p-5">
+                  <h2 className="mb-4 text-xl font-bold text-on-surface">
+                    {t('相关工具', 'Related tools')}
+                  </h2>
+                  {relatedTools.length > 0 ? (
+                    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                      {relatedTools.map((tool) => (
+                        <Link
+                          key={tool.id}
+                          to={tool.route}
+                          className="rounded-xl bg-surface-container-low p-4 transition-colors hover:bg-primary-container/20"
+                        >
+                          <span className="text-2xl" aria-hidden="true">
+                            {tool.icon}
+                          </span>
+                          <h3 className="mt-2 font-bold text-on-surface">
+                            {t(tool.title, tool.titleEn)}
+                          </h3>
+                          <p className="mt-1 line-clamp-2 text-xs text-secondary">
+                            {t(tool.description, tool.descriptionEn)}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <Link
+                      to="/tools"
+                      className="block rounded-xl bg-surface-container-low p-4 text-sm font-semibold text-secondary transition-colors hover:bg-primary-container/20 hover:text-primary"
+                    >
+                      {t('浏览全部工具', 'Browse all tools')}
+                    </Link>
+                  )}
+                </section>
+              </div>
+            </section>
+          ) : null}
+
           {!immersiveTool ? (
             <>
               <section className="mt-8 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">

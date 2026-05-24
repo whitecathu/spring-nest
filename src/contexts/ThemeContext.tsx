@@ -7,6 +7,8 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
+import { syncSettingsToCloud } from '../services/cloudSyncService';
+import { isUsingSupabase, getUserId } from '../services/authService';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -50,6 +52,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } catch {}
     applyTheme(m);
     setResolved(m === 'system' ? getSystemTheme() : m);
+    // Push theme to cloud if Supabase is configured and user is logged in
+    if (isUsingSupabase()) {
+      const userId = getUserId();
+      if (userId && userId !== 'guest') {
+        const language = localStorage.getItem('spring_nest_lang') || 'zh';
+        syncSettingsToCloud(userId, { theme: m, language }).catch(() => {});
+      }
+    }
   }, []);
 
   useEffect(() => {

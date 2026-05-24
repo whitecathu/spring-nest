@@ -163,6 +163,65 @@ export const presenceBlockVariants = {
   },
 };
 
+// ── Home Hero Orchestration ────────────────────────────────
+/** Stage hero content in a controlled cascade. Children stay on transform/opacity only. */
+export const heroStageVariants = {
+  initial: { opacity: 0 },
+  animate: {
+    opacity: 1,
+    transition: {
+      duration: motionDurations.slow,
+      ease: easeSpringNest,
+      staggerChildren: motionStaggers.relaxed,
+      delayChildren: motionStaggers.tight,
+    },
+  },
+};
+
+/** Hero headline/search/CTA entrance used on the first viewport. */
+export const heroItemVariants = {
+  initial: { opacity: 0, y: 18, scale: 0.985 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: springSoft,
+  },
+};
+
+/** Decorative panels in the home hero background. */
+export const heroPanelVariants = {
+  initial: { opacity: 0, y: 16, scale: 0.96 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { ...springSoft, stiffness: 220 },
+  },
+};
+
+/** Reusable reveal for section headers and small content groups. */
+export const sectionRevealVariants = {
+  initial: { opacity: 0, y: 18 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: motionDurations.normal, ease: easeSpringNest },
+  },
+};
+
+export function getAmbientFloatTransition(
+  duration: number = motionDurations.ambient,
+  delay: number = 0,
+) {
+  return {
+    duration,
+    repeat: Infinity,
+    delay,
+    ease: softEase,
+  };
+}
+
 // ── Shared Grid Variants (Games & Tools) ────────────────────
 /** Staggered container for card grids with smooth exit */
 export const gridContainerVariants = {

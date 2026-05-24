@@ -9,6 +9,11 @@ import Aurora from './Aurora';
 const TerrariumEmergenceSplash = lazy(() => import('./glassGarden/TerrariumEmergenceSplash'));
 
 const SPLASH_SESSION_KEY = 'spring_nest_startup_splash_seen';
+const splashOrbitDots = Array.from({ length: 10 }, (_, index) => ({
+  angle: (index / 10) * Math.PI * 2,
+  size: 3 + (index % 3),
+  delay: index * 0.045,
+}));
 
 function getShouldShowSplash() {
   if (typeof window === 'undefined') return false;
@@ -91,6 +96,7 @@ export default function StartupSplash() {
     ? 'linear-gradient(135deg, oklch(13% 0.018 152), oklch(10% 0.014 205) 58%, oklch(14% 0.018 78))'
     : 'linear-gradient(135deg, oklch(99% 0.012 85), oklch(97% 0.026 140) 58%, oklch(98% 0.018 55))';
   const auroraColors = dark ? ['#1a3a1a', '#3d7a4d', '#8fbc8f'] : ['#3d7a4d', '#8fbc8f', '#f5f0e0'];
+  const dotColor = dark ? 'oklch(83% 0.11 145 / 0.48)' : 'oklch(55% 0.11 145 / 0.44)';
 
   return (
     <AnimatePresence>
@@ -126,12 +132,40 @@ export default function StartupSplash() {
             跳过
           </button>
           <motion.div
-            className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/10"
+            className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/10 sm:h-96 sm:w-96"
             initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: reducedMotion ? 0 : 0.52, scale: 1 }}
-            transition={{ duration: 0.6, ease: easeOutExpo }}
+            animate={
+              reducedMotion
+                ? { opacity: 0, scale: 1 }
+                : { opacity: [0, 0.52, 0.36], scale: [0.96, 1.02, 1] }
+            }
+            transition={{ duration: 0.8, ease: easeOutExpo }}
             aria-hidden="true"
           />
+          {!reducedMotion && (
+            <div className="splash-orbit-field" aria-hidden="true">
+              {splashOrbitDots.map((dot, index) => (
+                <motion.span
+                  key={index}
+                  className="absolute left-1/2 top-1/2 rounded-full"
+                  style={{
+                    width: dot.size,
+                    height: dot.size,
+                    background: dotColor,
+                    willChange: 'transform, opacity',
+                  }}
+                  initial={{ opacity: 0, x: 0, y: 0, scale: 0.6 }}
+                  animate={{
+                    opacity: [0, compact ? 0.32 : 0.58, 0.14],
+                    x: Math.cos(dot.angle) * (compact ? 118 : 168),
+                    y: Math.sin(dot.angle) * (compact ? 86 : 126),
+                    scale: [0.6, 1, 0.82],
+                  }}
+                  transition={{ duration: 0.78, delay: dot.delay, ease: easeOutExpo }}
+                />
+              ))}
+            </div>
+          )}
 
           <Suspense
             fallback={

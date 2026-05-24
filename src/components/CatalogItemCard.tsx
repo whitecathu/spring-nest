@@ -53,8 +53,9 @@ export default function CatalogItemCard({
     <MotionCard
       tone={getCardTone(variant)}
       className={cx(
-        'group relative flex h-full min-h-[320px] flex-col gap-4 overflow-hidden rounded-3xl p-5',
+        'catalog-card-shell group relative flex h-full min-h-[320px] flex-col gap-4 overflow-hidden rounded-3xl p-5',
         variant === 'game' ? 'surface-playful' : 'surface-raised',
+        isGame ? 'catalog-card-game' : 'catalog-card-tool',
         variant === 'feature' && 'p-6',
       )}
       aria-label={title}
@@ -71,9 +72,9 @@ export default function CatalogItemCard({
         type="button"
         onClick={() => onFavorite(item.id)}
         className={cx(
-          'absolute right-4 top-4 z-[2] inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors',
+          'catalog-favorite-button absolute right-4 top-4 z-[2] inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors',
           isFavorite
-            ? 'bg-red-50 text-red-500 dark:bg-red-900/20'
+            ? 'is-favorite bg-red-50 text-red-500 dark:bg-red-900/20'
             : 'bg-white/70 text-secondary hover:bg-red-50 hover:text-red-500 dark:bg-surface-container/70',
         )}
         aria-label={isFavorite ? t('取消收藏', 'Remove favorite') : t('收藏', 'Add favorite')}
@@ -82,7 +83,7 @@ export default function CatalogItemCard({
       </button>
 
       {showImage ? (
-        <div className="relative h-44 overflow-hidden rounded-2xl bg-surface-container-low">
+        <div className="catalog-card-media relative h-44 overflow-hidden rounded-2xl bg-surface-container-low">
           <img
             src={item.image}
             alt={title}
@@ -94,7 +95,7 @@ export default function CatalogItemCard({
       ) : (
         <div
           className={cx(
-            'flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-4xl shadow-inner transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-3',
+            'catalog-card-icon flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-4xl shadow-inner transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-3',
             item.iconBg || 'bg-surface-container',
           )}
           aria-hidden="true"
@@ -118,7 +119,10 @@ export default function CatalogItemCard({
 
       <div className="mt-auto flex items-center justify-end">
         {to ? (
-          <Link to={to} className="motion-button motion-button-primary px-5 text-sm">
+          <Link
+            to={to}
+            className="catalog-card-action motion-button motion-button-primary px-5 text-sm"
+          >
             {actionContent}
           </Link>
         ) : (
@@ -127,7 +131,7 @@ export default function CatalogItemCard({
             tone="primary"
             magnetic
             onClick={onAction}
-            className="px-5 text-sm"
+            className="catalog-card-action px-5 text-sm"
           >
             {actionContent}
           </MotionButton>

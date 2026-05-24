@@ -11,6 +11,8 @@ type TerrariumEmergenceSplashProps = {
 };
 
 function TerrariumEmergenceSplash({ dark, reducedMotion }: TerrariumEmergenceSplashProps) {
+  const canvasEventSource = typeof document === 'undefined' ? undefined : document.body;
+
   return (
     <motion.div
       className="relative mx-4 grid h-[min(66vh,520px)] w-[min(88vw,760px)] overflow-hidden rounded-[2.25rem] border shadow-[0_34px_90px_rgba(63,103,81,0.18)]"
@@ -28,6 +30,8 @@ function TerrariumEmergenceSplash({ dark, reducedMotion }: TerrariumEmergenceSpl
       <Canvas
         className="glass-garden-canvas"
         dpr={[1, 1.6]}
+        eventPrefix="client"
+        eventSource={canvasEventSource}
         frameloop={reducedMotion ? 'demand' : 'always'}
         gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
       >
