@@ -43,7 +43,7 @@ function firstUsefulTextIndex(text: string): number {
 
 function shouldDropLine(line: string): boolean {
   if (/^HYPERLINK\s+/i.test(line)) return true;
-  if (/^(?:PAGEREF|MERGEFORMAT|INCLUDEPICTURE)\b/i.test(line)) return true;
+  if (/^(?:PAGEREF|PAGE(?:\s*\d)?|MERGEFORMAT|INCLUDEPICTURE)\b/i.test(line)) return true;
   return !/[A-Za-z0-9\u4e00-\u9fff（）()《》【】]/.test(line);
 }
 
@@ -84,7 +84,14 @@ export function normalizeExtractedDocumentText(text: string): string {
   ).replace(/[\ufffd\ue000-\uf8ff]/g, ' ');
 
   const usefulText = cleaned.slice(firstUsefulTextIndex(cleaned));
-  return compactDocumentLines(usefulText);
+  const compacted = compactDocumentLines(usefulText);
+  const lastAnswer = compacted.lastIndexOf(String.raw`【正确答案是】`);
+  if (lastAnswer > 0) {
+    const cutoff = compacted.indexOf(String.raw`
+`, lastAnswer + 20);
+    if (cutoff > 0) return compacted.slice(0, cutoff);
+  }
+  return compacted;
 }
 
 function replaceControlCharacters(text: string): string {

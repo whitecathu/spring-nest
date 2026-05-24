@@ -20,10 +20,10 @@ interface DraftQuestion {
 
 const questionStartPattern =
   /^(\s*(?:第?\d+\s*题[.、．、):：]?|\d+[.、．、)]|[（(]\d+[）)]|题目[:：]|题干[:：]|问题[:：]|Q[:：]))\s*(.+)?$/i;
-const optionPattern = /^\s*([A-F])\s*[.、．)]\s*(.+)$/i;
-const answerLabel = String.raw`(?:参考答案|标准答案|正确答案|正确选项|答案(?!解析)|Answer|Correct\s*Answer|Correct|Ans)`;
+const optionPattern = /^\s*([A-F])\s*(?:[.、．)]\s*)?(.+)$/;
+const answerLabel = String.raw`(?:参考答案|标准答案|正确答案是|正确答案|正确选项|答案(?!解析)|Answer|Correct\s*Answer|Correct|Ans)`;
 const namedAnswerPattern = new RegExp(
-  String.raw`^\s*(?:【\s*)?${answerLabel}(?:\s*】)?\s*(?:是|为|选|[:：])?\s*(.+)$`,
+  String.raw`^\s*(?:【\s*)?${answerLabel}(?:\s*】)?\s*(?:是|为|选)?\s*[:：]?\s*([^\s：:】](?:[^\n]*[^\s：:】])?)\s*$`,
   'i',
 );
 const qaAnswerPattern = /^\s*A\s*[:：]\s*(.+)$/i;
@@ -93,16 +93,19 @@ function detectSectionType(line: string): QuestionType | undefined {
   return undefined;
 }
 
+const iTESTSectionLabelPattern = /^(?:\w[\w一-鿿]*_客观题?\d*|Part\s+[IVX\d]+)\s*$/i;
+
 function isSectionHeading(line: string, detectedType: QuestionType): boolean {
   if (/^[一二三四五六七八九十]+[、.．]/.test(line)) return true;
   if (/^[（(][一二三四五六七八九十\d]+[）)]/.test(line)) return true;
+  if (iTESTSectionLabelPattern.test(line)) return true;
   const headingPattern: Record<QuestionType, RegExp> = {
-    single: /^(?:单项选择题?|单选题?)\d*$/,
-    multiple: /^(?:多项选择题?|多选题?)\d*$/,
-    judge: /^(?:判断题?)\d*$/,
-    blank: /^(?:填空题?|补空题?)\d*$/,
-    short: /^(?:简答题?|问答题?)\d*$/,
-    flashcard: /^(?:背诵卡|卡片)\d*$/,
+    single: /^(?:单项选择题?|单选题?)\s*(?:[（(]?\d+道?题目?[）)]?)?\s*[:：]?\s*$/,
+    multiple: /^(?:多项选择题?|多选题?)\s*(?:[（(]?\d+道?题目?[）)]?)?\s*[:：]?\s*$/,
+    judge: /^(?:判断题?)\s*(?:[（(]?\d+道?题目?[）)]?)?\s*[:：]?\s*$/,
+    blank: /^(?:填空题?|补空题?)\s*(?:[（(]?\d+道?题目?[）)]?)?\s*[:：]?\s*$/,
+    short: /^(?:简答题?|问答题?)\s*(?:[（(]?\d+道?题目?[）)]?)?\s*[:：]?\s*$/,
+    flashcard: /^(?:背诵卡|卡片)\s*(?:[（(]?\d+道?题目?[）)]?)?\s*[:：]?\s*$/,
   };
   return headingPattern[detectedType].test(line);
 }
@@ -111,6 +114,8 @@ function isNonQuestionHeading(line: string): boolean {
   if (/^第[一二三四五六七八九十\d]+章/.test(line)) return true;
   if (/^[一二三四五六七八九十]+[、.．]\s*(?:选择题|练习题|测试题)\d*$/.test(line)) return true;
   if (/^(?:选择题|练习题|测试题)\d*$/.test(line)) return true;
+  if (/^Part\s+[IVX\d]+/i.test(line)) return true;
+  if (/^(?:\w[\w一-鿿]*_客观题?\d*)\s*$/i.test(line)) return true;
   return false;
 }
 
@@ -126,7 +131,12 @@ function cleanAnswerText(text: string): string {
   return answerPart.replace(/[。；;，,、\s]+$/, '').trim();
 }
 
+const bracketAnswerPattern = /【正确答案是】\s*[:：]?\s*([^\s：:】](?:[^\n]*[^\s：:】])?)\s*$/;
+
 function matchAnswerText(line: string): string | undefined {
+  const bracketMatch = line.match(bracketAnswerPattern);
+  if (bracketMatch?.[1]) return cleanAnswerText(bracketMatch[1]);
+
   const qaMatch = line.match(qaAnswerPattern);
   if (qaMatch?.[1]) return cleanAnswerText(qaMatch[1]);
 
@@ -155,26 +165,37 @@ function splitInlineAnswer(text: string): { text: string; answer?: string } {
 }
 
 function splitInlineOptions(text: string): { question: string; options: string[] } {
-  const optionMatches = [...text.matchAll(/([A-F])\s*[.、．):：]\s*/gi)].filter((match) => {
+  const cleaned = text.replace(/√/g, '');
+  const optionMatches = [...cleaned.matchAll(/([A-F])\s*[.、．):：]\s*/g)].filter((match) => {
     const index = match.index ?? 0;
-    const before = index > 0 ? text[index - 1] : ' ';
-    return index === 0 || /[\s　(（【\[]/.test(before);
+    if (index === 0) return true;
+    const prev = cleaned[index - 1];
+    if (/[\s　(（【\[）】\])]/.test(prev)) return true;
+    if (/\p{Unified_Ideograph}/u.test(prev) && !/[。？！…」】）〉》]/.test(prev)) return true;
+    return false;
   });
 
-  if (optionMatches.length < 2) return { question: text.trim(), options: [] };
+  if (optionMatches.length < 2) return { question: cleaned.trim(), options: [] };
 
   const firstIndex = optionMatches[0].index ?? 0;
-  const question = text.slice(0, firstIndex).trim();
+  const question = cleaned.slice(0, firstIndex).trim();
   const options = optionMatches
     .map((match, index) => {
       const start = (match.index ?? 0) + match[0].length;
-      const end = optionMatches[index + 1]?.index ?? text.length;
-      const body = text.slice(start, end).trim();
+      const end = optionMatches[index + 1]?.index ?? cleaned.length;
+      const body = cleaned.slice(start, end).trim();
       return body ? `${match[1].toUpperCase()}. ${body.replace(/^[A-F][.、．):：\s]+/i, '')}` : '';
     })
     .filter(Boolean);
 
-  return { question: question || text.trim(), options };
+  return { question: question || cleaned.trim(), options };
+}
+
+function extractSingleOption(text: string): string | undefined {
+  const cleaned = text.replace(/√/g, '').trim();
+  const match = cleaned.match(/^\s*([A-F])\s*(?:[.、．):：]\s*)?(.+)$/);
+  if (!match?.[2]) return undefined;
+  return `${match[1].toUpperCase()}. ${match[2].trim()}`;
 }
 
 function parseQuestionPayload(text: string) {
@@ -193,6 +214,8 @@ function finalizeDraft(draft: DraftQuestion | undefined, context: ParserContext)
   if (!draft) return undefined;
   const question = draft.questionLines.join('\n').trim();
   if (!question) return undefined;
+  if (!/[一-鿿A-Za-z]/.test(question)) return undefined;
+  if (/[一-鿿]/.test(question) && !/[一-鿿]{2,}/.test(question)) return undefined;
   if (!draft.options.length && !draft.answer && !draft.explanationLines.length) return undefined;
   const answer = draft.answer ? normalizeAnswer(draft.answer) : undefined;
   const options = draft.options.length ? draft.options : undefined;
@@ -223,8 +246,45 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
   let sectionType: QuestionType | undefined;
   let currentChapter: string | undefined;
 
-  const lines = text.replace(/\r\n/g, '\n').split('\n');
-  for (const rawLine of lines) {
+  const strippedAnswerLabel = String.raw`(?:参考答案|标准答案|正确答案|正确选项|答案|Answer|Correct\s*Answer|Correct|Ans)`;
+  const trailingAnswerPattern = new RegExp(
+    String.raw`\s*(?:【\s*)?${strippedAnswerLabel}(?:\s*】)?\s*(?:是|为|选)?\s*[:：]\s*(.+?)?\s*$`,
+    'i',
+  );
+  const standaloneAnswerLabelPattern = new RegExp(
+    String.raw`^\s*(?:【\s*)?${strippedAnswerLabel}(?:\s*】)?\s*(?:是|为|选)?\s*[:：]?\s*$`,
+    'i',
+  );
+
+  const inlineBracketAnswerPattern = /【正确答案是】\s*[:：]?\s*([^\s：:】](?:[^\n]*[^\s：:】])?)\s*$/;
+
+  const pendingInlineAnswers = new Map<number, string>();
+  const preprocessedLines = text.replace(/\r\n/g, '\n').split('\n').map((rawLine, lineIdx) => {
+    const line = rawLine.replace(/﻿/g, '').replace(/ /g, ' ').trimEnd();
+    const trimmed = line.trim();
+    if (optionPattern.test(trimmed)) {
+      const answerMatch = trailingAnswerPattern.exec(trimmed);
+      if (answerMatch) {
+        if (answerMatch[1]?.trim()) {
+          pendingInlineAnswers.set(lineIdx, answerMatch[1].trim());
+        }
+        return trimmed.replace(trailingAnswerPattern, '').trimEnd();
+      }
+      const bracketMatch = inlineBracketAnswerPattern.exec(trimmed);
+      if (bracketMatch) {
+        if (bracketMatch[1]?.trim()) {
+          pendingInlineAnswers.set(lineIdx, bracketMatch[1].trim());
+        }
+        return trimmed.replace(inlineBracketAnswerPattern, '').trimEnd();
+      }
+    }
+    if (standaloneAnswerLabelPattern.test(trimmed)) return '';
+    return line;
+  });
+
+  let lineIdx = 0;
+  for (const rawLine of preprocessedLines) {
+    const currentLineIdx = lineIdx++;
     const line = rawLine.replace(/\uFEFF/g, '').replace(/\u00a0/g, ' ').trimEnd();
     const trimmed = line.trim();
 
@@ -262,6 +322,11 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
     const tagMatch = workingLine.match(tagPattern);
 
     if (questionMatch || typedQuestionMatch) {
+      const pending = pendingInlineAnswers.get(currentLineIdx);
+      if (pending && current && current.options.length && !current.answer) {
+        current.answer = pending;
+        pendingInlineAnswers.delete(currentLineIdx);
+      }
       const complete = finalizeDraft(current, context);
       if (complete) questions.push(complete);
       const parsed = parseQuestionPayload(cleanQuestionLead(workingLine));
@@ -293,13 +358,35 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
     }
 
     if (optionMatch) {
-      current.options.push(`${optionMatch[1].toUpperCase()}. ${optionMatch[2].trim()}`);
+      const { options: inlineOptions } = splitInlineOptions(workingLine);
+      if (inlineOptions.length > 1) {
+        current.options.push(...inlineOptions);
+      } else {
+        current.options.push(extractSingleOption(workingLine) ?? `${optionMatch[1].toUpperCase()}. ${optionMatch[2].replace(/√/g, '').trim()}`);
+      }
+      const pending = pendingInlineAnswers.get(currentLineIdx);
+      if (pending && !current.answer) {
+        current.answer = pending;
+        pendingInlineAnswers.delete(currentLineIdx);
+      }
       readingExplanation = false;
       continue;
     }
 
     if (answerText) {
       current.answer = answerText;
+      readingExplanation = false;
+      continue;
+    }
+
+    if (!current.answer && current.options.length && /^\s*[A-F]\s*$/i.test(trimmed)) {
+      current.answer = trimmed.trim().toUpperCase();
+      readingExplanation = false;
+      continue;
+    }
+
+    if (!current.answer && current.questionLines.length && /^\s*(是|否)\s*$/.test(trimmed)) {
+      current.answer = trimmed.trim();
       readingExplanation = false;
       continue;
     }
@@ -345,6 +432,12 @@ export function parseText(text: string, context: ParserContext): ParserOutput {
     current.questionLines.push(workingLine.replace(/^[-*]\s+/, ''));
   }
 
+  for (const [, pending] of pendingInlineAnswers) {
+    if (current && current.options.length && !current.answer) {
+      current.answer = pending;
+      break;
+    }
+  }
   const complete = finalizeDraft(current, context);
   if (complete) questions.push(complete);
 

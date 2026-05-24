@@ -53,6 +53,8 @@ export function normalizeAnswer(value: unknown): string | string[] | undefined {
       .replace(/^标准答案\s*(?:是|为|[:：])?\s*/i, '')
       .replace(/^正确选项\s*(?:是|为|[:：])?\s*/i, '');
     if (!text) return undefined;
+    const judgment = text.match(/^(是|否|对|错)$/);
+    if (judgment) return judgment[1];
     const selectedOption = text.match(/^选项\s*([A-F])$/i);
     if (selectedOption) return selectedOption[1].toUpperCase();
 
@@ -101,7 +103,7 @@ export function normalizeQuestionType(
   if (['flashcard', 'card', '背诵卡', '卡片'].includes(text)) return 'flashcard';
 
   const answerText = Array.isArray(answer) ? answer.join(',') : String(answer ?? '');
-  if (/^(对|错|正确|错误|true|false|yes|no)$/i.test(answerText)) return 'judge';
+  if (/^(对|错|正确|错误|是|否|true|false|yes|no)$/i.test(answerText)) return 'judge';
   if (Array.isArray(answer) && answer.length > 1) return 'multiple';
   if (options && options.length > 1) return 'single';
   return 'short';
