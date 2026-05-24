@@ -8,6 +8,8 @@ export interface BookkeepingEntry {
   date: string;
   account: string;
   note: string;
+  tags: string[];
+  ledgerId?: string;
   createdAt: number;
 }
 
@@ -18,12 +20,16 @@ export interface BookkeepingDraft {
   date: string;
   account: string;
   note: string;
+  tags: string[];
+  ledgerId?: string;
 }
 
 export interface BookkeepingFilters {
   month?: string;
   type?: 'all' | BookkeepingEntryType;
   query?: string;
+  tags?: string[];
+  ledgerId?: string;
 }
 
 export interface BookkeepingCategoryTotal {
@@ -85,6 +91,8 @@ export function createBookkeepingEntry(
     date,
     account: draft.account.trim() || '现金',
     note: draft.note.trim(),
+    tags: (draft.tags ?? []).map((t) => t.trim()).filter(Boolean),
+    ledgerId: draft.ledgerId || undefined,
     createdAt: now,
   };
 }
@@ -101,8 +109,10 @@ export function filterBookkeepingEntries(
     .filter((entry) => {
       if (month && getMonthKey(entry.date) !== month) return false;
       if (type !== 'all' && entry.type !== type) return false;
+      if (filters.ledgerId && entry.ledgerId !== filters.ledgerId) return false;
+      if (filters.tags?.length && !filters.tags.some((tag) => entry.tags?.includes(tag))) return false;
       if (!query) return true;
-      return [entry.category, entry.account, entry.note, entry.date]
+      return [entry.category, entry.account, entry.note, entry.date, ...(entry.tags ?? [])]
         .join(' ')
         .toLowerCase()
         .includes(query);
@@ -155,20 +165,26 @@ export function deserializeBookkeepingEntries(raw: string | null): BookkeepingEn
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((entry): entry is BookkeepingEntry => {
-      return (
-        entry &&
-        (entry.type === 'expense' || entry.type === 'income') &&
-        typeof entry.id === 'string' &&
-        typeof entry.amount === 'number' &&
-        Number.isFinite(entry.amount) &&
-        typeof entry.category === 'string' &&
-        typeof entry.date === 'string' &&
-        typeof entry.account === 'string' &&
-        typeof entry.note === 'string' &&
-        typeof entry.createdAt === 'number'
-      );
-    });
+    return parsed
+      .filter((entry): entry is BookkeepingEntry => {
+        return (
+          entry &&
+          (entry.type === 'expense' || entry.type === 'income') &&
+          typeof entry.id === 'string' &&
+          typeof entry.amount === 'number' &&
+          Number.isFinite(entry.amount) &&
+          typeof entry.category === 'string' &&
+          typeof entry.date === 'string' &&
+          typeof entry.account === 'string' &&
+          typeof entry.note === 'string' &&
+          typeof entry.createdAt === 'number'
+        );
+      })
+      .map((entry) => ({
+        ...entry,
+        tags: Array.isArray(entry.tags) ? entry.tags.map(String).filter(Boolean) : [],
+        ledgerId: typeof entry.ledgerId === 'string' ? entry.ledgerId : undefined,
+      }));
   } catch {
     return [];
   }
@@ -180,7 +196,7 @@ function csvCell(value: string | number) {
 }
 
 export function toBookkeepingCsv(entries: BookkeepingEntry[]) {
-  const header = ['date', 'type', 'category', 'amount', 'account', 'note'];
+  const header = ['date', 'type', 'category', 'amount', 'account', 'note', 'tags'];
   const rows = filterBookkeepingEntries(entries).map((entry) => [
     entry.date,
     entry.type,
@@ -188,6 +204,7 @@ export function toBookkeepingCsv(entries: BookkeepingEntry[]) {
     entry.amount.toFixed(2),
     entry.account,
     entry.note,
+    (entry.tags ?? []).join(';'),
   ]);
 
   return [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\n');

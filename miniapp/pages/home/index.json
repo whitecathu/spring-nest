@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "春日小筑工具箱",
-  "usingComponents": {
-    "tool-card": "../../components/tool-card/index",
-    "result-card": "../../components/result-card/index"
-  }
-}

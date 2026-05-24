@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { SurfaceMotionTone } from '../lib/animations';
 import type { AppItem } from '../types/app';
 import { MotionButton, MotionCard } from './MotionSurface';
+import GlareHover from './animations/GlareHover';
 
 type CatalogItemVariant = 'tool' | 'game' | 'feature';
 
@@ -58,6 +59,14 @@ export default function CatalogItemCard({
       )}
       aria-label={title}
     >
+      {variant === 'feature' && (
+        <GlareHover
+          className="pointer-events-none absolute inset-0 z-[1] rounded-3xl"
+          glareSize={40}
+          glareColor="rgba(184, 228, 201, 0.12)"
+          transitionDuration={400}
+        />
+      )}
       <button
         type="button"
         onClick={() => onFavorite(item.id)}

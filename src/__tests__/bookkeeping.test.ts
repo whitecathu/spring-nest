@@ -18,6 +18,7 @@ const entries: BookkeepingEntry[] = [
     date: '2026-05-15',
     account: '微信',
     note: '午餐',
+    tags: [],
     createdAt: 3,
   },
   {
@@ -28,6 +29,7 @@ const entries: BookkeepingEntry[] = [
     date: '2026-05-14',
     account: '银行卡',
     note: '五月工资',
+    tags: [],
     createdAt: 2,
   },
   {
@@ -38,6 +40,7 @@ const entries: BookkeepingEntry[] = [
     date: '2026-04-30',
     account: '银行卡',
     note: '课程,资料',
+    tags: [],
     createdAt: 1,
   },
 ];
@@ -59,6 +62,7 @@ describe('bookkeeping helpers', () => {
         date: '2026-05-15',
         account: '',
         note: ' 地铁 ',
+        tags: [],
       },
       { id: 'fixed', now: 100 },
     );
@@ -71,6 +75,8 @@ describe('bookkeeping helpers', () => {
       date: '2026-05-15',
       account: '现金',
       note: '地铁',
+      tags: [],
+      ledgerId: undefined,
       createdAt: 100,
     });
     expect(
@@ -81,6 +87,7 @@ describe('bookkeeping helpers', () => {
         date: '2026-05-15',
         account: '现金',
         note: '',
+        tags: [],
       }),
     ).toBeNull();
   });
@@ -112,7 +119,7 @@ describe('bookkeeping helpers', () => {
   it('exports csv with escaped cells', () => {
     const csv = toBookkeepingCsv(entries);
 
-    expect(csv.split('\n')[0]).toBe('date,type,category,amount,account,note');
+    expect(csv.split('\n')[0]).toBe('date,type,category,amount,account,note,tags');
     expect(csv).toContain('2026-04-30,expense,学习,126.50,银行卡,"课程,资料"');
   });
 

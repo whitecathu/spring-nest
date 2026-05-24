@@ -4,6 +4,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { easeOutExpo, useReducedMotion } from '../../lib/animations';
 import { useVisualCapability } from '../../lib/visualCapability';
 import LightweightEmergenceSplash from './glassGarden/LightweightEmergenceSplash';
+import Aurora from './Aurora';
 
 const TerrariumEmergenceSplash = lazy(() => import('./glassGarden/TerrariumEmergenceSplash'));
 
@@ -89,9 +90,9 @@ export default function StartupSplash() {
   const baseBackground = dark
     ? 'linear-gradient(135deg, oklch(13% 0.018 152), oklch(10% 0.014 205) 58%, oklch(14% 0.018 78))'
     : 'linear-gradient(135deg, oklch(99% 0.012 85), oklch(97% 0.026 140) 58%, oklch(98% 0.018 55))';
-  const ambient = dark
-    ? 'radial-gradient(circle at 50% 42%, oklch(54% 0.1 145 / 0.18), transparent 42%)'
-    : 'radial-gradient(circle at 50% 42%, oklch(82% 0.12 145 / 0.26), transparent 44%)';
+  const auroraColors = dark
+    ? ['#1a3a1a', '#3d7a4d', '#8fbc8f']
+    : ['#3d7a4d', '#8fbc8f', '#f5f0e0'];
 
   return (
     <AnimatePresence>
@@ -112,7 +113,13 @@ export default function StartupSplash() {
           }}
           transition={{ duration: reducedMotion ? 0.1 : 0.22, ease: easeOutExpo }}
         >
-          <div className="absolute inset-0" style={{ background: ambient }} aria-hidden="true" />
+          <Aurora
+            colorStops={auroraColors}
+            amplitude={useDesktop3d ? 1.2 : 0.6}
+            blend={0.5}
+            speed={useDesktop3d ? 1.0 : 0.4}
+            className="absolute inset-0 opacity-60 dark:opacity-40"
+          />
           <button
             type="button"
             className="absolute right-4 top-4 z-[1] rounded-full border border-primary/15 bg-white/55 px-4 py-2 text-sm font-bold text-primary shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 dark:bg-white/10 dark:hover:bg-white/15"

@@ -23,6 +23,7 @@ import {
   syncSettingsToCloud,
 } from '../services/cloudSyncService';
 import { loadFavoritesFromCloud } from '../services/favoriteService';
+import { loadBookkeepingFromCloud } from '../services/bookkeepingSyncService';
 import type { LoginResult, RegisterResult } from '../types/user';
 
 export interface UserProfile {
@@ -96,6 +97,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
         // Merge guest data to cloud
         await mergeGuestData(supaUser.id);
+
+        // Load bookkeeping from cloud
+        await loadBookkeepingFromCloud(supaUser.id);
 
         // Load favorites from cloud
         await loadFavoritesFromCloud(supaUser.id);

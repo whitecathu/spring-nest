@@ -1,4 +1,0 @@
-<view class="result-card result-card--{{tone}}">
-  <view class="result-card__title">{{title}}</view>
-  <view class="result-card__content">{{content}}</view>
-</view>

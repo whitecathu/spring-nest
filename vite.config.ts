@@ -129,6 +129,7 @@ export default defineConfig(({ mode }) => {
             'pdf-to-word-vendor': ['pdfjs-dist', 'docx'],
             'question-bank-vendor': ['zustand', 'jszip', 'node-unrar-js'],
             'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
+            'ogl-vendor': ['ogl'],
           },
         },
       },

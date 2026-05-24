@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { getFavorites } from './favoriteService';
+import { mergeGuestBookkeeping } from './bookkeepingSyncService';
 
 // ─── Favorites Sync ─────────────────────────────────────────────────────────
 
@@ -168,6 +169,9 @@ export async function mergeGuestData(userId: string): Promise<void> {
     const theme = localStorage.getItem('spring_nest_theme') || 'system';
     const language = localStorage.getItem('spring_nest_lang') || 'zh';
     await syncSettingsToCloud(userId, { theme, language });
+
+    // Merge bookkeeping entries
+    await mergeGuestBookkeeping(userId);
   } catch {
     // Silently fail - localStorage data is preserved
   }

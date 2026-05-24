@@ -29,6 +29,8 @@ import SEO from '../components/SEO';
 import { websiteJsonLd } from '../lib/structuredData';
 import CatalogItemCard from '../components/CatalogItemCard';
 import { MagneticButton } from '../components/MotionSurface';
+import GlassSurface from '../components/animations/GlassSurface';
+import ShinyText from '../components/animations/ShinyText';
 
 export default function Home() {
   const { t } = useUser();
@@ -165,7 +167,7 @@ export default function Home() {
         {/* Hero content */}
         <div className="relative z-10 flex flex-col items-center">
           <p className="font-nunito text-base font-bold text-primary mb-3 tracking-wide">
-            Spring Nest
+            <ShinyText text="Spring Nest" speed={4} shineColor="var(--color-primary-container)" color="var(--color-primary)" />
           </p>
           <h1 className="font-sans font-extrabold text-3xl sm:text-4xl lg:text-5xl text-primary mb-4 tracking-tight max-w-4xl">
             {t('免费在线实用工具与休闲小游戏合集', 'Free Online Tools and Casual Games')}
@@ -181,6 +183,7 @@ export default function Home() {
             <label htmlFor="home-search" className="sr-only">
               {t('搜索工具和小游戏', 'Search tools and games')}
             </label>
+            <GlassSurface borderRadius={16} brightness={60} opacity={0.95} blur={14} className="w-full">
             <div className="flex items-center gap-2 rounded-2xl border border-primary/20 bg-white/90 dark:bg-surface-container-high/90 p-2 shadow-[0_12px_36px_rgba(63,103,81,0.12)]">
               <Search className="ml-3 h-5 w-5 shrink-0 text-primary" />
               <input
@@ -202,6 +205,7 @@ export default function Home() {
                 {t('搜索', 'Search')}
               </button>
             </div>
+            </GlassSurface>
           </form>
 
           <div className="flex flex-col sm:flex-row gap-4">
