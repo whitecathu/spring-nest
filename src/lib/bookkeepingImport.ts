@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import type { BookkeepingEntry } from './bookkeeping';
 
 export type BillFormat = 'wechat' | 'alipay' | 'generic' | 'unknown';
@@ -102,6 +103,23 @@ function guessCategory(note: string, format: BillFormat): string {
 // ─── Encoding Detection & Decode ─────────────────────────────────────────────
 
 async function decodeFile(file: File): Promise<string> {
+  // Check if xlsx/xls file (by magic bytes: PK for xlsx, or extension)
+  const isXlsx =
+    file.name.endsWith('.xlsx') ||
+    file.name.endsWith('.xls') ||
+    file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    file.type === 'application/vnd.ms-excel';
+
+  if (isXlsx) {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) return '';
+    const sheet = workbook.Sheets[sheetName];
+    // Convert to CSV text
+    return XLSX.utils.sheet_to_csv(sheet);
+  }
+
   let text = await file.text();
 
   // Remove BOM
@@ -120,11 +138,11 @@ async function decodeFile(file: File): Promise<string> {
   }
 
   // Also try GBK if file looks like garbled Chinese
-  if (!text.includes('交易') && !text.includes('微信') && !text.includes('支付宝')) {
+  if (!text.includes('交易') && !text.includes('微信') && !text.includes('支付宝') && !text.includes('记录时间')) {
     try {
       const buffer = await file.arrayBuffer();
       const gbkText = new TextDecoder('gbk').decode(buffer);
-      if (gbkText.includes('交易') || gbkText.includes('微信') || gbkText.includes('支付宝')) {
+      if (gbkText.includes('交易') || gbkText.includes('微信') || gbkText.includes('支付宝') || gbkText.includes('记录时间')) {
         text = gbkText;
       }
     } catch {
@@ -411,6 +429,17 @@ export function parseGenericBill(text: string): ImportedRow[] {
     const category = categoryIdx >= 0 ? cols[categoryIdx] || '其他' : '其他';
     const note = noteIdx >= 0 ? cols[noteIdx] || '' : '';
     const account = accountIdx >= 0 ? cols[accountIdx] || '' : '';
+
+    // Skip transfers and investments (money moving between own accounts)
+    if (
+      category.includes('转账') ||
+      category.includes('投资理财') ||
+      note.includes('转出到') ||
+      note.includes('转入') ||
+      note.includes('余额宝')
+    ) {
+      continue;
+    }
 
     rows.push({ date, type, amount, category, account, note });
   }

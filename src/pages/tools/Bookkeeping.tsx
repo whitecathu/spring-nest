@@ -15,6 +15,7 @@ import {
   Trash2,
   TrendingDown,
   TrendingUp,
+  Upload,
   X,
   WalletCards,
 } from 'lucide-react';
@@ -169,6 +170,45 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>(loadRecurringRules);
   const [showImporter, setShowImporter] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [droppedFile, setDroppedFile] = useState<File | null>(null);
+  const dragCounter = useRef(0);
+
+  // Global drag-drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setDroppedFile(file);
+      setShowImporter(true);
+    }
+  };
   const [ledgers, setLedgers] = useState<Ledger[]>(loadLedgers);
   const [selectedLedgerId, setSelectedLedgerId] = useState(DEFAULT_LEDGER_ID);
 
@@ -210,7 +250,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
     [lang],
   );
 
-  const ledgerFilter = selectedLedgerId === DEFAULT_LEDGER_ID ? undefined : selectedLedgerId;
+  const ledgerFilter = selectedLedgerId;
   const monthEntries = useMemo(
     () => filterBookkeepingEntries(entries, { month: selectedMonth, ledgerId: ledgerFilter }),
     [entries, selectedMonth, ledgerFilter],
@@ -225,7 +265,10 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
       }),
     [entries, selectedMonth, typeFilter, query, ledgerFilter],
   );
-  const summary = useMemo(() => summarizeBookkeeping(monthEntries), [monthEntries]);
+  const summary = useMemo(
+    () => summarizeBookkeeping(monthEntries, typeFilter === 'income' ? 'income' : 'expense'),
+    [monthEntries, typeFilter],
+  );
   const activeCategories = draft.type === 'expense' ? categories.expense : categories.income;
   const budgetStatus = useMemo(
     () => getBudgetStatus(budgets, entries, selectedMonth),
@@ -318,7 +361,11 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
   };
 
   const handleBillImport = (importedEntries: BookkeepingEntry[]) => {
-    setEntries((prev) => [...importedEntries, ...prev]);
+    const ledgerId = selectedLedgerId !== DEFAULT_LEDGER_ID ? selectedLedgerId : undefined;
+    const withLedger = ledgerId
+      ? importedEntries.map((e) => ({ ...e, ledgerId }))
+      : importedEntries;
+    setEntries((prev) => [...withLedger, ...prev]);
     showToast(
       t(`已导入 ${importedEntries.length} 笔记录`, `Imported ${importedEntries.length} records`),
     );
@@ -340,9 +387,15 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
   };
 
   const handleLedgerDelete = (id: string) => {
-    const updated = deleteLedger(ledgers, id);
-    setLedgers(updated);
-    saveLedgers(updated);
+    if (id === DEFAULT_LEDGER_ID) {
+      // Clear all entries belonging to default ledger (no ledgerId)
+      setEntries((prev) => prev.filter((e) => e.ledgerId && e.ledgerId !== DEFAULT_LEDGER_ID));
+      showToast(t('默认账本已清空', 'Default ledger cleared'));
+    } else {
+      const updated = deleteLedger(ledgers, id);
+      setLedgers(updated);
+      saveLedgers(updated);
+    }
   };
 
   const filterButtons: Array<{ id: 'all' | BookkeepingEntryType; label: string }> = [
@@ -352,7 +405,27 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6">
+    <div
+      className="relative mx-auto w-full max-w-6xl px-4 py-6"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Global drag overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-indigo-500/10 backdrop-blur-sm pointer-events-none">
+          <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-indigo-400 bg-white/90 dark:bg-neutral-900/90 px-12 py-10 shadow-2xl">
+            <Upload className="w-12 h-12 text-indigo-500" />
+            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+              {t('松开即可导入账单', 'Drop to import bill')}
+            </p>
+            <p className="text-sm text-neutral-500">
+              {t('支持 .csv / .xlsx 格式', 'Supports .csv / .xlsx')}
+            </p>
+          </div>
+        </div>
+      )}
       <button
         onClick={onBack}
         className="mb-5 -ml-2 flex min-h-[48px] items-center gap-2 px-2 text-sm font-semibold text-secondary transition-colors hover:text-primary"
@@ -793,7 +866,9 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
             <div className="mt-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-black text-on-surface">
-                  {t('支出分类占比', 'Expense categories')}
+                  {typeFilter === 'income'
+                    ? t('收入分类占比', 'Income categories')
+                    : t('支出分类占比', 'Expense categories')}
                 </h3>
                 <button
                   type="button"
@@ -804,7 +879,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
                 </button>
               </div>
               {showCharts ? (
-                <StatisticsCharts t={t} entries={entries} selectedMonth={selectedMonth} />
+                <StatisticsCharts t={t} entries={entries} selectedMonth={selectedMonth} typeFilter={typeFilter} />
               ) : summary.categoryTotals.length > 0 ? (
                 <div className="space-y-3">
                   {summary.categoryTotals.slice(0, 6).map((category) => (
@@ -828,7 +903,9 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
                 </div>
               ) : (
                 <p className="rounded-2xl bg-surface-container-low p-4 text-sm leading-relaxed text-secondary">
-                  {t('本月还没有支出记录。', 'No expense records this month yet.')}
+                  {typeFilter === 'income'
+                    ? t('本月还没有收入记录。', 'No income records this month yet.')
+                    : t('本月还没有支出记录。', 'No expense records this month yet.')}
                 </p>
               )}
             </div>
@@ -934,7 +1011,12 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
       </motion.div>
 
       {showImporter && (
-        <BillImporter t={t} onImport={handleBillImport} onClose={() => setShowImporter(false)} />
+        <BillImporter
+          t={t}
+          onImport={handleBillImport}
+          onClose={() => { setShowImporter(false); setDroppedFile(null); }}
+          initialFile={droppedFile}
+        />
       )}
 
       <AnimatePresence>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, X } from 'lucide-react';
 import {
   parseBillFile,
@@ -12,14 +12,25 @@ interface BillImporterProps {
   t: (zh: string, en: string) => string;
   onImport: (entries: BookkeepingEntry[]) => void;
   onClose: () => void;
+  initialFile?: File | null;
 }
 
-export default function BillImporter({ t, onImport, onClose }: BillImporterProps) {
+export default function BillImporter({ t, onImport, onClose, initialFile }: BillImporterProps) {
   const [format, setFormat] = useState<BillFormat>('unknown');
   const [rows, setRows] = useState<ImportedRow[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const initialHandled = useRef(false);
+
+  // Auto-process initial file (from page-level drag-drop)
+  useEffect(() => {
+    if (initialFile && !initialHandled.current) {
+      initialHandled.current = true;
+      handleFile(initialFile);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFile]);
 
   const handleFile = async (file: File) => {
     setError('');
@@ -122,12 +133,12 @@ export default function BillImporter({ t, onImport, onClose }: BillImporterProps
                   )}
                 </p>
                 <p className="text-xs text-neutral-400">
-                  {t('支持 .csv 格式，自动识别编码', 'Supports .csv, auto-detect encoding')}
+                  {t('支持 .csv / .xlsx 格式，自动识别编码', 'Supports .csv / .xlsx, auto-detect encoding')}
                 </p>
                 <input
                   ref={fileRef}
                   type="file"
-                  accept=".csv,.txt"
+                  accept=".csv,.txt,.xlsx,.xls"
                   onChange={handleFileChange}
                   className="hidden"
                 />

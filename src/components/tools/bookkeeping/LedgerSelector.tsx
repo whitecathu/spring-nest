@@ -52,6 +52,11 @@ export default function LedgerSelector({
   };
 
   const handleDelete = (id: string) => {
+    if (id === DEFAULT_LEDGER_ID) {
+      // Default ledger: confirm is in the button onClick
+      onDelete(id);
+      return;
+    }
     if (
       confirm(
         t(
@@ -141,17 +146,38 @@ export default function LedgerSelector({
       {/* Ledger list */}
       <div className="space-y-1">
         {/* Default ledger */}
-        <button
-          onClick={() => onSelect(DEFAULT_LEDGER_ID)}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors text-left ${
+        <div
+          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-colors ${
             selectedLedgerId === DEFAULT_LEDGER_ID
-              ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 font-semibold'
-              : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800'
+              ? 'bg-indigo-50 dark:bg-indigo-950/30'
+              : 'hover:bg-neutral-50 dark:hover:bg-neutral-800'
           }`}
         >
-          <span className="text-base">📒</span>
-          <span className="flex-1">{t('默认账本', 'Default')}</span>
-        </button>
+          <button
+            onClick={() => onSelect(DEFAULT_LEDGER_ID)}
+            className="flex-1 flex items-center gap-2.5 text-left text-sm"
+          >
+            <span className="text-base">📒</span>
+            <span className={`${
+              selectedLedgerId === DEFAULT_LEDGER_ID
+                ? 'text-indigo-700 dark:text-indigo-300 font-semibold'
+                : 'text-neutral-600 dark:text-neutral-300'
+            }`}>
+              {t('默认账本', 'Default')}
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(t('确定删除默认账本中的所有记录？', 'Delete all records in the default ledger?'))) {
+                onDelete(DEFAULT_LEDGER_ID);
+              }
+            }}
+            className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-950/30 transition-colors"
+            title={t('删除', 'Delete')}
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+          </button>
+        </div>
 
         {/* Custom ledgers */}
         {ledgers.map((ledger) => (
@@ -178,7 +204,7 @@ export default function LedgerSelector({
                 {ledger.name}
               </span>
             </button>
-            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-0.5">
               {onShare && (
                 <button
                   onClick={() => onShare(ledger.id)}

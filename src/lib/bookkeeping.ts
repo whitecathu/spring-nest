@@ -109,7 +109,14 @@ export function filterBookkeepingEntries(
     .filter((entry) => {
       if (month && getMonthKey(entry.date) !== month) return false;
       if (type !== 'all' && entry.type !== type) return false;
-      if (filters.ledgerId && entry.ledgerId !== filters.ledgerId) return false;
+      if (filters.ledgerId) {
+        if (filters.ledgerId === '__default__') {
+          // Default ledger: show entries with no ledgerId
+          if (entry.ledgerId) return false;
+        } else {
+          if (entry.ledgerId !== filters.ledgerId) return false;
+        }
+      }
       if (filters.tags?.length && !filters.tags.some((tag) => entry.tags?.includes(tag)))
         return false;
       if (!query) return true;
@@ -125,7 +132,10 @@ export function filterBookkeepingEntries(
     });
 }
 
-export function summarizeBookkeeping(entries: BookkeepingEntry[]): BookkeepingSummary {
+export function summarizeBookkeeping(
+  entries: BookkeepingEntry[],
+  categoryType: 'expense' | 'income' = 'expense',
+): BookkeepingSummary {
   const income = entries
     .filter((entry) => entry.type === 'income')
     .reduce((total, entry) => total + entry.amount, 0);
@@ -135,16 +145,17 @@ export function summarizeBookkeeping(entries: BookkeepingEntry[]): BookkeepingSu
 
   const categoryMap = new Map<string, number>();
   entries
-    .filter((entry) => entry.type === 'expense')
+    .filter((entry) => entry.type === categoryType)
     .forEach((entry) => {
       categoryMap.set(entry.category, (categoryMap.get(entry.category) ?? 0) + entry.amount);
     });
 
+  const categoryBase = categoryType === 'expense' ? expense : income;
   const categoryTotals = [...categoryMap.entries()]
     .map(([category, total]) => ({
       category,
       total: Math.round(total * 100) / 100,
-      ratio: expense > 0 ? total / expense : 0,
+      ratio: categoryBase > 0 ? total / categoryBase : 0,
     }))
     .sort((a, b) => b.total - a.total);
 
