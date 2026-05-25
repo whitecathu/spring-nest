@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Undo2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadBestScore, saveBestScore } from '../../lib/gameScore';
 
 type Grid = number[][];
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -158,18 +159,6 @@ function hasReached2048(grid: Grid): boolean {
   return false;
 }
 
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_2048_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_2048_best', JSON.stringify(score));
-}
-
 // ── Tile visual config ──────────────────────────────────────────
 interface TileStyle {
   bg: string;
@@ -262,7 +251,7 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [grid, setGrid] = useState<Grid>(initGrid);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('2048'));
   const [gameOver, setGameOver] = useState(false);
   const [prevGrid, setPrevGrid] = useState<Grid | null>(null);
   const [prevScore, setPrevScore] = useState<number | null>(null);
@@ -309,7 +298,7 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
         setScore(newScore);
         if (newScore > bestScore) {
           setBestScore(newScore);
-          saveBestScore(newScore);
+          saveBestScore('2048', newScore);
         }
 
         // Show merge popups

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { springBouncy, springSmooth } from '../../lib/animations';
+import { loadBestScore, saveBestScore } from '../../lib/gameScore';
 
 const GAME_WIDTH = 400;
 const GAME_HEIGHT = 600;
@@ -48,18 +49,6 @@ interface ScorePopup {
 
 let particleIdCounter = 0;
 
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_flappy_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_flappy_best', JSON.stringify(score));
-}
-
 const GRASS_TUFTS = Array.from({ length: 20 }, (_, i) => ({
   x: i * 20 + Math.sin(i * 1.7) * 6,
   height: 4 + Math.sin(i * 2.3) * 2,
@@ -80,7 +69,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [gameState, setGameState] = useState<'idle' | 'ready' | 'playing' | 'over'>('idle');
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('flappy'));
 
   // Game state refs for animation loop
   const birdYRef = useRef(GAME_HEIGHT / 2);
@@ -262,9 +251,9 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
       playingRef.current = false;
       setGameState('over');
       const s = scoreRef.current;
-      const best = loadBestScore();
+      const best = loadBestScore('flappy');
       if (s > best) {
-        saveBestScore(s);
+        saveBestScore('flappy', s);
         setBestScore(s);
       }
     }, 500);

@@ -198,6 +198,7 @@ export function deserializeBookkeepingEntries(raw: string | null): BookkeepingEn
         ledgerId: typeof entry.ledgerId === 'string' ? entry.ledgerId : undefined,
       }));
   } catch {
+    // localStorage may be unavailable or data corrupted
     return [];
   }
 }

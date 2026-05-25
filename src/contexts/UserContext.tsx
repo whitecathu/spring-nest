@@ -65,6 +65,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       return (localStorage.getItem('spring_nest_lang') as 'zh' | 'en') || 'zh';
     } catch {
+      // localStorage may be unavailable; default to Chinese
       return 'zh';
     }
   });

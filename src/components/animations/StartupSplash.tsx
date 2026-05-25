@@ -20,6 +20,7 @@ function getShouldShowSplash() {
   try {
     return sessionStorage.getItem(SPLASH_SESSION_KEY) !== '1';
   } catch {
+    // sessionStorage may be unavailable; show splash by default
     return true;
   }
 }
@@ -27,7 +28,9 @@ function getShouldShowSplash() {
 function markSplashSeen() {
   try {
     sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
-  } catch {}
+  } catch {
+    // sessionStorage write may fail; splash will show again next visit
+  }
 }
 
 function getCompactSplash() {

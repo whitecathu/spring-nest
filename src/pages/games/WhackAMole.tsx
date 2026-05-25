@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Clock, Trophy } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadBestScore, saveBestScore, loadGameValue, saveGameValue } from '../../lib/gameScore';
 
 const GAME_DURATION = 30;
 const HOLES = 9;
@@ -29,26 +30,7 @@ interface ScorePopup {
 const HIT_EMOJIS = ['💥', '⭐', '✨', '💫', '🌟'];
 const DEATH_EMOJIS = ['😵', '💀', '🥴', '😵‍💫'];
 
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_whackamole_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_whackamole_best', JSON.stringify(score));
-}
-function loadBestCombo(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_whackamole_best_combo') || '0');
-  } catch {
-    return 0;
-  }
-}
-function saveBestCombo(combo: number) {
-  localStorage.setItem('spring_nest_whackamole_best_combo', JSON.stringify(combo));
-}
+const COMBO_KEY = 'spring_nest_whackamole_best_combo';
 
 // ── Screen shake hook ────────────────────────────────────────
 function useScreenShake() {
@@ -87,9 +69,9 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [playing, setPlaying] = useState(false);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('whackamole'));
   const [combo, setCombo] = useState(0);
-  const [bestCombo, setBestCombo] = useState(loadBestCombo);
+  const [bestCombo, setBestCombo] = useState(() => loadGameValue(COMBO_KEY));
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [activeHole, setActiveHole] = useState<number | null>(null);
   const [hitHole, setHitHole] = useState<number | null>(null);
@@ -270,7 +252,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
         setCombo(currentCombo);
         if (currentCombo > bestCombo) {
           setBestCombo(currentCombo);
-          saveBestCombo(currentCombo);
+          saveGameValue(COMBO_KEY, currentCombo);
         }
 
         const points = 1 + Math.max(0, currentCombo - 1);
@@ -278,7 +260,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
           const newScore = s + points;
           if (newScore > bestScore) {
             setBestScore(newScore);
-            saveBestScore(newScore);
+            saveBestScore('whackamole', newScore);
           }
           return newScore;
         });

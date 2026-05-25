@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Palette } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadBestScore, saveBestScore } from '../../lib/gameScore';
 
 const GRID_SIZE = 4;
 const COLORS = [
@@ -132,22 +133,11 @@ function hasValidMoves(grid: Grid): boolean {
   return false;
 }
 
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_colormerge_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_colormerge_best', JSON.stringify(score));
-}
-
 export default function ColorMerge({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [grid, setGrid] = useState<Grid>(initGrid);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('colormerge'));
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const [matchedCells, setMatchedCells] = useState<Set<string>>(new Set());
   const [gameOver, setGameOver] = useState(false);
@@ -180,7 +170,7 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
 
         if (newScore > bestScore) {
           setBestScore(newScore);
-          saveBestScore(newScore);
+          saveBestScore('colormerge', newScore);
         }
 
         setTimeout(() => {

@@ -13,6 +13,7 @@ import {
   Star,
 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadGameValue, saveGameValue } from '../../lib/gameScore';
 
 const EMOJIS = ['🌸', '🌿', '🍀', '🌻', '🦋', '🐝', '🍃', '🌷', '🌹', '🌺', '🌼', '💐'];
 
@@ -130,15 +131,8 @@ function generateConfetti(): Confetti[] {
   return particles;
 }
 
-function loadBestMoves(difficulty: Difficulty): number {
-  try {
-    return JSON.parse(localStorage.getItem(`spring_nest_memory_best_${difficulty}`) || '0');
-  } catch {
-    return 0;
-  }
-}
-function saveBestMoves(difficulty: Difficulty, moves: number) {
-  localStorage.setItem(`spring_nest_memory_best_${difficulty}`, JSON.stringify(moves));
+function memoryKey(difficulty: Difficulty): string {
+  return `spring_nest_memory_best_${difficulty}`;
 }
 
 export default function MemoryGame({ onBack }: { onBack: () => void }) {
@@ -175,7 +169,7 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
     setMatchedCount(0);
     setStartTime(Date.now());
     setElapsed(0);
-    setBestMoves(loadBestMoves(d));
+    setBestMoves(loadGameValue(memoryKey(d)));
     setGameComplete(false);
     processingRef.current = false;
     setShakingIds([]);
@@ -257,7 +251,7 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                 setConfetti(generateConfetti());
                 if (!bestMoves || finalMoves < bestMoves) {
                   setBestMoves(finalMoves);
-                  saveBestMoves(difficulty, finalMoves);
+                  saveGameValue(memoryKey(difficulty), finalMoves);
                 }
               }
               return newCount;
@@ -346,7 +340,7 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
             {(
               Object.entries(DIFFICULTY_CONFIG) as [Difficulty, typeof DIFFICULTY_CONFIG.easy][]
             ).map(([key, config], index) => {
-              const best = loadBestMoves(key);
+              const best = loadGameValue(memoryKey(key));
               const Icon = config.icon;
               return (
                 <motion.button

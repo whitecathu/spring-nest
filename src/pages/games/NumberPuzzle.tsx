@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Clock, Footprints, Trophy } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadGameValue, saveGameValue } from '../../lib/gameScore';
 
 type Size = 3 | 4;
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -60,28 +61,12 @@ function generatePuzzle(size: Size): number[] {
   return tiles;
 }
 
-function loadBestMoves(size: Size): number {
-  try {
-    return JSON.parse(localStorage.getItem(`spring_nest_puzzle_best_moves_${size}`) || '0');
-  } catch {
-    return 0;
-  }
+function puzzleMovesKey(size: Size): string {
+  return `spring_nest_puzzle_best_moves_${size}`;
 }
 
-function saveBestMoves(size: Size, moves: number) {
-  localStorage.setItem(`spring_nest_puzzle_best_moves_${size}`, JSON.stringify(moves));
-}
-
-function loadBestTime(size: Size): number {
-  try {
-    return JSON.parse(localStorage.getItem(`spring_nest_puzzle_best_time_${size}`) || '0');
-  } catch {
-    return 0;
-  }
-}
-
-function saveBestTime(size: Size, seconds: number) {
-  localStorage.setItem(`spring_nest_puzzle_best_time_${size}`, JSON.stringify(seconds));
+function puzzleTimeKey(size: Size): string {
+  return `spring_nest_puzzle_best_time_${size}`;
 }
 
 const TILE_COLORS = [
@@ -111,8 +96,8 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
   const [elapsed, setElapsed] = useState(0);
   const [started, setStarted] = useState(false);
   const [won, setWon] = useState(false);
-  const [bestMoves, setBestMoves] = useState(() => loadBestMoves(4));
-  const [bestTime, setBestTimeVal] = useState(() => loadBestTime(4));
+  const [bestMoves, setBestMoves] = useState(() => loadGameValue(puzzleMovesKey(4)));
+  const [bestTime, setBestTimeVal] = useState(() => loadGameValue(puzzleTimeKey(4)));
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(0);
@@ -137,8 +122,8 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
       setElapsed(0);
       setStarted(false);
       setWon(false);
-      setBestMoves(loadBestMoves(s));
-      setBestTimeVal(loadBestTime(s));
+      setBestMoves(loadGameValue(puzzleMovesKey(s)));
+      setBestTimeVal(loadGameValue(puzzleTimeKey(s)));
       startTimeRef.current = 0;
     },
     [size, clearTimer],
@@ -164,15 +149,15 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
         setElapsed(finalTime);
         setWon(true);
 
-        const currentBestMoves = loadBestMoves(size);
+        const currentBestMoves = loadGameValue(puzzleMovesKey(size));
         if (currentBestMoves === 0 || newMoves < currentBestMoves) {
           setBestMoves(newMoves);
-          saveBestMoves(size, newMoves);
+          saveGameValue(puzzleMovesKey(size), newMoves);
         }
-        const currentBestTime = loadBestTime(size);
+        const currentBestTime = loadGameValue(puzzleTimeKey(size));
         if (currentBestTime === 0 || finalTime < currentBestTime) {
           setBestTimeVal(finalTime);
-          saveBestTime(size, finalTime);
+          saveGameValue(puzzleTimeKey(size), finalTime);
         }
       }
     },
@@ -299,8 +284,8 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
       setElapsed(0);
       setStarted(false);
       setWon(false);
-      setBestMoves(loadBestMoves(newSize));
-      setBestTimeVal(loadBestTime(newSize));
+      setBestMoves(loadGameValue(puzzleMovesKey(newSize)));
+      setBestTimeVal(loadGameValue(puzzleTimeKey(newSize)));
       startTimeRef.current = 0;
     },
     [clearTimer],

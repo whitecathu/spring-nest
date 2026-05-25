@@ -53,6 +53,7 @@ export function loadCategories(): CategoryConfig {
     }
     return getDefaultCategories();
   } catch {
+    // localStorage may be unavailable or data corrupted; fall back to defaults
     return getDefaultCategories();
   }
 }

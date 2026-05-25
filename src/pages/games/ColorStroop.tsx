@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Clock, Trophy, Flame } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadBestScore, saveBestScore } from '../../lib/gameScore';
 
 const GAME_DURATION = 30;
 
@@ -26,17 +27,6 @@ interface Particle {
   y: number;
 }
 
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_stroop_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_stroop_best', JSON.stringify(score));
-}
-
 function getRandomChallenge(avoidSame = true) {
   const wordIndex = Math.floor(Math.random() * COLORS.length);
   let colorIndex;
@@ -55,7 +45,7 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
   const [gameOver, setGameOver] = useState(false);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('stroop'));
   const [combo, setCombo] = useState(0);
   const [challenge, setChallenge] = useState<{ wordIndex: number; colorIndex: number } | null>(
     null,
@@ -156,8 +146,8 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
               setPlaying(false);
               playingRef.current = false;
               setGameOver(true);
-              if (scoreRef.current > loadBestScore()) {
-                saveBestScore(scoreRef.current);
+              if (scoreRef.current > loadBestScore('stroop')) {
+                saveBestScore('stroop', scoreRef.current);
                 setBestScore(scoreRef.current);
               }
               return 0;

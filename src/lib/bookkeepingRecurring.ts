@@ -42,6 +42,7 @@ export function loadRecurringRules(): RecurringRule[] {
         typeof r.dayOfMonth === 'number',
     );
   } catch {
+    // localStorage may be unavailable or data corrupted
     return [];
   }
 }

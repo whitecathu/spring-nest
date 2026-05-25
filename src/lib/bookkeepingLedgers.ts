@@ -21,6 +21,7 @@ export function loadLedgers(): Ledger[] {
         typeof l.name === 'string',
     );
   } catch {
+    // localStorage may be unavailable or data corrupted
     return [];
   }
 }

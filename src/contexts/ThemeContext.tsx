@@ -29,6 +29,7 @@ function getStoredMode(): ThemeMode {
   try {
     return (localStorage.getItem('spring_nest_theme') as ThemeMode) || 'system';
   } catch {
+    // localStorage may be unavailable (private browsing, quota exceeded)
     return 'system';
   }
 }
@@ -49,7 +50,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setModeState(m);
     try {
       localStorage.setItem('spring_nest_theme', m);
-    } catch {}
+    } catch {
+      // localStorage write may fail; theme still applied to DOM
+    }
     applyTheme(m);
     setResolved(m === 'system' ? getSystemTheme() : m);
     // Push theme to cloud if Supabase is configured and user is logged in

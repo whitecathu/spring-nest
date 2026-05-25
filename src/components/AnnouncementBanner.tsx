@@ -9,6 +9,7 @@ function getDismissedIds() {
     const parsed = JSON.parse(localStorage.getItem(dismissedKey) || '[]');
     return Array.isArray(parsed) ? new Set(parsed.filter((value) => typeof value === 'string')) : new Set<string>();
   } catch {
+    // localStorage may be unavailable or data corrupted
     return new Set<string>();
   }
 }

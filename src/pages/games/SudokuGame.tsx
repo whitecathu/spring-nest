@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Eraser, Lightbulb } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { springBouncy, springSmooth } from '../../lib/animations';
+import { loadGameValue, saveGameValue } from '../../lib/gameScore';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Board = (number | 0)[][];
@@ -84,16 +85,8 @@ function generatePuzzle(difficulty: Difficulty): { puzzle: Board; solution: Solu
   return { puzzle, solution: solution as Solution };
 }
 
-function loadBestTime(d: Difficulty): number {
-  try {
-    return JSON.parse(localStorage.getItem(`spring_nest_sudoku_best_${d}`) || '0');
-  } catch {
-    return 0;
-  }
-}
-
-function saveBestTime(d: Difficulty, time: number) {
-  localStorage.setItem(`spring_nest_sudoku_best_${d}`, JSON.stringify(time));
+function sudokuKey(d: Difficulty): string {
+  return `spring_nest_sudoku_best_${d}`;
 }
 
 function formatTime(s: number) {
@@ -240,7 +233,7 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
   const [errors, setErrors] = useState<Set<string>>(new Set());
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'won'>('idle');
   const [time, setTime] = useState(0);
-  const [bestTime, setBestTime] = useState(() => loadBestTime(difficulty));
+  const [bestTime, setBestTime] = useState(() => loadGameValue(sudokuKey(difficulty)));
   const [hints, setHints] = useState(3);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -280,7 +273,7 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
     setTime(0);
     timeRef.current = 0;
     setHints(3);
-    setBestTime(loadBestTime(difficulty));
+    setBestTime(loadGameValue(sudokuKey(difficulty)));
     setHintCells(new Set());
     setCorrectCells(new Set());
     setMistakeCount(0);
@@ -303,9 +296,9 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
   const handleWin = useCallback(() => {
     clearTimer();
     setGameState('won');
-    const bt = loadBestTime(difficulty);
+    const bt = loadGameValue(sudokuKey(difficulty));
     if (bt === 0 || timeRef.current < bt) {
-      saveBestTime(difficulty, timeRef.current);
+      saveGameValue(sudokuKey(difficulty), timeRef.current);
       setBestTime(timeRef.current);
       setIsNewRecord(true);
     }

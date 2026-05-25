@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Timer, Flag, Bomb } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadGameValue, saveGameValue } from '../../lib/gameScore';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type CellState = { mine: boolean; revealed: boolean; flagged: boolean; adjacent: number };
@@ -127,16 +128,8 @@ function checkWin(board: CellState[][]): boolean {
   return true;
 }
 
-function loadBestTime(d: Difficulty): number {
-  try {
-    return JSON.parse(localStorage.getItem(`spring_nest_minesweeper_best_${d}`) || '0');
-  } catch {
-    return 0;
-  }
-}
-
-function saveBestTime(d: Difficulty, time: number) {
-  localStorage.setItem(`spring_nest_minesweeper_best_${d}`, JSON.stringify(time));
+function minesweeperKey(d: Difficulty): string {
+  return `spring_nest_minesweeper_best_${d}`;
 }
 
 const ADJACENT_COLORS = [
@@ -268,7 +261,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'won' | 'lost'>('idle');
   const [minesLeft, setMinesLeft] = useState(0);
   const [time, setTime] = useState(0);
-  const [bestTime, setBestTime] = useState(() => loadBestTime(difficulty));
+  const [bestTime, setBestTime] = useState(() => loadGameValue(minesweeperKey(difficulty)));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -331,7 +324,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
     setMineCounterPulse(false);
     setTimerTick(false);
     setRippleCells([]);
-    setBestTime(loadBestTime(difficulty));
+    setBestTime(loadGameValue(minesweeperKey(difficulty)));
   }, [difficulty, clearTimer]);
 
   useEffect(() => {
@@ -506,10 +499,10 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
           setBoardGlow(true);
           setTimeout(() => setBoardGlow(false), 4000);
 
-          const bt = loadBestTime(difficulty);
+          const bt = loadGameValue(minesweeperKey(difficulty));
           const currentTime = timeRef.current;
           if (bt === 0 || currentTime < bt) {
-            saveBestTime(difficulty, currentTime);
+            saveGameValue(minesweeperKey(difficulty), currentTime);
             setBestTime(currentTime);
           }
         }

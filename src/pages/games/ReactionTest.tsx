@@ -2,28 +2,22 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Timer, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadGameValue, saveGameValue } from '../../lib/gameScore';
 
 type Phase = 'idle' | 'waiting' | 'ready' | 'result' | 'early';
 
-function loadBestTime(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_reaction_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-function saveBestTime(ms: number) {
-  localStorage.setItem('spring_nest_reaction_best', JSON.stringify(ms));
-}
+const BEST_KEY = 'spring_nest_reaction_best';
+const HISTORY_KEY = 'spring_nest_reaction_history';
+
 function loadHistory(): number[] {
   try {
-    return JSON.parse(localStorage.getItem('spring_nest_reaction_history') || '[]');
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
   } catch {
     return [];
   }
 }
 function saveHistory(history: number[]) {
-  localStorage.setItem('spring_nest_reaction_history', JSON.stringify(history));
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
 function getRating(ms: number): { text: string; emoji: string; color: string } {
@@ -51,7 +45,7 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
   const { t, language } = useUser();
   const [phase, setPhase] = useState<Phase>('idle');
   const [reactionTime, setReactionTime] = useState(0);
-  const [bestTime, setBestTime] = useState(loadBestTime);
+  const [bestTime, setBestTime] = useState(() => loadGameValue(BEST_KEY));
   const [history, setHistory] = useState<number[]>(loadHistory);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [screenFlash, setScreenFlash] = useState<'green' | 'red' | null>(null);
@@ -130,7 +124,7 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
 
       if (bestTime === 0 || ms < bestTime) {
         setBestTime(ms);
-        saveBestTime(ms);
+        saveGameValue(BEST_KEY, ms);
       }
 
       const newHistory = [ms, ...history].slice(0, 5);

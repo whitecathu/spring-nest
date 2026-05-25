@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadBestScore, saveBestScore } from '../../lib/gameScore';
 
 const GRID_SIZE = 10;
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -52,18 +53,6 @@ function randomFood(snake: Point[]): Point {
   return available[Math.floor(Math.random() * available.length)];
 }
 
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_snake_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_snake_best', JSON.stringify(score));
-}
-
 // ── Particle burst for eating food ──
 interface Particle {
   id: number;
@@ -88,7 +77,7 @@ export default function Snake({ onBack }: { onBack: () => void }) {
   const [playing, setPlaying] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('snake'));
   const [snake, setSnake] = useState<Point[]>([{ x: 5, y: 5 }]);
   const [food, setFood] = useState<Point>({ x: 7, y: 5 });
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
@@ -197,8 +186,8 @@ export default function Snake({ onBack }: { onBack: () => void }) {
       const newScore = scoreRef.current + 1;
       scoreRef.current = newScore;
       setScore(newScore);
-      if (newScore > loadBestScore()) {
-        saveBestScore(newScore);
+      if (newScore > loadBestScore('snake')) {
+        saveBestScore('snake', newScore);
         setBestScore(newScore);
       }
       const nf = randomFood(newSnake);

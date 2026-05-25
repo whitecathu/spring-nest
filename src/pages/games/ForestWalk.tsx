@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Clock, Trophy, Leaf } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadBestScore, saveBestScore } from '../../lib/gameScore';
 
 const GAME_DURATION = 60;
 const LEAF_TYPES = ['🍂', '🍁', '🌿', '🍃'];
@@ -36,17 +37,6 @@ interface Particle {
   distance: number;
 }
 
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_forest_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_forest_best', JSON.stringify(score));
-}
-
 const SPARKLE_POOL = ['✨', '🌸', '💫'];
 const CELEBRATION_POOL = ['🌟', '🎉', '✨', '🌸', '💫'];
 
@@ -74,7 +64,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
   const [playing, setPlaying] = useState(false);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('forest'));
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [gameOver, setGameOver] = useState(false);
   const [items, setItems] = useState<FallingItem[]>([]);
@@ -223,7 +213,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
           const newScore = s + points;
           if (newScore > bestScore) {
             setBestScore(newScore);
-            saveBestScore(newScore);
+            saveBestScore('forest', newScore);
           }
           return newScore;
         });
@@ -250,7 +240,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         const newScore = s + bonus;
         if (newScore > bestScore) {
           setBestScore(newScore);
-          saveBestScore(newScore);
+          saveBestScore('forest', newScore);
         }
         return newScore;
       });

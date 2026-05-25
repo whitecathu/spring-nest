@@ -3,8 +3,15 @@ import { motion } from 'motion/react';
 import { ArrowLeft, Download } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
-// Dynamic import to avoid build issues
-let QRCode: any = null;
+interface QRCodeModule {
+  toCanvas: (
+    canvas: HTMLCanvasElement,
+    text: string,
+    options: { width: number; margin: number; color: { dark: string; light: string } },
+  ) => Promise<void>;
+}
+
+let QRCode: QRCodeModule | null = null;
 
 export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
@@ -23,7 +30,8 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
 
       try {
         if (!QRCode) {
-          QRCode = (await import('qrcode')).default || (await import('qrcode'));
+          const mod = await import('qrcode');
+          QRCode = (mod.default || mod) as QRCodeModule;
         }
 
         const canvas = canvasRef.current;
@@ -56,7 +64,7 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
       setInput(lastInput);
       generateQR(lastInput);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [generateQR]);
 
   const handleInputChange = (value: string) => {
     setInput(value);

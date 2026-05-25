@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Heart, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { loadBestScore, saveBestScore } from '../../lib/gameScore';
 
 const GAME_WIDTH = 400;
 const GAME_HEIGHT = 600;
@@ -148,18 +149,6 @@ function generateStars(): Star[] {
   return stars;
 }
 
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_brickbreaker_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_brickbreaker_best', JSON.stringify(score));
-}
-
 function createBricks(level: number = 1): Brick[] {
   const bricks: Brick[] = [];
   const patternIdx = Math.min(level - 1, LEVEL_PATTERNS.length - 1);
@@ -188,7 +177,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'won' | 'lost'>('idle');
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('brickbreaker'));
   const [level, setLevel] = useState(1);
 
   // Game state refs
@@ -537,9 +526,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
           playingRef.current = false;
           setGameState('lost');
           const s = scoreRef.current;
-          const best = loadBestScore();
+          const best = loadBestScore('brickbreaker');
           if (s > best) {
-            saveBestScore(s);
+            saveBestScore('brickbreaker', s);
             setBestScore(s);
           }
           return;
@@ -793,9 +782,9 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         playingRef.current = false;
         setGameState('won');
         const s = scoreRef.current;
-        const best = loadBestScore();
+        const best = loadBestScore('brickbreaker');
         if (s > best) {
-          saveBestScore(s);
+          saveBestScore('brickbreaker', s);
           setBestScore(s);
         }
         return;

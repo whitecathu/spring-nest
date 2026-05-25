@@ -21,6 +21,7 @@ export function loadBudgets(): BudgetConfig {
     if (!raw) return {};
     return JSON.parse(raw) as BudgetConfig;
   } catch {
+    // localStorage may be unavailable (private browsing, quota exceeded)
     return {};
   }
 }

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Trophy, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { springBouncy, springSnappy } from '../../lib/animations';
+import { loadBestScore, saveBestScore } from '../../lib/gameScore';
 
 const COLORS = [
   { id: 0, bg: '#ef4444', active: '#fca5a5', name: ['红', 'Red'] as [string, string] },
@@ -10,18 +11,6 @@ const COLORS = [
   { id: 2, bg: '#3b82f6', active: '#93c5fd', name: ['蓝', 'Blue'] as [string, string] },
   { id: 3, bg: '#eab308', active: '#fde047', name: ['黄', 'Yellow'] as [string, string] },
 ];
-
-function loadBestScore(): number {
-  try {
-    return JSON.parse(localStorage.getItem('spring_nest_simon_best') || '0');
-  } catch {
-    return 0;
-  }
-}
-
-function saveBestScore(score: number) {
-  localStorage.setItem('spring_nest_simon_best', JSON.stringify(score));
-}
 
 export default function SimonSays({ onBack }: { onBack: () => void }) {
   const { t } = useUser();
@@ -31,7 +20,7 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerIndex, setPlayerIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(loadBestScore);
+  const [bestScore, setBestScore] = useState(() => loadBestScore('simon'));
   const [activeColor, setActiveColor] = useState<number | null>(null);
   const [combo, setCombo] = useState(0);
   const [speed, setSpeed] = useState(600);
@@ -119,9 +108,9 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         timeoutsRef.current.push(t2);
         clearTimer();
         const s = score;
-        const best = loadBestScore();
+        const best = loadBestScore('simon');
         if (s > best) {
-          saveBestScore(s);
+          saveBestScore('simon', s);
           setBestScore(s);
           setIsNewRecord(true);
         }
@@ -141,9 +130,9 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         const t3 = setTimeout(() => setShowScorePopup(false), 800);
         timeoutsRef.current.push(t3);
 
-        const best = loadBestScore();
+        const best = loadBestScore('simon');
         if (newScore > best) {
-          saveBestScore(newScore);
+          saveBestScore('simon', newScore);
           setBestScore(newScore);
           setIsNewRecord(true);
           const t4 = setTimeout(() => setIsNewRecord(false), 2000);
