@@ -7,6 +7,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import {
   getCurrentUser,
   login,
@@ -16,6 +17,8 @@ import {
   isUsingSupabase,
   onAuthStateChange,
   supabaseGetCurrentUser,
+  supabaseSignOut,
+  ensureSupabaseProfile,
 } from '../services/authService';
 import {
   mergeGuestData,
@@ -50,6 +53,7 @@ interface UserContextType {
   register: (email: string, password: string, username?: string) => RegisterResult;
   logout: () => void;
   updateProfile: (updates: Partial<Omit<UserProfile, 'id' | 'createdAt'>>) => UserProfile | null;
+  refreshUser: () => UserProfile | null;
   t: (zh: string, en: string) => string;
 }
 
@@ -67,6 +71,49 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const supabaseEnabled = isUsingSupabase();
 
+  const refreshUserFromStorage = useCallback(() => {
+    const current = getCurrentUser();
+    setUser(current);
+    return current;
+  }, []);
+
+  const syncSignedInSupabaseUser = useCallback(async (supaUser: SupabaseAuthUser) => {
+    const profile = await ensureSupabaseProfile(supaUser);
+    setUser(profile);
+
+    // Merge guest data to cloud
+    await mergeGuestData(supaUser.id);
+
+    // Load bookkeeping from cloud
+    await loadBookkeepingFromCloud(supaUser.id);
+
+    // Load favorites from cloud
+    await loadFavoritesFromCloud(supaUser.id);
+
+    // Load settings from cloud
+    const cloudSettings = await syncSettingsFromCloud(supaUser.id);
+    if (cloudSettings) {
+      if (cloudSettings.theme) {
+        localStorage.setItem('spring_nest_theme', cloudSettings.theme);
+      }
+      if (cloudSettings.language === 'en' || cloudSettings.language === 'zh') {
+        setLanguage(cloudSettings.language);
+      }
+    }
+
+    // Load bookkeeping budgets from cloud
+    await loadBudgetsFromCloud(supaUser.id);
+
+    // Load bookkeeping categories from cloud
+    await loadCategoriesFromCloud(supaUser.id);
+
+    // Load bookkeeping recurring rules from cloud
+    await loadRecurringFromCloud(supaUser.id);
+
+    // Load bookkeeping ledgers from cloud
+    await loadLedgersFromCloud(supaUser.id);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('spring_nest_lang', language);
     // Sync language to cloud if logged in
@@ -82,58 +129,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const supaUser = session.user;
-        const username =
-          (supaUser.user_metadata?.username as string) || supaUser.email?.split('@')[0] || 'User';
-
-        // Create a UserProfile from Supabase user
-        const profile: UserProfile = {
-          id: supaUser.id,
-          email: supaUser.email || '',
-          username,
-          bio: '',
-          createdAt: supaUser.created_at || new Date().toISOString(),
-        };
-
-        // Save to localStorage as current user
-        localStorage.setItem('spring_nest_current_user', JSON.stringify(profile));
-        setUser(profile);
-
-        // Merge guest data to cloud
-        await mergeGuestData(supaUser.id);
-
-        // Load bookkeeping from cloud
-        await loadBookkeepingFromCloud(supaUser.id);
-
-        // Load favorites from cloud
-        await loadFavoritesFromCloud(supaUser.id);
-
-        // Load settings from cloud
-        const cloudSettings = await syncSettingsFromCloud(supaUser.id);
-        if (cloudSettings) {
-          if (cloudSettings.theme) {
-            localStorage.setItem('spring_nest_theme', cloudSettings.theme);
-          }
-          if (cloudSettings.language === 'en' || cloudSettings.language === 'zh') {
-            setLanguage(cloudSettings.language);
-          }
-        }
-
-        // Load bookkeeping budgets from cloud
-        await loadBudgetsFromCloud(supaUser.id);
-
-        // Load bookkeeping categories from cloud
-        await loadCategoriesFromCloud(supaUser.id);
-
-        // Load bookkeeping recurring rules from cloud
-        await loadRecurringFromCloud(supaUser.id);
-
-        // Load bookkeeping ledgers from cloud
-        await loadLedgersFromCloud(supaUser.id);
+    } = onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+        window.setTimeout(() => {
+          void syncSignedInSupabaseUser(session.user);
+        }, 0);
       } else if (event === 'SIGNED_OUT') {
-        // Keep localStorage data, just clear current user
+        // Keep local data, just clear the current signed-in user.
+        logout();
         setUser(null);
       }
     });
@@ -141,7 +144,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabaseEnabled]);
+  }, [supabaseEnabled, syncSignedInSupabaseUser]);
 
   // On mount: if Supabase is configured, check for existing session
   useEffect(() => {
@@ -150,23 +153,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
     supabaseGetCurrentUser()
       .then((supaUser) => {
         if (supaUser) {
-          const username =
-            (supaUser.user_metadata?.username as string) || supaUser.email?.split('@')[0] || 'User';
-          const profile: UserProfile = {
-            id: supaUser.id,
-            email: supaUser.email || '',
-            username,
-            bio: '',
-            createdAt: supaUser.created_at || new Date().toISOString(),
-          };
-          localStorage.setItem('spring_nest_current_user', JSON.stringify(profile));
-          setUser(profile);
+          void syncSignedInSupabaseUser(supaUser);
         }
       })
       .catch(() => {
         // Silently fail
       });
-  }, [supabaseEnabled]);
+  }, [supabaseEnabled, syncSignedInSupabaseUser]);
 
   const handleLogin = useCallback((email: string, password: string): LoginResult => {
     const result = login(email, password);
@@ -188,9 +181,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   );
 
   const handleLogout = useCallback(() => {
+    if (supabaseEnabled) {
+      supabaseSignOut().catch(() => {});
+    }
     logout();
     setUser(null);
-  }, []);
+  }, [supabaseEnabled]);
 
   const handleUpdateProfile = useCallback(
     (updates: Partial<Omit<UserProfile, 'id' | 'createdAt'>>) => {
@@ -216,6 +212,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       register: handleRegister,
       logout: handleLogout,
       updateProfile: handleUpdateProfile,
+      refreshUser: refreshUserFromStorage,
       t,
     }),
     [
@@ -226,6 +223,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       handleRegister,
       handleLogout,
       handleUpdateProfile,
+      refreshUserFromStorage,
       t,
     ],
   );

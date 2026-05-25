@@ -22,6 +22,8 @@ export interface AppItem {
   featured?: boolean;
   isNew?: boolean;
   popularScore?: number;
+  catalogSortOrder?: number;
+  catalogAnnouncement?: string;
   difficulty?: 'easy' | 'medium' | 'hard';
   estimatedTime?: string;
   estimatedTimeEn?: string;

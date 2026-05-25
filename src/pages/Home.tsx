@@ -20,10 +20,10 @@ import {
 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
-import { tools } from '../data/tools';
-import { games } from '../data/games';
+import { tools as baseTools } from '../data/tools';
+import { games as baseGames } from '../data/games';
+import { useCatalogItems } from '../hooks/useCatalogOverrides';
 import { getRecentItems } from '../lib/recent';
-import { getNewItems } from '../lib/recommendations';
 import { trackSearch } from '../lib/analytics';
 import SEO from '../components/SEO';
 import { websiteJsonLd } from '../lib/structuredData';
@@ -40,10 +40,24 @@ export default function Home() {
   const navigate = useNavigate();
   const [heroQuery, setHeroQuery] = useState('');
   const reducedMotion = useReducedMotion();
+  const tools = useCatalogItems(baseTools, 'tool', 'web');
+  const games = useCatalogItems(baseGames, 'game', 'web');
 
   // --- Data ---
   const recentItems = useMemo(() => getRecentItems(6), []);
-  const newItems = useMemo(() => getNewItems(8), []);
+  const newItems = useMemo(
+    () =>
+      [...tools, ...games]
+        .filter((item) => item.isNew)
+        .sort((a, b) => {
+          const aOrder = a.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+          const bOrder = b.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return (b.popularScore ?? 0) - (a.popularScore ?? 0);
+        })
+        .slice(0, 8),
+    [games, tools],
+  );
   const homeToolPreview = useMemo(
     () =>
       tools
@@ -51,28 +65,41 @@ export default function Home() {
         .sort((a, b) => {
           const newDelta = Number(Boolean(b.isNew)) - Number(Boolean(a.isNew));
           if (newDelta) return newDelta;
+          const aOrder = a.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+          const bOrder = b.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+          if (aOrder !== bOrder) return aOrder - bOrder;
           return (b.popularScore ?? 0) - (a.popularScore ?? 0);
         })
         .slice(0, 9),
-    [],
+    [tools],
   );
 
   const featuredTools = useMemo(
     () =>
       tools
         .filter((item) => item.featured)
-        .sort((a, b) => (b.popularScore ?? 0) - (a.popularScore ?? 0))
+        .sort((a, b) => {
+          const aOrder = a.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+          const bOrder = b.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return (b.popularScore ?? 0) - (a.popularScore ?? 0);
+        })
         .slice(0, 6),
-    [],
+    [tools],
   );
 
   const featuredGames = useMemo(
     () =>
       games
         .filter((item) => item.featured)
-        .sort((a, b) => (b.popularScore ?? 0) - (a.popularScore ?? 0))
+        .sort((a, b) => {
+          const aOrder = a.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+          const bOrder = b.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return (b.popularScore ?? 0) - (a.popularScore ?? 0);
+        })
         .slice(0, 6),
-    [],
+    [games],
   );
 
   // --- Category definitions ---

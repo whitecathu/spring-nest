@@ -21,6 +21,7 @@ export async function syncFavoritesToCloud(userId: string, favorites: string[]):
       const rows = favorites.map((itemId) => ({
         user_id: userId,
         item_id: itemId,
+        item_type: itemId.startsWith('game-') ? 'game' : 'tool',
       }));
       await supabase.from('favorites').insert(rows);
     }
@@ -209,13 +210,24 @@ export async function getLeaderboard(gameSlug: string, limit = 20): Promise<Lead
   try {
     const { data, error } = await supabase
       .from('game_scores')
-      .select('score, created_at, profiles(username)')
+      .select('user_id, score, created_at')
       .eq('game_slug', gameSlug)
       .order('score', { ascending: false })
       .limit(limit);
     if (error || !data) return [];
+    const userIds = [...new Set(data.map((row) => row.user_id as string))];
+    const profileMap = new Map<string, string>();
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .in('id', userIds);
+      profiles?.forEach((profile) => {
+        profileMap.set(profile.id as string, (profile.username as string) || 'Anonymous');
+      });
+    }
     return data.map((row) => ({
-      username: (row.profiles as unknown as { username: string })?.username || 'Anonymous',
+      username: profileMap.get(row.user_id as string) || 'Anonymous',
       score: row.score as number,
       created_at: row.created_at as string,
     }));
@@ -239,17 +251,16 @@ export async function getAdminStats(): Promise<AdminStats> {
     return { totalUsers: 0, totalFavorites: 0, totalScores: 0, totalSettings: 0 };
   }
   try {
-    const [usersRes, favsRes, scoresRes, settingsRes] = await Promise.all([
-      supabase.from('profiles').select('id', { count: 'exact', head: true }),
-      supabase.from('favorites').select('id', { count: 'exact', head: true }),
-      supabase.from('game_scores').select('id', { count: 'exact', head: true }),
-      supabase.from('user_settings').select('user_id', { count: 'exact', head: true }),
-    ]);
+    const { data, error } = await supabase.rpc('admin_dashboard_stats');
+    if (error || !data || typeof data !== 'object') {
+      return { totalUsers: 0, totalFavorites: 0, totalScores: 0, totalSettings: 0 };
+    }
+    const stats = data as Record<string, number>;
     return {
-      totalUsers: usersRes.count ?? 0,
-      totalFavorites: favsRes.count ?? 0,
-      totalScores: scoresRes.count ?? 0,
-      totalSettings: settingsRes.count ?? 0,
+      totalUsers: stats.totalUsers ?? 0,
+      totalFavorites: stats.totalFavorites ?? 0,
+      totalScores: stats.totalScores ?? 0,
+      totalSettings: stats.totalSettings ?? 0,
     };
   } catch {
     return { totalUsers: 0, totalFavorites: 0, totalScores: 0, totalSettings: 0 };

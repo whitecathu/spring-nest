@@ -7,7 +7,6 @@ import {
   Leaf,
   X,
   Trophy,
-  Shield,
   Menu,
   Gamepad2,
   Wrench,
@@ -403,12 +402,11 @@ export default function Navigation() {
                     {t('我的收藏', 'Favorites')}
                   </Link>
                   <Link
-                    to="/admin"
+                    to="/feedback"
                     onClick={() => setShowUserMenu(false)}
                     className="text-left px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container rounded-xl transition-colors flex items-center gap-2"
                   >
-                    <Shield className="w-4 h-4" />
-                    {t('管理后台', 'Admin')}
+                    {t('反馈建议', 'Feedback')}
                   </Link>
                   <div className="h-px bg-surface-variant/40 my-1 mx-2"></div>
                   <button

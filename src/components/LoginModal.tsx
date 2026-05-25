@@ -1,11 +1,13 @@
-import { useState, type FormEvent } from 'react';
-import { X, Mail, Lock, User as UserIcon, ArrowLeft } from 'lucide-react';
+import { useState, useEffect, type FormEvent } from 'react';
+import { X, Mail, Lock, User as UserIcon, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import {
   supabaseSignUp,
   supabaseSignIn,
   supabaseResetPassword,
   isUsingSupabase,
+  sendRegisterOtp,
+  verifyRegisterOtp,
 } from '../services/authService';
 
 interface LoginModalProps {
@@ -17,7 +19,7 @@ interface LoginModalProps {
 type ModalState = 'login' | 'register' | 'forgot_password';
 
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
-  const { t, login, register } = useUser();
+  const { t, login, register, refreshUser } = useUser();
   const [modalState, setModalState] = useState<ModalState>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,6 +27,15 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [otpMode, setOtpMode] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpTimer, setOtpTimer] = useState(0);
+
+  useEffect(() => {
+    if (otpTimer <= 0) return;
+    const timer = setTimeout(() => setOtpTimer((t) => t - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [otpTimer]);
 
   if (!isOpen) return null;
 
@@ -34,12 +45,34 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     setEmail('');
     setPassword('');
     setUsername('');
+    setOtpMode(false);
+    setOtpCode('');
+    setOtpTimer(0);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    // OTP verification step
+    if (modalState === 'register' && otpMode) {
+      if (!otpCode || otpCode.length !== 6) {
+        setError(t('请输入 6 位验证码', 'Please enter the 6-digit code'));
+        return;
+      }
+      setLoading(true);
+      const result = await verifyRegisterOtp(email, otpCode, password, username);
+      setLoading(false);
+      if (result.success) {
+        const currentUser = refreshUser();
+        onLoginSuccess(email, currentUser?.username || username || email.split('@')[0]);
+        handleClose();
+      } else {
+        setError(result.error || t('验证失败', 'Verification failed'));
+      }
+      return;
+    }
 
     if (modalState === 'forgot_password') {
       if (!email) {
@@ -81,19 +114,22 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     if (isUsingSupabase()) {
       setLoading(true);
       if (modalState === 'register') {
-        const result = await supabaseSignUp(email, password, username);
+        // Send OTP instead of direct signUp
+        const result = await sendRegisterOtp(email);
         setLoading(false);
         if (result.success) {
-          onLoginSuccess(email, username || email.split('@')[0]);
-          handleClose();
+          setOtpMode(true);
+          setOtpTimer(60);
+          setSuccess(t('验证码已发送到邮箱，请查收', 'Verification code sent to your email'));
         } else {
-          setError(result.error || t('注册失败', 'Registration failed'));
+          setError(result.error || t('验证码发送失败', 'Failed to send code'));
         }
       } else {
         const result = await supabaseSignIn(email, password);
         setLoading(false);
         if (result.success) {
-          onLoginSuccess(email, email.split('@')[0]);
+          const currentUser = refreshUser();
+          onLoginSuccess(email, currentUser?.username || email.split('@')[0]);
           handleClose();
         } else {
           setError(result.error || t('登录失败', 'Login failed'));
@@ -133,6 +169,24 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     setModalState(newState);
     setError('');
     setSuccess('');
+    setOtpMode(false);
+    setOtpCode('');
+    setOtpTimer(0);
+  };
+
+  const handleResendOtp = async () => {
+    if (otpTimer > 0 || loading) return;
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    const result = await sendRegisterOtp(email);
+    setLoading(false);
+    if (result.success) {
+      setOtpTimer(60);
+      setSuccess(t('验证码已重新发送', 'Verification code resent'));
+    } else {
+      setError(result.error || t('发送失败', 'Failed to send'));
+    }
   };
 
   return (
@@ -153,12 +207,22 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary-container/30 rounded-full blur-[80px] pointer-events-none"></div>
         <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-tertiary-container/30 rounded-full blur-[80px] pointer-events-none"></div>
 
-        {modalState === 'forgot_password' && (
+        {(modalState === 'forgot_password' || (modalState === 'register' && otpMode)) && (
           <button
             type="button"
-            onClick={() => switchMode('login')}
+            onClick={() => {
+              if (modalState === 'register' && otpMode) {
+                setOtpMode(false);
+                setOtpCode('');
+                setOtpTimer(0);
+                setError('');
+                setSuccess('');
+              } else {
+                switchMode('login');
+              }
+            }}
             className="absolute top-6 left-6 p-2 text-secondary/50 hover:text-primary transition-colors hover:bg-surface-container-highest rounded-full z-50 cursor-pointer"
-            aria-label={t('返回登录', 'Back to login')}
+            aria-label={t('返回', 'Back')}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -185,13 +249,16 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
             className="text-3xl font-bold font-nunito text-center text-on-surface mb-2"
           >
             {modalState === 'login' && t('欢迎回来', 'Welcome Back')}
-            {modalState === 'register' && t('开启数字治愈之旅', 'Start Your Journey')}
+            {modalState === 'register' && otpMode && t('验证邮箱', 'Verify Email')}
+            {modalState === 'register' && !otpMode && t('开启数字治愈之旅', 'Start Your Journey')}
             {modalState === 'forgot_password' && t('重置密码', 'Reset Password')}
           </h2>
           <p className="text-center text-on-surface-variant font-medium text-sm mb-8">
             {modalState === 'login' &&
               t('登录 Spring Nest 发现更多美好', 'Log in to discover more')}
-            {modalState === 'register' &&
+            {modalState === 'register' && otpMode &&
+              t('验证码已发送，请输入邮箱中的 6 位数字', 'Code sent — enter the 6 digits from your email')}
+            {modalState === 'register' && !otpMode &&
               t('注册 Spring Nest 享受宁静时光', 'Sign up to enjoy peaceful moments')}
             {modalState === 'forgot_password' &&
               (isUsingSupabase()
@@ -219,45 +286,65 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-4">
-              {modalState === 'register' && (
+              {otpMode ? (
                 <div className="relative flex items-center group">
-                  <UserIcon className="absolute left-4 w-5 h-5 text-secondary/50 group-focus-within:text-primary transition-colors pointer-events-none" />
+                  <ShieldCheck className="absolute left-4 w-5 h-5 text-secondary/50 group-focus-within:text-primary transition-colors pointer-events-none" />
                   <input
                     type="text"
-                    placeholder={t('用户名（可选）', 'Username (optional)')}
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-surface-container-low border border-surface-variant/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium text-on-surface outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-secondary/40"
-                    aria-label={t('用户名（可选）', 'Username (optional)')}
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder={t('输入 6 位验证码', 'Enter 6-digit code')}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="w-full bg-surface-container-low border border-surface-variant/50 rounded-2xl py-4 pl-12 pr-4 text-lg font-bold tracking-[0.3em] text-on-surface outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-secondary/40 placeholder:tracking-normal placeholder:text-sm placeholder:font-medium"
+                    aria-label={t('验证码', 'Verification code')}
+                    autoFocus
+                    autoComplete="one-time-code"
                   />
                 </div>
-              )}
-              <div className="relative flex items-center group">
-                <Mail className="absolute left-4 w-5 h-5 text-secondary/50 group-focus-within:text-primary transition-colors pointer-events-none" />
-                <input
-                  type="email"
-                  placeholder={t('邮箱地址', 'Email Address')}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-surface-container-low border border-surface-variant/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium text-on-surface outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-secondary/40"
-                  aria-label={t('邮箱地址', 'Email Address')}
-                  required
-                />
-              </div>
-              {modalState !== 'forgot_password' && (
-                <div className="relative flex items-center group">
-                  <Lock className="absolute left-4 w-5 h-5 text-secondary/50 group-focus-within:text-primary transition-colors pointer-events-none" />
-                  <input
-                    type="password"
-                    placeholder={t('密码 (6位以上)', 'Password (min 6 characters)')}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-surface-container-low border border-surface-variant/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium text-on-surface outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-secondary/40"
-                    aria-label={t('密码', 'Password')}
-                    required
-                    minLength={6}
-                  />
-                </div>
+              ) : (
+                <>
+                  {modalState === 'register' && (
+                    <div className="relative flex items-center group">
+                      <UserIcon className="absolute left-4 w-5 h-5 text-secondary/50 group-focus-within:text-primary transition-colors pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder={t('用户名（可选）', 'Username (optional)')}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="w-full bg-surface-container-low border border-surface-variant/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium text-on-surface outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-secondary/40"
+                        aria-label={t('用户名（可选）', 'Username (optional)')}
+                      />
+                    </div>
+                  )}
+                  <div className="relative flex items-center group">
+                    <Mail className="absolute left-4 w-5 h-5 text-secondary/50 group-focus-within:text-primary transition-colors pointer-events-none" />
+                    <input
+                      type="email"
+                      placeholder={t('邮箱地址', 'Email Address')}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-surface-container-low border border-surface-variant/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium text-on-surface outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-secondary/40"
+                      aria-label={t('邮箱地址', 'Email Address')}
+                      required
+                    />
+                  </div>
+                  {modalState !== 'forgot_password' && (
+                    <div className="relative flex items-center group">
+                      <Lock className="absolute left-4 w-5 h-5 text-secondary/50 group-focus-within:text-primary transition-colors pointer-events-none" />
+                      <input
+                        type="password"
+                        placeholder={t('密码 (6位以上)', 'Password (min 6 characters)')}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full bg-surface-container-low border border-surface-variant/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium text-on-surface outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-secondary/40"
+                        aria-label={t('密码', 'Password')}
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -283,26 +370,57 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                 : modalState === 'login'
                   ? t('登录', 'Log In')
                   : modalState === 'register'
-                    ? t('注册', 'Sign Up')
+                    ? otpMode
+                      ? t('验证并注册', 'Verify & Sign Up')
+                      : t('获取验证码', 'Get Code')
                     : t('发送重置邮件', 'Send Reset Email')}
             </button>
           </form>
 
-          {modalState !== 'forgot_password' && (
-            <>
-              <div className="mt-8 text-center">
+          {otpMode && modalState === 'register' ? (
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-secondary/70 font-medium">
+                  {t('没收到验证码？', "Didn't receive the code?")}
+                </span>
                 <button
                   type="button"
-                  onClick={() => switchMode(modalState === 'login' ? 'register' : 'login')}
-                  className="text-sm font-semibold text-secondary hover:text-primary transition-colors"
+                  onClick={handleResendOtp}
+                  disabled={otpTimer > 0 || loading}
+                  className={`text-sm font-bold transition-colors ${otpTimer > 0 ? 'text-secondary/40 cursor-not-allowed' : 'text-primary hover:text-primary/80 cursor-pointer'}`}
                 >
-                  {modalState === 'login'
-                    ? t('没有账号？去注册', 'No account? Sign up')
-                    : t('已有账号？去登录', 'Have an account? Log in')}
+                  {otpTimer > 0
+                    ? t(`${otpTimer}s 后重新发送`, `Resend in ${otpTimer}s`)
+                    : t('重新发送', 'Resend')}
                 </button>
               </div>
-            </>
-          )}
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpMode(false);
+                  setOtpCode('');
+                  setOtpTimer(0);
+                  setError('');
+                  setSuccess('');
+                }}
+                className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer"
+              >
+                {t('更换邮箱', 'Change email')}
+              </button>
+            </div>
+          ) : modalState !== 'forgot_password' ? (
+            <div className="mt-8 text-center">
+              <button
+                type="button"
+                onClick={() => switchMode(modalState === 'login' ? 'register' : 'login')}
+                className="text-sm font-semibold text-secondary hover:text-primary transition-colors"
+              >
+                {modalState === 'login'
+                  ? t('没有账号？去注册', 'No account? Sign up')
+                  : t('已有账号？去登录', 'Have an account? Log in')}
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

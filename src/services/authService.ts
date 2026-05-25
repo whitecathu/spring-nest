@@ -1,4 +1,5 @@
 import type { UserAccount, LoginResult, PublicUserAccount, RegisterResult } from '../types/user';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const STORAGE_USERS_KEY = 'spring_nest_users';
@@ -161,6 +162,22 @@ export function updateProfile(
 
   const safeUser = toPublicUser(users[idx]);
   setCurrentUser(safeUser);
+
+  if (supabase && current.id !== 'guest') {
+    void (async () => {
+      try {
+        await supabase.from('profiles').upsert({
+          id: current.id,
+          username: safeUser.username,
+          display_name: safeUser.username,
+          bio: safeUser.bio,
+        });
+      } catch {
+        // Local profile updates remain the source of truth if cloud sync fails.
+      }
+    })();
+  }
+
   return safeUser;
 }
 
@@ -175,6 +192,86 @@ export function getUserId(): string {
 /** Check if Supabase is configured and available */
 export function isUsingSupabase(): boolean {
   return isSupabaseConfigured();
+}
+
+function usernameFromSupabaseUser(user: SupabaseUser, fallbackUsername?: string): string {
+  const metadata = user.user_metadata ?? {};
+  const metadataUsername =
+    typeof metadata.username === 'string' && metadata.username.trim()
+      ? metadata.username.trim()
+      : '';
+  const metadataDisplayName =
+    typeof metadata.display_name === 'string' && metadata.display_name.trim()
+      ? metadata.display_name.trim()
+      : '';
+  return (
+    fallbackUsername?.trim() ||
+    metadataUsername ||
+    metadataDisplayName ||
+    user.email?.split('@')[0] ||
+    'spring-user'
+  );
+}
+
+export async function ensureSupabaseProfile(
+  user: SupabaseUser,
+  fallbackUsername?: string,
+): Promise<PublicUserAccount> {
+  const fallbackName = usernameFromSupabaseUser(user, fallbackUsername);
+  const metadataBio =
+    typeof user.user_metadata?.bio === 'string' ? (user.user_metadata.bio as string) : '';
+  let profileRow: {
+    username: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    created_at: string | null;
+  } | null = null;
+
+  if (supabase) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('username, display_name, avatar_url, bio, created_at')
+      .eq('id', user.id)
+      .maybeSingle();
+    profileRow = data;
+
+    const username = profileRow?.username || fallbackName;
+    const displayName = profileRow?.display_name || username;
+    const bio = profileRow?.bio ?? metadataBio;
+
+    await supabase.from('profiles').upsert({
+      id: user.id,
+      username,
+      display_name: displayName,
+      avatar_url:
+        profileRow?.avatar_url ||
+        (typeof user.user_metadata?.avatar_url === 'string'
+          ? (user.user_metadata.avatar_url as string)
+          : null),
+      bio,
+    });
+
+    await supabase.from('user_settings').upsert({
+      user_id: user.id,
+      theme: localStorage.getItem('spring_nest_theme') || 'system',
+      language: localStorage.getItem('spring_nest_lang') || 'zh',
+      settings: { source: 'web' },
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  const username = profileRow?.username || fallbackName;
+  const bio = profileRow?.bio ?? metadataBio;
+  const profile: PublicUserAccount = {
+    id: user.id,
+    email: user.email || '',
+    username,
+    bio,
+    createdAt: user.created_at || new Date().toISOString(),
+  };
+  setCurrentUser(profile);
+  return profile;
 }
 
 /** Sign up with Supabase Auth */
@@ -192,15 +289,79 @@ export async function supabaseSignUp(
         data: { username: username || email.split('@')[0] },
       },
     });
-    if (error) return { success: false, error: error.message };
-    if (data.user) {
-      // Create profile in profiles table
-      await supabase.from('profiles').upsert({
-        id: data.user.id,
-        username: username || email.split('@')[0],
-        bio: '',
-      });
+    if (error) {
+      const msg = error.message;
+      if (msg.includes('already registered') || msg.includes('User already registered'))
+        return { success: false, error: '该邮箱已注册，请直接登录' };
+      if (msg.includes('valid email') || msg.includes('Unable to validate'))
+        return { success: false, error: '请输入有效邮箱地址' };
+      if (msg.includes('Password') || msg.includes('password'))
+        return { success: false, error: '密码不符合要求' };
+      if (msg.includes('rate limit'))
+        return { success: false, error: '请求过于频繁，请稍后再试' };
+      return { success: false, error: `注册失败：${msg}` };
     }
+    if (data.user) {
+      await ensureSupabaseProfile(data.user, username || email.split('@')[0]);
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Send OTP verification code for registration */
+export async function sendRegisterOtp(
+  email: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) return { success: false, error: 'Supabase not configured' };
+  try {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    });
+    if (error) {
+      const msg = error.message;
+      if (msg.includes('rate limit'))
+        return { success: false, error: '请求过于频繁，请稍后再试' };
+      return { success: false, error: `验证码发送失败：${msg}` };
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/** Verify OTP code and complete registration */
+export async function verifyRegisterOtp(
+  email: string,
+  token: string,
+  password: string,
+  username?: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) return { success: false, error: 'Supabase not configured' };
+  if (!token || token.length !== 6)
+    return { success: false, error: '请输入 6 位验证码' };
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+    if (error) {
+      const msg = error.message;
+      if (msg.includes('invalid') || msg.includes('expired') || msg.includes('Token has expired'))
+        return { success: false, error: '验证码无效或已过期，请重新获取' };
+      return { success: false, error: `验证失败：${msg}` };
+    }
+    if (!data.user) return { success: false, error: '验证失败，请稍后重试' };
+
+    // Set password for the newly verified user
+    if (password) {
+      await supabase.auth.updateUser({ password });
+    }
+
+    await ensureSupabaseProfile(data.user, username || email.split('@')[0]);
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -214,8 +375,16 @@ export async function supabaseSignIn(
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
   try {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { success: false, error: error.message };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      const msg = error.message;
+      if (msg.includes('Invalid login') || msg.includes('invalid credentials'))
+        return { success: false, error: '邮箱或密码不正确' };
+      if (msg.includes('Email not confirmed') || msg.includes('email not confirmed'))
+        return { success: false, error: '请先验证邮箱后再登录' };
+      return { success: false, error: `登录失败：${msg}` };
+    }
+    if (data.user) await ensureSupabaseProfile(data.user);
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };

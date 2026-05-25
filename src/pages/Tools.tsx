@@ -4,7 +4,8 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
-import { tools } from '../data/tools';
+import { tools as baseTools } from '../data/tools';
+import { useCatalogItems } from '../hooks/useCatalogOverrides';
 import SEO from '../components/SEO';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { trackToolOpen } from '../lib/analytics';
@@ -108,6 +109,7 @@ export default function Tools() {
     height: 0,
   });
   const reducedMotion = useReducedMotion();
+  const tools = useCatalogItems(baseTools, 'tool', 'web');
 
   const categories = useMemo(() => {
     const cats = [...new Set(tools.map((t) => t.category))];
@@ -235,6 +237,9 @@ export default function Tools() {
         const bRecent = recentOrder.get(b.id) ?? Number.POSITIVE_INFINITY;
         if (aRecent !== bRecent) return aRecent - bRecent;
       }
+      const aOrder = a.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+      const bOrder = b.catalogSortOrder ?? Number.POSITIVE_INFINITY;
+      if (aOrder !== bOrder) return aOrder - bOrder;
       return (b.popularScore ?? 0) - (a.popularScore ?? 0);
     });
   }, [activeCategory, query, sortMode, t]);

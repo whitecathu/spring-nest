@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import Navigation from './components/Navigation';
+import AnnouncementBanner from './components/AnnouncementBanner';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import PwaUpdatePrompt from './components/PwaUpdatePrompt';
@@ -167,6 +168,7 @@ export default function App() {
             >
               <DynamicSpringBackground profile={backgroundProfile} />
               <Navigation />
+              <AnnouncementBanner />
               <main
                 ref={mainRef}
                 className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain [perspective:1400px]"

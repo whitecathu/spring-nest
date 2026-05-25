@@ -3,14 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
-import { games } from '../data/games';
-import { tools } from '../data/tools';
+import { games as baseGames } from '../data/games';
+import { tools as baseTools } from '../data/tools';
+import { useCatalogItems } from '../hooks/useCatalogOverrides';
 import SEO from '../components/SEO';
 
 export default function Favorites() {
   const { t } = useUser();
   const { favoriteIds, toggle } = useFavorites();
   const navigate = useNavigate();
+  const games = useCatalogItems(baseGames, 'game', 'web');
+  const tools = useCatalogItems(baseTools, 'tool', 'web');
 
   const favoriteGames = games.filter((g) => favoriteIds.includes(g.id));
   const favoriteTools = tools.filter((t) => favoriteIds.includes(t.id));
