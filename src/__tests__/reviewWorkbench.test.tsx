@@ -78,6 +78,10 @@ describe('ReviewWorkbench', () => {
     expect(screen.getByRole('button', { name: /快速抽查/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /错题重练/ })).toBeTruthy();
     expect(screen.getByText('本次建议 1 题')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: '按题型复习与学习' })).toBeTruthy();
+    expect(screen.getByText('单选')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '单选复习' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '单选学习' })).toBeTruthy();
     expect(screen.queryByText(/今日还差|连续复习|打卡|Pro|付费/)).toBeNull();
   });
 });

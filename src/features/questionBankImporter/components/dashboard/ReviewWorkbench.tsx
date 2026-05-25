@@ -5,6 +5,7 @@ import {
   Clock3,
   FileUp,
   History,
+  Layers,
   ListChecks,
   Play,
   Shuffle,
@@ -13,12 +14,40 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { getReviewWorkbenchSummary } from '../../lib/reviewQueues';
-import { useQuestionBankStore } from '../../store/questionBankStore';
+import {
+  getQuestionTypeLabel,
+  useQuestionBankStore,
+} from '../../store/questionBankStore';
+import type { Question, QuestionType } from '../../types/question';
 import { GlassCard } from '../common/GlassCard';
 import { SoftButton } from '../common/SoftButton';
 
 function idsOf<T extends { id: string }>(items: T[]) {
   return items.map((item) => item.id);
+}
+
+const questionTypes: QuestionType[] = [
+  'single',
+  'multiple',
+  'judge',
+  'blank',
+  'short',
+  'flashcard',
+];
+
+function getTypeEntries(questions: Question[]) {
+  return questionTypes
+    .map((type) => {
+      const typedQuestions = questions.filter((question) => question.type === type);
+      return {
+        type,
+        label: getQuestionTypeLabel(type),
+        questions: typedQuestions,
+        ids: idsOf(typedQuestions),
+        count: typedQuestions.length,
+      };
+    })
+    .filter((entry) => entry.count > 0);
 }
 
 function MetricTile({
@@ -68,6 +97,7 @@ export function ReviewWorkbench() {
   const frequentWrongIds = idsOf(summary.frequentWrongQuestions);
   const favoriteIds = idsOf(summary.favoriteQuestions);
   const recentFiles = importedFiles.slice(0, 3);
+  const typeEntries = useMemo(() => getTypeEntries(questions), [questions]);
 
   if (!questions.length) {
     return (
@@ -188,6 +218,65 @@ export function ReviewWorkbench() {
           </div>
         </div>
       </section>
+
+      {typeEntries.length ? (
+        <section className="rounded-[1.5rem] border border-[var(--color-outline-soft)] bg-[var(--color-card)] p-4 shadow-soft md:p-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                <Layers size={20} aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold text-[var(--color-ink)]">按题型复习与学习</h2>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">
+                  只抽取指定题型开始刷题，也可以切到背答案模式集中学习。
+                </p>
+              </div>
+            </div>
+            <span className="self-start rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-xs font-bold text-[var(--color-primary)] md:self-auto">
+              {typeEntries.length} 类题型
+            </span>
+          </div>
+
+          <div className="-mx-4 mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-3">
+            {typeEntries.map((entry) => (
+              <div
+                key={entry.type}
+                className="w-[76vw] shrink-0 snap-start rounded-[1.25rem] border border-[var(--color-outline-soft)] bg-[color:rgb(255_255_255_/_0.62)] p-4 sm:w-72 md:w-auto"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-base font-bold text-[var(--color-ink)]">{entry.label}</p>
+                    <p className="mt-1 text-sm text-[var(--color-muted)]">{entry.count} 题可用</p>
+                  </div>
+                  <span className="rounded-full bg-[var(--color-accent-yellow)] px-2.5 py-1 text-xs font-bold text-[var(--color-ink)]">
+                    题型
+                  </span>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <SoftButton
+                    className="w-full px-3"
+                    aria-label={`${entry.label}复习`}
+                    icon={<Play size={16} aria-hidden="true" />}
+                    onClick={() => actions.startReview(entry.ids, 'quiz')}
+                  >
+                    复习
+                  </SoftButton>
+                  <SoftButton
+                    className="w-full px-3"
+                    variant="primary"
+                    aria-label={`${entry.label}学习`}
+                    icon={<Brain size={16} aria-hidden="true" />}
+                    onClick={() => actions.startReview(entry.ids, 'memorize')}
+                  >
+                    学习
+                  </SoftButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid gap-4 md:gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-4">
