@@ -1,0 +1,85 @@
+<view class="discover">
+  <brand-header />
+
+  <view class="page-pad tab-page">
+    <view class="intro">
+      <text class="text-headline-md text-on-surface">发现</text>
+      <text class="text-body-sm text-muted subtitle">搜一搜，或从常用工具开始。</text>
+
+      <view class="search-wrap">
+        <input
+          class="search"
+          type="text"
+          confirm-type="search"
+          placeholder="搜索工具名称、功能或英文关键词"
+          placeholder-class="search-ph"
+          value="{{query}}"
+          bindinput="onSearchInput"
+        />
+        <view class="search-clear" wx:if="{{query}}" catchtap="onClearSearch">×</view>
+      </view>
+    </view>
+
+    <block wx:if="{{searching}}">
+      <view class="section-gap">
+        <text class="text-headline-sm text-on-surface">搜索结果 ({{results.length}})</text>
+        <view class="grid-2" wx:if="{{results.length}}">
+          <view class="grid-item" wx:for="{{results}}" wx:key="slug">
+            <tool-card tool="{{item}}" mode="grid" bind:open="onOpenTool" />
+          </view>
+        </view>
+        <view class="empty-search" wx:else>
+          <text class="text-body-lg text-muted">未找到相关工具</text>
+          <text class="text-body-sm text-muted empty-hint">换个工具名、描述词或英文 ID 试试</text>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="section-gap">
+        <view class="section-head">
+          <text class="text-headline-sm text-on-surface">常用工具</text>
+          <text class="link text-label-md" bindtap="onToggleShowAll">{{showAll ? '收起' : '查看全部'}}</text>
+        </view>
+
+        <view class="grid-3" wx:if="{{!showAll}}">
+          <view class="grid-item" wx:for="{{quickTools}}" wx:key="slug">
+            <tool-card tool="{{item}}" mode="quick" bind:open="onOpenTool" />
+          </view>
+        </view>
+
+        <view class="grid-2" wx:if="{{showAll}}">
+          <view class="grid-item" wx:for="{{allTools}}" wx:key="slug">
+            <tool-card tool="{{item}}" mode="grid" bind:open="onOpenTool" />
+          </view>
+        </view>
+      </view>
+
+      <block wx:if="{{!showAll}}">
+        <view class="section-gap">
+          <view class="row gap-sm section-label">
+            <image class="leaf-sm" src="/assets/icons/leaf.png" mode="aspectFit" />
+            <text class="text-headline-sm text-primary">日常实用</text>
+          </view>
+          <view class="grid-2">
+            <view class="grid-item {{index === 0 ? 'span-2' : ''}}" wx:for="{{dailyTools}}" wx:key="slug">
+              <tool-card tool="{{item}}" mode="{{index === 0 ? 'hero' : 'grid'}}" bind:open="onOpenTool" />
+            </view>
+          </view>
+        </view>
+
+        <view class="section-gap">
+          <view class="row gap-sm section-label tertiary">
+            <text class="heart">♥</text>
+            <text class="text-headline-sm text-tertiary">趣味工具</text>
+          </view>
+          <view class="grid-2">
+            <view class="grid-item" wx:for="{{funTools}}" wx:key="slug">
+              <tool-card tool="{{item}}" mode="grid" bind:open="onOpenTool" />
+            </view>
+          </view>
+        </view>
+      </block>
+    </block>
+  </view>
+</view>

@@ -1,0 +1,136 @@
+<view class="profile">
+  <brand-header />
+  <view class="page-pad tab-page profile-body">
+    <view class="hero-card glass-card">
+      <view class="hero-glow"></view>
+
+      <view class="avatar-wrap">
+        <view class="avatar-ring">
+          <button
+            class="avatar-btn"
+            open-type="chooseAvatar"
+            bind:chooseavatar="onChooseAvatar"
+            hover-class="avatar-btn-hover"
+          >
+            <image
+              wx:if="{{draftAvatarUrl || (user && user.avatarUrl)}}"
+              class="avatar-img"
+              src="{{draftAvatarUrl || user.avatarUrl}}"
+              mode="aspectFill"
+            />
+            <view wx:else class="avatar-fallback">
+              <image class="avatar-leaf" src="/assets/icons/leaf.png" mode="aspectFit" />
+            </view>
+          </button>
+        </view>
+        <view class="avatar-edit">✎</view>
+      </view>
+
+      <block wx:if="{{loggedIn}}">
+        <text class="display-name">{{user.nickName}}</text>
+        <view class="status-chip">
+          <view class="status-dot"></view>
+          <text class="status-text">已登录 · 资料仅保存在本机</text>
+        </view>
+        <view class="login-pill ghost" bindtap="onLogout" hover-class="pill-hover">退出登录</view>
+      </block>
+
+      <block wx:else>
+        <text class="hero-greet">欢迎来到春日小筑</text>
+        <text class="hero-lead">填写昵称，开启你的工具小窝</text>
+        <view class="nick-shell">
+          <input
+            class="nick-input"
+            type="nickname"
+            maxlength="20"
+            placeholder="填写微信昵称"
+            placeholder-class="nick-ph"
+            value="{{draftNickName}}"
+            bindinput="onNickInput"
+            bindblur="onNickInput"
+            bindchange="onNickInput"
+          />
+        </view>
+        <view class="login-pill primary" bindtap="onLogin" hover-class="pill-hover">
+          <image class="pill-leaf" src="/assets/icons/leaf.png" mode="aspectFit" />
+          <text class="pill-text">微信登录</text>
+        </view>
+        <text class="login-hint">头像与昵称仅保存在本机，用于个人页展示</text>
+      </block>
+    </view>
+
+    <view class="stats-row" wx:if="{{loggedIn || favCount > 0 || histCount > 0}}">
+      <view class="stat-pill" bindtap="onOpenFavorites" hover-class="stat-hover">
+        <text class="stat-num">{{favCount}}</text>
+        <text class="stat-label">收藏</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-pill" bindtap="onOpenHistory" hover-class="stat-hover">
+        <text class="stat-num">{{histCount}}</text>
+        <text class="stat-label">足迹</text>
+      </view>
+    </view>
+
+    <view class="lists">
+      <view class="glass-card list-group">
+        <view class="list-item" bindtap="onOpenFavorites" hover-class="list-item-hover">
+          <view class="item-left">
+            <view class="icon-well icon-fav">
+              <text class="icon-glyph">♥</text>
+            </view>
+            <view class="item-meta">
+              <text class="item-title">我的收藏</text>
+              <text class="item-sub">{{favCount > 0 ? '已收藏 ' + favCount + ' 个工具与项目' : '已收藏的工具与项目'}}</text>
+            </view>
+          </view>
+          <text class="chevron">›</text>
+        </view>
+
+        <view class="divider"></view>
+
+        <view class="list-item" bindtap="onOpenHistory" hover-class="list-item-hover">
+          <view class="item-left">
+            <view class="icon-well icon-hist">
+              <text class="icon-glyph">◷</text>
+            </view>
+            <view class="item-meta">
+              <text class="item-title">使用记录</text>
+              <text class="item-sub">{{histCount > 0 ? '最近 ' + histCount + ' 次使用活动' : '最近的使用活动'}}</text>
+            </view>
+          </view>
+          <text class="chevron">›</text>
+        </view>
+      </view>
+
+      <view class="glass-card list-group">
+        <view class="list-item" bindtap="onOpenPrivacy" hover-class="list-item-hover">
+          <view class="item-left">
+            <view class="icon-well icon-privacy">
+              <text class="icon-glyph">◎</text>
+            </view>
+            <view class="item-meta">
+              <text class="item-title">隐私政策</text>
+              <text class="item-sub">了解我们如何处理信息</text>
+            </view>
+          </view>
+          <text class="chevron">›</text>
+        </view>
+
+        <view class="divider"></view>
+
+        <view class="list-item" bindtap="onOpenAbout" hover-class="list-item-hover">
+          <view class="item-left">
+            <view class="icon-well icon-about">
+              <text class="icon-glyph">ⓘ</text>
+            </view>
+            <view class="item-meta">
+              <text class="item-title">关于春日小筑</text>
+              <text class="item-sub">高致美学工具家园 · 版本 {{version}}</text>
+            </view>
+          </view>
+          <text class="chevron">›</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

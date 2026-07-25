@@ -1,0 +1,142 @@
+.discover {
+  min-height: 100vh;
+  background: var(--page-wash);
+}
+
+.discover .page-pad {
+  background: transparent;
+  min-height: auto;
+  padding-top: 14px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.intro .subtitle {
+  display: block;
+  margin-top: -4px;
+  margin-bottom: 2px;
+  opacity: 0.82;
+  line-height: 1.5;
+}
+
+.search-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 4px;
+}
+
+.search {
+  width: 100%;
+  height: 50px;
+  border-radius: 20px;
+  padding: 0 46px 0 18px;
+  box-sizing: border-box;
+  font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  line-height: 50px;
+  background: rgba(237, 231, 225, 0.78);
+  border: 1px solid rgba(193, 200, 193, 0.28);
+  color: var(--on-surface);
+  box-shadow: 0 1px 4px rgba(63, 103, 81, 0.04);
+}
+
+.search:focus {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(39, 79, 58, 0.35);
+  box-shadow: 0 0 0 3px rgba(165, 208, 182, 0.25);
+}
+
+.search-ph {
+  color: rgba(65, 73, 67, 0.55);
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  top: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(231, 226, 219, 0.9);
+  color: rgba(65, 73, 67, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  z-index: 2;
+}
+
+.search-clear:active {
+  transform: scale(0.94);
+}
+
+.section-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 2px;
+}
+
+.section-label {
+  padding-left: 2px;
+}
+
+.leaf-sm {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.heart {
+  color: var(--tertiary);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.link {
+  color: var(--primary);
+  padding: 6px 8px;
+  margin-right: -6px;
+  border-radius: 999px;
+}
+
+.link:active {
+  background: rgba(39, 79, 58, 0.08);
+}
+
+.empty-search {
+  margin-top: 40px;
+  padding: 28px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  border-radius: 22px;
+  background: rgba(248, 243, 236, 0.7);
+  border: 1px dashed rgba(193, 200, 193, 0.45);
+}
+
+.empty-hint {
+  opacity: 0.85;
+}
+
+.discover .grid-2 {
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.discover .grid-3 {
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.discover .section-gap {
+  margin-top: 26px;
+}
