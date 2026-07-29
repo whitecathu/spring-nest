@@ -1,0 +1,12 @@
+<view class="action-bar safe-pb">
+  <button
+    wx:if="{{secondaryText}}"
+    class="btn-ghost flex-1"
+    bindtap="onSecondary"
+  >{{secondaryText}}</button>
+  <button
+    class="btn-primary flex-1 {{disabled ? 'disabled' : ''}}"
+    bindtap="onPrimary"
+    disabled="{{disabled}}"
+  >{{primaryText}}</button>
+</view>

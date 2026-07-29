@@ -1,0 +1,105 @@
+<view class="practice-page" wx:if="{{ready}}">
+  <block wx:if="{{!practiceComplete}}">
+    <view class="practice-top" style="padding-top: {{statusBarHeight + 8}}px;">
+      <view class="icon-btn" bindtap="onExit">‹</view>
+      <view class="top-mid">
+        <view class="mode-pill">{{modeLabel}}</view>
+        <view wx:if="{{mode === 'exam'}}" class="timer">{{examTimerText}}</view>
+      </view>
+      <view class="jump-btn" bindtap="onOpenJump">{{currentIdx + 1}} / {{totalCount}}</view>
+    </view>
+
+    <view class="progress-wrap">
+      <view class="progress-track">
+        <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
+      </view>
+    </view>
+
+    <scroll-view scroll-y class="practice-scroll">
+      <view class="question-card">
+        <view class="q-accent"></view>
+        <view class="fav-btn {{isFavorite ? 'on' : ''}}" bindtap="onToggleFavorite">{{isFavorite ? '♥' : '♡'}}</view>
+        <view wx:if="{{mode !== 'exam'}}" class="q-kind">{{currentQuestion.type === 'multiple' ? '多项选择' : (currentQuestion.type === 'judge' ? '判断题' : '单项选择')}}</view>
+        <view class="q-stem">{{currentQuestion.stem}}</view>
+      </view>
+
+      <view class="options">
+        <view
+          wx:for="{{optionsView}}"
+          wx:key="letter"
+          class="option-card state-{{item.state}}"
+          data-letter="{{item.letter}}"
+          bindtap="onSelectOption"
+        >
+          <text class="option-text">{{item.text}}</text>
+          <view class="option-badge">
+            <text wx:if="{{item.state === 'correct' || item.state === 'selected'}}">✓</text>
+            <text wx:elif="{{item.state === 'wrong'}}">✗</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{mode === 'practice' && isMulti && !hasCheckedAnswer}}" class="action-btn" bindtap="onConfirmMulti">确认多选答案</view>
+
+      <view wx:if="{{mode === 'practice' && hasCheckedAnswer && showExplanation}}" class="explain-card">
+        <view class="explain-title {{isCorrect ? 'ok' : 'bad'}}">
+          {{isCorrect ? '答对了！理解通透！' : '答错了，已纳入错题本。'}}
+        </view>
+        <view class="explain-body">
+          <text class="explain-strong">本题解析：</text>{{currentQuestion.explanation || '结合题干与选项理解考点，建立关联记忆。'}}
+        </view>
+      </view>
+
+      <view wx:if="{{mode === 'reccite'}}" class="action-btn" bindtap="onNext">
+        {{currentIdx < totalCount - 1 ? '下一题' : '完成本次背题会话'}}
+      </view>
+
+      <view wx:if="{{mode === 'practice' && hasCheckedAnswer}}" class="action-btn" bindtap="onNext">
+        {{currentIdx < totalCount - 1 ? '下一题' : '完成并查看报告'}}
+      </view>
+
+      <view class="nav-row" wx:if="{{mode === 'exam'}}">
+        <view class="nav-btn light {{currentIdx === 0 ? 'disabled' : ''}}" bindtap="onPrev">上一题</view>
+        <view wx:if="{{currentIdx === totalCount - 1}}" class="nav-btn dark" bindtap="onSubmitExam">交卷</view>
+        <view wx:else class="nav-btn dark" bindtap="onNext">下一题</view>
+      </view>
+
+      <view class="nav-row soft" wx:else>
+        <view class="text-nav {{currentIdx === 0 ? 'disabled' : ''}}" bindtap="onPrev">‹ 上一题</view>
+        <view class="text-nav {{currentIdx >= totalCount - 1 ? 'disabled' : ''}}" bindtap="onNext">下一题 ›</view>
+      </view>
+    </scroll-view>
+  </block>
+
+  <view wx:else class="report-page" style="padding-top: {{statusBarHeight + 48}}px;">
+    <view class="report-emoji">🌿</view>
+    <view class="report-title">本轮完成</view>
+    <view class="report-sub">{{deckName || modeLabel}}</view>
+    <view class="report-stats">
+      <view class="report-stat">
+        <view class="report-num">{{correctCount}}</view>
+        <view class="report-label">正确</view>
+      </view>
+      <view class="report-stat">
+        <view class="report-num">{{totalCount}}</view>
+        <view class="report-label">总题数</view>
+      </view>
+      <view class="report-stat">
+        <view class="report-num">{{reportCorrectRate}}%</view>
+        <view class="report-label">正确率</view>
+      </view>
+    </view>
+    <view class="action-btn" bindtap="onBackHome">返回学习小筑</view>
+  </view>
+
+  <view wx:if="{{showJump}}" class="jump-mask" bindtap="onCloseJump">
+    <view class="jump-sheet" catchtap="">
+      <view class="jump-title">跳转到题号</view>
+      <input class="jump-input" type="number" value="{{jumpValue}}" bindinput="onJumpInput" focus />
+      <view class="jump-actions">
+        <view class="jump-cancel" bindtap="onCloseJump">取消</view>
+        <view class="jump-ok" bindtap="onConfirmJump">跳转</view>
+      </view>
+    </view>
+  </view>
+</view>

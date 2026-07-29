@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, memo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Timer, Flag, Bomb } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadGameValue, saveGameValue } from '../../lib/gameScore';
@@ -204,53 +204,28 @@ const GameCell = memo(function GameCell({
   }
 
   return (
-    <motion.button
+    <button
       onTouchStart={(e) => onTouchStart(r, c, e)}
       onTouchEnd={(e) => onTouchEnd(r, c, e)}
       onClick={() => onClick(r, c)}
       onContextMenu={(e) => onContextMenu(r, c, e)}
-      whileTap={{ scale: 0.9 }}
-      initial={isAnimating ? { scale: 0.3, opacity: 0 } : false}
-      animate={
-        isAnimating
-          ? { scale: [0.3, 1.12, 0.92, 1.04, 0.98, 1], opacity: 1 }
-          : isBoom
-            ? {
-                backgroundColor: ['#ffffff', '#ef4444', '#fca5a5', '#fecaca'],
-                scale: [1, 1.15, 1.05, 1],
-              }
-            : {}
-      }
-      transition={
-        isAnimating
-          ? { delay: animDelay / 1000, type: 'spring', stiffness: 400, damping: 12 }
-          : isBoom
-            ? { duration: 0.6, times: [0, 0.2, 0.5, 1] }
-            : { type: 'spring', stiffness: 400, damping: 12 }
-      }
       className={`${cellSize} rounded flex items-center justify-center font-bold transition-colors ${bgClass} ${contentClass} relative overflow-hidden`}
       aria-label={`Minesweeper row ${r + 1}, column ${c + 1}, ${stateLabel}`}
       aria-pressed={cell.flagged}
     >
       {content}
       {isRipple && (
-        <motion.span
+        <span
           className="absolute inset-0 bg-white/40 rounded"
-          initial={{ scale: 0, opacity: 0.6 }}
-          animate={{ scale: 2.5, opacity: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
         />
       )}
       {/* Haptic-like visual press feedback */}
       {isPressed && (
-        <motion.span
+        <span
           className="absolute inset-0 bg-white/30 rounded pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.5, 0.3] }}
-          transition={{ duration: 0.15 }}
         />
       )}
-    </motion.button>
+    </button>
   );
 });
 
@@ -633,7 +608,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -648,15 +623,13 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         <div className="mb-4">
           <div className="flex justify-center gap-2">
             {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
-              <motion.button
+              <button
                 key={d}
                 onClick={() => {
                   if (gameState === 'playing') return;
                   setDifficulty(d);
                 }}
                 disabled={gameState === 'playing'}
-                whileTap={{ scale: 0.93 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className={`px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[48px] ${
                   difficulty === d
                     ? 'bg-primary text-on-primary'
@@ -666,7 +639,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                 }`}
               >
                 {t(...DIFFICULTIES[d].label)}
-              </motion.button>
+              </button>
             ))}
           </div>
           <p className="text-xs text-secondary text-center mt-1.5">
@@ -676,58 +649,31 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
 
         {/* Status Bar */}
         <div className="flex justify-between items-center mb-3 max-w-md mx-auto">
-          <motion.div
-            animate={
-              mineCounterPulse
-                ? {
-                    scale: [1, 1.25, 0.95, 1.05, 1],
-                    backgroundColor: [
-                      'rgba(239,68,68,0)',
-                      'rgba(239,68,68,0.15)',
-                      'rgba(239,68,68,0)',
-                    ],
-                  }
-                : {}
-            }
-            transition={{ duration: 0.4 }}
+          <div
             className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5"
           >
             <Bomb className="w-4 h-4 text-red-500" />
             <span className="font-bold text-on-surface tabular-nums text-sm">{minesLeft}</span>
-          </motion.div>
+          </div>
           <div className="flex gap-2">
-            <motion.button
+            <button
               onClick={startGame}
-              whileTap={{ scale: 0.9 }}
               className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5 min-h-[48px]"
             >
               <RotateCcw className="w-4 h-4 text-on-surface" />
               <span className="text-sm font-semibold text-on-surface">
                 {gameState === 'idle' ? t('开始', 'Start') : t('重置', 'Reset')}
               </span>
-            </motion.button>
+            </button>
           </div>
-          <motion.div
-            animate={
-              timerTick
-                ? {
-                    scale: [1, 1.12, 0.97, 1],
-                    backgroundColor: [
-                      'rgba(59,130,246,0)',
-                      'rgba(59,130,246,0.12)',
-                      'rgba(59,130,246,0)',
-                    ],
-                  }
-                : {}
-            }
-            transition={{ duration: 0.3 }}
+          <div
             className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5"
           >
             <Timer className="w-4 h-4 text-blue-500" />
             <span className="font-bold text-on-surface tabular-nums text-sm">
               {formatTime(time)}
             </span>
-          </motion.div>
+          </div>
         </div>
 
         {/* Best Time */}
@@ -743,20 +689,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         {/* Game Board */}
         <div className="flex justify-center overflow-x-auto">
           <div className="relative">
-            <motion.div
-              animate={
-                boardShake === 1
-                  ? { x: [0, -3, 3, -2, 2, 0], rotate: [0, -0.3, 0.3, 0] }
-                  : boardShake === 2
-                    ? { x: [0, -8, 10, -8, 8, -4, 0], rotate: [0, -1, 1, -0.5, 0.5, 0] }
-                    : boardShake === 3
-                      ? {
-                          x: [0, -14, 16, -12, 14, -8, 6, -3, 0],
-                          rotate: [0, -2, 2.5, -1.5, 1, -0.5, 0],
-                        }
-                      : { x: 0, rotate: 0 }
-              }
-              transition={{ duration: boardShake === 3 ? 0.45 : 0.3 }}
+            <div
               className={`inline-grid gap-0.5 p-2 rounded-2xl select-none touch-none relative transition-shadow duration-500 ${
                 boardGlow
                   ? 'bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-100 shadow-[0_0_30px_rgba(234,179,8,0.4)]'
@@ -799,52 +732,24 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                   );
                 }),
               )}
-            </motion.div>
+            </div>
 
             {/* White flash followed by red flash overlay on mine hit */}
-            <AnimatePresence>
-              {whiteFlash && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 0.7, 0] }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.12, times: [0, 0.4, 1] }}
+            {whiteFlash && (
+                <div
                   className="absolute inset-0 bg-white rounded-2xl pointer-events-none z-10"
                 />
               )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {redFlash && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 0.45, 0.2, 0] }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4, times: [0, 0.15, 0.5, 1] }}
+            {redFlash && (
+                <div
                   className="absolute inset-0 bg-red-500 rounded-2xl pointer-events-none z-10"
                 />
               )}
-            </AnimatePresence>
 
             {/* Debris particles on explosion */}
-            <AnimatePresence>
-              {debris.map((d) => (
-                <motion.div
+            {debris.map((d) => (
+                <div
                   key={d.id}
-                  initial={{
-                    x: `${(d.x / cfg.cols) * 100}%`,
-                    y: `${(d.y / cfg.rows) * 100}%`,
-                    opacity: 1,
-                    scale: 1,
-                  }}
-                  animate={{
-                    x: `${(d.x / cfg.cols) * 100 + d.vx}%`,
-                    y: `${(d.y / cfg.rows) * 100 + d.vy * 0.8}%`,
-                    opacity: 0,
-                    scale: 0.3,
-                    rotate: d.rotate,
-                  }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: d.duration, ease: 'easeOut' }}
                   className="absolute rounded-sm pointer-events-none z-20"
                   style={{
                     width: d.size,
@@ -853,46 +758,35 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                   }}
                 />
               ))}
-            </AnimatePresence>
           </div>
         </div>
 
         {/* Bottom Controls - Flag Toggle with Sliding Indicator */}
         <div className="flex justify-center gap-3 mt-3">
-          <motion.button
+          <button
             onClick={() => setFlagMode((m) => (m === 'reveal' ? 'flag' : 'reveal'))}
-            whileTap={{ scale: 0.95 }}
             className={`relative px-2 py-3.5 rounded-full font-semibold text-sm flex items-center min-h-[52px] overflow-hidden ${'bg-surface-container-high'}`}
           >
             {/* Sliding background indicator */}
-            <motion.div
+            <div
               className="absolute top-1 bottom-1 rounded-full bg-amber-500 shadow-lg shadow-amber-500/30"
-              animate={{
-                x: flagMode === 'reveal' ? 0 : '100%',
-                width: '50%',
-              }}
-              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
               style={{ left: 0 }}
             />
             <div className="relative flex items-center z-10">
-              <motion.span
+              <span
                 className="flex items-center gap-2 px-5 py-1.5 rounded-full transition-colors"
-                animate={{ color: flagMode === 'reveal' ? '#1c1917' : '#ffffff' }}
-                transition={{ duration: 0.15 }}
               >
                 <Flag className="w-5 h-5" />
                 {t('揭开', 'Reveal')}
-              </motion.span>
-              <motion.span
+              </span>
+              <span
                 className="flex items-center gap-2 px-5 py-1.5 rounded-full transition-colors"
-                animate={{ color: flagMode === 'flag' ? '#ffffff' : '#1c1917' }}
-                transition={{ duration: 0.15 }}
               >
                 <Flag className="w-5 h-5" />
                 {t('标旗', 'Flag')}
-              </motion.span>
+              </span>
             </div>
-          </motion.button>
+          </button>
         </div>
 
         {/* Instructions */}
@@ -902,8 +796,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
 
         {/* Confetti Particles */}
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          <AnimatePresence>
-            {confetti.map((p) => {
+          {confetti.map((p) => {
               const shapeClass =
                 p.shape === 'circle' ? 'rounded-full' : p.shape === 'triangle' ? '' : 'rounded-sm';
               const shapeStyle: React.CSSProperties =
@@ -922,38 +815,18 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                       height: p.size,
                     };
               return (
-                <motion.div
+                <div
                   key={p.id}
-                  initial={{ x: `${p.x}vw`, y: -20, opacity: 1, scale: 1, rotate: 0 }}
-                  animate={{
-                    y: '110vh',
-                    opacity: [1, 1, 0.6, 0],
-                    scale: [1, 1.3, 0.9, 0.5],
-                    rotate: p.spin,
-                    x: `${p.x + p.xDrift}vw`,
-                  }}
-                  exit={{ opacity: 0 }}
-                  transition={{
-                    duration: p.duration,
-                    delay: p.delay,
-                    ease: 'easeIn',
-                  }}
                   className={`absolute ${shapeClass}`}
                   style={shapeStyle}
                 />
               );
             })}
-          </AnimatePresence>
         </div>
 
         {/* Game Over Overlay */}
-        <AnimatePresence>
-          {(gameState === 'won' || gameState === 'lost') && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        {(gameState === 'won' || gameState === 'lost') && (
+            <div
               className={`mt-6 p-6 rounded-2xl text-center ${
                 gameState === 'won'
                   ? 'bg-green-50 border border-green-200'
@@ -962,68 +835,41 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
             >
               {gameState === 'won' ? (
                 <>
-                  <motion.p
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+                  <p
                     className="text-2xl mb-1"
                   >
                     {t('恭喜通关！', 'You Win!')}
-                  </motion.p>
-                  <motion.p
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 10, delay: 0.2 }}
+                  </p>
+                  <p
                     className="text-4xl mb-3"
                   >
                     🎉
-                  </motion.p>
-                  <motion.p
-                    initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
+                  </p>
+                  <p
                     className="text-lg font-bold text-green-600 mb-1"
                   >
                     {t('用时', 'Time')}: {formatTime(time)}
-                  </motion.p>
+                  </p>
                   {time > 0 && time <= bestTime && (
-                    <motion.p
-                      initial={{ scale: 0, rotate: -10 }}
-                      animate={{
-                        scale: [0, 1.5, 0.8, 1.2, 0.95, 1.05, 1],
-                        rotate: [-10, 5, -3, 2, 0],
-                      }}
-                      transition={{
-                        delay: 0.5,
-                        duration: 0.8,
-                        type: 'spring',
-                        stiffness: 300,
-                        damping: 8,
-                      }}
+                    <p
                       className="text-sm text-green-500 mb-2 font-bold"
                     >
                       🏆 {t('新纪录！', 'New Record!')}
-                    </motion.p>
+                    </p>
                   )}
                 </>
               ) : (
                 <>
-                  <motion.p
-                    initial={{ x: -10 }}
-                    animate={{ x: [0, -5, 5, -3, 3, 0] }}
-                    transition={{ duration: 0.4 }}
+                  <p
                     className="text-2xl mb-1"
                   >
                     {t('踩到地雷！', 'Boom! Game Over')}
-                  </motion.p>
-                  <motion.p
-                    initial={{ scale: 3, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+                  </p>
+                  <p
                     className="text-4xl mb-3"
                   >
                     💥
-                  </motion.p>
+                  </p>
                 </>
               )}
               <div className="flex justify-center gap-3">
@@ -1038,10 +884,9 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                   {t('再来一局', 'Play Again')}
                 </button>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

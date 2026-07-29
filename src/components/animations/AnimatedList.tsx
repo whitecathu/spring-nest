@@ -1,5 +1,6 @@
 import { memo, useRef, type ReactNode } from 'react';
-import { motion, useInView } from 'motion/react';
+import gsap from 'gsap';
+import { useInView } from '../../lib/gsap';
 import { easeOutExpo, motionStaggers, useReducedMotion } from '../../lib/animations';
 
 interface AnimatedListProps {
@@ -22,8 +23,7 @@ function AnimatedListInner({
   staggerDelay = motionStaggers.relaxed,
   direction = 'up',
 }: AnimatedListProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: '-40px' });
+  const [inViewRef, isInView] = useInView({ once: true, margin: '-40px' });
   const reducedMotion = useReducedMotion();
 
   if (reducedMotion) {
@@ -33,22 +33,13 @@ function AnimatedListInner({
   const items = Array.isArray(children) ? children : [children];
 
   return (
-    <div ref={containerRef} className={className}>
+    <div ref={inViewRef} className={className}>
       {items.map((child, index) => (
-        <motion.div
+        <div
           key={index}
-          initial={{ opacity: 0, ...directionOffset[direction] }}
-          animate={
-            isInView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, ...directionOffset[direction] }
-          }
-          transition={{
-            duration: 0.45,
-            delay: index * staggerDelay,
-            ease: easeOutExpo as [number, number, number, number],
-          }}
         >
           {child}
-        </motion.div>
+        </div>
       ))}
     </div>
   );

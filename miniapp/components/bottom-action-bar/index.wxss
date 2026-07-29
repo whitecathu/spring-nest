@@ -1,0 +1,10 @@
+.action-bar {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.btn-primary.disabled {
+  opacity: 0.45;
+  box-shadow: none;
+}

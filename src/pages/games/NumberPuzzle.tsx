@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Clock, Footprints, Trophy } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadGameValue, saveGameValue } from '../../lib/gameScore';
@@ -320,7 +320,7 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -395,7 +395,7 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
             {tiles.map((val, i) => {
               const isEmpty = val === 0;
               return (
-                <motion.button
+                <button
                   key={`${size}-${i}`}
                   onClick={() => handleTileClick(i)}
                   aria-label={
@@ -409,9 +409,6 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
                           `Tile ${val}, row ${Math.floor(i / size) + 1}, column ${(i % size) + 1}, move`,
                         )
                   }
-                  layout
-                  transition={{ type: 'tween', duration: 0.12, ease: 'easeOut' }}
-                  whileTap={isEmpty ? {} : { scale: 0.92 }}
                   className={`aspect-square rounded-xl font-extrabold text-lg sm:text-2xl flex items-center justify-center transition-colors min-h-[44px] ${
                     isEmpty
                       ? 'bg-surface-container-lowest/30 cursor-default'
@@ -420,7 +417,7 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
                   disabled={isEmpty || won}
                 >
                   {isEmpty ? '' : val}
-                </motion.button>
+                </button>
               );
             })}
           </div>
@@ -505,23 +502,15 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Win overlay */}
-        <AnimatePresence>
-          {won && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+        {won && (
+            <div
               className="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-2xl text-center"
             >
-              <motion.p
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+              <p
                 className="text-3xl mb-2"
               >
                 🧩
-              </motion.p>
+              </p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
                 {t('恭喜完成！', 'Congratulations!')}
               </p>
@@ -536,14 +525,11 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
                 </div>
               </div>
               {(moves === bestMoves || elapsed === bestTime) && (
-                <motion.p
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', delay: 0.3 }}
+                <p
                   className="text-sm text-yellow-500 mb-3"
                 >
                   🏆 {t('新纪录！', 'New Record!')}
-                </motion.p>
+                </p>
               )}
               <button
                 onClick={() => newGame()}
@@ -551,10 +537,9 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
               >
                 {t('再来一局', 'Play Again')}
               </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

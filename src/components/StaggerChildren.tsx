@@ -1,6 +1,6 @@
-import { motion, useInView } from 'motion/react';
-import { useRef, type ReactNode } from 'react';
-import { useReducedMotion } from '../lib/animations';
+import { useRef, useEffect, type ReactNode } from 'react';
+import gsap from 'gsap';
+import { useReducedMotion } from '../lib/gsap';
 
 interface StaggerChildrenProps {
   children: ReactNode;
@@ -14,26 +14,37 @@ export default function StaggerChildren({
   staggerDelay = 0.08,
 }: StaggerChildrenProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-40px' });
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (!ref.current || reducedMotion) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const children = Array.from(ref.current!.children) as HTMLElement[];
+          gsap.fromTo(children,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', stagger: staggerDelay }
+          );
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '-40px' }
+    );
+
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [reducedMotion, staggerDelay]);
 
   if (reducedMotion) {
     return <div className={className}>{children}</div>;
   }
 
   return (
-    <motion.div
-      ref={ref}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-      variants={{
-        hidden: {},
-        visible: { transition: { staggerChildren: staggerDelay } },
-      }}
-      className={className}
-    >
+    <div ref={ref} className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -46,18 +57,8 @@ export function StaggerItem({
   className?: string;
 }) {
   return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-          opacity: 1,
-          y: 0,
-          transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] },
-        },
-      }}
-      className={className}
-    >
+    <div className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 }

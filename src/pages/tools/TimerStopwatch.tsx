@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Play, Pause, RotateCcw, Flag } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -19,9 +19,7 @@ export default function TimerStopwatch({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
@@ -47,7 +45,7 @@ export default function TimerStopwatch({ onBack }: { onBack: () => void }) {
         </div>
 
         {tab === 'countdown' ? <CountdownTab /> : <StopwatchTab />}
-      </motion.div>
+      </div>
     </div>
   );
 }

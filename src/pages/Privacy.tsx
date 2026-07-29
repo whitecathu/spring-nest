@@ -10,7 +10,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { useUser } from '../contexts/UserContext';
 import SEO from '../components/SEO';
 
@@ -43,15 +43,11 @@ function Section({ icon, title, children, defaultOpen = false }: SectionProps) {
         )}
       </button>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
+        <div
           className="px-6 pb-6"
         >
           <div className="text-on-surface-variant leading-relaxed space-y-4">{children}</div>
-        </motion.div>
+        </div>
       )}
     </div>
   );
@@ -76,10 +72,7 @@ export default function Privacy() {
   };
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
+    <div
       className="max-w-[900px] mx-auto px-6 py-16 w-full"
     >
       <SEO
@@ -91,27 +84,27 @@ export default function Privacy() {
         canonical="/privacy"
       />
       {/* Header */}
-      <motion.header variants={itemVariants} className="text-center mb-16">
+      <header className="text-center mb-16 forest-readable-hero py-6">
         <div className="w-20 h-20 bg-primary-container/30 rounded-3xl flex items-center justify-center mx-auto mb-6 text-primary">
           <Shield className="w-10 h-10" />
         </div>
-        <h1 className="text-4xl font-black text-on-surface mb-4">
+        <h1 className="text-4xl font-black forest-page-title mb-4">
           {t('隐私政策', 'Privacy Policy')}
         </h1>
-        <p className="text-secondary text-lg">
+        <p className="forest-page-subtitle text-lg">
           {t('最后更新: 2026年5月', 'Last updated: May 2026')}
         </p>
-        <p className="text-on-surface-variant mt-4 max-w-2xl mx-auto">
+        <p className="forest-page-subtitle mt-4 max-w-2xl mx-auto">
           {t(
             '春日小筑以本地优先为原则：大多数工具和小游戏无需登录，收藏、最近使用和游戏分数主要保存在你的浏览器中。',
             'Spring Nest is local-first: most tools and games do not require sign-in, and favorites, recent items, and game scores are mainly stored in your browser.',
           )}
         </p>
-      </motion.header>
+      </header>
 
       {/* Sections */}
       <div className="space-y-4">
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Eye className="w-5 h-5" />}
             title={t('信息收集', 'Information Collection')}
@@ -141,9 +134,9 @@ export default function Privacy() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Database className="w-5 h-5" />}
             title={t('信息使用', 'Information Usage')}
@@ -175,9 +168,9 @@ export default function Privacy() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Database className="w-5 h-5" />}
             title={t('信息存储与安全', 'Information Storage & Security')}
@@ -210,9 +203,9 @@ export default function Privacy() {
               </li>
             </ul>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Globe className="w-5 h-5" />}
             title={t('第三方服务', 'Third-Party Services')}
@@ -244,9 +237,9 @@ export default function Privacy() {
               </p>
             </div>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Cookie className="w-5 h-5" />}
             title={t('Cookie 与本地存储', 'Cookies & Local Storage')}
@@ -272,9 +265,9 @@ export default function Privacy() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section icon={<UserCheck className="w-5 h-5" />} title={t('您的权利', 'Your Rights')}>
             <p>{t('您享有以下权利:', 'You have the following rights:')}</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
@@ -312,9 +305,9 @@ export default function Privacy() {
               </li>
             </ul>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Shield className="w-5 h-5" />}
             title={t('未成年人保护', 'Protection of Minors')}
@@ -326,9 +319,9 @@ export default function Privacy() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section icon={<Shield className="w-5 h-5" />} title={t('政策更新', 'Policy Updates')}>
             <p>
               {t(
@@ -337,9 +330,9 @@ export default function Privacy() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section icon={<Mail className="w-5 h-5" />} title={t('联系我们', 'Contact Us')}>
             <p>
               {t(
@@ -353,18 +346,18 @@ export default function Privacy() {
               </p>
             </div>
           </Section>
-        </motion.div>
+        </div>
       </div>
 
       {/* Footer */}
-      <motion.footer variants={itemVariants} className="text-center mt-16 text-secondary text-sm">
+      <footer className="text-center mt-16 text-secondary text-sm">
         <p>
           {t(
             '本隐私政策自发布之日起生效。',
             'This privacy policy is effective from the date of publication.',
           )}
         </p>
-      </motion.footer>
-    </motion.div>
+      </footer>
+    </div>
   );
 }

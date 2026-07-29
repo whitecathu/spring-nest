@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Timer, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadGameValue, saveGameValue } from '../../lib/gameScore';
@@ -169,7 +169,7 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -181,8 +181,7 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
             </p>
           </div>
           <div className="flex gap-2">
-            <motion.div
-              whileHover={{ y: -2 }}
+            <div
               className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
             >
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
@@ -192,62 +191,46 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
               <div className="text-xl font-bold text-tertiary tabular-nums">
                 {bestTime > 0 ? `${bestTime}ms` : '—'}
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
 
         {/* Main Click Area */}
-        <motion.button
+        <button
           onClick={handleClick}
-          whileTap={{ scale: 0.98 }}
           className={`w-full rounded-2xl min-h-[260px] flex flex-col items-center justify-center transition-colors duration-150 cursor-pointer select-none relative overflow-hidden ${getBgColor()} ${
             phase === 'waiting' ? 'animate-pulse' : ''
           }`}
         >
           {/* Screen flash overlay */}
-          <AnimatePresence>
-            {screenFlash && (
-              <motion.div
-                initial={{ opacity: 0.6 }}
-                animate={{ opacity: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
+          {screenFlash && (
+              <div
                 className={`absolute inset-0 rounded-2xl ${
                   screenFlash === 'green' ? 'bg-green-300/40' : 'bg-red-300/40'
                 }`}
               />
             )}
-          </AnimatePresence>
 
           {/* Particles */}
           {particles.map((p) => (
-            <motion.span
+            <span
               key={p.id}
-              initial={{ x: `${p.x}%`, y: `${p.y}%`, scale: 0, opacity: 1 }}
-              animate={{ scale: [0, 1.5, 0], opacity: [1, 1, 0], y: `${p.y - 30}%` }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
               className="absolute text-2xl pointer-events-none"
             >
               {p.emoji}
-            </motion.span>
+            </span>
           ))}
 
-          <AnimatePresence mode="wait">
-            {phase === 'idle' && (
-              <motion.div
+          {phase === 'idle' && (
+              <div
                 key="idle"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
                 className="text-center px-4"
               >
-                <motion.div
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                <div
                   className="text-6xl mb-4"
                 >
                   ⚡
-                </motion.div>
+                </div>
                 <p className="text-2xl font-bold text-on-surface mb-2">
                   {t('点击开始', 'Tap to Start')}
                 </p>
@@ -257,116 +240,86 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
                     'When the background turns green, tap as fast as you can!',
                   )}
                 </p>
-              </motion.div>
+              </div>
             )}
 
             {phase === 'waiting' && (
-              <motion.div
+              <div
                 key="waiting"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
                 className="text-center px-4"
               >
-                <motion.p
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
+                <p
                   className="text-4xl font-black text-white mb-2"
                 >
                   {t('等待变色...', 'Wait for green...')}
-                </motion.p>
+                </p>
                 <p className="text-sm text-white/80">{t('不要提前点击！', "Don't click early!")}</p>
-              </motion.div>
+              </div>
             )}
 
             {phase === 'ready' && (
-              <motion.div
+              <div
                 key="ready"
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 12 }}
                 className="text-center px-4"
               >
-                <motion.p
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 0.3, repeat: Infinity }}
+                <p
                   className="text-6xl font-black text-white drop-shadow-lg"
                 >
                   {t('点击！', 'TAP!')}
-                </motion.p>
-              </motion.div>
+                </p>
+              </div>
             )}
 
             {phase === 'early' && (
-              <motion.div
+              <div
                 key="early"
-                initial={{ scale: 0.8, x: -20 }}
-                animate={{ scale: 1, x: [0, -10, 10, -5, 5, 0] }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
                 className="text-center px-4"
               >
                 <p className="text-5xl mb-3">😤</p>
                 <p className="text-3xl font-black text-white mb-2">{t('太早了！', 'Too Early!')}</p>
                 <p className="text-sm text-white/80">{t('点击重新开始', 'Tap to try again')}</p>
-              </motion.div>
+              </div>
             )}
 
             {phase === 'result' && (
-              <motion.div
+              <div
                 key="result"
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 15 }}
                 className="text-center px-4"
               >
                 <p className="text-lg text-secondary mb-1">
                   {t('你的反应时间', 'Your reaction time')}
                 </p>
-                <motion.p
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 8, delay: 0.15 }}
+                <p
                   className={`text-7xl font-black ${rating.color} tabular-nums drop-shadow-lg`}
                 >
                   {reactionTime}ms
-                </motion.p>
-                <motion.p
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
+                </p>
+                <p
                   className="text-2xl font-bold mt-3"
                 >
                   {rating.emoji} {rating.text}
-                </motion.p>
+                </p>
                 <p className="text-sm text-secondary mt-2">
                   {t('点击再来一次', 'Tap to try again')}
                 </p>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
-        </motion.button>
+        </button>
 
         {/* Controls */}
         <div className="flex justify-center gap-4 mt-4">
-          <motion.button
+          <button
             onClick={startRound}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.93 }}
             className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2"
           >
             <RotateCcw className="w-5 h-5" />
             {t('再来一次', 'Try Again')}
-          </motion.button>
+          </button>
         </div>
 
         {/* History */}
         {history.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="mt-6 p-4 bg-surface-container-high rounded-2xl"
           >
             <div className="flex items-center gap-2 mb-3">
@@ -379,11 +332,8 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
               {history.map((ms, i) => {
                 const r = language === 'en' ? getRatingEn(ms) : getRating(ms);
                 return (
-                  <motion.div
+                  <div
                     key={i}
-                    initial={{ x: -10, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.05 }}
                     className="flex justify-between items-center"
                   >
                     <span className="text-sm text-secondary">
@@ -395,13 +345,13 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
                       <span className={`font-bold tabular-nums ${r.color}`}>{ms}ms</span>
                       <span className="text-sm">{r.emoji}</span>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,45 @@
+.efficiency {
+  min-height: 100vh;
+  background: var(--page-wash);
+}
+
+.efficiency .page-pad {
+  background: transparent;
+  min-height: auto;
+  padding-top: 14px;
+}
+
+.page-intro {
+  padding-left: 2px;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 6px;
+  opacity: 0.82;
+  line-height: 1.55;
+}
+
+.section-label {
+  padding-left: 2px;
+}
+
+.leaf-sm {
+  width: 18px;
+  height: 18px;
+}
+
+.section-icon {
+  font-size: 14px;
+  color: var(--secondary);
+  line-height: 1;
+}
+
+.efficiency .section-gap {
+  margin-top: 26px;
+}
+
+.efficiency .grid-2 {
+  gap: 14px;
+  margin-top: 14px;
+}

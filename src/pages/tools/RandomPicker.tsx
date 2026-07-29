@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Copy, Check, Trash2, Sparkles } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -104,9 +104,7 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
@@ -160,14 +158,9 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
         </button>
 
         {/* Result */}
-        <AnimatePresence mode="wait">
-          {(result || spinDisplay) && (
-            <motion.div
+        {(result || spinDisplay) && (
+            <div
               key={spinDisplay || result || ''}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
               className="bg-surface-container-low rounded-2xl p-6 text-center"
             >
               <div className="text-xs text-secondary font-medium mb-2">
@@ -191,10 +184,9 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
                   {copied ? t('已复制!', 'Copied!') : t('复制结果', 'Copy Result')}
                 </button>
               )}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

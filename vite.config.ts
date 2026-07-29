@@ -1,9 +1,21 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'node:fs';
 import { defineConfig, type PluginOption } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
+
+// Read app version once at build time — used for Sentry release tagging.
+// Falls back to '0.0.0' defensively.
+const appVersion = (() => {
+  try {
+    const raw = fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf8');
+    return (JSON.parse(raw).version as string) ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+})();
 
 export default defineConfig(({ mode }) => {
   const plugins: PluginOption[] = [
@@ -116,6 +128,11 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, 'src'),
       },
+    },
+    define: {
+      // Exposed at runtime as a string literal, gating splash animation on
+      // version bumps. Stringified so vite's define performs a literal replace.
+      __APP_VERSION__: JSON.stringify(appVersion),
     },
     build: {
       rollupOptions: {

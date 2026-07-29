@@ -1,0 +1,70 @@
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 22px 28px;
+  gap: 8px;
+}
+
+.leaf {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.ver {
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--outline);
+  background: rgba(237, 231, 225, 0.85);
+  border: 1px solid rgba(193, 200, 193, 0.32);
+  border-radius: 999px;
+  padding: 3px 12px;
+  margin-top: 6px;
+}
+
+.section {
+  margin-top: 14px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.para {
+  line-height: 1.75;
+  text-align: justify;
+  opacity: 0.92;
+}
+
+.pillars {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pillar {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legal {
+  margin-top: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

@@ -1,0 +1,64 @@
+<view class="import-page">
+  <block wx:if="{{step === 'pick'}}">
+    <view class="page-desc lead">选择最适合你的方式，快速将题目加入复习计划。</view>
+
+    <view class="file-card" bindtap="onChooseFile">
+      <view class="file-icon">⬆</view>
+      <view class="file-title">文件导入</view>
+      <view class="file-desc">支持 TXT、MD、JSON、CSV（微信聊天文件）。也可直接粘贴文本。不支持 zip / rar / docx。</view>
+    </view>
+
+    <view wx:if="{{importError}}" class="error-banner">⚠️ {{importError}}</view>
+
+    <view class="paste-card">
+      <view class="paste-label">粘贴文本导入</view>
+      <textarea
+        class="paste-area"
+        maxlength="-1"
+        placeholder="示例：&#10;1. 问题？&#10;A. 选项1&#10;B. 选项2&#10;答案：A&#10;&#10;（题目之间用空行分隔）"
+        value="{{pasteText}}"
+        bindinput="onPasteInput"
+      />
+      <view class="btn-forest" bindtap="onParsePaste">解析粘贴内容</view>
+    </view>
+
+    <view class="format-tip">
+      <view class="tip-title">格式提示</view>
+      <view class="tip-line">TXT / MD：题干 + A/B/C/D 选项 +「答案：A」</view>
+      <view class="tip-line">JSON：[{ stem, options, answer, type }]</view>
+      <view class="tip-line">CSV：stem,optionA,optionB,optionC,optionD,answer</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="page-desc lead">共解析出 {{previewCount}} 道题，可调整名称与图标后保存。</view>
+    <view class="back-edit" bindtap="onBackToPick">‹ 返回修改</view>
+
+    <view class="meta-card">
+      <view class="field-label">题集名称</view>
+      <input class="field-input" value="{{importTitle}}" bindinput="onTitleInput" placeholder="输入题集名称" />
+      <view class="field-label" style="margin-top:16px">图标</view>
+      <view class="emoji-row">
+        <view
+          wx:for="{{emojiPresets}}"
+          wx:key="*this"
+          class="emoji-chip {{importEmoji === item ? 'active' : ''}}"
+          data-emoji="{{item}}"
+          bindtap="onPickEmoji"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="preview-card">
+      <view class="preview-head">题目预览（前 {{previewQuestions.length}} 题）</view>
+      <block wx:for="{{previewQuestions}}" wx:key="id">
+        <view class="preview-item">
+          <view class="preview-stem">{{index + 1}}. {{item.stem}}</view>
+          <view class="preview-answer">答案 {{item.answer}}</view>
+        </view>
+      </block>
+    </view>
+
+    <view class="btn-forest save-btn" bindtap="onSaveDeck">{{saving ? '保存中…' : '保存题集'}}</view>
+  </block>
+</view>

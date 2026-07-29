@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowUpDown, Info, Search, Shield, Wrench } from 'lucide-react';
 import { useState, useMemo, Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { tools as baseTools } from '../data/tools';
@@ -17,7 +17,7 @@ import { collectionJsonLd, faqJsonLd, itemJsonLd } from '../lib/structuredData';
 import type { AppItem } from '../types/app';
 import { toolComponents } from '../registries/toolRegistry';
 import CatalogItemCard from '../components/CatalogItemCard';
-import { MotionList } from '../components/MotionSurface';
+import { MotionList } from '../components/GsapSurface';
 import { setBackgroundIntent } from '../lib/backgroundIntent';
 
 const toolsWithInternalH1 = new Set([
@@ -586,21 +586,18 @@ export default function Tools() {
         )}
       />
 
-      <motion.header
-        initial={reducedMotion ? false : { opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={reducedMotion ? { duration: 0.01 } : { duration: 0.6 }}
-        className="text-center mb-12 sm:mb-16 lg:mb-20 relative pt-16 pb-8"
+      <header
+        className="text-center mb-12 sm:mb-16 lg:mb-20 relative pt-16 pb-8 forest-readable-hero"
       >
-        <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#274e3a] dark:text-primary mb-6 flex items-center justify-center gap-4">
+        <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl forest-page-title mb-6 flex items-center justify-center gap-4">
           {categoryRoute
             ? t(categoryRoute.label, categoryRoute.labelEn)
             : t('实用小筑', 'Practical Tools')}
         </h1>
-        <p className="font-sans text-lg font-medium text-on-surface-variant max-w-2xl mx-auto">
+        <p className="font-sans text-lg font-medium forest-page-subtitle max-w-2xl mx-auto">
           {pageDescription}
         </p>
-      </motion.header>
+      </header>
 
       <section className="mb-8 rounded-2xl border border-surface-variant/30 bg-white/70 dark:bg-surface-container-high/60 p-5">
         <p className="text-sm leading-7 text-secondary">
@@ -642,37 +639,26 @@ export default function Tools() {
         </label>
       </div>
 
-      <motion.div
+      <div
         ref={pillContainerRef}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
         className="flex overflow-x-auto flex-nowrap sm:flex-wrap scrollbar-hide justify-center gap-4 mb-16 relative"
       >
-        <motion.div
-          className="absolute left-0 top-0 bg-primary rounded-full shadow-lg shadow-primary/30 pointer-events-none"
-          initial={false}
-          animate={{
-            opacity: pillLayout.width ? 1 : 0,
-            x: Math.max(0, pillLayout.left),
-            y: Math.max(0, pillLayout.top),
-          }}
-          transition={reducedMotion ? { duration: 0.01 } : springSmooth}
+        <div
+          className="absolute left-0 top-0 bg-primary rounded-full shadow-lg shadow-primary/30 pointer-events-none transition-[transform,width,height,opacity] duration-300"
           style={{
             zIndex: 0,
-            width: Math.max(1, pillLayout.width),
-            height: Math.max(1, pillLayout.height),
+            width: Math.max(0, pillLayout.width),
+            height: Math.max(0, pillLayout.height),
+            opacity: pillLayout.width > 8 ? 1 : 0,
+            transform: `translate3d(${pillLayout.left}px, ${pillLayout.top}px, 0)`,
             willChange: reducedMotion ? 'auto' : 'transform',
           }}
         />
         {categories.map((cat) => (
-          <motion.button
+          <button
             key={cat.id}
             onClick={() => handleCategorySwitch(cat.id)}
             aria-pressed={activeCategory === cat.id}
-            whileHover={reducedMotion ? undefined : { scale: 1.05 }}
-            whileTap={reducedMotion ? undefined : { scale: 0.95 }}
-            transition={reducedMotion ? undefined : springSnappy}
             className={`shrink-0 px-8 py-3 min-h-[48px] rounded-full font-semibold text-sm relative z-[1] transition-colors duration-300 ${
               activeCategory === cat.id
                 ? 'text-on-primary'
@@ -680,20 +666,16 @@ export default function Tools() {
             }`}
           >
             {cat.label}
-          </motion.button>
+          </button>
         ))}
-      </motion.div>
+      </div>
 
-      <AnimatePresence mode="wait">
-        <MotionList
+      <MotionList
           key={`grid-${activeCategory}-${query}-${sortMode}`}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-20"
         >
           {filteredTools.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               className="surface-raised col-span-full flex flex-col items-center justify-center rounded-3xl py-20 text-secondary"
             >
               <Wrench className="w-16 h-16 text-secondary/30 mb-4" />
@@ -709,7 +691,7 @@ export default function Tools() {
               >
                 {t('清除筛选', 'Clear filters')}
               </button>
-            </motion.div>
+            </div>
           ) : (
             filteredTools.map((tool) => (
               <CatalogItemCard
@@ -725,7 +707,6 @@ export default function Tools() {
             ))
           )}
         </MotionList>
-      </AnimatePresence>
-    </div>
+</div>
   );
 }

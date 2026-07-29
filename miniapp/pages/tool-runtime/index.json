@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "工具",
+  "usingComponents": {
+    "tool-shell": "/components/tool-shell/index",
+    "result-card": "/components/result-card/index",
+    "bottom-action-bar": "/components/bottom-action-bar/index",
+    "preset-chips": "/components/preset-chips/index"
+  }
+}

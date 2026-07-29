@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Download } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -94,19 +94,15 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button
+      <button
         onClick={onBack}
-        whileHover={{ x: -4 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
       >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
-      </motion.button>
+      </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
@@ -132,27 +128,21 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.9 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+        <button
           onClick={handleGenerate}
           className="w-full py-4 bg-primary text-on-primary rounded-xl font-bold shadow-lg hover:shadow-xl transition-all mb-6"
         >
           {t('生成二维码', 'Generate QR Code')}
-        </motion.button>
+        </button>
 
         {/* QR Code Display */}
         <div className="flex flex-col items-center">
           {qrDataUrl ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            <div
               className="bg-white p-4 rounded-2xl shadow-sm border border-surface-variant/30 mb-4"
             >
               <img src={qrDataUrl} alt="QR Code" className="w-64 h-64" />
-            </motion.div>
+            </div>
           ) : (
             <div className="w-64 h-64 bg-surface-container-low rounded-2xl flex items-center justify-center mb-4 border border-surface-variant/20">
               <span className="text-secondary/40 text-sm">
@@ -162,21 +152,19 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
           )}
 
           {qrDataUrl && (
-            <motion.button
-              whileTap={{ scale: 0.93 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            <button
               onClick={handleDownload}
               className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2"
             >
               <Download className="w-5 h-5" />
               {t('下载二维码', 'Download QR Code')}
-            </motion.button>
+            </button>
           )}
         </div>
 
         {/* Hidden canvas for QR generation */}
         <canvas ref={canvasRef} className="hidden" />
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,86 @@
+<tool-shell
+  wx:if="{{tool}}"
+  title="{{tool.title}}"
+  desc="{{tool.description}}"
+  icon="{{tool.icon}}"
+  bg="{{tool.bg}}"
+  color="{{tool.color}}"
+  favorite="{{favorite}}"
+  bind:togglefavorite="onToggleFavorite"
+>
+  <view class="filters glass-card">
+    <picker mode="selector" range="{{monthOptions}}" value="{{monthIndex}}" bindchange="onMonthChange">
+      <view class="filter-row">
+        <text class="filter-label">月份</text>
+        <text class="filter-value">{{selectedMonth}} ›</text>
+      </view>
+    </picker>
+    <input
+      class="field search"
+      placeholder="搜索分类 / 备注 / 金额"
+      value="{{searchQuery}}"
+      bindinput="onSearchInput"
+    />
+    <button class="btn-ghost export-btn" bindtap="exportCsv" disabled="{{!entries.length}}">导出 CSV 备份</button>
+  </view>
+
+  <view class="summary glass-card">
+    <view class="sum-item">
+      <text class="sum-label">收入</text>
+      <text class="sum-val income">{{summary.income}}</text>
+    </view>
+    <view class="sum-item">
+      <text class="sum-label">支出</text>
+      <text class="sum-val expense">{{summary.expense}}</text>
+    </view>
+    <view class="sum-item">
+      <text class="sum-label">结余</text>
+      <text class="sum-val">{{summary.balance}}</text>
+    </view>
+  </view>
+
+  <view class="chart glass-card" wx:if="{{bars.length}}">
+    <text class="chart-title">支出分类（{{selectedMonth}}）</text>
+    <view class="bars">
+      <view class="bar-col" wx:for="{{bars}}" wx:key="label">
+        <view class="bar" style="height: {{item.height}}%;"></view>
+        <text class="bar-label">{{item.label}}</text>
+        <text class="bar-val">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="form glass-card">
+    <view class="row gap-md">
+      <button class="type-btn {{formType === 'expense' ? 'on' : ''}}" data-type="expense" bindtap="setType">支出</button>
+      <button class="type-btn {{formType === 'income' ? 'on' : ''}}" data-type="income" bindtap="setType">收入</button>
+    </view>
+    <input class="field" type="digit" placeholder="金额" value="{{formAmount}}" data-field="formAmount" bindinput="onInput" />
+    <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategory">
+      <view class="field">分类：{{formCategory}}</view>
+    </picker>
+    <input class="field" placeholder="备注（可选）" value="{{formNote}}" data-field="formNote" bindinput="onInput" />
+    <button class="btn-primary" bindtap="addEntry">记一笔</button>
+  </view>
+
+  <view class="list-head">
+    <text class="text-label-md text-primary">明细 · {{entries.length}}</text>
+    <text class="clear-link" bindtap="clearAll" wx:if="{{entries.length}}">清空筛选</text>
+  </view>
+
+  <view wx:if="{{!entries.length}}" class="empty glass-card">
+    <text class="text-body-sm text-muted">本月暂无匹配记录，记一笔或换个月份试试</text>
+  </view>
+
+  <view class="entry glass-card" wx:for="{{entries}}" wx:key="id">
+    <view class="entry-main">
+      <text class="entry-cat">{{item.category}}</text>
+      <text class="entry-note" wx:if="{{item.note}}">{{item.note}}</text>
+      <text class="entry-date">{{item.date}}</text>
+    </view>
+    <view class="entry-side">
+      <text class="entry-amount {{item.type}}">{{item.type === 'income' ? '+' : '-'}}{{item.amount}}</text>
+      <text class="entry-del" data-id="{{item.id}}" bindtap="removeEntry">删除</text>
+    </view>
+  </view>
+</tool-shell>

@@ -1,6 +1,17 @@
 @import 'tailwindcss';
 
 @theme {
+  /* Forest immersion palette (synced with src/lib/forest/forestPalette.ts) */
+  --forest-ink: #2d4a36;
+  --forest-body: #4a5a50;
+  --forest-muted: #7a8a80;
+  --forest-moss: #5f8f6a;
+  --forest-gold: #c4a574;
+  --forest-mist: #e8efe9;
+  --forest-bark: #4a3b2f;
+  --forest-water: #7a9299;
+  --forest-shadow: rgba(45, 74, 54, 0.22);
+
   --color-primary: #3f6751;
   --color-primary-container: #b8e4c9;
   --color-on-primary: #ffffff;
@@ -181,6 +192,19 @@ body {
   overscroll-behavior-y: contain;
 }
 
+/* ── Focus visibility (enterprise a11y) ── */
+/* A high-contrast, consistent focus ring only for keyboard users. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  /* Soft halo so the ring stays legible over glass surfaces. */
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 28%, transparent);
+  border-radius: 0.5rem;
+}
+
 /* Safe area padding for fixed/sticky elements */
 .safe-area-top {
   padding-top: max(0px, env(safe-area-inset-top));
@@ -280,9 +304,10 @@ body {
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid color-mix(in srgb, var(--forest-moss) 28%, transparent);
+  box-shadow: 0 18px 40px -28px var(--forest-shadow);
 }
 
 @media (max-width: 768px) {
@@ -292,8 +317,9 @@ body {
 }
 
 .dark .glass-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(26, 36, 30, 0.72);
+  border: 1px solid color-mix(in srgb, var(--forest-moss) 22%, transparent);
+  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.45);
 }
 
 .glass-pill {
@@ -340,10 +366,10 @@ body {
 }
 
 .surface-glass {
-  background: color-mix(in srgb, var(--color-surface-container-lowest) 72%, transparent);
-  backdrop-filter: blur(18px) saturate(1.08);
-  border: 1px solid color-mix(in srgb, white 56%, transparent);
-  box-shadow: 0 18px 48px -30px rgba(0, 0, 0, 0.24);
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 75%, transparent);
+  backdrop-filter: blur(16px) saturate(1.08);
+  border: 1px solid color-mix(in srgb, var(--forest-moss) 26%, white 40%);
+  box-shadow: 0 18px 48px -30px var(--forest-shadow);
 }
 
 .dark .surface-raised {
@@ -371,9 +397,8 @@ body {
 /* ── Glass Surface (SVG displacement filter) ── */
 .glass-surface {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -389,10 +414,7 @@ body {
 
 .glass-surface__content {
   width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   border-radius: inherit;
   position: relative;
   z-index: 1;
@@ -485,8 +507,7 @@ body {
 }
 
 /* ── Home hero ambient stage ── */
-.home-hero-stage,
-.splash-orbit-field {
+.home-hero-stage {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -508,9 +529,10 @@ body {
   top: 14%;
   width: min(34vw, 360px);
   height: min(34vw, 360px);
+  opacity: 0.22;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--color-primary-container) 48%, transparent),
+    color-mix(in srgb, var(--color-primary-container) 22%, transparent),
     transparent 68%
   );
 }
@@ -520,9 +542,10 @@ body {
   top: 18%;
   width: min(30vw, 320px);
   height: min(30vw, 320px);
+  opacity: 0.16;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--color-tertiary-container) 42%, transparent),
+    color-mix(in srgb, var(--color-tertiary-container) 18%, transparent),
     transparent 68%
   );
 }
@@ -530,7 +553,7 @@ body {
 .home-hero-stage__grid {
   position: absolute;
   inset: 8% 8% 2%;
-  opacity: 0.22;
+  opacity: 0.04;
   background-image:
     linear-gradient(color-mix(in srgb, var(--color-primary) 12%, transparent) 1px, transparent 1px),
     linear-gradient(
@@ -547,7 +570,7 @@ body {
   inset: 6% 0 0;
   width: 100%;
   height: 84%;
-  opacity: 0.72;
+  opacity: 0.35;
 }
 
 .home-hero-stage__panel {
@@ -561,14 +584,13 @@ body {
   align-items: center;
   gap: 0.625rem;
   min-height: 72px;
-  border: 1px solid color-mix(in srgb, white 58%, transparent);
+  border: 1px solid color-mix(in srgb, white 22%, transparent);
   border-radius: 1.25rem;
-  background: color-mix(in srgb, var(--color-surface-container-lowest) 66%, transparent);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    0 20px 48px -30px rgba(63, 103, 81, 0.34);
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 14%, transparent);
+  box-shadow: none;
   padding: 0.75rem;
-  backdrop-filter: blur(14px) saturate(1.06);
+  backdrop-filter: blur(4px) saturate(1.01);
+  opacity: 0.18;
 }
 
 .home-hero-stage__panel--tools {
@@ -764,20 +786,14 @@ body {
   z-index: 0;
   pointer-events: none;
   border-radius: inherit;
-  background:
-    linear-gradient(
-      125deg,
-      color-mix(in srgb, white 40%, transparent),
-      transparent 34%,
-      color-mix(in srgb, var(--color-primary-container) 14%, transparent) 68%,
-      transparent
-    ),
-    radial-gradient(
-      circle at 18% 8%,
-      color-mix(in srgb, var(--color-primary-container) 20%, transparent),
-      transparent 36%
-    );
-  opacity: 0.42;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, white 18%, transparent),
+    transparent 48%,
+    color-mix(in srgb, var(--color-primary-container) 4%, transparent) 82%,
+    transparent
+  );
+  opacity: 0.16;
   transform: translate3d(0, 0, 0);
   transition:
     opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -785,7 +801,7 @@ body {
 }
 
 .catalog-card-shell:hover::before {
-  opacity: 0.72;
+  opacity: 0.38;
   transform: translate3d(0, -2px, 0);
 }
 
@@ -841,14 +857,8 @@ body {
 }
 
 .dark .catalog-card-shell::before {
-  background:
-    linear-gradient(125deg, color-mix(in srgb, white 10%, transparent), transparent 40%),
-    radial-gradient(
-      circle at 18% 8%,
-      color-mix(in srgb, var(--color-primary-container) 24%, transparent),
-      transparent 36%
-    );
-  opacity: 0.3;
+  background: linear-gradient(125deg, color-mix(in srgb, white 8%, transparent), transparent 48%);
+  opacity: 0.18;
 }
 
 @keyframes favorite-pop {
@@ -1103,4 +1113,206 @@ input[type='range'] {
   to {
     width: 0%;
   }
+}
+
+/* ── Forest immersion utilities ── */
+:root {
+  --forest-ink: #2d4a36;
+  --forest-body: #4a5a50;
+  --forest-muted: #7a8a80;
+  --forest-moss: #5f8f6a;
+  --forest-gold: #c4a574;
+  --forest-mist: #e8efe9;
+  --forest-bark: #4a3b2f;
+  --forest-water: #7a9299;
+  --forest-shadow: rgba(45, 74, 54, 0.22);
+}
+
+.forest-title {
+  color: var(--forest-ink);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--forest-gold) 22%, transparent);
+}
+
+.dark .forest-title {
+  color: color-mix(in srgb, var(--forest-mist) 88%, var(--forest-gold));
+}
+
+.forest-body-text {
+  color: var(--forest-body);
+}
+
+.forest-muted-text {
+  color: var(--forest-muted);
+}
+
+.forest-sunlit-link {
+  color: var(--forest-ink);
+  transition: color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.forest-sunlit-link:hover {
+  color: var(--forest-gold);
+  transition-duration: 0.25s;
+}
+
+.forest-sunlit-link:not(:hover) {
+  transition-duration: 0.6s;
+}
+
+.forest-cursor-active,
+.forest-cursor-active * {
+  cursor: none !important;
+}
+
+.forest-cursor-active input,
+.forest-cursor-active textarea,
+.forest-cursor-active [contenteditable='true'],
+.forest-cursor-active input *,
+.forest-cursor-active textarea * {
+  cursor: text !important;
+}
+
+.forest-nav-scrolled {
+  backdrop-filter: blur(20px) saturate(1.08) !important;
+  background: color-mix(in srgb, #fff9f2 65%, transparent) !important;
+  border-bottom-color: color-mix(in srgb, var(--forest-moss) 42%, transparent) !important;
+}
+
+.dark .forest-nav-scrolled {
+  background: color-mix(in srgb, #121412 65%, transparent) !important;
+}
+
+.forest-search-glow:focus-within {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--forest-gold) 55%, transparent),
+    0 0 28px color-mix(in srgb, var(--forest-gold) 28%, transparent);
+}
+
+.forest-tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.forest-tilt-card::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    320px circle at var(--forest-mx, 50%) var(--forest-my, 50%),
+    color-mix(in srgb, var(--forest-gold) 10%, transparent),
+    transparent 58%
+  );
+}
+
+.forest-tilt-card:hover::after {
+  opacity: 0.55;
+}
+
+.forest-fav-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.forest-skip-btn {
+  border: 1px solid color-mix(in srgb, white 35%, transparent);
+  background: color-mix(in srgb, white 18%, transparent);
+  color: color-mix(in srgb, white 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-radius: 9999px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.forest-skip-btn:hover,
+.forest-skip-btn:focus-visible {
+  color: white;
+  background: color-mix(in srgb, white 28%, transparent);
+  outline: none;
+}
+
+/* Readable surfaces over forest video */
+.forest-readable-hero {
+  position: relative;
+}
+
+.forest-readable-hero::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 0;
+  width: min(92vw, 920px);
+  height: min(70%, 420px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, #fff9f2 78%, transparent) 0%,
+    color-mix(in srgb, #fff9f2 42%, transparent) 42%,
+    transparent 72%
+  );
+}
+
+.dark .forest-readable-hero::before {
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, #121412 72%, transparent) 0%,
+    color-mix(in srgb, #121412 36%, transparent) 45%,
+    transparent 72%
+  );
+}
+
+.forest-readable-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.forest-page-title {
+  color: var(--forest-ink);
+  text-shadow:
+    0 1px 0 color-mix(in srgb, white 55%, transparent),
+    0 8px 28px color-mix(in srgb, #fff9f2 70%, transparent);
+}
+
+.dark .forest-page-title {
+  color: color-mix(in srgb, var(--forest-mist) 92%, white);
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+
+.forest-page-subtitle {
+  color: var(--forest-body);
+  text-shadow: 0 1px 12px color-mix(in srgb, #fff9f2 80%, transparent);
+}
+
+.dark .forest-page-subtitle {
+  color: color-mix(in srgb, var(--forest-mist) 78%, transparent);
+}
+
+.forest-empty-panel {
+  border-radius: 1.75rem;
+  border: 1px solid color-mix(in srgb, var(--forest-moss) 22%, transparent);
+  background: color-mix(in srgb, #fff9f2 86%, transparent);
+  backdrop-filter: blur(16px) saturate(1.05);
+  box-shadow: 0 18px 48px -30px var(--forest-shadow);
+}
+
+.dark .forest-empty-panel {
+  background: color-mix(in srgb, #1a1c1a 86%, transparent);
+}
+
+.forest-brightness-veil {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  mix-blend-mode: soft-light;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 236, 200, 0.55), transparent 62%);
+  opacity: 0;
+  transition: opacity 0.45s ease;
 }

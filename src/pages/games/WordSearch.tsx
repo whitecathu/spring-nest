@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Search } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -152,9 +152,7 @@ export default function WordSearch({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="space-y-5"
       >
         <div>
@@ -248,7 +246,7 @@ export default function WordSearch({ onBack }: { onBack: () => void }) {
             </div>
           </aside>
         </section>
-      </motion.div>
+      </div>
     </div>
   );
 }

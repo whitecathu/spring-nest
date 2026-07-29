@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, ArrowRightLeft, Copy, Check, Trash2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -74,9 +74,7 @@ export default function UrlCodec({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
@@ -222,7 +220,7 @@ export default function UrlCodec({ onBack }: { onBack: () => void }) {
             {t('清空', 'Clear')}
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

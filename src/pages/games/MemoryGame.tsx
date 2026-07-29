@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import {
   ArrowLeft,
   RotateCcw,
@@ -319,15 +319,13 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
           {t('返回游戏列表', 'Back to Games')}
         </button>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <div>
           <div className="text-center mb-8">
-            <motion.div
+            <div
               className="text-5xl mb-4 inline-block"
-              animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
             >
               🃏
-            </motion.div>
+            </div>
             <h1 className="text-3xl font-black text-on-surface mb-2">
               {t('记忆翻牌', 'Memory Match')}
             </h1>
@@ -343,13 +341,8 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
               const best = loadGameValue(memoryKey(key));
               const Icon = config.icon;
               return (
-                <motion.button
+                <button
                   key={key}
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 + index * 0.1 }}
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
                   onClick={() => startGame(key)}
                   className="w-full p-5 bg-surface-container-high rounded-2xl border border-surface-variant/30 hover:bg-primary-container/50 transition-all text-left group relative overflow-hidden"
                 >
@@ -388,11 +381,11 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                       )}
                     </div>
                   </div>
-                </motion.button>
+                </button>
               );
             })}
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -409,7 +402,7 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -423,35 +416,24 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
 
         {/* Stats */}
         <div className="flex justify-center gap-4 mb-6">
-          <motion.div
+          <div
             className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-            animate={elapsedBounce ? { scale: [1, 1.08, 1] } : {}}
-            transition={{ duration: 0.2 }}
           >
             <div className="text-xs text-secondary flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {t('用时', 'Time')}
             </div>
             <div className="text-xl font-bold text-primary tabular-nums">{formatTime(elapsed)}</div>
-          </motion.div>
-          <motion.div
+          </div>
+          <div
             className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-            animate={
-              movesBounce
-                ? {
-                    scale: [1, 1.15, 1],
-                    color: ['var(--color-primary)', '#f59e0b', 'var(--color-primary)'],
-                  }
-                : {}
-            }
-            transition={{ duration: 0.3 }}
           >
             <div className="text-xs text-secondary flex items-center gap-1">
               <Footprints className="w-3 h-3" />
               {t('步数', 'Moves')}
             </div>
             <div className="text-xl font-bold text-primary">{moves}</div>
-          </motion.div>
+          </div>
           <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
             <div className="text-xs text-secondary flex items-center gap-1">
               <Trophy className="w-3 h-3" />
@@ -474,20 +456,8 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
 
             return (
               <div key={card.id} className="relative" style={{ perspective: '600px' }}>
-                <motion.button
+                <button
                   onClick={() => handleFlip(card.id)}
-                  animate={{
-                    rotateY: isFlipped ? 180 : 0,
-                    x: isShaking ? [0, -6, 6, -4, 4, -2, 2, 0] : 0,
-                    scale: isMatchFlashing ? [1, 1.15, 1] : 1,
-                  }}
-                  transition={{
-                    rotateY: { duration: 0.5, ease: 'easeInOut' },
-                    x: isShaking ? { duration: 0.6, ease: 'easeInOut' } : { duration: 0.2 },
-                    scale: isMatchFlashing ? { duration: 0.4 } : { duration: 0.2 },
-                  }}
-                  whileHover={!isFlipped ? { y: -4, boxShadow: '0 8px 25px rgba(0,0,0,0.15)' } : {}}
-                  whileTap={!isFlipped ? { scale: 0.95 } : {}}
                   className={`aspect-square rounded-2xl text-3xl w-full flex items-center justify-center ${
                     isFlipped
                       ? card.matched
@@ -517,47 +487,28 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                       transform: 'rotateY(180deg)',
                     }}
                   >
-                    <AnimatePresence>
-                      {isFlipped && (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 15 }}
+                    {isFlipped && (
+                        <span
                         >
                           {card.emoji}
-                        </motion.span>
+                        </span>
                       )}
-                    </AnimatePresence>
                   </div>
-                </motion.button>
+                </button>
 
                 {/* Sparkle burst on match */}
-                <AnimatePresence>
-                  {showSparklesOnThis && matchSparkles && (
+                {showSparklesOnThis && matchSparkles && (
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
                       {matchSparkles.sparkles.map((sparkle) => (
-                        <motion.span
+                        <span
                           key={sparkle.id}
                           className="absolute text-lg"
-                          initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
-                          animate={{
-                            opacity: [1, 1, 0],
-                            scale: [0, 1.2, 0.6],
-                            x: sparkle.x,
-                            y: sparkle.y,
-                          }}
-                          transition={{
-                            duration: 0.6,
-                            delay: sparkle.delay,
-                            ease: 'easeOut',
-                          }}
                         >
                           {sparkle.emoji}
-                        </motion.span>
+                        </span>
                       ))}
                     </div>
                   )}
-                </AnimatePresence>
               </div>
             );
           })}
@@ -581,18 +532,14 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
-        <AnimatePresence>
-          {gameComplete && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+        {gameComplete && (
+            <div
               className="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl text-center relative overflow-hidden"
             >
               {/* Confetti particles */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {confetti.map((particle) => (
-                  <motion.div
+                  <div
                     key={particle.id}
                     className="absolute w-2.5 h-2.5 rounded-sm"
                     style={{
@@ -600,43 +547,21 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                       left: '50%',
                       top: '50%',
                     }}
-                    initial={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: particle.scale }}
-                    animate={{
-                      opacity: [1, 1, 0],
-                      x: particle.x,
-                      y: particle.y,
-                      rotate: particle.rotation,
-                      scale: [particle.scale, particle.scale, 0],
-                    }}
-                    transition={{
-                      duration: 1.8,
-                      delay: particle.delay,
-                      ease: 'easeOut',
-                    }}
                   />
                 ))}
               </div>
 
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 10, delay: 0.2 }}
+              <div
                 className="text-4xl mb-2 relative z-10"
               >
                 🎉
-              </motion.div>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+              </div>
+              <p
                 className="text-xl font-bold text-green-600 mb-2 relative z-10"
               >
                 {t('恭喜完成！', 'Congratulations!')}
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
+              </p>
+              <div
                 className="relative z-10"
               >
                 <p className="text-sm text-green-500 mb-1">
@@ -649,22 +574,16 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                   {t('步数', 'Moves')}: {moves}
                 </p>
                 {bestMoves === moves && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7, type: 'spring' }}
+                  <div
                     className="flex items-center justify-center gap-1 text-amber-500 mb-4"
                   >
                     <Star className="w-4 h-4 fill-amber-400" />
                     <span className="text-sm font-bold">{t('新纪录！', 'New Record!')}</span>
                     <Star className="w-4 h-4 fill-amber-400" />
-                  </motion.div>
+                  </div>
                 )}
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
+              </div>
+              <div
                 className="flex justify-center gap-3 relative z-10"
               >
                 <button
@@ -679,11 +598,10 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                 >
                   {t('切换难度', 'Change Difficulty')}
                 </button>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

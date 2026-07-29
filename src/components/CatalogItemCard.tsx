@@ -2,7 +2,7 @@ import { ArrowRight, Heart, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { SurfaceMotionTone } from '../lib/animations';
 import type { AppItem } from '../types/app';
-import { MotionButton, MotionCard } from './MotionSurface';
+import { MotionButton, MotionCard } from './GsapSurface';
 import GlareHover from './animations/GlareHover';
 
 type CatalogItemVariant = 'tool' | 'game' | 'feature';
@@ -53,11 +53,39 @@ export default function CatalogItemCard({
     <MotionCard
       tone={getCardTone(variant)}
       className={cx(
-        'catalog-card-shell group relative flex h-full min-h-[320px] flex-col gap-4 overflow-hidden rounded-3xl p-5',
+        'catalog-card-shell forest-tilt-card group relative flex h-full min-h-[320px] flex-col gap-4 overflow-hidden rounded-3xl p-5',
         variant === 'game' ? 'surface-playful' : 'surface-raised',
         isGame ? 'catalog-card-game' : 'catalog-card-tool',
         variant === 'feature' && 'p-6',
       )}
+      data-forest-material="wood"
+      onMouseMove={(e) => {
+        const el = e.currentTarget as HTMLElement;
+        const rect = el.getBoundingClientRect();
+        const px = (e.clientX - rect.left) / rect.width;
+        const py = (e.clientY - rect.top) / rect.height;
+        el.style.setProperty('--forest-mx', `${px * 100}%`);
+        el.style.setProperty('--forest-my', `${py * 100}%`);
+        const cx = px - 0.5;
+        const cy = py - 0.5;
+        const dist = Math.hypot(cx, cy);
+        if (dist < 0.55) {
+          const tilt = (1 - dist / 0.55) * 4;
+          el.style.transform = `perspective(900px) rotateY(${cx * tilt * 2}deg) rotateX(${-cy * tilt * 2}deg)`;
+        }
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.transform = '';
+      }}
+      onPointerDown={(e) => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.transform += ' translateY(4px)';
+      }}
+      onPointerUp={(e) => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.transform = el.style.transform.replace(' translateY(4px)', '');
+      }}
       aria-label={title}
     >
       {variant === 'feature' && (
@@ -72,7 +100,7 @@ export default function CatalogItemCard({
         type="button"
         onClick={() => onFavorite(item.id)}
         className={cx(
-          'catalog-favorite-button absolute right-4 top-4 z-[2] inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors',
+          'catalog-favorite-button forest-fav-ripple absolute right-4 top-4 z-[2] inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors',
           isFavorite
             ? 'is-favorite bg-red-50 text-red-500 dark:bg-red-900/20'
             : 'bg-white/70 text-secondary hover:bg-red-50 hover:text-red-500 dark:bg-surface-container/70',

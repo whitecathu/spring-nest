@@ -1,0 +1,89 @@
+{
+  "pages": [
+    "pages/discover/index",
+    "pages/development/index",
+    "pages/efficiency/index",
+    "pages/profile/index",
+    "pages/favorites/index",
+    "pages/history/index",
+    "pages/about/index",
+    "pages/privacy/index",
+    "pages/tool-runtime/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#fef8f2",
+    "navigationBarTitleText": "春日小筑",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fef8f2",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#717973",
+    "selectedColor": "#274f3a",
+    "backgroundColor": "#fef8f2",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/discover/index",
+        "text": "发现",
+        "iconPath": "assets/icons/tab-discover.png",
+        "selectedIconPath": "assets/icons/tab-discover-active.png"
+      },
+      {
+        "pagePath": "pages/development/index",
+        "text": "开发",
+        "iconPath": "assets/icons/tab-dev.png",
+        "selectedIconPath": "assets/icons/tab-dev-active.png"
+      },
+      {
+        "pagePath": "pages/efficiency/index",
+        "text": "效率",
+        "iconPath": "assets/icons/tab-efficiency.png",
+        "selectedIconPath": "assets/icons/tab-efficiency-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/icons/tab-profile.png",
+        "selectedIconPath": "assets/icons/tab-profile-active.png"
+      }
+    ]
+  },
+  "subpackages": [
+    {
+      "root": "packageStudy",
+      "name": "packageStudy",
+      "pages": [
+        "pages/home/index",
+        "pages/import/index",
+        "pages/set-detail/index",
+        "pages/practice/index",
+        "pages/incorrect/index",
+        "pages/favorites/index",
+        "pages/stats/index"
+      ]
+    },
+    {
+      "root": "packageTools",
+      "name": "packageTools",
+      "pages": [
+        "pages/scanner/index",
+        "pages/bookkeeping/index",
+        "pages/word-to-pdf/index",
+        "pages/pdf-to-word/index"
+      ]
+    }
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents",
+  "__usePrivacyCheck__": true,
+  "requiredPrivateInfos": [],
+  "networkTimeout": {
+    "request": 60000,
+    "connectSocket": 60000,
+    "uploadFile": 60000,
+    "downloadFile": 60000
+  }
+}

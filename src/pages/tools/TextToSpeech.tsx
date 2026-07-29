@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Pause, Play, RotateCcw, Square, Volume2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { toolPageEnter } from '../../lib/animations';
@@ -90,7 +90,7 @@ export default function TextToSpeech({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div {...toolPageEnter} className="space-y-5">
+      <div {...toolPageEnter} className="space-y-5">
         <div>
           <h1 className="flex items-center gap-3 text-3xl font-black text-on-surface">
             <Volume2 className="h-8 w-8 text-primary" />
@@ -218,7 +218,7 @@ export default function TextToSpeech({ onBack }: { onBack: () => void }) {
             </p>
           </div>
         </section>
-      </motion.div>
+      </div>
     </div>
   );
 }

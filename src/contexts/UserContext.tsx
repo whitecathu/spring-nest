@@ -49,8 +49,8 @@ interface UserContextType {
   isSupabaseEnabled: boolean;
   language: 'zh' | 'en';
   setLanguage: (lang: 'zh' | 'en') => void;
-  login: (email: string, password: string) => LoginResult;
-  register: (email: string, password: string, username?: string) => RegisterResult;
+  login: (email: string, password: string) => Promise<LoginResult>;
+  register: (email: string, password: string, username?: string) => Promise<RegisterResult>;
   logout: () => void;
   updateProfile: (updates: Partial<Omit<UserProfile, 'id' | 'createdAt'>>) => UserProfile | null;
   refreshUser: () => UserProfile | null;
@@ -117,6 +117,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem('spring_nest_lang', language);
+    // Keep <html lang> in sync so screen readers pronounce content correctly
+    // and search engines index the right language. Falls back to attribute
+    // clear if DOM is unavailable (SSR / non-browser).
+    if (typeof document !== 'undefined' && document.documentElement) {
+      document.documentElement.lang = language === 'en' ? 'en' : 'zh-CN';
+    }
     // Sync language to cloud if logged in
     if (supabaseEnabled && user) {
       const theme = localStorage.getItem('spring_nest_theme') || 'system';
@@ -162,8 +168,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       });
   }, [supabaseEnabled, syncSignedInSupabaseUser]);
 
-  const handleLogin = useCallback((email: string, password: string): LoginResult => {
-    const result = login(email, password);
+  const handleLogin = useCallback(async (email: string, password: string): Promise<LoginResult> => {
+    const result = await login(email, password);
     if (result.success && result.user) {
       setUser(result.user);
     }
@@ -171,8 +177,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleRegister = useCallback(
-    (email: string, password: string, username?: string): RegisterResult => {
-      const result = register(email, password, username);
+    async (email: string, password: string, username?: string): Promise<RegisterResult> => {
+      const result = await register(email, password, username);
       if (result.success && result.user) {
         setUser(result.user);
       }

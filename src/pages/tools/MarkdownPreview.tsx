@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Copy, Check, Trash2, Edit3, Eye } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -10,33 +10,59 @@ function escapeHtml(str: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** Allow only http(s), mailto, and in-page hash / relative paths. */
+function sanitizeHref(href: string): string | null {
+  const trimmed = href.trim();
+  if (!trimmed || /[\s<>"']/.test(trimmed)) return null;
+  if (/^(https?:|mailto:)/i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith('#') && !trimmed.includes(':')) return trimmed;
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+    return trimmed;
+  }
+  return null;
 }
 
 function parseInline(text: string): string {
-  // Protect code spans first
-  const codeSpans: string[] = [];
-  let processed = text.replace(/`([^`]+)`/g, (_, code) => {
-    codeSpans.push(
-      `<code class="bg-surface-container-high px-1.5 py-0.5 rounded text-sm text-primary font-mono">${escapeHtml(code)}</code>`,
-    );
-    return `__CODESPAN_${codeSpans.length - 1}__`;
-  });
+  const stashed: string[] = [];
+  const stash = (html: string) => {
+    stashed.push(html);
+    return `\u0000${stashed.length - 1}\u0000`;
+  };
 
-  // Bold + italic
-  processed = processed.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  // Bold
-  processed = processed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  // Italic
-  processed = processed.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  // Links
-  processed = processed.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" class="text-primary underline" target="_blank" rel="noopener noreferrer">$1</a>',
+  // Protect code spans first (content escaped)
+  let processed = text.replace(/`([^`]+)`/g, (_, code: string) =>
+    stash(
+      `<code class="bg-surface-container-high px-1.5 py-0.5 rounded text-sm text-primary font-mono">${escapeHtml(code)}</code>`,
+    ),
   );
 
-  // Restore code spans
-  processed = processed.replace(/__CODESPAN_(\d+)__/g, (_, i) => codeSpans[parseInt(i)]);
+  // Links — escape label, allowlist href schemes
+  processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label: string, href: string) => {
+    const safeHref = sanitizeHref(href);
+    if (!safeHref) return stash(escapeHtml(`[${label}](${href})`));
+    return stash(
+      `<a href="${escapeHtml(safeHref)}" class="text-primary underline" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`,
+    );
+  });
+
+  // Bold + italic / bold / italic — escape inner text
+  processed = processed.replace(/\*\*\*(.+?)\*\*\*/g, (_, inner: string) =>
+    stash(`<strong><em>${escapeHtml(inner)}</em></strong>`),
+  );
+  processed = processed.replace(/\*\*(.+?)\*\*/g, (_, inner: string) =>
+    stash(`<strong>${escapeHtml(inner)}</strong>`),
+  );
+  processed = processed.replace(/\*(.+?)\*/g, (_, inner: string) =>
+    stash(`<em>${escapeHtml(inner)}</em>`),
+  );
+
+  // Escape remaining plain text, then restore safe HTML tokens
+  processed = escapeHtml(processed);
+  processed = processed.replace(/\u0000(\d+)\u0000/g, (_, index: string) => stashed[Number(index)] ?? '');
 
   return processed;
 }
@@ -197,9 +223,7 @@ export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h1 className="text-2xl font-bold text-on-surface text-center mb-4">
@@ -294,7 +318,7 @@ export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

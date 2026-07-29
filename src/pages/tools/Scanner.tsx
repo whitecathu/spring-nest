@@ -5,7 +5,7 @@ import {
   useCallback,
   type ChangeEvent as ReactChangeEvent,
 } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import {
   ArrowLeft,
   Camera,
@@ -241,9 +241,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
@@ -257,13 +255,9 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
         </p>
 
         <div className="relative w-full aspect-[4/3] bg-black rounded-2xl overflow-hidden mb-4">
-          <AnimatePresence mode="wait">
-            {!capturedImage ? (
-              <motion.div
+          {!capturedImage ? (
+              <div
                 key="camera"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
                 className="w-full h-full"
               >
                 <video
@@ -333,13 +327,10 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
                     </button>
                   </div>
                 )}
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
+              <div
                 key="preview"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
                 className="w-full h-full relative"
               >
                 <img
@@ -358,9 +349,8 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
                 >
                   <X className="w-4 h-4" />
                 </button>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </div>
 
         <canvas ref={canvasRef} className="hidden" />
@@ -374,7 +364,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
         />
 
         {capturedImage && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <div>
             <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
               {(['none', 'grayscale', 'highContrast', 'brighten'] as FilterPreset[]).map(
                 (preset) => {
@@ -413,10 +403,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
             </div>
 
             {showCustom && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
+              <div
                 className="space-y-3 mb-4"
               >
                 <div>
@@ -494,7 +481,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
                     className="w-full accent-primary"
                   />
                 </div>
-              </motion.div>
+              </div>
             )}
 
             <div className="flex gap-3">
@@ -513,7 +500,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
                 {t('下载 PNG', 'Download PNG')}
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {!capturedImage && !cameraActive && hasCamera && (
@@ -532,7 +519,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
             </button>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

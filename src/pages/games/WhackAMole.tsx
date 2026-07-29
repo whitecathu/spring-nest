@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Clock, Trophy } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadBestScore, saveBestScore, loadGameValue, saveGameValue } from '../../lib/gameScore';
@@ -326,9 +326,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         style={{ transform: `translate(${shake.x}px, ${shake.y}px)` }}
       >
         {/* Header */}
@@ -340,8 +338,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <motion.div
-              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+            <div
               className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
             >
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
@@ -353,24 +350,19 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
               >
                 {timeLeft}s
               </div>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+            </div>
+            <div
               className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
             >
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <motion.div
+              <div
                 key={score}
-                initial={{ scale: 1.4 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 600, damping: 12 }}
                 className="text-xl font-bold text-primary"
               >
                 {score}
-              </motion.div>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+              </div>
+            </div>
+            <div
               className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
             >
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
@@ -378,33 +370,26 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                 {t('最佳', 'Best')}
               </div>
               <div className="text-xl font-bold text-tertiary">{bestScore}</div>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+            </div>
+            <div
               className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
             >
               <div className="text-xs text-secondary font-medium">
                 🔥 {t('最佳连击', 'Best Combo')}
               </div>
               <div className="text-xl font-bold text-tertiary">{bestCombo}</div>
-            </motion.div>
+            </div>
           </div>
         </div>
 
         {/* Countdown overlay */}
-        <AnimatePresence>
-          {countdown > 0 && !playing && !gameOver && (
-            <motion.div
-              initial={{ scale: 0.3, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 2, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+        {countdown > 0 && !playing && !gameOver && (
+            <div
               className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
             >
               <span className="text-8xl font-black text-primary drop-shadow-lg">{countdown}</span>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Game Board */}
         <div
@@ -432,60 +417,31 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                     <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-[#8B6914]/40 to-transparent rounded-t-full" />
 
                     {/* Mole */}
-                    <AnimatePresence mode="wait">
-                      {hasMole && !wasHit && (
-                        <motion.button
+                    {hasMole && !wasHit && (
+                        <button
                           key={`mole-${i}`}
-                          initial={{ y: 60, scale: 0.6 }}
-                          animate={{ y: moleExiting ? 60 : 0, scale: moleExiting ? 0.6 : 1 }}
-                          exit={{
-                            y: 60,
-                            scale: 0.5,
-                            transition: { duration: 0.2, ease: 'easeIn' },
-                          }}
-                          transition={{
-                            type: 'spring',
-                            stiffness: moleExiting ? 200 : 350,
-                            damping: moleExiting ? 25 : 12,
-                            mass: 0.8,
-                          }}
-                          whileTap={{
-                            scale: 0.75,
-                            transition: { type: 'spring', stiffness: 700, damping: 15 },
-                          }}
                           onClick={(e) => {
                             e.stopPropagation();
                             whack(i);
                           }}
                           className="absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 cursor-pointer select-none"
                         >
-                          <motion.span
-                            animate={{ y: [0, -3, 0] }}
-                            transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+                          <span
                           >
                             🐹
-                          </motion.span>
-                        </motion.button>
+                          </span>
+                        </button>
                       )}
 
                       {/* Death expression */}
                       {wasHit && (
-                        <motion.div
+                        <div
                           key={`dead-${i}`}
-                          initial={{ scale: 1.3, rotate: 0, y: 0 }}
-                          animate={{
-                            scale: [1.3, 0.9, 0.6],
-                            rotate: [0, -15, 15, -10, 0],
-                            y: [0, -10, 40],
-                            opacity: [1, 1, 0],
-                          }}
-                          transition={{ duration: 0.5, ease: 'easeIn' }}
                           className="absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 pointer-events-none select-none"
                         >
                           <span className="drop-shadow-lg">{deathEmoji}</span>
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
                   </div>
                 </div>
               );
@@ -495,61 +451,37 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
           {/* Particle layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {particles.map((p) => (
-              <motion.div
+              <div
                 key={p.id}
-                initial={{ x: `${p.x}%`, y: `${p.y}%`, scale: 1, opacity: 1 }}
-                animate={{
-                  x: `${p.x + p.vx * 8}%`,
-                  y: `${p.y + p.vy * 8}%`,
-                  scale: 0,
-                  opacity: 0,
-                }}
-                transition={{ duration: 0.7, ease: 'easeOut' }}
                 className="absolute text-center"
                 style={{ fontSize: `${p.size}px` }}
               >
                 {p.emoji}
-              </motion.div>
+              </div>
             ))}
           </div>
 
           {/* Score popup layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <AnimatePresence>
-              {scorePopups.map((p) => (
-                <motion.div
+            {scorePopups.map((p) => (
+                <div
                   key={p.id}
-                  initial={{ x: `${p.x}%`, y: `${p.y}%`, scale: 0.5, opacity: 0 }}
-                  animate={{ y: `${p.y - 20}%`, scale: 1.2, opacity: 1 }}
-                  exit={{ y: `${p.y - 35}%`, scale: 0.8, opacity: 0 }}
-                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                   className="absolute font-black text-lg drop-shadow-md"
                   style={{ color: p.color, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
                 >
                   {p.text}
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
           </div>
         </div>
 
         {/* Combo indicator */}
-        <AnimatePresence>
-          {combo >= 2 && playing && (
-            <motion.div
+        {combo >= 2 && playing && (
+            <div
               key={combo}
-              initial={{ scale: 0.3, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 1.8, opacity: 0, y: -10 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 8 }}
               className="text-center mb-4"
             >
-              <motion.span
-                animate={{
-                  scale: [1, 1.1, 1],
-                  rotate: combo >= 10 ? [0, -3, 3, 0] : 0,
-                }}
-                transition={{ duration: 0.4, repeat: combo >= 7 ? Infinity : 0 }}
+              <span
                 className={`font-black inline-block ${
                   combo >= 10
                     ? 'text-4xl text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]'
@@ -561,23 +493,19 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                 }`}
               >
                 🔥 {combo} {t('连击！', 'Combo!')}
-              </motion.span>
-            </motion.div>
+              </span>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Controls */}
         <div className="flex justify-center gap-4">
           {!playing && !gameOver && (
-            <motion.button
+            <button
               onClick={startGame}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.93 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
               className="px-8 py-4 bg-primary text-on-primary rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all"
             >
               {t('开始游戏', 'Start Game')}
-            </motion.button>
+            </button>
           )}
           {(playing || gameOver) && (
             <button
@@ -590,23 +518,15 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
           )}
         </div>
 
-        <AnimatePresence>
-          {gameOver && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -10 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+        {gameOver && (
+            <div
               className="mt-6 p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-700/30 rounded-2xl text-center"
             >
-              <motion.p
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+              <p
                 className="text-3xl mb-2"
               >
                 🎯
-              </motion.p>
+              </p>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
                 {t('时间到！', "Time's up!")}
               </p>
@@ -619,14 +539,11 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                 </p>
               )}
               {score > 0 && score === bestScore && (
-                <motion.p
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, delay: 0.3 }}
+                <p
                   className="text-sm text-orange-500 mb-4"
                 >
                   🏆 {t('新纪录！', 'New Record!')}
-                </motion.p>
+                </p>
               )}
               <button
                 onClick={startGame}
@@ -634,10 +551,9 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
               >
                 {t('再来一局', 'Play Again')}
               </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

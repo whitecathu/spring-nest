@@ -1,21 +1,29 @@
-import { Suspense, lazy, useEffect, useMemo, useRef } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence, MotionConfig } from 'motion/react';
+import gsap from 'gsap';
 import Navigation from './components/Navigation';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import PwaUpdatePrompt from './components/PwaUpdatePrompt';
-import StartupSplash from './components/StartupSplash';
 import ParticleBackground from './components/ParticleBackground';
 import DynamicSpringBackground from './components/animations/DynamicSpringBackground';
+import { ConsentProvider } from './contexts/ConsentContext';
+import CookieBanner from './components/CookieBanner';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useReducedMotion, pageTransitionVariants, softEase } from './lib/animations';
 import { trackPageView } from './lib/analytics';
 import { useSwipeNavigation } from './lib/useSwipeNavigation';
 import { getBackgroundProfileForLocation } from './lib/backgroundProfiles';
+import { reportWebVitals } from './lib/webVitals';
 import { Leaf } from 'lucide-react';
+import SkipLink from './components/accessibility/SkipLink';
+import { ForestRuntimeProvider, useForestRuntime, useForestRuntimeSelector } from './lib/forest/ForestRuntime';
+import StartupSplash from './components/StartupSplash';
+import ForestCursor from './components/animations/ForestCursor';
+import ForestAmbientEggs from './components/animations/ForestAmbientEggs';
+import ForestScrollDamper from './components/animations/ForestScrollDamper';
 
 const Home = lazy(() => import('./pages/Home'));
 const Games = lazy(() => import('./pages/Games'));
@@ -34,54 +42,75 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 const LoadingFallback = () => {
   const reducedMotion = useReducedMotion();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || reducedMotion) return;
+
+    // Logo floating animation
+    if (logoRef.current) {
+      gsap.to(logoRef.current, {
+        y: -8,
+        scale: 1.05,
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power1.inOut',
+      });
+    }
+
+    // Label entrance
+    if (labelRef.current) {
+      gsap.fromTo(labelRef.current,
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.6, delay: 0.3, ease: 'power2.out' }
+      );
+    }
+
+    // Progress bar animation
+    if (progressRef.current) {
+      gsap.fromTo(progressRef.current,
+        { x: '-100%' },
+        { x: '100%', duration: 2.5, repeat: -1, ease: 'power1.inOut' }
+      );
+    }
+
+    return () => {
+      gsap.killTweensOf([containerRef.current, logoRef.current, labelRef.current, progressRef.current]);
+    };
+  }, [reducedMotion]);
 
   return (
-    <motion.div
+    <div
+      ref={containerRef}
       className="flex-grow flex items-center justify-center min-h-[100svh] bg-gradient-to-b from-[#E8F5EE]/40 to-[#FFF9F2]/40 dark:from-[#1a2c1f]/40 dark:to-background/40"
-      animate={
-        reducedMotion
-          ? {}
-          : {
-              background: [
-                'linear-gradient(to bottom, rgba(232,245,238,0.4), rgba(255,249,242,0.4))',
-                'linear-gradient(to bottom, rgba(220,240,230,0.4), rgba(245,240,235,0.4))',
-                'linear-gradient(to bottom, rgba(232,245,238,0.4), rgba(255,249,242,0.4))',
-              ],
-            }
-      }
-      transition={{ duration: 8, repeat: Infinity, ease: softEase }}
     >
       <div className="flex flex-col items-center gap-6">
         <div className="relative">
           <ParticleBackground />
-          {/* Pulsing logo */}
-          <motion.div
-            animate={reducedMotion ? {} : { y: [0, -8, 0], scale: [1, 1.05, 1] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: softEase }}
-          >
+          <div ref={logoRef}>
             <Leaf className="w-12 h-12 text-primary fill-primary/30" />
-          </motion.div>
+          </div>
         </div>
-        <motion.span
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3, ease: softEase }}
+        <span
+          ref={labelRef}
           className="font-nunito font-bold text-lg text-primary"
         >
           Spring Nest
-        </motion.span>
-        {/* Animated progress bar — organic cubic-bezier easing */}
+        </span>
         {!reducedMotion && (
           <div className="loading-progress">
-            <motion.div
+            <div
+              ref={progressRef}
               className="h-full bg-primary/60 rounded-full"
-              animate={{ x: ['-100%', '100%'] }}
-              transition={{ duration: 2, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
             />
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -120,25 +149,45 @@ function PageWrapper({
   children: React.ReactNode;
   reducedMotion: boolean;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current || reducedMotion) return;
+
+    gsap.fromTo(ref.current,
+      { opacity: 0, y: 20, scale: 0.98 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'power3.out' }
+    );
+
+    return () => {
+      if (ref.current) gsap.killTweensOf(ref.current);
+    };
+  }, [reducedMotion]);
+
   if (reducedMotion) return children;
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageTransitionVariants}
+    <div
+      ref={ref}
       style={{ transformOrigin: '50% 18%', willChange: 'transform, opacity' }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
-export default function App() {
+function AppShell() {
   const location = useLocation();
   const reducedMotion = useReducedMotion();
   const { onTouchStart, onTouchEnd } = useSwipeNavigation();
   const mainRef = useRef<HTMLElement>(null);
+  const forest = useForestRuntime();
+  const idleMs = useForestRuntimeSelector((s) => s.idleMs);
+  const scrollSection = useForestRuntimeSelector((s) => s.scroll.section);
+  const [splashDone, setSplashDone] = useState(false);
+  const [forceSplash, setForceSplash] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('replaySplash') === '1';
+  });
   const backgroundProfile = useMemo(
     () => getBackgroundProfileForLocation(location.pathname, location.search),
     [location.pathname, location.search],
@@ -150,32 +199,116 @@ export default function App() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
+    forest.registerScroller(mainRef.current);
+  }, [forest, splashDone]);
+
+  useEffect(() => {
+    forest.setSplashActive(!splashDone);
+  }, [forest, splashDone]);
+
+  useEffect(() => {
+    const replay = () => {
+      setForceSplash(true);
+      setSplashDone(false);
+      forest.setSplashActive(true);
+    };
+    window.addEventListener('forest:replay-splash', replay);
+    return () => window.removeEventListener('forest:replay-splash', replay);
+  }, [forest]);
+
+  useEffect(() => {
+    if (!forceSplash) return;
+    void import('./lib/forest/forestSplashMemory').then(({ clearForestSplashMemory }) => {
+      clearForestSplashMemory();
+    });
+    const params = new URLSearchParams(location.search);
+    if (params.get('replaySplash') === '1') {
+      params.delete('replaySplash');
+      const next = `${location.pathname}${params.toString() ? `?${params}` : ''}${location.hash}`;
+      window.history.replaceState(null, '', next || '/');
+    }
+  }, [forceSplash, location.hash, location.pathname, location.search]);
+
+  useEffect(() => {
     applyFormControlAccessibleNames();
     const observer = new MutationObserver(applyFormControlAccessibleNames);
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    reportWebVitals();
+  }, []);
+
+  const damperEnabled =
+    !reducedMotion &&
+    !forest.flags.isGameRoute &&
+    forest.tier !== 'low' &&
+    splashDone;
+
+  const cursorEnabled =
+    forest.tier !== 'low' &&
+    forest.flags.finePointer &&
+    !forest.flags.isGameRoute &&
+    !forest.flags.reducedMotion &&
+    splashDone;
+
+  const eggsEnabled = forest.tier === 'high' && !forest.flags.isGameRoute && !forest.flags.reducedMotion && splashDone;
+
   return (
-    <ThemeProvider>
-      <UserProvider>
-        <ErrorBoundary>
-          <MotionConfig reducedMotion="user">
-            <div
-              className="relative isolate flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden bg-background font-sans text-on-surface selection:bg-primary-container selection:text-on-primary-container transition-colors duration-300"
-              onTouchStart={onTouchStart}
-              onTouchEnd={onTouchEnd}
-            >
+          <div
+            className="relative isolate flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden bg-background font-sans text-on-surface selection:bg-primary-container selection:text-on-primary-container transition-colors duration-300"
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
+              <SkipLink />
               <DynamicSpringBackground profile={backgroundProfile} />
+              {!splashDone && (
+                <StartupSplash
+                  forceShow={forceSplash}
+                  onComplete={() => {
+                    setSplashDone(true);
+                    setForceSplash(false);
+                  }}
+                />
+              )}
+              <div
+                className="contents"
+                inert={!splashDone ? true : undefined}
+                aria-hidden={!splashDone ? true : undefined}
+              >
+              <ForestCursor enabled={cursorEnabled} />
+              <ForestAmbientEggs
+                enabled={eggsEnabled}
+                idleMs={idleMs}
+                onStrongWind={() => forest.pulseStrongWind()}
+                onGust={(x, y) => forest.pulseGust(x, y)}
+                onResetScroll={() => forest.resetScrollView()}
+                onBrightness={(n) => forest.setBrightnessBoost(n)}
+              />
               <Navigation />
               <AnnouncementBanner />
+              <ForestScrollDamper
+                scrollerRef={mainRef}
+                enabled={damperEnabled}
+                damping={
+                  scrollSection === 'hero'
+                    ? 1.4
+                    : scrollSection === 'cards'
+                      ? 1.1
+                      : scrollSection === 'footer'
+                        ? 1.0
+                        : 1.2
+                }
+              />
               <main
+                id="main-content"
                 ref={mainRef}
+                data-forest-ui
                 className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain [perspective:1400px]"
               >
                 <Suspense fallback={<LoadingFallback />}>
-                  <AnimatePresence mode="wait">
-                    <Routes location={location} key={location.pathname}>
+                  <Routes location={location} key={location.pathname}>
                       <Route
                         path="/"
                         element={
@@ -305,16 +438,28 @@ export default function App() {
                         }
                       />
                     </Routes>
-                  </AnimatePresence>
                 </Suspense>
                 <Footer />
               </main>
               <PwaUpdatePrompt />
-              <StartupSplash />
+              {splashDone && <CookieBanner />}
+              </div>
             </div>
-          </MotionConfig>
-        </ErrorBoundary>
-      </UserProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <ConsentProvider>
+        <UserProvider>
+          <ErrorBoundary>
+            <ForestRuntimeProvider>
+              <AppShell />
+            </ForestRuntimeProvider>
+          </ErrorBoundary>
+        </UserProvider>
+      </ConsentProvider>
     </ThemeProvider>
   );
 }

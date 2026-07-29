@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { springBouncy, springSnappy } from '../../lib/animations';
@@ -176,7 +176,7 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -188,51 +188,33 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center relative">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <motion.div
+              <div
                 key={score}
-                initial={{ scale: 1.4 }}
-                animate={{ scale: 1 }}
-                transition={springBouncy}
                 className="text-xl font-bold text-primary tabular-nums"
               >
                 {score}
-              </motion.div>
+              </div>
               {/* +1 floating text with particle dots */}
-              <AnimatePresence>
-                {showScorePopup && (
+              {showScorePopup && (
                   <>
-                    <motion.div
+                    <div
                       className="absolute -top-6 left-1/2 -translate-x-1/2 text-green-500 font-bold text-lg pointer-events-none whitespace-nowrap z-20"
-                      initial={{ opacity: 1, y: 0 }}
-                      animate={{ opacity: 0, y: -20 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
                     >
                       +1
-                    </motion.div>
+                    </div>
                     {/* Particle dots flying outward */}
                     {[0, 1, 2, 3, 4, 5].map((i) => {
                       const angle = (i / 6) * Math.PI * 2;
                       const dist = 28 + Math.random() * 12;
                       return (
-                        <motion.span
+                        <span
                           key={`particle-${i}`}
                           className="absolute left-1/2 top-1/2 w-1.5 h-1.5 rounded-full bg-green-400 pointer-events-none z-20"
-                          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-                          animate={{
-                            x: Math.cos(angle) * dist,
-                            y: Math.sin(angle) * dist - 10,
-                            opacity: 0,
-                            scale: 0.3,
-                          }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.6, ease: 'easeOut' }}
                         />
                       );
                     })}
                   </>
                 )}
-              </AnimatePresence>
             </div>
             <div
               className={`bg-surface-container-high rounded-xl px-3 py-2 text-center relative ${isNewRecord ? 'ring-2 ring-amber-400' : ''}`}
@@ -241,19 +223,15 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
                 <Trophy className="w-3 h-3" />
                 {t('最佳', 'Best')}
               </div>
-              <motion.div
-                animate={isNewRecord ? { scale: [1, 1.25, 1] } : {}}
-                transition={isNewRecord ? { duration: 0.5, ...springBouncy } : {}}
+              <div
                 className="text-xl font-bold text-tertiary tabular-nums"
               >
                 {bestScore}
-              </motion.div>
+              </div>
               {/* New record glow */}
               {isNewRecord && (
-                <motion.div
+                <div
                   className="absolute inset-0 rounded-xl bg-amber-400/20 pointer-events-none"
-                  animate={{ opacity: [0, 0.6, 0] }}
-                  transition={{ duration: 0.8, repeat: 2 }}
                 />
               )}
             </div>
@@ -262,150 +240,105 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
 
         {/* Status */}
         <div className="text-center mb-4">
-          <AnimatePresence mode="wait">
-            {gameState === 'showing' && (
-              <motion.p
+          {gameState === 'showing' && (
+              <p
                 key="showing"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
                 className="text-sm font-semibold text-amber-500"
               >
                 {t('👀 仔细看...', '👀 Watch carefully...')}
-              </motion.p>
+              </p>
             )}
             {gameState === 'input' && (
-              <motion.p
+              <p
                 key="input"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
                 className="text-sm font-semibold text-green-500"
               >
                 {t('🎯 轮到你了！', '🎯 Your turn!')}
-              </motion.p>
+              </p>
             )}
             {gameState === 'idle_next' && (
-              <motion.p
+              <p
                 key="next"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, y: 10 }}
                 className="text-sm font-semibold text-blue-500"
               >
                 {formatRound(sequence.length)}
-              </motion.p>
+              </p>
             )}
             {gameState === 'wrong' && (
-              <motion.p
+              <p
                 key="wrong"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
                 className="text-sm font-semibold text-red-500"
               >
                 {t('💥 答错了！', '💥 Wrong!')}
-              </motion.p>
+              </p>
             )}
-          </AnimatePresence>
         </div>
 
         {/* Combo */}
-        <AnimatePresence>
-          {combo >= 3 && gameState !== 'wrong' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8, y: -10 }}
-              transition={springSnappy}
+        {combo >= 3 && gameState !== 'wrong' && (
+            <div
               className="flex items-center justify-center gap-1 mb-3 relative"
             >
               {/* Glow pulse behind combo text */}
-              <motion.span
+              <span
                 className="absolute inset-0 rounded-full -mx-2 -my-1"
                 style={{ boxShadow: '0 0 16px 4px rgba(245,158,11,0.35)' }}
-                animate={{ opacity: [0.4, 1, 0.4], scale: [0.95, 1.05, 0.95] }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
               />
               <Zap className="w-4 h-4 text-amber-500 relative z-10" />
               <span className="text-sm font-bold text-amber-500 relative z-10">
                 {combo}x {t('连击', 'Combo')}
               </span>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Sequence length display during input */}
         {gameState === 'input' && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          <p
             className="text-center text-xs text-secondary mb-2"
           >
             {t(`序列长度: ${sequence.length}`, `Sequence: ${sequence.length} colors`)}
-          </motion.p>
+          </p>
         )}
 
         {/* Round progress dots during input */}
         {gameState === 'input' && sequence.length > 0 && (
           <div className="flex justify-center gap-1.5 mb-3">
             {sequence.map((_, i) => (
-              <motion.div
+              <div
                 key={i}
                 className={`w-2.5 h-2.5 rounded-full ${
                   i < playerIndex ? 'bg-green-500' : 'bg-surface-container-high'
                 }`}
-                initial={i === playerIndex - 1 ? { scale: 0 } : false}
-                animate={i === playerIndex - 1 ? { scale: 1 } : {}}
-                transition={springBouncy}
               />
             ))}
           </div>
         )}
 
         {/* Color Grid */}
-        <motion.div
+        <div
           className="grid grid-cols-2 gap-4 max-w-[320px] mx-auto mb-6 relative"
-          animate={shakeGrid ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
-          transition={shakeGrid ? { duration: 0.4 } : { duration: 0.1 }}
         >
           {/* Red flash overlay on wrong */}
-          <AnimatePresence>
-            {gameState === 'wrong' && (
-              <motion.div
+          {gameState === 'wrong' && (
+              <div
                 className="absolute inset-0 bg-red-500/20 rounded-2xl pointer-events-none z-10"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 0.4, 0] }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
               />
             )}
-          </AnimatePresence>
           {/* Golden flash on level up / speed increase */}
-          <AnimatePresence>
-            {levelUpFlash && (
-              <motion.div
+          {levelUpFlash && (
+              <div
                 className="absolute -inset-1 rounded-3xl pointer-events-none z-10"
                 style={{
                   boxShadow:
                     '0 0 20px 4px rgba(234,179,8,0.5), inset 0 0 20px 4px rgba(234,179,8,0.15)',
                 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 1, 0] }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.6 }}
               />
             )}
-          </AnimatePresence>
           {COLORS.map((color) => (
-            <motion.button
+            <button
               key={color.id}
               onClick={() => handleColorTap(color.id)}
               disabled={gameState !== 'input'}
-              animate={{
-                scale: activeColor === color.id ? [1, 1.08, 1] : 1,
-              }}
-              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-              whileTap={gameState === 'input' ? { scale: 0.92 } : {}}
               className={`rounded-2xl aspect-square min-h-[120px] flex items-center justify-center cursor-pointer disabled:cursor-default ${
                 gameState === 'showing' ? 'opacity-50' : ''
               }`}
@@ -421,34 +354,25 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
               <span className="text-white font-bold text-lg drop-shadow-md">
                 {t(...color.name)}
               </span>
-            </motion.button>
+            </button>
           ))}
-        </motion.div>
+        </div>
 
         {/* Controls */}
-        <AnimatePresence mode="wait">
-          {(gameState === 'idle' || gameState === 'wrong') && (
-            <motion.div
+        {(gameState === 'idle' || gameState === 'wrong') && (
+            <div
               key="controls"
               className="flex justify-center"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={springSnappy}
             >
-              <motion.button
+              <button
                 onClick={startGame}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.93 }}
-                transition={springBouncy}
                 className="px-8 py-3 bg-primary text-on-primary rounded-full font-semibold flex items-center gap-2 min-h-[48px]"
               >
                 <RotateCcw className="w-5 h-5" />
                 {gameState === 'wrong' ? t('再来一局', 'Play Again') : t('开始游戏', 'Start Game')}
-              </motion.button>
-            </motion.div>
+              </button>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Instructions */}
         <div className="mt-4 text-center text-xs text-secondary/50">
@@ -457,7 +381,7 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
             'Remember the color sequence, then tap in the same order',
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

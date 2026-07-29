@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowUpDown, Search, Sparkles } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { search, type SearchResult } from '../services/searchService';
@@ -139,12 +139,12 @@ export default function SearchResults() {
             : undefined
         }
       />
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-on-surface mb-2 flex items-center gap-2">
+      <div className="forest-readable-hero py-4 mb-2">
+        <h1 className="text-2xl font-bold forest-page-title mb-2 flex items-center gap-2">
           <Search className="w-6 h-6 text-primary" />
           {t('搜索结果', 'Search Results')}
         </h1>
-        <p className="text-secondary mb-6">
+        <p className="forest-page-subtitle mb-6">
           {query ? (
             <>
               {t(`关键词："${query}"`, `Keyword: "${query}"`)}
@@ -155,6 +155,7 @@ export default function SearchResults() {
             t('输入关键词开始搜索', 'Enter a keyword to start searching')
           )}
         </p>
+      </div>
 
         <form
           onSubmit={handleSearchSubmit}
@@ -185,9 +186,8 @@ export default function SearchResults() {
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
               {tabs.map((tab) => (
-                <motion.button
+                <button
                   key={tab.key}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => updateParam('type', tab.key)}
                   className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
                     activeType === tab.key
@@ -197,7 +197,7 @@ export default function SearchResults() {
                 >
                   {tab.label}
                   <span className="ml-1.5 text-xs opacity-70">{tab.count}</span>
-                </motion.button>
+                </button>
               ))}
             </div>
             <label className="flex min-h-[44px] items-center gap-2 rounded-2xl border border-surface-variant/40 bg-white/80 px-4 text-sm font-semibold text-secondary dark:bg-surface-container-high/70">
@@ -217,14 +217,9 @@ export default function SearchResults() {
         )}
 
         {/* Results List */}
-        <AnimatePresence mode="wait">
-          {allResults.length > 0 ? (
-            <motion.div
+        {allResults.length > 0 ? (
+            <div
               key={`${activeType}-${activeSort}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
               className="space-y-4"
             >
               {filteredResults.map((result, index) => (
@@ -241,13 +236,10 @@ export default function SearchResults() {
                   <p className="text-sm">{t('该分类下无结果', 'No results in this category')}</p>
                 </div>
               )}
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
+            <div
               key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
             >
               {/* Suggested Keywords */}
               <div className="mb-10">
@@ -287,11 +279,8 @@ export default function SearchResults() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {recommended.map((item, i) => (
-                      <motion.div
+                      <div
                         key={item.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.08 }}
                         className="block bg-white dark:bg-surface-container-high/20 rounded-2xl p-4 shadow-sm border border-surface-variant/20 hover:shadow-md hover:border-primary/20 transition-all duration-300 group"
                       >
                         <Link to={item.route} className="flex items-center gap-3">
@@ -314,15 +303,13 @@ export default function SearchResults() {
                             </p>
                           </div>
                         </Link>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
     </div>
   );
 }
@@ -345,10 +332,7 @@ function SearchResultCard({
       : `/tools/${item.route.split('/').pop()}`;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
+    <div
       className="block bg-white dark:bg-surface-container-high/20 rounded-2xl p-5 shadow-sm border border-surface-variant/20 hover:shadow-md hover:border-primary/20 transition-all duration-300 group"
     >
       <Link to={href} className="flex items-center gap-4">
@@ -382,6 +366,6 @@ function SearchResultCard({
           </p>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }

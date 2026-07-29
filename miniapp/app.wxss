@@ -1,0 +1,363 @@
+/* Spring Nest design tokens — warm cream + forest green */
+
+/*
+ * Do NOT use @font-face with local .woff in WXSS — DevTools returns 500
+ * ("do-not-use-local-path"). Brand faces are injected via wx.loadFontFace
+ * (HTTPS + package base64 fallback) in utils/fonts.js.
+ */
+
+page {
+  --surface: #fef8f2;
+  --surface-dim: #ded9d3;
+  --surface-bright: #fef8f2;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f8f3ec;
+  --surface-container: #f3ede6;
+  --surface-container-high: #ede7e1;
+  --surface-container-highest: #e7e2db;
+  --on-surface: #1d1b18;
+  --on-surface-variant: #414943;
+  --inverse-surface: #32302c;
+  --inverse-on-surface: #f6f0e9;
+  --outline: #717973;
+  --outline-variant: #c1c8c1;
+  --surface-tint: #3f6751;
+  --primary: #274f3a;
+  --on-primary: #ffffff;
+  --primary-container: #3f6751;
+  --on-primary-container: #b7e3c8;
+  --inverse-primary: #a5d0b6;
+  --secondary: #336a3a;
+  --on-secondary: #ffffff;
+  --secondary-container: #b4f2b5;
+  --on-secondary-container: #397040;
+  --tertiary: #604033;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #7a5749;
+  --on-tertiary-container: #ffd0be;
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --primary-fixed: #c0edd1;
+  --primary-fixed-dim: #a5d0b6;
+  --on-primary-fixed: #002112;
+  --on-primary-fixed-variant: #274e3a;
+  --secondary-fixed: #b4f2b5;
+  --secondary-fixed-dim: #99d59b;
+  --on-secondary-fixed: #002107;
+  --on-secondary-fixed-variant: #195125;
+  --tertiary-fixed: #ffdbce;
+  --tertiary-fixed-dim: #eabdab;
+  --on-tertiary-fixed: #2d150a;
+  --on-tertiary-fixed-variant: #5f3f32;
+  --background: #fef8f2;
+  --on-background: #1d1b18;
+  --font-serif: "Noto Serif SC", "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+  --font-sans: "Plus Jakarta Sans", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", sans-serif;
+  --font-heading: "Nunito Sans", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", sans-serif;
+  --radius-card: 24px;
+  --radius-lg: 20px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --radius-chip: 999px;
+  --shadow-soft: 0 4px 18px rgba(63, 103, 81, 0.06);
+  --shadow-lift: 0 8px 28px rgba(63, 103, 81, 0.08);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  --border-soft: 1px solid rgba(255, 255, 255, 0.65);
+  --border-line: 1px solid rgba(193, 200, 193, 0.32);
+  --press-scale: 0.98;
+  --safe-pb: env(safe-area-inset-bottom);
+  --safe-pt: env(safe-area-inset-top);
+  --page-wash: linear-gradient(180deg, rgba(165, 208, 182, 0.2) 0%, transparent 240px), var(--background);
+
+  background: var(--background);
+  color: var(--on-background);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  min-height: 100%;
+}
+
+view, text, image, button, input, textarea, scroll-view {
+  box-sizing: border-box;
+}
+
+/* —— Surfaces —— */
+.glass-card {
+  background: rgba(248, 243, 236, 0.96);
+  border: var(--border-soft);
+  box-shadow: var(--shadow-soft);
+  border-radius: var(--radius-card);
+}
+
+.glass-nav {
+  background: rgba(254, 248, 242, 0.96);
+  border-top: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 -4px 20px rgba(63, 103, 81, 0.07);
+}
+
+/* —— Type —— */
+.text-display-lg {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.text-headline-md {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.text-headline-sm {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.text-body-lg {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.text-body-sm {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.text-label-md {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+}
+
+.text-primary { color: var(--primary); }
+.text-on-surface { color: var(--on-surface); }
+.text-muted { color: var(--on-surface-variant); }
+.text-secondary { color: var(--secondary); }
+.text-tertiary { color: var(--tertiary); }
+
+.bg-surface { background: var(--surface); }
+.bg-primary { background: var(--primary); color: var(--on-primary); }
+.bg-primary-container { background: var(--primary-container); color: var(--on-primary-container); }
+
+/* —— Layout —— */
+.page-pad {
+  padding: 18px 20px calc(28px + var(--safe-pb));
+  min-height: 100vh;
+  background: var(--page-wash);
+}
+
+.tab-page {
+  padding-bottom: calc(100px + env(safe-area-inset-bottom));
+}
+
+.safe-pt { padding-top: max(var(--safe-pt), 8px); }
+.safe-pb { padding-bottom: max(var(--safe-pb), 16px); }
+
+.card-pad { padding: 16px; }
+.section-gap { margin-top: 28px; }
+
+.page-intro {
+  padding-left: 2px;
+  margin-bottom: 4px;
+}
+
+.page-intro .subtitle {
+  display: block;
+  margin-top: 6px;
+  line-height: 1.55;
+  opacity: 0.82;
+}
+
+.section-label {
+  padding-left: 2px;
+  margin-bottom: 2px;
+}
+
+.grid-2 {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.grid-2 > .grid-item {
+  width: calc(50% - 7px);
+}
+
+.grid-2 > .grid-item.span-2 {
+  width: 100%;
+}
+
+.grid-3 {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.grid-3 > .grid-item {
+  width: calc(33.333% - 8px);
+}
+
+.row { display: flex; flex-direction: row; align-items: center; }
+.col { display: flex; flex-direction: column; }
+.flex-1 { flex: 1; min-width: 0; }
+.gap-sm { gap: 8px; }
+.gap-md { gap: 12px; }
+.gap-lg { gap: 16px; }
+
+/* —— Buttons —— */
+.btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-radius: var(--radius-chip);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 13px 22px;
+  text-align: center;
+  border: none;
+  line-height: 1.35;
+  box-shadow: 0 2px 10px rgba(39, 79, 58, 0.22);
+  transition: transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-primary::after { border: none; }
+
+.btn-primary:active {
+  transform: scale(var(--press-scale));
+  opacity: 0.94;
+  box-shadow: 0 1px 4px rgba(39, 79, 58, 0.18);
+}
+
+.btn-primary[disabled] {
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.btn-ghost {
+  background: rgba(39, 79, 58, 0.08);
+  color: var(--primary);
+  border-radius: var(--radius-chip);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 11px 18px;
+  text-align: center;
+  border: 1px solid rgba(39, 79, 58, 0.08);
+  line-height: 1.35;
+  transition: transform 0.12s ease, background-color 0.15s ease;
+}
+
+.btn-ghost::after { border: none; }
+
+.btn-ghost:active {
+  transform: scale(var(--press-scale));
+  background: rgba(39, 79, 58, 0.14);
+}
+
+/* —— Fields —— */
+/* 注意：微信原生 input 对 line-height + padding 组合极敏感，易出现叠字/顶对齐/倒置 */
+.field {
+  width: 100%;
+  min-height: 48px;
+  background: rgba(237, 231, 225, 0.72);
+  border: var(--border-line);
+  border-radius: 18px;
+  padding: 12px 15px;
+  color: var(--on-surface);
+  font-size: 14px;
+  font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+input.field {
+  height: 48px;
+  min-height: 48px;
+  padding: 0 15px;
+  line-height: 48px;
+  /* 避免原生控件继承自定义字体导致 placeholder 错位 */
+  font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+}
+
+textarea.field {
+  min-height: 120px;
+  height: auto;
+  padding: 12px 15px;
+  line-height: 1.55;
+}
+
+view.field {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 15px;
+  line-height: 1.4;
+}
+
+.field-focus,
+.field:focus {
+  border-color: rgba(39, 79, 58, 0.45);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 0 3px rgba(165, 208, 182, 0.28);
+}
+
+/* —— Icon wells —— */
+.icon-well {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: var(--shadow-inset), 0 1px 3px rgba(63, 103, 81, 0.06);
+  flex-shrink: 0;
+}
+
+.icon-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* —— Empty states —— */
+.empty-state {
+  margin-top: 36px;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  border-radius: var(--radius-card);
+  background: rgba(248, 243, 236, 0.7);
+  border: 1px dashed rgba(193, 200, 193, 0.45);
+}
+
+.empty-state .empty-emoji {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 4px;
+  opacity: 0.85;
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }

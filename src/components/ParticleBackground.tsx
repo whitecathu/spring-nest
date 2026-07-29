@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { floatingParticles, softEase, useReducedMotion } from '../lib/animations';
 
 type ParticleBackgroundProps = {
@@ -46,7 +46,7 @@ export default function ParticleBackground({
   return (
     <div className={className} aria-hidden="true">
       {particles.map((particle, index) => (
-        <motion.span
+        <span
           key={`${particle.x}-${particle.y}-${index}`}
           className={particleClassName}
           style={{
@@ -55,18 +55,6 @@ export default function ParticleBackground({
             left: '50%',
             top: '50%',
             willChange: 'transform, opacity',
-          }}
-          animate={{
-            x: [0, particle.x * scale, 0],
-            y: [0, particle.y * scale, 0],
-            opacity: [0, opacity, 0],
-            scale: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration,
-            repeat: Infinity,
-            delay: particle.delay,
-            ease: softEase,
           }}
         />
       ))}

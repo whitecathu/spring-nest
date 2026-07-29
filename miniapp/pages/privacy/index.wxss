@@ -1,0 +1,39 @@
+.privacy-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hero {
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lead {
+  opacity: 0.85;
+}
+
+.section {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.para {
+  line-height: 1.7;
+}
+
+.agree-btn {
+  margin-top: 8px;
+}
+
+.disagree {
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+}

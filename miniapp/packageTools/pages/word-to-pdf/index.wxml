@@ -1,0 +1,34 @@
+<tool-shell
+  wx:if="{{tool}}"
+  title="{{tool.title}}"
+  desc="{{tool.description}}"
+  icon="{{tool.icon}}"
+  bg="{{tool.bg}}"
+  color="{{tool.color}}"
+  favorite="{{favorite}}"
+  bind:togglefavorite="onToggleFavorite"
+>
+  <view class="notice glass-card">
+    <text class="notice-title">能力说明</text>
+    <text class="notice-body">微信小程序无法在设备上真实完成 Word → PDF 转换。本页允许你选择文件、查看限制说明；若是 TXT 可提取文本，但不会伪造成功生成 PDF。</text>
+  </view>
+
+  <view class="file-card glass-card" wx:if="{{fileName}}">
+    <text class="file-name">{{fileName}}</text>
+    <text class="file-meta" wx:if="{{fileSize}}">{{fileSize}}</text>
+  </view>
+
+  <view class="row gap-md">
+    <button class="btn-ghost flex-1" bindtap="chooseFile">选择文件</button>
+    <button class="btn-primary flex-1" bindtap="convert">尝试转换</button>
+  </view>
+
+  <button class="btn-ghost" wx:if="{{extracted}}" bindtap="copyExtracted">复制已提取文本</button>
+
+  <view class="extract glass-card" wx:if="{{extracted}}">
+    <text class="extract-label">提取文本预览</text>
+    <text class="extract-body" user-select>{{extracted}}</text>
+  </view>
+
+  <result-card wx:if="{{result}}" title="说明" content="{{result}}" status="{{resultStatus}}" />
+</tool-shell>

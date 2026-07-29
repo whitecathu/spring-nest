@@ -1,6 +1,6 @@
-import { motion, useInView } from 'motion/react';
-import { useRef, type ReactNode } from 'react';
-import { useReducedMotion } from '../lib/animations';
+import { useRef, useEffect, type ReactNode } from 'react';
+import gsap from 'gsap';
+import { useReducedMotion } from '../lib/gsap';
 
 interface ScrollRevealProps {
   children: ReactNode;
@@ -23,28 +23,35 @@ export default function ScrollReveal({
   direction = 'up',
 }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-60px' });
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (!ref.current || reducedMotion) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          gsap.fromTo(ref.current,
+            { opacity: 0, ...directionOffset[direction] },
+            { opacity: 1, x: 0, y: 0, duration: 0.5, delay, ease: 'power2.out' }
+          );
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '-60px' }
+    );
+
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [reducedMotion, direction, delay]);
 
   if (reducedMotion) {
     return <div className={className}>{children}</div>;
   }
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, ...directionOffset[direction] }}
-      animate={
-        isInView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, ...directionOffset[direction] }
-      }
-      transition={{
-        duration: 0.5,
-        delay,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-      className={className}
-    >
+    <div ref={ref} className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 }

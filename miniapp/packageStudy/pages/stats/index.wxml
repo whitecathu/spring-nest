@@ -1,0 +1,55 @@
+<view class="stats-page">
+  <view class="page-desc lead">复习曲线进度，看看今天练得怎么样。</view>
+
+  <view class="kpi-grid">
+    <view class="kpi-card streak">
+      <view class="kpi-label">连续打卡</view>
+      <view class="kpi-value">{{streakDays}}<text class="kpi-unit">天</text></view>
+    </view>
+    <view class="kpi-card today">
+      <view class="kpi-label">今日复习</view>
+      <view class="kpi-value">{{todayCount}}<text class="kpi-unit">题</text></view>
+    </view>
+    <view class="kpi-card rate">
+      <view class="kpi-label">正确率</view>
+      <view class="kpi-value">{{correctRate}}<text class="kpi-unit">%</text></view>
+    </view>
+    <view class="kpi-card time">
+      <view class="kpi-label">学习时长</view>
+      <view class="kpi-value">{{studyMinutes}}<text class="kpi-unit">{{studyTimeLabel}}</text></view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="panel-title">近 7 日答题量</view>
+    <view class="chart">
+      <view wx:for="{{dailyCounts}}" wx:key="index" class="chart-col">
+        <view class="chart-bar-wrap">
+          <view class="chart-bar" style="height: {{item.height}}%;"></view>
+        </view>
+        <view class="chart-value">{{item.value}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="panel-title">累计概览</view>
+    <view class="meta-row"><text>累计答题</text><text class="meta-strong">{{totalAnswered}} 题</text></view>
+    <view class="meta-row"><text>正确题数</text><text class="meta-strong">{{totalCorrect}} 题</text></view>
+    <view class="meta-row"><text>练习场次</text><text class="meta-strong">{{totalSessions}} 次</text></view>
+    <view class="meta-row"><text>已掌握</text><text class="meta-strong">{{masteredCount}} / {{totalQuestions}}</text></view>
+  </view>
+
+  <view class="panel" wx:if="{{deckStats.length}}">
+    <view class="panel-title">题集掌握度</view>
+    <view wx:for="{{deckStats}}" wx:key="id" class="deck-stat">
+      <view class="deck-stat-top">
+        <text>{{item.emoji}} {{item.name}}</text>
+        <text class="meta-strong">{{item.rate}}%</text>
+      </view>
+      <view class="deck-track">
+        <view class="deck-fill" style="width: {{item.rate}}%;"></view>
+      </view>
+    </view>
+  </view>
+</view>

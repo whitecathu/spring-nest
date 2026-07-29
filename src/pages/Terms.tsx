@@ -10,7 +10,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { useUser } from '../contexts/UserContext';
 import SEO from '../components/SEO';
 
@@ -43,15 +43,11 @@ function Section({ icon, title, children, defaultOpen = false }: SectionProps) {
         )}
       </button>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
+        <div
           className="px-6 pb-6"
         >
           <div className="text-on-surface-variant leading-relaxed space-y-4">{children}</div>
-        </motion.div>
+        </div>
       )}
     </div>
   );
@@ -76,10 +72,7 @@ export default function Terms() {
   };
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
+    <div
       className="max-w-[900px] mx-auto px-6 py-16 w-full"
     >
       <SEO
@@ -91,27 +84,27 @@ export default function Terms() {
         canonical="/terms"
       />
       {/* Header */}
-      <motion.header variants={itemVariants} className="text-center mb-16">
+      <header className="text-center mb-16 forest-readable-hero py-6">
         <div className="w-20 h-20 bg-primary-container/30 rounded-3xl flex items-center justify-center mx-auto mb-6 text-primary">
           <FileText className="w-10 h-10" />
         </div>
-        <h1 className="text-4xl font-black text-on-surface mb-4">
+        <h1 className="text-4xl font-black forest-page-title mb-4">
           {t('服务条款', 'Terms of Service')}
         </h1>
-        <p className="text-secondary text-lg">
+        <p className="forest-page-subtitle text-lg">
           {t('最后更新: 2025年5月', 'Last updated: May 2025')}
         </p>
-        <p className="text-on-surface-variant mt-4 max-w-2xl mx-auto">
+        <p className="forest-page-subtitle mt-4 max-w-2xl mx-auto">
           {t(
             '欢迎使用春日小筑。在使用我们的服务之前，请仔细阅读以下服务条款。使用我们的服务即表示您同意遵守这些条款。',
             'Welcome to Spring Nest. Before using our services, please read the following terms of service carefully. By using our services, you agree to comply with these terms.',
           )}
         </p>
-      </motion.header>
+      </header>
 
       {/* Sections */}
       <div className="space-y-4">
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<FileText className="w-5 h-5" />}
             title={t('服务描述', 'Service Description')}
@@ -162,9 +155,9 @@ export default function Terms() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Users className="w-5 h-5" />}
             title={t('用户责任', 'User Responsibilities')}
@@ -215,9 +208,9 @@ export default function Terms() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Shield className="w-5 h-5" />}
             title={t('知识产权', 'Intellectual Property')}
@@ -258,9 +251,9 @@ export default function Terms() {
               </li>
             </ul>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section icon={<AlertTriangle className="w-5 h-5" />} title={t('免责声明', 'Disclaimer')}>
             <p>
               {t(
@@ -292,9 +285,9 @@ export default function Terms() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Scale className="w-5 h-5" />}
             title={t('责任限制', 'Limitation of Liability')}
@@ -329,9 +322,9 @@ export default function Terms() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<Clock className="w-5 h-5" />}
             title={t('账户终止', 'Account Termination')}
@@ -369,9 +362,9 @@ export default function Terms() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section icon={<Scale className="w-5 h-5" />} title={t('适用法律', 'Governing Law')}>
             <p>
               {t(
@@ -380,9 +373,9 @@ export default function Terms() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section
             icon={<FileText className="w-5 h-5" />}
             title={t('条款修改', 'Changes to Terms')}
@@ -394,9 +387,9 @@ export default function Terms() {
               )}
             </p>
           </Section>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div>
           <Section icon={<Mail className="w-5 h-5" />} title={t('联系我们', 'Contact Us')}>
             <p>
               {t(
@@ -410,18 +403,18 @@ export default function Terms() {
               </p>
             </div>
           </Section>
-        </motion.div>
+        </div>
       </div>
 
       {/* Footer */}
-      <motion.footer variants={itemVariants} className="text-center mt-16 text-secondary text-sm">
+      <footer className="text-center mt-16 text-secondary text-sm">
         <p>
           {t(
             '本服务条款自发布之日起生效。',
             'These terms of service are effective from the date of publication.',
           )}
         </p>
-      </motion.footer>
-    </motion.div>
+      </footer>
+    </div>
   );
 }

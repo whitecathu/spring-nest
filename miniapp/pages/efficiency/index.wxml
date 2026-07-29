@@ -1,0 +1,53 @@
+<view class="efficiency">
+  <brand-header />
+  <view class="page-pad tab-page">
+    <view class="page-intro">
+      <text class="text-headline-md text-on-surface">生产力</text>
+      <text class="text-body-sm text-muted subtitle">打理您的任务，拓展您的知识。</text>
+    </view>
+
+    <view class="section-gap">
+      <view class="row gap-sm section-label">
+        <image class="leaf-sm" src="/assets/icons/leaf.png" mode="aspectFit" />
+        <text class="text-headline-sm text-primary">时间效率</text>
+      </view>
+      <view class="grid-2">
+        <view class="grid-item" wx:for="{{timeTools}}" wx:key="slug">
+          <tool-card tool="{{item}}" mode="grid" bind:open="onOpenTool" />
+        </view>
+      </view>
+    </view>
+
+    <view class="section-gap">
+      <view class="row gap-sm section-label">
+        <text class="section-icon">▣</text>
+        <text class="text-headline-sm text-primary">学习与创作</text>
+      </view>
+      <view class="grid-2">
+        <view
+          wx:for="{{learningTools}}"
+          wx:key="slug"
+          class="grid-item {{index === 0 ? 'span-2' : ''}}"
+        >
+          <tool-card
+            tool="{{item}}"
+            mode="{{index === 0 ? 'hero' : 'grid'}}"
+            bind:open="onOpenTool"
+          />
+        </view>
+      </view>
+    </view>
+
+    <view class="section-gap">
+      <view class="row gap-sm section-label">
+        <text class="section-icon">▤</text>
+        <text class="text-headline-sm text-primary">文档转换</text>
+      </view>
+      <view class="grid-2">
+        <view class="grid-item" wx:for="{{docTools}}" wx:key="slug">
+          <tool-card tool="{{item}}" mode="doc" bind:open="onOpenTool" />
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

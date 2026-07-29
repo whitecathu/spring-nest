@@ -1,0 +1,55 @@
+<view class="page-pad privacy-page">
+  <view class="hero glass-card">
+    <text class="text-headline-md text-primary">隐私政策</text>
+    <text class="text-body-sm text-muted lead">春日小筑小程序 · 更新日期 2026-07-25</text>
+  </view>
+
+  <view class="section glass-card">
+    <text class="text-headline-sm">我们如何处理信息</text>
+    <text class="text-body-sm text-muted para">
+      「春日小筑」以本地工具为主。默认情况下，计算、文本处理、题库与记账等数据保存在您的设备本地，不会上传到我们的服务器。
+    </text>
+  </view>
+
+  <view class="section glass-card">
+    <text class="text-headline-sm">可能使用的系统能力</text>
+    <text class="text-body-sm text-muted para">为完成特定功能，我们可能在获得您授权后使用：</text>
+    <text class="text-body-sm text-muted para">· 头像与昵称：登录展示（chooseAvatar / nickname，仅保存在本机）</text>
+    <text class="text-body-sm text-muted para">· 相册 / 相机：文档扫描选图与拍照（chooseMedia）</text>
+    <text class="text-body-sm text-muted para">· 保存到相册：导出扫描结果（saveImageToPhotosAlbum）</text>
+    <text class="text-body-sm text-muted para">· 微信聊天文件：题库导入、文档辅助（chooseMessageFile）</text>
+    <text class="text-body-sm text-muted para">· 剪贴板：复制工具结果（setClipboardData）</text>
+    <text class="text-body-sm text-muted para">当前正式版不申请位置信息，不采集通讯录与手机号。</text>
+  </view>
+
+  <view class="section glass-card">
+    <text class="text-headline-sm">本机资料</text>
+    <text class="text-body-sm text-muted para">
+      保存资料时会调用微信登录能力（wx.login）以确认环境可用，并将您选择的头像与昵称写入本机，仅用于「我的」页展示。当前版本不创建云端账号、不跨设备同步；清除本机资料即可删除本地头像与昵称。
+    </text>
+  </view>
+
+  <view class="section glass-card">
+    <text class="text-headline-sm">第三方服务</text>
+    <text class="text-body-sm text-muted para">
+      当前正式版已下线依赖外部网络查询的天气、IP 与朗读能力，因此默认无需配置 request 合法域名。若后续重新上线，将另行更新本政策并在微信公众平台完善隐私指引。
+    </text>
+  </view>
+
+  <view class="section glass-card">
+    <text class="text-headline-sm">您的权利</text>
+    <text class="text-body-sm text-muted para">
+      您可在系统设置中撤销相关授权，或在「我的」清除本机资料、清空收藏与使用记录。如有疑问，请通过关于页所示品牌渠道联系我们。
+    </text>
+  </view>
+
+  <block wx:if="{{needAuth}}">
+    <button
+      class="btn-primary agree-btn"
+      id="agree-privacy-btn"
+      open-type="agreePrivacyAuthorization"
+      bindagreeprivacyauthorization="onAgreePrivacy"
+    >同意并继续</button>
+    <view class="disagree" bindtap="onDisagreePrivacy">暂不使用</view>
+  </block>
+</view>

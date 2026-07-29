@@ -10,4 +10,6 @@ coverage/
 playwright-report/
 test-results/
 .qa-screenshots/
+.tmp-visual-qa/
+.zcode/
 .superpowers/

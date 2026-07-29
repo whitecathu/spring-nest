@@ -1,0 +1,15 @@
+<view class="page-pad">
+  <view wx:if="{{empty}}" class="empty glass-card">
+    <text class="text-headline-sm">还没有收藏</text>
+    <text class="text-body-sm text-muted">在工具页点爱心，即可收藏到这里。</text>
+  </view>
+  <view class="grid-2" wx:else>
+    <tool-card
+      wx:for="{{tools}}"
+      wx:key="slug"
+      tool="{{item}}"
+      mode="grid"
+      bind:open="onOpenTool"
+    />
+  </view>
+</view>

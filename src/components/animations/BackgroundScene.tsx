@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import type { BackgroundProfile } from '../../lib/backgroundProfiles';
 import { softEase } from '../../lib/animations';
 
@@ -187,7 +187,7 @@ function PatternLayer({ profile, palette }: { profile: BackgroundProfile; palett
   const dotSize = profile.animation === 'tech' ? 22 : 28;
 
   return (
-    <motion.div
+    <div
       className="absolute -inset-[12%] opacity-60"
       style={{
         backgroundImage:
@@ -201,8 +201,6 @@ function PatternLayer({ profile, palette }: { profile: BackgroundProfile; palett
         maskImage: 'radial-gradient(circle at 50% 35%, black, transparent 72%)',
         willChange: 'transform, opacity',
       }}
-      animate={{ x: [0, -18, 0], y: [0, 12, 0], opacity: [0.28, 0.54, 0.28] }}
-      transition={{ duration: 18, repeat: Infinity, ease: softEase }}
       aria-hidden="true"
     />
   );
@@ -214,7 +212,7 @@ function RingLayer({ profile, palette }: { profile: BackgroundProfile; palette: 
   return (
     <div className="absolute inset-0" aria-hidden="true">
       {[0, 1, 2].map((index) => (
-        <motion.span
+        <span
           key={index}
           className="absolute left-1/2 top-[34%] rounded-full border"
           style={{
@@ -224,13 +222,6 @@ function RingLayer({ profile, palette }: { profile: BackgroundProfile; palette: 
             marginTop: -(190 + index * 82) / 2,
             borderColor: palette.line,
             willChange: 'transform, opacity',
-          }}
-          animate={{ scale: [0.94, 1.06, 0.94], opacity: [0.08, 0.26, 0.08] }}
-          transition={{
-            duration: 8 + index * 2,
-            repeat: Infinity,
-            delay: index * 0.6,
-            ease: softEase,
           }}
         />
       ))}
@@ -244,7 +235,7 @@ function DocumentLayer({ profile, palette }: { profile: BackgroundProfile; palet
   return (
     <div className="absolute inset-0" aria-hidden="true">
       {[0, 1, 2, 3].map((index) => (
-        <motion.span
+        <span
           key={index}
           className="absolute rounded-md border"
           style={{
@@ -255,17 +246,6 @@ function DocumentLayer({ profile, palette }: { profile: BackgroundProfile; palet
             borderColor: palette.line,
             background: palette.halo[index % palette.halo.length],
             willChange: 'transform, opacity',
-          }}
-          animate={{
-            y: [0, -12 - index * 2, 0],
-            rotate: [index * 5 - 8, index * 5 + 4, index * 5 - 8],
-            opacity: [0.08, 0.2, 0.08],
-          }}
-          transition={{
-            duration: 12 + index * 1.2,
-            repeat: Infinity,
-            delay: index * 0.5,
-            ease: softEase,
           }}
         />
       ))}
@@ -279,7 +259,7 @@ function BubbleLayer({ profile, palette }: { profile: BackgroundProfile; palette
   return (
     <div className="absolute inset-0" aria-hidden="true">
       {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
-        <motion.span
+        <span
           key={index}
           className="absolute rounded-full border"
           style={{
@@ -290,18 +270,6 @@ function BubbleLayer({ profile, palette }: { profile: BackgroundProfile; palette
             borderColor: palette.particle,
             background: palette.halo[index % palette.halo.length],
             willChange: 'transform, opacity',
-          }}
-          animate={{
-            y: ['0vh', '-108vh'],
-            x: [0, index % 2 ? 22 : -22, 0],
-            opacity: [0, 0.28, 0],
-            scale: [0.7, 1, 0.9],
-          }}
-          transition={{
-            duration: 15 + index,
-            repeat: Infinity,
-            delay: index * 0.8,
-            ease: softEase,
           }}
         />
       ))}
@@ -322,7 +290,7 @@ function FlowLines({ profile, palette }: { profile: BackgroundProfile; palette: 
       aria-hidden="true"
     >
       {lines.map((path, index) => (
-        <motion.path
+        <path
           key={`${path}-${index}`}
           d={path}
           fill="none"
@@ -330,14 +298,6 @@ function FlowLines({ profile, palette }: { profile: BackgroundProfile; palette: 
           strokeWidth={profile.animation === 'tech' || profile.animation === 'grid' ? 0.16 : 0.22}
           strokeLinecap="round"
           strokeDasharray={strokeDasharray}
-          initial={{ pathLength: 0.35, opacity: 0.08 }}
-          animate={{ pathLength: [0.35, 1, 0.35], opacity: [0.08, 0.26, 0.08] }}
-          transition={{
-            duration: 12 + index * 1.3,
-            repeat: Infinity,
-            delay: index * 0.5,
-            ease: softEase,
-          }}
         />
       ))}
     </svg>
@@ -358,7 +318,7 @@ function ParticleLayer({
   return (
     <div className="absolute inset-0" aria-hidden="true">
       {particles.map((particle, index) => (
-        <motion.span
+        <span
           key={`${profile.key}-${index}`}
           className="absolute rounded-full"
           style={{
@@ -369,21 +329,6 @@ function ParticleLayer({
             border: profile.animation === 'bubble' ? `1px solid ${palette.particle}` : undefined,
             background: profile.animation === 'bubble' ? 'transparent' : palette.particle,
             willChange: 'transform, opacity',
-          }}
-          animate={{
-            x: [0, particle.drift, 0],
-            y:
-              profile.animation === 'playful'
-                ? [0, -particle.travel, particle.travel * 0.4, 0]
-                : [0, -particle.travel, 0],
-            opacity: [0, 0.55, 0],
-            scale: [0.72, 1, 0.72],
-          }}
-          transition={{
-            duration: profile.intensity === 'lively' ? 7 : 11,
-            repeat: Infinity,
-            delay: particle.delay,
-            ease: softEase,
           }}
         />
       ))}
@@ -406,7 +351,7 @@ function LeafLayer({
   return (
     <div className="absolute inset-0" aria-hidden="true">
       {leaves.map((leaf, index) => (
-        <motion.span
+        <span
           key={`${profile.key}-leaf-${index}`}
           className="absolute"
           style={{
@@ -420,18 +365,6 @@ function LeafLayer({
             transformOrigin: '50% 80%',
             willChange: 'transform, opacity',
           }}
-          animate={{
-            y: ['0vh', '118vh'],
-            x: [0, leaf.drift, -leaf.drift * 0.45],
-            rotate: [0, 120, 260],
-            opacity: [0, 0.28, 0],
-          }}
-          transition={{
-            duration: leaf.duration,
-            repeat: Infinity,
-            delay: leaf.delay,
-            ease: softEase,
-          }}
         />
       ))}
     </div>
@@ -444,7 +377,7 @@ function SymbolLayer({ profile, palette }: { profile: BackgroundProfile; palette
   return (
     <div className="absolute inset-0" aria-hidden="true">
       {profile.symbols.map((symbol, index) => (
-        <motion.span
+        <span
           key={`${symbol.value}-${index}`}
           className="absolute select-none"
           style={{
@@ -453,21 +386,9 @@ function SymbolLayer({ profile, palette }: { profile: BackgroundProfile; palette
             opacity: symbol.opacity ?? 0.12,
             willChange: 'transform, opacity',
           }}
-          animate={{
-            y: [0, -symbol.drift, 0],
-            x: [0, symbol.drift * 0.28, 0],
-            rotate: [-2, 2, -2],
-            opacity: [symbol.opacity ?? 0.1, (symbol.opacity ?? 0.1) + 0.06, symbol.opacity ?? 0.1],
-          }}
-          transition={{
-            duration: 12 + index,
-            repeat: Infinity,
-            delay: symbol.delay,
-            ease: softEase,
-          }}
         >
           <AbstractSymbol value={symbol.value} color={palette.symbol} size={symbol.size} />
-        </motion.span>
+        </span>
       ))}
     </div>
   );

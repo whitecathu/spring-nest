@@ -1,0 +1,34 @@
+<tool-shell
+  wx:if="{{tool}}"
+  title="{{tool.title}}"
+  desc="{{tool.description}}"
+  icon="{{tool.icon}}"
+  bg="{{tool.bg}}"
+  color="{{tool.color}}"
+  favorite="{{favorite}}"
+  bind:togglefavorite="onToggleFavorite"
+>
+  <view class="scan-stage glass-card">
+    <canvas type="2d" id="scanCanvas" class="scan-canvas"></canvas>
+    <canvas canvas-id="scanCanvasLegacy" class="scan-canvas legacy"></canvas>
+    <view wx:if="{{!imagePath}}" class="empty-hint">
+      <text class="text-headline-sm text-primary">选择或拍摄文档</text>
+      <text class="text-body-sm text-muted">支持相册与相机，可选简单滤镜后保存</text>
+    </view>
+  </view>
+
+  <view class="filter-row" wx:if="{{imagePath}}">
+    <view
+      wx:for="{{filters}}"
+      wx:key="id"
+      class="filter-chip {{filterId === item.id ? 'on' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="onFilter"
+    >{{item.label}}</view>
+  </view>
+
+  <view class="row gap-md">
+    <button class="btn-ghost flex-1" bindtap="chooseImage">选图 / 拍照</button>
+    <button class="btn-primary flex-1" bindtap="saveToAlbum" disabled="{{!imagePath || busy}}">保存相册</button>
+  </view>
+</tool-shell>

@@ -1,0 +1,155 @@
+<view class="detail-page" wx:if="{{deck}}">
+  <view class="page-head">
+    <view class="heading">选择复习方式</view>
+    <view class="delete-link" bindtap="onDeleteDeck">删除</view>
+  </view>
+
+  <view wx:if="{{activeDeckSession}}" class="resume-card">
+    <view class="resume-copy">
+      <view class="resume-title">上次尚未完成</view>
+      <view class="resume-meta">{{resumeMeta}}</view>
+    </view>
+    <view class="resume-actions">
+      <view class="btn-ghost-sm" bindtap="onDiscardSession">放弃</view>
+      <view class="btn-forest-sm" bindtap="onResumeSession">继续</view>
+    </view>
+  </view>
+
+  <view class="mode-grid">
+    <view
+      class="mode-card {{mode === 'reccite' ? 'active' : ''}}"
+      data-mode="reccite"
+      bindtap="onSelectMode"
+    >
+      <view class="mode-icon">📖</view>
+      <view class="mode-title">背题</view>
+      <view class="mode-desc">沉浸式记忆</view>
+    </view>
+    <view
+      class="mode-card {{mode === 'practice' ? 'active' : ''}}"
+      data-mode="practice"
+      bindtap="onSelectMode"
+    >
+      <view class="mode-icon">◎</view>
+      <view class="mode-title">刷题</view>
+      <view class="mode-desc">快速检验</view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="panel-head">
+      <view>
+        <view class="panel-title">按题型学习</view>
+        <view class="panel-sub">单选、多选、判断专项进入</view>
+      </view>
+      <view class="pill">{{questionCount}} 题</view>
+    </view>
+    <view class="kind-list">
+      <view wx:for="{{kindStats}}" wx:key="kind" class="kind-card {{item.count ? '' : 'disabled'}}">
+        <view class="kind-row">
+          <text class="kind-name">{{item.label}}</text>
+          <text class="kind-count">{{item.count}} 题</text>
+        </view>
+        <view class="kind-actions">
+          <view
+            class="kind-btn soft"
+            data-kind="{{item.kind}}"
+            data-action="reccite"
+            bindtap="onStartKind"
+          >学习</view>
+          <view
+            class="kind-btn solid"
+            data-kind="{{item.kind}}"
+            data-action="practice"
+            bindtap="onStartKind"
+          >复习</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="panel-title">计划</view>
+    <view class="panel-sub">系统推进复习</view>
+    <view class="plan-box">
+      <view class="plan-row">
+        <text class="plan-label">今日计划</text>
+        <view class="plan-value">
+          <text class="plan-num">{{dailyPlanCount}}</text>
+          <text class="plan-unit">题</text>
+        </view>
+      </view>
+      <slider
+        min="5"
+        max="{{dailyPlanMax}}"
+        step="5"
+        value="{{dailyPlanCount}}"
+        activeColor="#1b4332"
+        backgroundColor="#e7e5e4"
+        block-size="20"
+        bindchanging="onDailyPlanChanging"
+        bindchange="onDailyPlanChanging"
+      />
+      <view class="plan-hint">最少 5 题 · 当前 {{dailyPlanCount}} 题 · 最长 {{dailyPlanMax}} 题</view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="panel-title">考试设置</view>
+    <view class="panel-sub">随机抽题并限时作答</view>
+    <view class="exam-grid">
+      <view class="exam-field">
+        <text class="exam-label">题目数量</text>
+        <view class="exam-input-row">
+          <input
+            class="exam-input"
+            type="number"
+            value="{{examQuestionCount}}"
+            bindblur="onExamCountInput"
+          />
+          <text class="exam-unit">题</text>
+        </view>
+      </view>
+      <view class="exam-field">
+        <text class="exam-label">考试时间</text>
+        <view class="exam-input-row">
+          <input
+            class="exam-input"
+            type="number"
+            value="{{examDurationMinutes}}"
+            bindblur="onExamDurationInput"
+          />
+          <text class="exam-unit">分钟</text>
+        </view>
+      </view>
+    </view>
+    <view class="exam-tip">从 {{questionCount}} 题中随机抽取 {{examQuestionCount}} 题，限时 {{examDurationMinutes}} 分钟。</view>
+  </view>
+
+  <view class="exam-entry" bindtap="onStartExam">
+    <view class="exam-entry-left">
+      <view class="exam-entry-icon">⏱</view>
+      <view>
+        <view class="exam-entry-title">模拟考试</view>
+        <view class="exam-entry-desc">全真模拟测验</view>
+      </view>
+    </view>
+    <text class="chevron">›</text>
+  </view>
+
+  <view class="heading" style="margin-top: 8px;">专项突破</view>
+  <view class="special-grid">
+    <view class="special-card" bindtap="onStartIncorrect">
+      <view class="special-icon">✗</view>
+      <view class="special-title">错题</view>
+      <view class="special-pill red">{{incorrectCount}} 个待复习</view>
+    </view>
+    <view class="special-card" bindtap="onStartFavorites">
+      <view class="special-icon">★</view>
+      <view class="special-title">收藏</view>
+      <view class="special-pill green">{{favoriteCount}} 个重点</view>
+    </view>
+  </view>
+
+  <view class="start-btn" bindtap="onStartReview">▶ 开始复习</view>
+</view>

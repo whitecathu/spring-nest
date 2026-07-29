@@ -29,7 +29,7 @@ type Html2PdfWorkerLike = {
 };
 
 const SAFE_URL_PATTERN = /^(https?:|mailto:|tel:|#|\/)/i;
-const SAFE_IMAGE_PATTERN = /^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,/i;
+const SAFE_IMAGE_PATTERN = /^data:image\/(png|jpe?g|gif|webp);base64,/i;
 const ALLOWED_ATTRIBUTES = new Set([
   'alt',
   'colspan',

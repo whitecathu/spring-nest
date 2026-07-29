@@ -1,6 +1,6 @@
 import { Heart, Gamepad2, Wrench, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
 import { games as baseGames } from '../data/games';
@@ -35,20 +35,18 @@ export default function Favorites() {
         title={t('我的收藏 - Spring Nest 春日小筑', 'Favorites - Spring Nest')}
         description={t('查看你收藏的工具和游戏', 'View your favorite tools and games')}
       />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="flex flex-col gap-10"
       >
         {/* Header */}
-        <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-tertiary-container/50 text-tertiary flex items-center justify-center shadow-inner mb-4">
+        <div className="flex flex-col items-center text-center forest-readable-hero px-4 py-6">
+          <div className="w-16 h-16 rounded-2xl bg-tertiary-container/70 text-tertiary flex items-center justify-center shadow-inner mb-4">
             <Heart className="w-8 h-8 fill-tertiary" />
           </div>
-          <h1 className="font-nunito text-3xl font-bold text-on-surface mb-2">
+          <h1 className="font-nunito text-3xl font-bold forest-page-title mb-2">
             {t('我的收藏', 'My Favorites')}
           </h1>
-          <p className="text-secondary font-medium">
+          <p className="forest-page-subtitle font-medium">
             {totalFavorites > 0
               ? t(`共收藏了 ${totalFavorites} 个应用`, `You have ${totalFavorites} favorited items`)
               : t('这里珍藏着你最喜爱的应用', 'Here lies your most beloved apps')}
@@ -63,19 +61,9 @@ export default function Favorites() {
               {t('游戏', 'Games')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <AnimatePresence>
-                {favoriteGames.map((item, i) => (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{
-                      y: -4,
-                      transition: { type: 'spring', stiffness: 400, damping: 15 },
-                    }}
-                    whileTap={{ scale: 0.97 }}
+              {favoriteGames.map((item, i) => (
+                  <div
+
                     key={item.id}
                     className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
                   >
@@ -125,10 +113,9 @@ export default function Favorites() {
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </AnimatePresence>
-            </div>
+</div>
           </section>
         )}
 
@@ -140,19 +127,9 @@ export default function Favorites() {
               {t('工具', 'Tools')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <AnimatePresence>
-                {favoriteTools.map((item, i) => (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{
-                      y: -4,
-                      transition: { type: 'spring', stiffness: 400, damping: 15 },
-                    }}
-                    whileTap={{ scale: 0.97 }}
+              {favoriteTools.map((item, i) => (
+                  <div
+
                     key={item.id}
                     className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
                   >
@@ -202,57 +179,44 @@ export default function Favorites() {
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </AnimatePresence>
-            </div>
+</div>
           </section>
         )}
 
         {/* Empty State */}
         {totalFavorites === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center py-20 text-secondary"
+          <div
+            className="forest-empty-panel mx-auto flex max-w-xl flex-col items-center justify-center px-8 py-16 text-secondary"
           >
             <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-4">
-              <Heart className="w-10 h-10 text-secondary/30" />
+              <Heart className="w-10 h-10 text-secondary/40" />
             </div>
-            <p className="font-medium text-lg">{t('暂无收藏内容', 'No favorites yet')}</p>
-            <p className="text-sm text-secondary/50 mb-6">
+            <p className="font-medium text-lg text-on-surface">{t('暂无收藏内容', 'No favorites yet')}</p>
+            <p className="text-sm text-secondary mb-6">
               {t(
                 '快去探索游戏和工具，收藏你喜欢的吧',
                 'Explore games and tools and add your favorites',
               )}
             </p>
             <div className="flex gap-4">
-              <motion.button
-                whileHover={{
-                  scale: 1.05,
-                  transition: { type: 'spring', stiffness: 400, damping: 15 },
-                }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => navigate('/games')}
                 className="px-6 py-3 bg-primary-container text-on-primary-container rounded-full font-semibold text-sm hover:bg-primary-container/80 transition-colors"
               >
                 {t('探索游戏', 'Explore Games')}
-              </motion.button>
-              <motion.button
-                whileHover={{
-                  scale: 1.05,
-                  transition: { type: 'spring', stiffness: 400, damping: 15 },
-                }}
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={() => navigate('/tools')}
                 className="px-6 py-3 bg-tertiary-container text-on-tertiary-container rounded-full font-semibold text-sm hover:bg-tertiary-container/80 transition-colors"
               >
                 {t('探索工具', 'Explore Tools')}
-              </motion.button>
+              </button>
             </div>
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

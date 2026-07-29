@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import {
+  miniProgramOfflineSlugs,
   miniProgramTabs,
   miniProgramToolCatalog,
   miniProgramToolCategories,
@@ -11,6 +12,7 @@ const payload = {
   generatedAt: new Date().toISOString(),
   tabs: miniProgramTabs,
   categories: miniProgramToolCategories,
+  offlineSlugs: [...miniProgramOfflineSlugs],
   tools: miniProgramToolCatalog,
 };
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Copy, Check, Trash2, ArrowLeftRight } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -162,9 +162,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
@@ -237,9 +235,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
 
         {/* Stats */}
         {stats && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+          <div
             className="flex flex-wrap gap-3 mb-4"
           >
             <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
@@ -251,14 +247,12 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
             <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
               {stats.unchanged} {t('行相同', 'lines unchanged')}
             </span>
-          </motion.div>
+          </div>
         )}
 
         {/* Diff Output */}
         {diff && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="rounded-2xl bg-surface-container-low border border-surface-variant/30 overflow-hidden"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-surface-variant/30">
@@ -275,7 +269,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
                 {diff && renderDiffPanel(diff.newSegments, 'right')}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Empty state */}
@@ -289,7 +283,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
             </p>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

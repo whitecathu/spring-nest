@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Palette } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadBestScore, saveBestScore } from '../../lib/gameScore';
@@ -243,7 +243,7 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('色彩拼图', 'Color Merge')}</h1>
@@ -285,25 +285,13 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
                 const color = cell.colorIdx >= 0 ? COLORS[cell.colorIdx] : COLORS[0];
 
                 return (
-                  <motion.button
+                  <button
                     key={cell.id}
                     onClick={() => handleCellClick(r, c)}
                     aria-label={t(
                       `第 ${r + 1} 行第 ${c + 1} 列，${color.name} 色方块${isSelected ? '，已选中' : ''}`,
                       `Row ${r + 1}, column ${c + 1}, ${color.name} block${isSelected ? ', selected' : ''}`,
                     )}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={
-                      isMatched
-                        ? { scale: [1, 1.2, 0], opacity: [1, 1, 0] }
-                        : { scale: 1, opacity: 1 }
-                    }
-                    transition={
-                      isMatched
-                        ? { duration: 0.3 }
-                        : { type: 'spring', stiffness: 300, damping: 20 }
-                    }
                     className={`aspect-square rounded-xl transition-all ${
                       isSelected
                         ? 'ring-3 ring-primary ring-offset-2 ring-offset-surface-container-high scale-105'
@@ -331,12 +319,8 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
-        <AnimatePresence>
-          {gameOver && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+        {gameOver && (
+            <div
               className="mt-6 p-6 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/30 rounded-2xl text-center"
             >
               <p className="text-2xl mb-2">🎨</p>
@@ -358,14 +342,13 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
               >
                 {t('再来一局', 'Play Again')}
               </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('点击一个色块，再点击相邻色块交换', 'Tap a tile, then tap an adjacent tile to swap')}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

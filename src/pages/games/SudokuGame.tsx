@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo, memo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Eraser, Lightbulb } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { springBouncy, springSmooth } from '../../lib/animations';
@@ -115,11 +115,8 @@ const SudokuCell = memo(function SudokuCell({
   isCorrectBrief: boolean;
 }) {
   return (
-    <motion.button
+    <button
       onClick={onClick}
-      whileTap={{ scale: 0.9 }}
-      animate={isError ? { x: [0, -3, 3, -3, 3, 0] } : { x: 0 }}
-      transition={isError ? { duration: 0.4 } : { duration: 0.15 }}
       className={`
         relative w-full aspect-square flex items-center justify-center text-sm sm:text-base font-bold rounded
         transition-colors duration-150
@@ -131,48 +128,32 @@ const SudokuCell = memo(function SudokuCell({
     >
       {/* Pulsing ring on selected cell */}
       {isSelected && (
-        <motion.span
+        <span
           className="absolute inset-0 rounded border-[3px] border-primary pointer-events-none"
-          animate={{ opacity: [1, 0.4, 1] }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
         />
       )}
       {/* Green glow on correct placement */}
-      <AnimatePresence>
-        {isCorrectBrief && (
-          <motion.div
+      {isCorrectBrief && (
+          <div
             className="absolute inset-0 rounded bg-green-400/25 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.6, 0] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
           />
         )}
-      </AnimatePresence>
       {/* Number with scale-from-zero entrance */}
-      <AnimatePresence mode="wait">
-        {value !== 0 && (
-          <motion.span
+      {value !== 0 && (
+          <span
             key={value}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={springBouncy}
             className={`relative z-10 ${isHint ? 'text-amber-500 dark:text-amber-400' : ''}`}
           >
             {value}
-          </motion.span>
+          </span>
         )}
-      </AnimatePresence>
       {/* Hint golden glow pulse */}
       {isHint && (
-        <motion.div
+        <div
           className="absolute inset-0 rounded bg-amber-400/20 pointer-events-none"
-          animate={{ opacity: [0, 0.5, 0] }}
-          transition={{ duration: 1, repeat: 2, ease: 'easeInOut' }}
         />
       )}
-    </motion.button>
+    </button>
   );
 });
 
@@ -195,7 +176,7 @@ function WinConfetti() {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
       {particles.map((p) => (
-        <motion.div
+        <div
           key={p.id}
           className="absolute left-1/2 top-1/2"
           style={{
@@ -203,19 +184,6 @@ function WinConfetti() {
             height: p.size * 0.6,
             backgroundColor: p.color,
             borderRadius: 2,
-          }}
-          initial={{ x: 0, y: 0, opacity: 1, rotate: 0, scale: 1 }}
-          animate={{
-            x: p.x,
-            y: [0, p.y, p.y + 500],
-            opacity: [1, 1, 0],
-            rotate: p.rotate,
-            scale: [1, 1.2, 0.3],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            ease: [0.16, 1, 0.3, 1],
           }}
         />
       ))}
@@ -412,7 +380,7 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -434,18 +402,14 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                   <Trophy className="w-3 h-3" />
                   {t('最佳', 'Best')}
                 </div>
-                <motion.div
+                <div
                   className="text-lg font-bold text-tertiary tabular-nums"
-                  animate={isNewRecord ? { scale: [1, 1.25, 1] } : {}}
-                  transition={isNewRecord ? { duration: 0.5, ...springBouncy } : {}}
                 >
                   {formatTime(bestTime)}
-                </motion.div>
+                </div>
                 {isNewRecord && (
-                  <motion.div
+                  <div
                     className="absolute inset-0 rounded-xl bg-amber-400/20 pointer-events-none"
-                    animate={{ opacity: [0, 0.6, 0] }}
-                    transition={{ duration: 0.8, repeat: 2 }}
                   />
                 )}
               </div>
@@ -456,17 +420,13 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
         {/* Difficulty */}
         <div className="flex justify-center gap-2 mb-4">
           {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
-            <motion.button
+            <button
               key={d}
               onClick={() => {
                 if (gameState === 'playing') return;
                 setDifficulty(d);
               }}
               disabled={gameState === 'playing'}
-              whileTap={{ scale: 0.93 }}
-              whileHover={{ scale: 1.05 }}
-              animate={difficulty === d ? { scale: [1, 1.08, 1] } : { scale: 1 }}
-              transition={springBouncy}
               className={`px-4 py-2 rounded-full font-semibold text-sm min-h-[48px] transition-all ${
                 difficulty === d
                   ? 'bg-primary text-on-primary'
@@ -474,41 +434,31 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
               }`}
             >
               {t(...DIFFICULTIES[d].label)}
-            </motion.button>
+            </button>
           ))}
         </div>
 
         {/* Mistake counter */}
         {gameState === 'playing' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          <div
             className="flex justify-center mb-3"
           >
             <div className="bg-surface-container-high rounded-full px-4 py-1.5 flex items-center gap-2 text-sm">
               <span className="text-secondary font-medium">{t('错误', 'Mistakes')}:</span>
-              <motion.span
+              <span
                 key={mistakeCount}
-                initial={{ scale: 1.4 }}
-                animate={{ scale: 1 }}
-                transition={springBouncy}
                 className={`font-bold tabular-nums ${mistakeCount > 0 ? 'text-red-500' : 'text-green-500'}`}
               >
                 {mistakeCount}
-              </motion.span>
+              </span>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Board */}
-        <AnimatePresence mode="wait">
-          {gameState !== 'idle' && (
-            <motion.div
+        {gameState !== 'idle' && (
+            <div
               key="board"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={springSmooth}
               className="mb-4"
             >
               <div className="grid grid-cols-9 gap-0 max-w-[360px] mx-auto border-2 border-on-surface/20 rounded-lg overflow-hidden">
@@ -551,32 +501,26 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                   }),
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Number Pad + Actions */}
         {gameState === 'playing' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={springSmooth}
+          <div
             className="max-w-[360px] mx-auto"
           >
             {/* Actions */}
             <div className="flex justify-center gap-3 mb-3">
-              <motion.button
+              <button
                 onClick={handleErase}
-                whileTap={{ scale: 0.9 }}
                 className="px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm flex items-center gap-1.5 min-h-[48px]"
               >
                 <Eraser className="w-4 h-4" />
                 {t('擦除', 'Erase')}
-              </motion.button>
-              <motion.button
+              </button>
+              <button
                 onClick={handleHint}
                 disabled={hints <= 0}
-                whileTap={{ scale: 0.9 }}
                 className={`px-4 py-2 rounded-full font-semibold text-sm flex items-center gap-1.5 min-h-[48px] ${
                   hints > 0
                     ? 'bg-amber-100 text-amber-700'
@@ -585,43 +529,34 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
               >
                 <Lightbulb className="w-4 h-4" />
                 {t('提示', 'Hint')} ({hints})
-              </motion.button>
+              </button>
             </div>
 
             {/* Number Pad */}
             <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
               <div className="grid grid-cols-9 gap-1.5 min-w-[320px]">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                  <motion.button
+                  <button
                     key={num}
                     onClick={() => handleNumber(num)}
-                    whileTap={{ scale: 0.85 }}
                     className="aspect-square rounded-lg bg-primary text-on-primary font-bold text-lg flex items-center justify-center min-h-[48px]"
                   >
                     {num}
-                  </motion.button>
+                  </button>
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Start/Play Again */}
-        <AnimatePresence mode="wait">
-          {(gameState === 'idle' || gameState === 'won') && (
-            <motion.div
+        {(gameState === 'idle' || gameState === 'won') && (
+            <div
               key={gameState}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={springSmooth}
               className="flex flex-col items-center gap-3 mt-4"
             >
               {gameState === 'won' && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={springBouncy}
+                <div
                   className="text-center mb-2"
                 >
                   <p className="text-4xl mb-2">🎉</p>
@@ -635,39 +570,32 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                     {t('错误', 'Mistakes')}: {mistakeCount}
                   </p>
                   {isNewRecord && (
-                    <motion.p
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: [1, 1.15, 1] }}
-                      transition={{ duration: 0.6, ...springBouncy }}
+                    <p
                       className="text-sm text-green-500 font-bold mt-1"
                     >
                       🏆 {t('新纪录！', 'New Record!')}
-                    </motion.p>
+                    </p>
                   )}
-                </motion.div>
+                </div>
               )}
-              <motion.button
+              <button
                 onClick={startGame}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.93 }}
-                transition={springBouncy}
                 className="px-8 py-3 bg-primary text-on-primary rounded-full font-semibold flex items-center gap-2 min-h-[48px]"
               >
                 <RotateCcw className="w-5 h-5" />
                 {gameState === 'won' ? t('再来一局', 'Play Again') : t('开始游戏', 'Start Game')}
-              </motion.button>
-            </motion.div>
+              </button>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Confetti on win */}
-        <AnimatePresence>{gameState === 'won' && <WinConfetti />}</AnimatePresence>
+        {gameState === 'won' && <WinConfetti />}
 
         {/* Instructions */}
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('点击空格选择，输入 1-9 填入数字', 'Tap a cell to select, enter 1-9 to fill')}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

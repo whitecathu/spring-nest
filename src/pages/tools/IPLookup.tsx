@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import {
   ArrowLeft,
   Copy,
@@ -118,9 +118,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
@@ -154,14 +152,12 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
 
         {/* Error */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          <div
             className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium flex items-center gap-2"
           >
             <AlertCircle className="w-5 h-5 shrink-0" />
             {error}
-          </motion.div>
+          </div>
         )}
 
         {/* Loading skeleton */}
@@ -181,9 +177,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
 
         {/* IP Info */}
         {ipInfo && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             key={ipInfo.ip}
           >
             {/* Big IP display */}
@@ -262,7 +256,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
                 {t('在地图上查看', 'View on Map')} &rarr;
               </a>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Empty state when error and no data */}
@@ -272,7 +266,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
             <p>{t('无法获取 IP 信息', 'Unable to fetch IP information')}</p>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

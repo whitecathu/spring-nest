@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { easeOutExpo, softEase } from '../../lib/animations';
 
 type SplashParticleFieldProps = {
@@ -32,7 +32,7 @@ function SplashParticleField({
   return (
     <div className="absolute inset-0" aria-hidden="true">
       {particles.map((particle, index) => (
-        <motion.span
+        <span
           key={index}
           className="absolute left-1/2 top-1/2 rounded-full"
           style={{
@@ -41,24 +41,12 @@ function SplashParticleField({
             background: particleColor,
             willChange: 'transform, opacity',
           }}
-          initial={{ opacity: 0, x: 0, y: 0, scale: 0.5 }}
-          animate={
-            stage >= 3
-              ? {
-                  opacity: quiet ? [0, 0.28, 0.08] : [0, 0.72, 0.12],
-                  x: particle.x,
-                  y: particle.y,
-                  scale: [0.5, 1.1, 0.85],
-                }
-              : {}
-          }
-          transition={{ duration: 0.68, delay: particle.delay, ease: easeOutExpo }}
         />
       ))}
 
       {stage >= 4 &&
         particles.slice(0, compact ? 5 : 8).map((particle, index) => (
-          <motion.span
+          <span
             key={`orbit-${index}`}
             className="absolute left-1/2 top-1/2 h-px origin-left rounded-full"
             style={{
@@ -67,9 +55,6 @@ function SplashParticleField({
               rotate: `${(index / particles.length) * 360}deg`,
               willChange: 'transform, opacity',
             }}
-            initial={{ opacity: 0, scaleX: 0.2 }}
-            animate={{ opacity: [0, 0.35, 0.08], scaleX: [0.2, 1, 0.72] }}
-            transition={{ duration: 0.72, delay: index * 0.035, ease: softEase }}
           />
         ))}
     </div>

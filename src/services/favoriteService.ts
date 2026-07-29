@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { syncFavoritesToCloud, syncFavoritesFromCloud } from './cloudSyncService';
+import { reportError } from '../lib/errorReporting';
 
 const STORAGE_FAVORITES_KEY = 'spring_nest_favorites';
 
@@ -76,7 +77,11 @@ export async function addFavoriteSync(userId: string, itemId: string): Promise<v
   addFavorite(userId, itemId);
   if (supabase && userId !== 'guest') {
     const favorites = getFavorites(userId);
-    await syncFavoritesToCloud(userId, favorites);
+    try {
+      await syncFavoritesToCloud(userId, favorites);
+    } catch (err) {
+      reportError(err as Error, { source: 'addFavoriteSync' });
+    }
   }
 }
 
@@ -85,7 +90,11 @@ export async function removeFavoriteSync(userId: string, itemId: string): Promis
   removeFavorite(userId, itemId);
   if (supabase && userId !== 'guest') {
     const favorites = getFavorites(userId);
-    await syncFavoritesToCloud(userId, favorites);
+    try {
+      await syncFavoritesToCloud(userId, favorites);
+    } catch (err) {
+      reportError(err as Error, { source: 'removeFavoriteSync' });
+    }
   }
 }
 
@@ -94,7 +103,11 @@ export async function toggleFavoriteSync(userId: string, itemId: string): Promis
   const nowFavorited = toggleFavorite(userId, itemId);
   if (supabase && userId !== 'guest') {
     const favorites = getFavorites(userId);
-    await syncFavoritesToCloud(userId, favorites);
+    try {
+      await syncFavoritesToCloud(userId, favorites);
+    } catch (err) {
+      reportError(err as Error, { source: 'toggleFavoriteSync' });
+    }
   }
   return nowFavorited;
 }
@@ -115,8 +128,8 @@ export async function mergeGuestFavorites(userId: string): Promise<void> {
     const data = getFavoritesData();
     data[userId] = merged;
     saveFavoritesData(data);
-  } catch {
-    // Silently fail
+  } catch (err) {
+    reportError(err as Error, { source: 'mergeGuestFavorites' });
   }
 }
 
@@ -137,7 +150,8 @@ export async function loadFavoritesFromCloud(userId: string): Promise<string[]> 
     await syncFavoritesToCloud(userId, merged);
 
     return merged;
-  } catch {
+  } catch (err) {
+    reportError(err as Error, { source: 'loadFavoritesFromCloud' });
     return getFavorites(userId);
   }
 }

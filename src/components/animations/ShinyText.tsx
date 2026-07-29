@@ -1,5 +1,6 @@
 import { memo, useRef, useEffect, useState, useCallback } from 'react';
-import { motion, useMotionValue, useAnimationFrame, useTransform } from 'motion/react';
+import gsap from 'gsap';
+import { useMotionValue } from '../../lib/gsap';
 import { useReducedMotion } from '../../lib/animations';
 
 interface ShinyTextProps {
@@ -31,33 +32,43 @@ function ShinyTextInner({
 
   const animationDuration = speed * 1000;
 
-  useAnimationFrame((time) => {
-    if (reducedMotion || isPaused) {
-      lastTimeRef.current = null;
-      return;
-    }
+  useEffect(() => {
+    if (reducedMotion || isPaused) return;
+    let rafId: number;
 
-    if (lastTimeRef.current === null) {
-      lastTimeRef.current = time;
-      return;
-    }
+    const animate = (time: number) => {
+      if (lastTimeRef.current === null) {
+        lastTimeRef.current = time;
+      } else {
+        const deltaTime = time - lastTimeRef.current;
+        lastTimeRef.current = time;
+        elapsedRef.current += deltaTime;
 
-    const deltaTime = time - lastTimeRef.current;
-    lastTimeRef.current = time;
-    elapsedRef.current += deltaTime;
+        const cycleDuration = animationDuration;
+        const cycleTime = elapsedRef.current % cycleDuration;
+        const p = (cycleTime / cycleDuration) * 100;
+        progress.set(direction === 'left' ? p : 100 - p);
+      }
+      rafId = requestAnimationFrame(animate);
+    };
 
-    const cycleDuration = animationDuration;
-    const cycleTime = elapsedRef.current % cycleDuration;
-    const p = (cycleTime / cycleDuration) * 100;
-    progress.set(direction === 'left' ? p : 100 - p);
-  });
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
+  }, [reducedMotion, isPaused, animationDuration, direction, progress]);
 
   useEffect(() => {
     elapsedRef.current = 0;
     progress.set(0);
   }, [direction, progress]);
 
-  const backgroundPosition = useTransform(progress, (p) => `${150 - p * 2}% center`);
+  const [backgroundPosition, setBackgroundPosition] = useState('150% center');
+
+  useEffect(() => {
+    const unsubscribe = progress.subscribe((p) => {
+      setBackgroundPosition(`${150 - p * 2}% center`);
+    });
+    return () => { unsubscribe(); };
+  }, [progress]);
 
   const handleMouseEnter = useCallback(() => {
     if (pauseOnHover) setIsPaused(true);
@@ -80,14 +91,14 @@ function ShinyTextInner({
   };
 
   return (
-    <motion.span
+    <span
       className={`inline-block ${className}`}
       style={{ ...gradientStyle, backgroundPosition }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {text}
-    </motion.span>
+    </span>
   );
 }
 

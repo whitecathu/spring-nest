@@ -5,7 +5,7 @@ import {
   useRef,
   type TouchEvent as ReactTouchEvent,
 } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Undo2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadBestScore, saveBestScore } from '../../lib/gameScore';
@@ -392,17 +392,15 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button
+      <button
         onClick={onBack}
-        whileHover={{ x: -4 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
         className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px]"
       >
         <ArrowLeft className="w-5 h-5" />
         {t('返回游戏列表', 'Back to Games')}
-      </motion.button>
+      </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -412,23 +410,18 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
             </p>
           </div>
           <div className="flex gap-2">
-            <motion.div
-              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+            <div
               className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
             >
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <motion.div
+              <div
                 key={score}
-                initial={{ scale: 1.5, color: '#f59563' }}
-                animate={{ scale: 1, color: 'var(--color-primary)' }}
-                transition={{ type: 'spring', stiffness: 600, damping: 10 }}
                 className="text-xl font-bold tabular-nums"
               >
                 {score}
-              </motion.div>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -2, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+              </div>
+            </div>
+            <div
               className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
             >
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
@@ -436,7 +429,7 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
                 {t('最佳', 'Best')}
               </div>
               <div className="text-xl font-bold text-tertiary tabular-nums">{bestScore}</div>
-            </motion.div>
+            </div>
           </div>
         </div>
 
@@ -454,11 +447,8 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
               const ts = getTileStyle(val);
               const isHighValue = val >= 128;
               return (
-                <motion.div
+                <div
                   key={`${i}-${val}`}
-                  initial={val ? { scale: 0, rotate: -10 } : false}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                   className={`aspect-square rounded-xl flex items-center justify-center font-extrabold relative ${ts.fontSize}`}
                   style={{
                     background: val ? ts.bg : 'rgba(238,228,218,0.12)',
@@ -471,32 +461,20 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
                   }}
                 >
                   {val || ''}
-                </motion.div>
+                </div>
               );
             })}
           </div>
 
           {/* Merge score popup layer */}
           <div className="absolute inset-3 pointer-events-none overflow-hidden">
-            <AnimatePresence>
-              {mergePopups.map((mp) => {
+            {mergePopups.map((mp) => {
                 const cellSize = 100 / 4;
                 const x = mp.col * cellSize + cellSize / 2;
                 const y = mp.row * cellSize + cellSize / 2;
                 return (
-                  <motion.div
+                  <div
                     key={mp.id}
-                    initial={{
-                      left: `${x}%`,
-                      top: `${y}%`,
-                      opacity: 1,
-                      scale: 0.6,
-                      x: '-50%',
-                      y: '-50%',
-                    }}
-                    animate={{ top: `${y - 18}%`, opacity: 0, scale: 1.3, x: '-50%', y: '-50%' }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                     className="absolute font-black text-lg drop-shadow-md"
                     style={{
                       color: '#f59563',
@@ -504,84 +482,54 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
                     }}
                   >
                     +{mp.value}
-                  </motion.div>
+                  </div>
                 );
               })}
-            </AnimatePresence>
           </div>
 
           {/* Confetti layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
             {confetti.map((p) => (
-              <motion.div
+              <div
                 key={p.id}
-                initial={{
-                  left: `${p.x}%`,
-                  top: `${p.y}%`,
-                  scale: 1,
-                  opacity: 1,
-                  rotate: p.rotation,
-                }}
-                animate={{
-                  left: `${p.x + p.vx * 6}%`,
-                  top: `${p.y + p.vy * 6}%`,
-                  scale: 0,
-                  opacity: 0,
-                  rotate: p.rotation + p.rotationSpeed,
-                }}
-                transition={{ duration: 1.8, ease: 'easeOut' }}
                 className="absolute text-center"
                 style={{ fontSize: `${p.size}px` }}
               >
                 {p.emoji}
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
 
         {/* Controls */}
         <div className="flex justify-center gap-4">
-          <motion.button
+          <button
             onClick={reset}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.93 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2"
           >
             <RotateCcw className="w-5 h-5" />
             {t('重新开始', 'Restart')}
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             onClick={undo}
             disabled={!prevGrid}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.93 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Undo2 className="w-5 h-5" />
             {t('撤回', 'Undo')}
-          </motion.button>
+          </button>
         </div>
 
         {/* Win celebration */}
-        <AnimatePresence>
-          {showWin && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -10 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+        {showWin && (
+            <div
               className="mt-6 p-6 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200 dark:border-amber-700/30 rounded-2xl text-center"
             >
-              <motion.p
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+              <p
                 className="text-4xl mb-2"
               >
                 🏆
-              </motion.p>
+              </p>
               <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
                 {t('恭喜通关！', 'You Win!')}
               </p>
@@ -589,47 +537,32 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
                 {t('得分', 'Score')}: {score}
               </p>
               <div className="flex justify-center gap-3">
-                <motion.button
+                <button
                   onClick={continueAfterWin}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.93 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                   className="px-6 py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition-colors"
                 >
                   {t('继续挑战', 'Keep Going')}
-                </motion.button>
-                <motion.button
+                </button>
+                <button
                   onClick={reset}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.93 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                   className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all"
                 >
                   {t('再来一局', 'Play Again')}
-                </motion.button>
+                </button>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Game over panel */}
-        <AnimatePresence>
-          {gameOver && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -10 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+        {gameOver && (
+            <div
               className="mt-6 p-6 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-700/30 rounded-2xl text-center"
             >
-              <motion.p
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+              <p
                 className="text-3xl mb-2"
               >
                 😵
-              </motion.p>
+              </p>
               <p className="text-2xl font-bold text-red-500 dark:text-red-400 mb-1">
                 {t('游戏结束', 'Game Over')}
               </p>
@@ -637,32 +570,25 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
                 {t('最终得分', 'Final Score')}: {score}
               </p>
               {score > 0 && score === bestScore && (
-                <motion.p
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, delay: 0.3 }}
+                <p
                   className="text-sm text-orange-500 mb-4"
                 >
                   🏆 {t('新纪录！', 'New Record!')}
-                </motion.p>
+                </p>
               )}
-              <motion.button
+              <button
                 onClick={reset}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.93 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className="px-6 py-3 bg-red-500 text-white rounded-full font-semibold hover:bg-red-600 transition-colors"
               >
                 {t('再来一局', 'Play Again')}
-              </motion.button>
-            </motion.div>
+              </button>
+            </div>
           )}
-        </AnimatePresence>
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('方向键或滑动控制', 'Arrow keys or swipe to control')}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

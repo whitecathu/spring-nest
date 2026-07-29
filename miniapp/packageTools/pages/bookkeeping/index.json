@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "随手记账",
+  "usingComponents": {
+    "tool-shell": "/components/tool-shell/index",
+    "bottom-action-bar": "/components/bottom-action-bar/index"
+  }
+}

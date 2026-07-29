@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { Home, Search, ArrowLeft, Leaf } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import SEO from '../components/SEO';
@@ -21,72 +21,50 @@ export default function NotFound() {
         )}
         noindex
       />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
+      <div
         className="text-center max-w-lg relative z-10"
       >
         {/* Animated 404 */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+        <div
           className="relative mb-8"
         >
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          <div
             className="text-9xl font-black text-primary/10 select-none"
           >
             404
-          </motion.div>
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.3, type: 'spring', bounce: 0.5 }}
+          </div>
+          <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           >
             <Leaf className="w-20 h-20 text-primary/30 fill-primary/30" />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+        <h1
           className="text-3xl font-bold text-on-surface mb-3"
         >
           {t('页面未找到', 'Page Not Found')}
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+        <p
           className="text-secondary mb-10 text-lg"
         >
           {t(
             '你访问的页面不存在，可能已被移除或地址输入有误。',
             'The page you are looking for does not exist or has been moved.',
           )}
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+        <div
           className="flex flex-col sm:flex-row justify-center gap-4 mb-8"
         >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => navigate(-1)}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface-container-high dark:bg-surface-container text-on-surface rounded-full font-semibold hover:shadow-md transition-all border border-surface-variant/30"
           >
             <ArrowLeft className="w-4 h-4" />
             {t('返回上一页', 'Go Back')}
-          </motion.button>
+          </button>
           <Link
             to="/"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-on-primary rounded-full font-semibold hover:shadow-lg transition-all"
@@ -94,13 +72,10 @@ export default function NotFound() {
             <Home className="w-4 h-4" />
             {t('返回首页', 'Back to Home')}
           </Link>
-        </motion.div>
+        </div>
 
         {/* Search suggestion */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
+        <div
           className="mt-8 pt-8 border-t border-surface-variant/30"
         >
           <p className="text-sm text-secondary mb-4">{t('或者试试搜索：', 'Or try searching:')}</p>
@@ -126,8 +101,8 @@ export default function NotFound() {
               </Link>
             ))}
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

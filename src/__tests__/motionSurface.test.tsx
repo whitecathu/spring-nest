@@ -6,7 +6,7 @@ import {
   MotionCard,
   MotionList,
   MotionPanel,
-} from '../components/MotionSurface';
+} from '../components/GsapSurface';
 
 describe('MotionSurface primitives', () => {
   it('renders a motion button with the requested label and class', () => {

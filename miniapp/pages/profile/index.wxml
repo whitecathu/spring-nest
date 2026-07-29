@@ -32,18 +32,18 @@
           <view class="status-dot"></view>
           <text class="status-text">已登录 · 资料仅保存在本机</text>
         </view>
-        <view class="login-pill ghost" bindtap="onLogout" hover-class="pill-hover">退出登录</view>
+        <view class="login-pill ghost" bindtap="onLogout" hover-class="pill-hover">清除本机资料</view>
       </block>
 
       <block wx:else>
         <text class="hero-greet">欢迎来到春日小筑</text>
-        <text class="hero-lead">填写昵称，开启你的工具小窝</text>
+        <text class="hero-lead">填写昵称，资料只保存在本机</text>
         <view class="nick-shell">
           <input
             class="nick-input"
             type="nickname"
             maxlength="20"
-            placeholder="填写微信昵称"
+            placeholder="填写昵称"
             placeholder-class="nick-ph"
             value="{{draftNickName}}"
             bindinput="onNickInput"
@@ -53,9 +53,9 @@
         </view>
         <view class="login-pill primary" bindtap="onLogin" hover-class="pill-hover">
           <image class="pill-leaf" src="/assets/icons/leaf.png" mode="aspectFit" />
-          <text class="pill-text">微信登录</text>
+          <text class="pill-text">保存本机资料</text>
         </view>
-        <text class="login-hint">头像与昵称仅保存在本机，用于个人页展示</text>
+        <text class="login-hint">不上传云端、不同步其它设备；仅用于「我的」页展示</text>
       </block>
     </view>
 

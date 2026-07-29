@@ -1,0 +1,9 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "效率",
+  "backgroundColor": "#fef8f2",
+  "usingComponents": {
+    "brand-header": "/components/brand-header/index",
+    "tool-card": "/components/tool-card/index"
+  }
+}

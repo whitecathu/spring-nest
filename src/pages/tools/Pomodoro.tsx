@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -190,48 +190,38 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button
+      <button
         onClick={onBack}
-        whileHover={{ x: -4 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
       >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
-      </motion.button>
+      </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-8 shadow-lg border border-surface-variant/30 text-center"
       >
         {/* Mode Switch */}
         <div className="flex justify-center mb-6">
           <div className="bg-surface-container-high rounded-full p-1 flex gap-1">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            <button
               onClick={() => switchMode('focus')}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${mode === 'focus' ? 'bg-white text-primary shadow-sm' : 'text-secondary'}`}
             >
               {t('专注', 'Focus')} ({settings.focusTime}m)
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            </button>
+            <button
               onClick={() => switchMode('break')}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${mode === 'break' ? 'bg-white text-primary shadow-sm' : 'text-secondary'}`}
             >
               {t('休息', 'Break')} ({settings.breakTime}m)
-            </motion.button>
+            </button>
           </div>
         </div>
 
         {/* Timer Circle */}
-        <motion.div
+        <div
           className="relative w-56 h-56 mx-auto mb-8"
-          animate={celebrating ? { scale: [1, 1.08, 1] } : {}}
-          transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         >
           <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
             <circle cx="100" cy="100" r="90" fill="none" stroke="#e2e3df" strokeWidth="8" />
@@ -256,43 +246,34 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
               {mode === 'focus' ? t('专注中', 'Focusing') : t('休息中', 'Break')}
             </span>
           </div>
-        </motion.div>
+        </div>
 
         {/* Controls */}
         <div className="flex justify-center gap-4 mb-6">
           {!isRunning ? (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.93 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            <button
               onClick={startTimer}
               className="px-8 py-4 bg-primary text-on-primary rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2"
             >
               <Play className="w-5 h-5 fill-on-primary" />
               {t('开始', 'Start')}
-            </motion.button>
+            </button>
           ) : (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.93 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            <button
               onClick={pauseTimer}
               className="px-8 py-4 bg-surface-container-high text-on-surface rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2"
             >
               <Pause className="w-5 h-5" />
               {t('暂停', 'Pause')}
-            </motion.button>
+            </button>
           )}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.93 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          <button
             onClick={resetTimer}
             className="px-6 py-4 bg-surface-container-low text-secondary rounded-full font-semibold hover:bg-surface-container-high transition-all flex items-center gap-2"
           >
             <RotateCcw className="w-5 h-5" />
             {t('重置', 'Reset')}
-          </motion.button>
+          </button>
         </div>
 
         {/* Settings Panel */}
@@ -322,10 +303,8 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
             </div>
             <div className="flex gap-1.5">
               {FOCUS_OPTIONS.map((opt) => (
-                <motion.button
+                <button
                   key={opt}
-                  whileTap={{ scale: 0.93 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                   onClick={() => updateFocusTime(opt)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     settings.focusTime === opt
@@ -334,7 +313,7 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
                   }`}
                 >
                   {opt}m
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
@@ -346,10 +325,8 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
             </div>
             <div className="flex gap-1.5">
               {BREAK_OPTIONS.map((opt) => (
-                <motion.button
+                <button
                   key={opt}
-                  whileTap={{ scale: 0.93 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                   onClick={() => updateBreakTime(opt)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     settings.breakTime === opt
@@ -358,16 +335,14 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
                   }`}
                 >
                   {opt}m
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <motion.div
-          whileHover={{ y: -2 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        <div
           className="bg-surface-container-low rounded-2xl p-4 flex justify-around"
         >
           <div>
@@ -379,8 +354,8 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
             <div className="text-2xl font-bold text-primary">{stats.totalMinutes}</div>
             <div className="text-xs text-secondary font-medium">{t('专注分钟', 'Minutes')}</div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

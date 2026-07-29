@@ -4,16 +4,94 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const STORAGE_USERS_KEY = 'spring_nest_users';
 const STORAGE_CURRENT_USER_KEY = 'spring_nest_current_user';
-const PASSWORD_HASH_PREFIX = 'local-v1:';
+/** Legacy FNV-1a (insecure) — accepted only to migrate on next login. */
+const PASSWORD_HASH_PREFIX_V1 = 'local-v1:';
+/** PBKDF2-SHA256 with per-user salt. */
+const PASSWORD_HASH_PREFIX_V2 = 'local-v2:';
+const PBKDF2_ITERATIONS = 100_000;
+const PBKDF2_SALT_BYTES = 16;
+const PBKDF2_KEY_BITS = 256;
 
-function hashPassword(email: string, password: string): string {
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
+  return btoa(binary);
+}
+
+function base64ToBytes(value: string): Uint8Array {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/** Insecure legacy hash kept only for one-time migration of old local accounts. */
+function legacyHashPasswordV1(email: string, password: string): string {
   const input = `${email.trim().toLowerCase()}:${password}:spring-nest-local-auth`;
   let hash = 2166136261;
   for (let i = 0; i < input.length; i++) {
     hash ^= input.charCodeAt(i);
     hash = Math.imul(hash, 16777619);
   }
-  return `${PASSWORD_HASH_PREFIX}${(hash >>> 0).toString(16).padStart(8, '0')}`;
+  return `${PASSWORD_HASH_PREFIX_V1}${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+async function hashPasswordV2(email: string, password: string, salt?: Uint8Array): Promise<string> {
+  const enc = new TextEncoder();
+  const saltBytes = salt ?? crypto.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES));
+  const material = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(`${email.trim().toLowerCase()}:${password}`),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: saltBytes as BufferSource,
+      iterations: PBKDF2_ITERATIONS,
+      hash: 'SHA-256',
+    },
+    material,
+    PBKDF2_KEY_BITS,
+  );
+  return `${PASSWORD_HASH_PREFIX_V2}${bytesToBase64(saltBytes)}:${bytesToBase64(new Uint8Array(bits))}`;
+}
+
+async function verifyAndUpgradePassword(
+  user: UserAccount,
+  email: string,
+  password: string,
+): Promise<boolean> {
+  if (user.passwordHash?.startsWith(PASSWORD_HASH_PREFIX_V2)) {
+    const payload = user.passwordHash.slice(PASSWORD_HASH_PREFIX_V2.length);
+    const [saltB64, hashB64] = payload.split(':');
+    if (!saltB64 || !hashB64) return false;
+    const next = await hashPasswordV2(email, password, base64ToBytes(saltB64));
+    return timingSafeEqual(next, user.passwordHash);
+  }
+
+  let matched = false;
+  if (user.passwordHash?.startsWith(PASSWORD_HASH_PREFIX_V1)) {
+    matched = timingSafeEqual(user.passwordHash, legacyHashPasswordV1(email, password));
+  } else if (typeof user.password === 'string') {
+    // One-time migration for ancient plaintext local records.
+    matched = user.password === password;
+  }
+
+  if (!matched) return false;
+
+  user.passwordHash = await hashPasswordV2(email, password);
+  delete user.password;
+  return true;
 }
 
 function toPublicUser(user: UserAccount): PublicUserAccount {
@@ -76,15 +154,19 @@ function isValidEmail(email: string): boolean {
 }
 
 function isValidPassword(password: string): boolean {
-  return password.length >= 6;
+  return password.length >= 8;
 }
 
-export function register(email: string, password: string, username?: string): RegisterResult {
+export async function register(
+  email: string,
+  password: string,
+  username?: string,
+): Promise<RegisterResult> {
   if (!isValidEmail(email)) {
     return { success: false, error: '邮箱格式不正确' };
   }
   if (!isValidPassword(password)) {
-    return { success: false, error: '密码至少需要 6 位' };
+    return { success: false, error: '密码至少需要 8 位' };
   }
 
   const users = getUsers();
@@ -96,7 +178,7 @@ export function register(email: string, password: string, username?: string): Re
     id: generateId(),
     email,
     username: username || email.split('@')[0],
-    passwordHash: hashPassword(email, password),
+    passwordHash: await hashPasswordV2(email, password),
     bio: '',
     createdAt: new Date().toISOString(),
   };
@@ -109,30 +191,28 @@ export function register(email: string, password: string, username?: string): Re
   return { success: true, user: safeUser };
 }
 
-export function login(email: string, password: string): LoginResult {
+export async function login(email: string, password: string): Promise<LoginResult> {
   if (!isValidEmail(email)) {
     return { success: false, error: '邮箱格式不正确' };
   }
   if (!isValidPassword(password)) {
-    return { success: false, error: '密码至少需要 6 位' };
+    return { success: false, error: '密码至少需要 8 位' };
   }
 
   const users = getUsers();
-  const user = users.find((u) => {
-    if (u.email !== email) return false;
-    if (u.passwordHash) return u.passwordHash === hashPassword(email, password);
-    return u.password === password;
-  });
-
-  if (!user) {
+  const idx = users.findIndex((u) => u.email === email);
+  if (idx === -1) {
     return { success: false, error: '邮箱或密码错误' };
   }
 
-  if (!user.passwordHash) {
-    user.passwordHash = hashPassword(email, password);
-    delete user.password;
-    saveUsers(users);
+  const user = users[idx]!;
+  const ok = await verifyAndUpgradePassword(user, email, password);
+  if (!ok) {
+    return { success: false, error: '邮箱或密码错误' };
   }
+
+  users[idx] = user;
+  saveUsers(users);
 
   const safeUser = toPublicUser(user);
   setCurrentUser(safeUser);
@@ -407,7 +487,9 @@ export async function supabaseResetPassword(
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
+    });
     if (error) return { success: false, error: error.message };
     return { success: true };
   } catch (err) {

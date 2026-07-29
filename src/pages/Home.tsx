@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import {
   Gamepad2,
   Wrench,
@@ -28,7 +28,7 @@ import { trackSearch } from '../lib/analytics';
 import SEO from '../components/SEO';
 import { websiteJsonLd } from '../lib/structuredData';
 import CatalogItemCard from '../components/CatalogItemCard';
-import { MagneticButton } from '../components/MotionSurface';
+import { MagneticButton } from '../components/GsapSurface';
 import { heroItemVariants, heroStageVariants, useReducedMotion } from '../lib/animations';
 import GlassSurface from '../components/animations/GlassSurface';
 import HomeHeroStage from '../components/animations/HomeHeroStage';
@@ -193,17 +193,16 @@ export default function Home() {
       />
 
       {/* ========== 1. Hero Section ========== */}
-      <section className="relative flex min-h-[520px] w-full flex-col items-center justify-center overflow-hidden px-6 pb-16 pt-20 text-center sm:min-h-[560px] sm:pb-24 sm:pt-32 lg:min-h-[620px]">
+      <section
+        data-forest-terrain="hero"
+        className="relative flex min-h-[520px] w-full flex-col items-center justify-center overflow-hidden px-6 pb-16 pt-20 text-center sm:min-h-[560px] sm:pb-24 sm:pt-32 lg:min-h-[620px]"
+      >
         <HomeHeroStage toolsCount={tools.length} gamesCount={games.length} />
 
-        <motion.div
-          className="relative z-10 flex flex-col items-center"
-          initial={reducedMotion ? false : 'initial'}
-          animate={reducedMotion ? undefined : 'animate'}
-          variants={reducedMotion ? undefined : heroStageVariants}
+        <div
+          className="relative z-10 flex w-full max-w-5xl flex-col items-center forest-readable-hero"
         >
-          <motion.p
-            variants={reducedMotion ? undefined : heroItemVariants}
+          <p
             className="font-nunito text-base font-bold text-primary mb-3 tracking-wide"
           >
             <ShinyText
@@ -212,28 +211,25 @@ export default function Home() {
               shineColor="var(--color-primary-container)"
               color="var(--color-primary)"
             />
-          </motion.p>
-          <motion.h1
-            variants={reducedMotion ? undefined : heroItemVariants}
-            className="font-sans font-extrabold text-3xl sm:text-4xl lg:text-5xl text-primary mb-4 tracking-tight max-w-4xl"
+          </p>
+          <h1
+            className="font-sans font-extrabold text-3xl sm:text-4xl lg:text-5xl forest-page-title mb-4 tracking-tight max-w-4xl"
           >
             {t('免费在线实用工具与休闲小游戏合集', 'Free Online Tools and Casual Games')}
-          </motion.h1>
-          <motion.p
-            variants={reducedMotion ? undefined : heroItemVariants}
-            className="font-nunito text-lg text-secondary/80 max-w-2xl mx-auto mb-8"
+          </h1>
+          <p
+            className="font-nunito text-lg forest-page-subtitle max-w-2xl mx-auto mb-8"
           >
             {t(
               '免费、轻量、无需登录、即开即用。搜索工具、小游戏、描述或标签，快速打开你需要的内容。',
               'Free, lightweight, no sign-in required, ready on open. Search tools, games, descriptions, or tags and jump straight in.',
             )}
-          </motion.p>
+          </p>
 
-          <motion.form
+          <form
             onSubmit={handleHeroSearch}
-            className="w-full max-w-2xl mb-8"
+            className="mb-8 w-full min-w-0 self-stretch sm:min-w-[40rem]"
             role="search"
-            variants={reducedMotion ? undefined : heroItemVariants}
           >
             <label htmlFor="home-search" className="sr-only">
               {t('搜索工具和小游戏', 'Search tools and games')}
@@ -243,9 +239,9 @@ export default function Home() {
               brightness={60}
               opacity={0.95}
               blur={14}
-              className="w-full"
+              className="block w-full"
             >
-              <div className="flex items-center gap-2 rounded-2xl border border-primary/20 bg-white/90 dark:bg-surface-container-high/90 p-2 shadow-[0_12px_36px_rgba(63,103,81,0.12)]">
+              <div className="flex w-full items-center gap-2 rounded-2xl border border-primary/20 bg-white/90 dark:bg-surface-container-high/90 p-2 shadow-[0_12px_36px_rgba(63,103,81,0.12)]">
                 <Search className="ml-3 h-5 w-5 shrink-0 text-primary" />
                 <input
                   id="home-search"
@@ -253,28 +249,24 @@ export default function Home() {
                   value={heroQuery}
                   onChange={(event) => setHeroQuery(event.target.value)}
                   placeholder={t(
-                    '搜索计算器、2048、JSON、随机...',
-                    'Search calculator, 2048, JSON, random...',
+                    '搜索计算器、2048、JSON…',
+                    'Search calculator, 2048, JSON…',
                   )}
-                  className="min-h-[48px] flex-1 bg-transparent px-2 text-base text-on-surface outline-none placeholder:text-secondary/60"
+                  className="min-h-[48px] min-w-0 flex-1 bg-transparent px-2 text-base text-on-surface outline-none placeholder:text-secondary/60"
                 />
                 <button
                   type="submit"
-                  className="min-h-[48px] rounded-xl bg-primary px-5 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90 disabled:opacity-50"
+                  className="min-h-[48px] shrink-0 rounded-xl bg-primary px-5 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90 disabled:opacity-50"
                   disabled={!heroQuery.trim()}
                 >
                   {t('搜索', 'Search')}
                 </button>
               </div>
             </GlassSurface>
-          </motion.form>
+          </form>
 
-          <motion.div
-            variants={reducedMotion ? undefined : heroItemVariants}
-            className="flex flex-col sm:flex-row gap-4"
-          >
+          <div className="flex w-auto max-w-md flex-col gap-4 sm:flex-row sm:max-w-none">
             <MagneticButton
-              whileHover={reducedMotion ? undefined : { scale: 1.05 }}
               onClick={() => navigate('/tools')}
               className="bg-primary text-on-primary font-bold text-base py-3.5 px-8 rounded-2xl shadow-[0_6px_16px_rgba(63,103,81,0.3)] hover:shadow-[0_10px_24px_rgba(63,103,81,0.45)] transition-all duration-300 flex items-center justify-center gap-2.5"
             >
@@ -282,43 +274,33 @@ export default function Home() {
               {t('开始使用工具', 'Explore Tools')}
             </MagneticButton>
             <MagneticButton
-              whileHover={reducedMotion ? undefined : { scale: 1.05 }}
               onClick={() => navigate('/games')}
               className="bg-white text-primary font-bold text-base py-3.5 px-8 rounded-2xl shadow-[0_6px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_24px_rgba(184,228,201,0.4)] dark:bg-surface-container dark:hover:shadow-[0_10px_24px_rgba(47,67,55,0.4)] transition-all duration-300 flex items-center justify-center gap-2.5 border border-primary-container/30"
             >
               <Gamepad2 className="w-5 h-5" />
               {t('玩个小游戏', 'Play a Game')}
             </MagneticButton>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       <div className="max-w-[1200px] mx-auto px-6">
         {/* ========== 2. Recent Usage ========== */}
         {recentItems.length > 0 && (
-          <section className="py-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+          <section className="py-12" data-forest-terrain="cards">
+            <div
               className="flex items-center gap-3 mb-6"
             >
               <Clock className="w-5 h-5 text-primary" />
-              <h2 className="font-nunito font-bold text-xl text-on-surface">
+              <h2 className="font-nunito font-bold text-xl text-on-surface drop-shadow-[0_1px_10px_rgba(255,249,242,0.85)]">
                 {t('最近使用', 'Recent')}
               </h2>
-            </motion.div>
+            </div>
 
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1 snap-x snap-mandatory">
               {recentItems.map((item, i) => (
-                <motion.article
+                <article
                   key={`${item.type}-${item.id}`}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.35, delay: i * 0.06 }}
-                  whileHover={{ y: -4 }}
                   className="flex-shrink-0 w-44 snap-start"
                 >
                   <Link
@@ -339,19 +321,15 @@ export default function Home() {
                       {item.type === 'tool' ? t('工具', 'Tool') : t('游戏', 'Game')}
                     </span>
                   </Link>
-                </motion.article>
+                </article>
               ))}
             </div>
           </section>
         )}
 
         {/* ========== 3. Featured Tools ========== */}
-        <section className="py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+        <section className="py-12" data-forest-terrain="cards">
+          <div
             className="flex items-center justify-between mb-8"
           >
             <div className="flex items-center gap-3">
@@ -360,15 +338,14 @@ export default function Home() {
                 {t('推荐工具', 'Featured Tools')}
               </h2>
             </div>
-            <motion.button
-              whileHover={{ x: 6, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+            <button
               onClick={() => navigate('/tools')}
               className="flex items-center gap-1.5 text-primary font-semibold text-sm hover:underline"
             >
               {t('查看全部', 'View All')}
               <ArrowRight className="w-4 h-4" />
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredTools.map((tool) => (
@@ -387,12 +364,8 @@ export default function Home() {
         </section>
 
         {/* ========== 4. Featured Games ========== */}
-        <section className="py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+        <section className="py-12" data-forest-terrain="cards">
+          <div
             className="flex items-center justify-between mb-8"
           >
             <div className="flex items-center gap-3">
@@ -401,15 +374,14 @@ export default function Home() {
                 {t('推荐游戏', 'Featured Games')}
               </h2>
             </div>
-            <motion.button
-              whileHover={{ x: 6, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+            <button
               onClick={() => navigate('/games')}
               className="flex items-center gap-1.5 text-primary font-semibold text-sm hover:underline"
             >
               {t('查看全部', 'View All')}
               <ArrowRight className="w-4 h-4" />
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredGames.map((game) => (
@@ -429,29 +401,20 @@ export default function Home() {
 
         {/* ========== 5. New Items ========== */}
         {newItems.length > 0 && (
-          <section className="py-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+          <section className="py-12" data-forest-terrain="cards">
+            <div
               className="flex items-center gap-3 mb-6"
             >
               <Zap className="w-5 h-5 text-amber-500" />
               <h2 className="font-nunito font-bold text-xl text-on-surface">
                 {t('新上线', 'New')}
               </h2>
-            </motion.div>
+            </div>
 
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1 snap-x snap-mandatory">
               {newItems.map((item, i) => (
-                <motion.article
+                <article
                   key={item.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.35, delay: i * 0.06 }}
-                  whileHover={{ y: -4 }}
                   className="flex-shrink-0 w-48 snap-start"
                 >
                   <Link
@@ -481,19 +444,15 @@ export default function Home() {
                       </div>
                     </div>
                   </Link>
-                </motion.article>
+                </article>
               ))}
             </div>
           </section>
         )}
 
         {/* ========== 5b. All Tools ========== */}
-        <section className="py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+        <section className="py-12" data-forest-terrain="cards">
+          <div
             className="flex items-center justify-between mb-8"
           >
             <div>
@@ -514,7 +473,7 @@ export default function Home() {
               {t('查看全部', 'View all')}
               <ArrowRight className="h-4 w-4" />
             </Link>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {homeToolPreview.map((tool) => (
               <CatalogItemCard
@@ -532,12 +491,8 @@ export default function Home() {
         </section>
 
         {/* ========== 5c. All Games ========== */}
-        <section className="py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+        <section className="py-12" data-forest-terrain="cards">
+          <div
             className="flex items-center justify-between mb-8"
           >
             <div>
@@ -558,7 +513,7 @@ export default function Home() {
               {t('查看全部', 'View all')}
               <ArrowRight className="h-4 w-4" />
             </Link>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {games.slice(0, 9).map((game) => (
               <CatalogItemCard
@@ -576,12 +531,8 @@ export default function Home() {
         </section>
 
         {/* ========== 6. Why Spring Nest ========== */}
-        <section className="py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+        <section className="py-12" data-forest-terrain="cards">
+          <div
             className="mb-8"
           >
             <h2 className="font-nunito font-bold text-2xl text-on-surface mb-2">
@@ -593,7 +544,7 @@ export default function Home() {
                 'One calm place for everyday utilities and casual breaks, without extra accounts or noisy setup.',
               )}
             </p>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr_1fr] gap-4">
             {[
               {
@@ -623,12 +574,8 @@ export default function Home() {
             ].map((item, index) => {
               const Icon = item.icon;
               return (
-                <motion.article
+                <article
                   key={item.title}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.35, delay: index * 0.06 }}
                   className="rounded-2xl border border-surface-variant/30 bg-white/80 dark:bg-surface-container-high/70 p-5"
                 >
                   <Icon className="mb-4 h-6 w-6 text-primary" />
@@ -636,7 +583,7 @@ export default function Home() {
                     {item.title}
                   </h3>
                   <p className="text-sm leading-relaxed text-secondary">{item.text}</p>
-                </motion.article>
+                </article>
               );
             })}
           </div>
@@ -644,11 +591,7 @@ export default function Home() {
 
         {/* ========== 6. Category Quick Links ========== */}
         <section className="py-12 pb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+          <div
             className="mb-10"
           >
             <h2 className="font-nunito font-bold text-2xl text-on-surface mb-2">
@@ -657,7 +600,7 @@ export default function Home() {
             <p className="text-sm text-secondary">
               {t('快速找到你需要的工具或想玩的游戏', 'Quickly find the tool or game you need')}
             </p>
-          </motion.div>
+          </div>
 
           {/* Tool categories */}
           <div className="mb-8">
@@ -671,18 +614,8 @@ export default function Home() {
               {toolCategories.map((cat, i) => {
                 const Icon = cat.icon;
                 return (
-                  <motion.button
+                  <button
                     key={cat.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{
-                      scale: 1.08,
-                      y: -3,
-                      transition: { type: 'spring', stiffness: 500, damping: 15 },
-                    }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       const routeMap: Record<string, string> = {
                         日常实用: '/tools/daily',
@@ -699,7 +632,7 @@ export default function Home() {
                   >
                     <Icon className="w-4 h-4" />
                     {t(cat.label, cat.labelEn)}
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
@@ -717,24 +650,14 @@ export default function Home() {
               {gameCategories.map((cat, i) => {
                 const Icon = cat.icon;
                 return (
-                  <motion.button
+                  <button
                     key={cat.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                    whileHover={{
-                      scale: 1.08,
-                      y: -3,
-                      transition: { type: 'spring', stiffness: 500, damping: 15 },
-                    }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(`/games?category=${encodeURIComponent(cat.label)}`)}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 ${cat.color}`}
                   >
                     <Icon className="w-4 h-4" />
                     {t(cat.label, cat.labelEn)}
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>

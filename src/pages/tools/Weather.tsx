@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import {
   ArrowLeft,
   RefreshCw,
@@ -245,9 +245,7 @@ export default function Weather({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <div className="flex items-center justify-between mb-4">
@@ -330,13 +328,9 @@ export default function Weather({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
-        <AnimatePresence mode="wait">
-          {weather && !loading && (
-            <motion.div
+        {weather && !loading && (
+            <div
               key={weather.location}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
             >
               <div className="flex items-center justify-center gap-2 mb-6">
                 <MapPin className="w-4 h-4 text-primary" />
@@ -419,10 +413,9 @@ export default function Weather({ onBack }: { onBack: () => void }) {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

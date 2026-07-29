@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Clock, Zap, Target } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -223,7 +223,7 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="text-center mb-4">
           <h1 className="text-3xl font-black text-on-surface">
@@ -354,12 +354,8 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Completion Stats */}
-        <AnimatePresence>
-          {finished && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+        {finished && (
+            <div
               className="p-6 bg-blue-50 border border-blue-200 rounded-2xl mb-6"
             >
               <p className="text-xl font-bold text-blue-700 mb-3 text-center">
@@ -385,9 +381,8 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* History */}
         {history.length > 0 && (
@@ -398,11 +393,8 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
             </h3>
             <div className="space-y-2">
               {history.map((attempt, i) => (
-                <motion.div
+                <div
                   key={attempt.timestamp}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
                   className="flex items-center justify-between bg-surface-container-high rounded-xl px-4 py-2 text-sm"
                 >
                   <span className="text-on-surface font-medium truncate flex-1 mr-3">
@@ -426,12 +418,12 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
                       {attempt.mode === 'zh' ? t('/分', ' CPM') : ' WPM'}
                     </span>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

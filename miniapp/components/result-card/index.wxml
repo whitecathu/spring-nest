@@ -1,0 +1,8 @@
+<view class="result-card glass-card status-{{status}}">
+  <view class="row between">
+    <text class="text-label-md text-primary">{{title}}</text>
+    <text class="badge" wx:if="{{status === 'ok'}}">完成</text>
+    <text class="badge err" wx:elif="{{status === 'error'}}">错误</text>
+  </view>
+  <text class="content" user-select>{{content}}</text>
+</view>

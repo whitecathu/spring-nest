@@ -1,0 +1,31 @@
+<view class="page-pad">
+  <view class="brand glass-card">
+    <image class="leaf" src="/assets/icons/leaf.png" mode="aspectFit" />
+    <text class="text-display-lg text-primary">春日小筑</text>
+    <text class="subtitle">Spring Nest · 高致美学数字家园</text>
+    <text class="ver">{{version}} Stable Release</text>
+  </view>
+
+  <view class="section glass-card">
+    <text class="text-headline-sm">心路历程与设计初心</text>
+    <text class="text-body-sm text-muted para">
+      在这个算法纷呈、信息过载的喧嚣时代，「春日小筑 (Spring Nest)」是一方为您用心精筑的雅致工具港湾。日常使用的工具不应当是碎片化注意力的掠夺者，而应当是以极致美感滋养心智的静谧助手。
+    </text>
+  </view>
+
+  <view class="pillars">
+    <view class="pillar glass-card">
+      <text class="text-headline-sm">✦ 匠心至臻美学</text>
+      <text class="text-body-sm text-muted">温润奶油色与森林绿，呈现恰到其份的典雅视觉。</text>
+    </view>
+    <view class="pillar glass-card">
+      <text class="text-headline-sm">✦ 纯粹自如无扰</text>
+      <text class="text-body-sm text-muted">无侵入广告与无谓推送，调用时精准，闲置时安静。</text>
+    </view>
+  </view>
+
+  <view class="legal glass-card" bindtap="onOpenPrivacy">
+    <text class="text-headline-sm">隐私政策</text>
+    <text class="text-body-sm text-muted">了解本地数据处理与授权说明 ›</text>
+  </view>
+</view>

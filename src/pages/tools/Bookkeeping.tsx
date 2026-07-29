@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import gsap from 'gsap';
 import {
   ArrowLeft,
   CalendarDays,
@@ -468,7 +468,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div {...toolPageEnter} className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+      <div {...toolPageEnter} className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
         <section className="rounded-3xl border border-surface-variant/30 bg-white/85 p-5 shadow-lg shadow-primary-container/20 dark:bg-surface-container-high/80 dark:shadow-none">
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
@@ -561,13 +561,8 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
               </label>
             </div>
 
-            <AnimatePresence>
-              {showCategoryManager && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+            {showCategoryManager && (
+                <div
                   className="overflow-hidden"
                 >
                   <div className="rounded-2xl border border-surface-variant/40 bg-surface-container-low p-4 space-y-3">
@@ -649,9 +644,8 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
                       </div>
                     ))}
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
             <div className="grid gap-4 sm:grid-cols-[0.8fr_1.2fr]">
               <label className="grid gap-2 text-sm font-bold text-on-surface">
@@ -742,15 +736,13 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
             )}
 
             <div className="flex flex-wrap gap-3">
-              <motion.button
+              <button
                 type="submit"
-                whileTap={{ scale: 0.97 }}
-                transition={springBouncy}
                 className="inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-bold text-on-primary shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
               >
                 <Plus className="h-4 w-4" />
                 {t('保存记录', 'Save record')}
-              </motion.button>
+              </button>
               <button
                 type="button"
                 onClick={handleSample}
@@ -925,10 +917,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
                         </span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-surface-container-high">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.max(6, category.ratio * 100)}%` }}
-                          transition={springSmooth}
+                        <div
                           className="h-full rounded-full bg-primary"
                         />
                       </div>
@@ -951,17 +940,11 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
               {t('记录明细', 'Transactions')}
             </h2>
 
-            <AnimatePresence mode="popLayout">
-              {visibleEntries.length > 0 ? (
-                <motion.div layout className="space-y-3">
+            {visibleEntries.length > 0 ? (
+                <div className="space-y-3">
                   {visibleEntries.map((entry) => (
-                    <motion.div
+                    <div
                       key={entry.id}
-                      layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={springSmooth}
                       className="grid gap-3 rounded-2xl bg-surface-container-low p-4 sm:grid-cols-[1fr_auto] sm:items-center"
                     >
                       <div className="min-w-0">
@@ -1019,15 +1002,12 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
-                </motion.div>
+                </div>
               ) : (
-                <motion.div
+                <div
                   key="empty-ledger"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                   className="rounded-2xl bg-surface-container-low p-8 text-center"
                 >
                   <ReceiptText className="mx-auto mb-3 h-10 w-10 text-secondary/35" />
@@ -1037,12 +1017,11 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
                       'No matching records. Add one or adjust filters.',
                     )}
                   </p>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
           </div>
         </section>
-      </motion.div>
+      </div>
 
       {showImporter && (
         <BillImporter
@@ -1053,21 +1032,15 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
         />
       )}
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div
+      {toast && (
+          <div
             role="status"
             aria-live="polite"
-            initial={{ opacity: 0, y: 12, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={springBouncy}
             className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-on-surface px-4 py-2 text-sm font-bold text-surface shadow-lg"
           >
             {toast}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }

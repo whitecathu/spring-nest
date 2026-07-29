@@ -1,0 +1,30 @@
+<view class="tool-shell {{studyMode ? 'study' : ''}}">
+  <!-- studyMode：独立顶栏（无系统导航时的兜底） -->
+  <view class="shell-header safe-pt" wx:if="{{studyMode}}">
+    <view class="back" bindtap="onBack">‹</view>
+    <view class="study-title">
+      <text class="shell-title center">{{title}}</text>
+    </view>
+    <view class="fav {{favorite ? 'on' : ''}}" bindtap="onToggleFavorite">{{favorite ? '♥' : '♡'}}</view>
+  </view>
+
+  <view class="shell-body">
+    <!-- 普通工具页：身份条（非导航），系统栏负责返回与标题 -->
+    <view class="tool-intro" wx:if="{{!studyMode}}">
+      <view class="intro-icon" style="background: {{bg}}; color: {{color}};">
+        <text class="icon-emoji">{{icon}}</text>
+      </view>
+      <view class="intro-copy" wx:if="{{desc}}">
+        <text class="shell-desc">{{desc}}</text>
+      </view>
+      <view
+        class="fav intro-fav {{favorite ? 'on' : ''}}"
+        bindtap="onToggleFavorite"
+        hover-class="fav-hover"
+        aria-role="button"
+        aria-label="{{favorite ? '取消收藏' : '收藏'}}"
+      >{{favorite ? '♥' : '♡'}}</view>
+    </view>
+    <slot />
+  </view>
+</view>

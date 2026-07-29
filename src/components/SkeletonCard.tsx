@@ -1,5 +1,6 @@
-import { motion } from 'motion/react';
-import { useReducedMotion } from '../lib/animations';
+import { useRef, useEffect } from 'react';
+import gsap from 'gsap';
+import { useReducedMotion } from '../lib/gsap';
 
 interface SkeletonCardProps {
   /** Match the layout of game cards or tool cards */
@@ -29,6 +30,21 @@ export default function SkeletonCard({ variant = 'game', count }: SkeletonCardPr
 
 function SingleSkeletonCard({ variant = 'game' }: Pick<SkeletonCardProps, 'variant'>) {
   const reducedMotion = useReducedMotion();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!wrapperRef.current || reducedMotion) return;
+
+    const tween = gsap.to(wrapperRef.current, {
+      scale: 0.98,
+      duration: 2.4,
+      repeat: -1,
+      yoyo: true,
+      ease: 'power1.inOut',
+    });
+
+    return () => { tween.kill(); };
+  }, [reducedMotion]);
 
   if (variant === 'tool') {
     const container = (
@@ -76,26 +92,10 @@ function SingleSkeletonCard({ variant = 'game' }: Pick<SkeletonCardProps, 'varia
       </div>
     );
 
-    if (reducedMotion) {
-      return (
-        <motion.div
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ willChange: 'opacity' }}
-        >
-          {container}
-        </motion.div>
-      );
-    }
-
     return (
-      <motion.div
-        animate={{ scale: [0.98, 1, 0.98] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ willChange: 'transform' }}
-      >
+      <div ref={wrapperRef} style={{ willChange: 'transform' }}>
         {container}
-      </motion.div>
+      </div>
     );
   }
 
@@ -152,25 +152,9 @@ function SingleSkeletonCard({ variant = 'game' }: Pick<SkeletonCardProps, 'varia
     </div>
   );
 
-  if (reducedMotion) {
-    return (
-      <motion.div
-        animate={{ opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ willChange: 'opacity' }}
-      >
-        {container}
-      </motion.div>
-    );
-  }
-
   return (
-    <motion.div
-      animate={{ scale: [0.98, 1, 0.98] }}
-      transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-      style={{ willChange: 'transform' }}
-    >
+    <div ref={wrapperRef} style={{ willChange: 'transform' }}>
       {container}
-    </motion.div>
+    </div>
   );
 }

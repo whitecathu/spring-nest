@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useRef, useCallback, type FormEvent } from 'react';
 import { X, Mail, Lock, User as UserIcon, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import {
@@ -9,6 +9,7 @@ import {
   sendRegisterOtp,
   verifyRegisterOtp,
 } from '../services/authService';
+import { useFocusTrap } from '../lib/useFocusTrap';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -30,6 +31,15 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   const [otpMode, setOtpMode] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [otpTimer, setOtpTimer] = useState(0);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const handleClose = useCallback(() => {
+    onClose();
+    setTimeout(() => {
+      setModalState('login');
+      resetForm();
+    }, 300);
+  }, [onClose]);
+  useFocusTrap(panelRef, { enabled: isOpen, onEscape: handleClose });
 
   useEffect(() => {
     if (otpTimer <= 0) return;
@@ -138,7 +148,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     } else {
       // localStorage fallback
       if (modalState === 'register') {
-        const result = register(email, password, username);
+        const result = await register(email, password, username);
         if (result.success && result.user) {
           onLoginSuccess(email, result.user.username);
           handleClose();
@@ -146,7 +156,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
           setError(result.error || t('注册失败', 'Registration failed'));
         }
       } else {
-        const result = login(email, password);
+        const result = await login(email, password);
         if (result.success && result.user) {
           onLoginSuccess(email, result.user.username);
           handleClose();
@@ -155,14 +165,6 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         }
       }
     }
-  };
-
-  const handleClose = () => {
-    onClose();
-    setTimeout(() => {
-      setModalState('login');
-      resetForm();
-    }, 300);
   };
 
   const switchMode = (newState: ModalState) => {
@@ -198,6 +200,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       ></div>
 
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className="relative w-full max-w-md bg-white/95 backdrop-blur-xl rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-primary/10 overflow-hidden animate-fade-in-up"
         style={{ animationDuration: '0.4s' }}
         role="dialog"

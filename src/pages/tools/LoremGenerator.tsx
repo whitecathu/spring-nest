@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Copy, Check, RefreshCw } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -219,9 +219,7 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
@@ -303,7 +301,7 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
 
         {/* Output */}
         {output && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <div>
             {/* Stats bar */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex gap-3">
@@ -335,7 +333,7 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
             <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-variant/30 text-on-surface text-sm leading-relaxed max-h-80 overflow-y-auto whitespace-pre-wrap">
               {output}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Empty state */}
@@ -346,7 +344,7 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
             </p>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

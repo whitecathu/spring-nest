@@ -44,10 +44,13 @@ function getSessionId() {
 
 function recordUsage(itemType: 'tool' | 'game', itemId: string) {
   if (!supabase) return;
+  const userId = getCurrentUserId();
+  // Anonymous inserts are blocked by RLS — only persist when signed in.
+  if (!userId) return;
   void (async () => {
     try {
       await supabase.from('tool_usage_events').insert({
-        user_id: getCurrentUserId(),
+        user_id: userId,
         item_id: itemId,
         item_type: itemType,
         platform: 'web',

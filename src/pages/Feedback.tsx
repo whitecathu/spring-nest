@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { CheckCircle2, CloudOff, Mail, MessageSquare, ShieldCheck } from 'lucide-react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import SEO from '../components/SEO';
 import { useUser } from '../contexts/UserContext';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -57,10 +57,7 @@ export default function Feedback() {
   };
 
   return (
-    <motion.main
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+    <main
       className="mx-auto w-full max-w-[900px] px-6 py-16"
     >
       <SEO
@@ -72,12 +69,12 @@ export default function Feedback() {
         canonical="/feedback"
       />
 
-      <header className="mb-10 text-center">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary-container/30 text-primary">
+      <header className="mb-10 text-center forest-readable-hero py-6">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary-container/50 text-primary shadow-sm">
           <MessageSquare className="h-10 w-10" />
         </div>
-        <h1 className="mb-4 text-4xl font-black text-on-surface">{t('反馈建议', 'Feedback')}</h1>
-        <p className="mx-auto max-w-2xl text-on-surface-variant">
+        <h1 className="mb-4 text-4xl font-black forest-page-title">{t('反馈建议', 'Feedback')}</h1>
+        <p className="mx-auto max-w-2xl forest-page-subtitle">
           {t(
             '登录后提交的反馈会进入共享 Supabase 后端，管理员可在独立管理台跟进处理。',
             'Signed-in feedback goes to the shared Supabase backend for admin triage.',
@@ -185,6 +182,6 @@ export default function Feedback() {
           </div>
         </form>
       )}
-    </motion.main>
+    </main>
   );
 }

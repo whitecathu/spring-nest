@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { Trophy, Medal, Crown, Loader2, CloudOff } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { fetchLeaderboard, type LeaderboardEntry } from '../services/scoreService';
@@ -17,24 +17,22 @@ const GAME_TABS: { id: GameTab; label: string; labelEn: string; icon: string }[]
 function getRankIcon(rank: number) {
   if (rank === 1)
     return (
-      <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+      <div>
         <Crown className="w-5 h-5 text-yellow-500" />
-      </motion.div>
+      </div>
     );
   if (rank === 2)
     return (
-      <motion.div
-        animate={{ scale: [1, 1.05, 1] }}
-        transition={{ duration: 2.5, repeat: Infinity }}
+      <div
       >
         <Medal className="w-5 h-5 text-gray-400" />
-      </motion.div>
+      </div>
     );
   if (rank === 3)
     return (
-      <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity }}>
+      <div>
         <Medal className="w-5 h-5 text-amber-600" />
-      </motion.div>
+      </div>
     );
   return (
     <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-secondary">
@@ -87,13 +85,11 @@ export default function Leaderboard() {
           )}
           canonical="/leaderboard"
         />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
+        <div
+          className="forest-empty-panel text-center max-w-md mx-auto px-8 py-12"
         >
           <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-4 mx-auto">
-            <CloudOff className="w-10 h-10 text-secondary/30" />
+            <CloudOff className="w-10 h-10 text-secondary/40" />
           </div>
           <h1 className="font-nunito text-2xl font-bold text-on-surface mb-2">
             {t('排行榜', 'Leaderboard')}
@@ -104,7 +100,7 @@ export default function Leaderboard() {
               'Leaderboard requires cloud sync. Please configure Supabase environment variables.',
             )}
           </p>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -119,29 +115,25 @@ export default function Leaderboard() {
         )}
         canonical="/leaderboard"
       />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-10"
+      <div
+        className="text-center mb-10 forest-readable-hero py-6"
       >
         <div className="flex items-center justify-center gap-3 mb-4">
           <Trophy className="w-8 h-8 text-primary" />
-          <h1 className="font-nunito text-3xl font-bold text-on-surface">
+          <h1 className="font-nunito text-3xl font-bold forest-page-title">
             {t('排行榜', 'Leaderboard')}
           </h1>
         </div>
-        <p className="text-secondary text-sm">
+        <p className="forest-page-subtitle text-sm">
           {t('查看各游戏的全球排名', 'View global rankings for each game')}
         </p>
-      </motion.div>
+      </div>
 
       {/* Game Tabs */}
       <div className="flex gap-2 mb-8 justify-center">
         {GAME_TABS.map((tab) => (
-          <motion.button
+          <button
             key={tab.id}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.93, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition-all ${
               activeTab === tab.id
@@ -151,53 +143,39 @@ export default function Leaderboard() {
           >
             <span>{tab.icon}</span>
             {t(tab.label, tab.labelEn)}
-          </motion.button>
+          </button>
         ))}
       </div>
 
       {/* Leaderboard List */}
-      <AnimatePresence mode="wait">
-        {loading ? (
-          <motion.div
+      {loading ? (
+          <div
             key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             className="flex items-center justify-center py-20"
           >
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          </motion.div>
+          </div>
         ) : entries.length === 0 ? (
-          <motion.div
+          <div
             key="empty"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="text-center py-16"
+            className="forest-empty-panel text-center py-16 px-6"
           >
-            <Trophy className="w-12 h-12 text-secondary/20 mx-auto mb-4" />
-            <p className="text-secondary font-medium">{t('暂无排名数据', 'No ranking data yet')}</p>
-            <p className="text-secondary/60 text-sm mt-1">
+            <Trophy className="w-12 h-12 text-secondary/30 mx-auto mb-4" />
+            <p className="text-on-surface font-medium">{t('暂无排名数据', 'No ranking data yet')}</p>
+            <p className="text-secondary text-sm mt-1">
               {t('成为第一个上榜的玩家吧！', 'Be the first player on the board!')}
             </p>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
+          <div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
             className="space-y-3"
           >
             {entries.map((entry, index) => {
               const rank = index + 1;
               return (
-                <motion.div
+                <div
                   key={`${entry.username}-${rank}`}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.05 }}
                   className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${getRankBg(rank)}`}
                 >
                   <div className="w-10 h-10 flex items-center justify-center">
@@ -215,12 +193,11 @@ export default function Leaderboard() {
                     </p>
                     <p className="text-xs text-secondary">{t('分', 'pts')}</p>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </div>
+</div>
   );
 }

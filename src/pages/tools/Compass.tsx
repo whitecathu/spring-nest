@@ -5,7 +5,7 @@ import {
   useCallback,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Compass as CompassIcon, Smartphone } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -163,9 +163,7 @@ export default function Compass({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
@@ -210,10 +208,8 @@ export default function Compass({ onBack }: { onBack: () => void }) {
             })}
           </svg>
 
-          <motion.div
+          <div
             className="absolute inset-0"
-            animate={{ rotate: -heading }}
-            transition={{ type: 'spring', stiffness: 80, damping: 20 }}
           >
             <svg className="w-full h-full" viewBox="0 0 300 300">
               <defs>
@@ -325,7 +321,7 @@ export default function Compass({ onBack }: { onBack: () => void }) {
                 NW
               </text>
             </svg>
-          </motion.div>
+          </div>
 
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1">
             <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[16px] border-t-red-500 drop-shadow-md" />
@@ -379,7 +375,7 @@ export default function Compass({ onBack }: { onBack: () => void }) {
             </button>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Clock, Trophy, Flame } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadBestScore, saveBestScore } from '../../lib/gameScore';
@@ -217,7 +217,7 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="text-center mb-4">
           <h1 className="text-3xl font-black text-on-surface">{t('色彩挑战', 'Color Stroop')}</h1>
@@ -228,8 +228,7 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
 
         {/* Stats */}
         <div className="flex justify-center gap-3 mb-4">
-          <motion.div
-            whileHover={{ y: -2 }}
+          <div
             className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
           >
             <div className="text-xs text-secondary font-medium flex items-center gap-1">
@@ -241,24 +240,19 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
             >
               {timeLeft}s
             </div>
-          </motion.div>
-          <motion.div
-            whileHover={{ y: -2 }}
+          </div>
+          <div
             className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
           >
             <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-            <motion.div
+            <div
               key={score}
-              initial={{ scale: 1.3 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 12 }}
               className="text-xl font-bold text-primary"
             >
               {score}
-            </motion.div>
-          </motion.div>
-          <motion.div
-            whileHover={{ y: -2 }}
+            </div>
+          </div>
+          <div
             className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
           >
             <div className="text-xs text-secondary font-medium flex items-center gap-1">
@@ -266,35 +260,27 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
               {t('最佳', 'Best')}
             </div>
             <div className="text-xl font-bold text-tertiary">{bestScore}</div>
-          </motion.div>
-          <motion.div
-            whileHover={{ y: -2 }}
+          </div>
+          <div
             className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
           >
             <div className="text-xs text-secondary font-medium flex items-center gap-1">
               <Flame className="w-3 h-3" />
               {t('连击', 'Combo')}
             </div>
-            <motion.div
+            <div
               key={combo}
-              initial={{ scale: 1.4 }}
-              animate={{ scale: 1 }}
               className={`text-xl font-bold ${combo >= 5 ? 'text-red-500' : combo >= 3 ? 'text-orange-500' : 'text-orange-500'}`}
             >
               {combo}
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
 
         {/* Combo escalation indicator */}
-        <AnimatePresence>
-          {combo >= 3 && playing && (
-            <motion.div
+        {combo >= 3 && playing && (
+            <div
               key={combo}
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 1.5, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 10 }}
               className="text-center mb-2"
             >
               <span
@@ -302,83 +288,58 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
               >
                 🔥 {combo} {t('连击！', 'Combo!')}
               </span>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Countdown */}
-        <AnimatePresence>
-          {countdown > 0 && !playing && !gameOver && (
-            <motion.div
-              initial={{ scale: 0.3, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 2, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+        {countdown > 0 && !playing && !gameOver && (
+            <div
               className="flex items-center justify-center py-20"
             >
               <span className="text-8xl font-black text-primary drop-shadow-lg">{countdown}</span>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Game Area */}
         {playing && word && textColor && (
           <div className="mb-6 relative">
             {/* Screen flash overlay */}
-            <AnimatePresence>
-              {screenFlash && (
-                <motion.div
-                  initial={{ opacity: 0.4 }}
-                  animate={{ opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+            {screenFlash && (
+                <div
                   className={`absolute inset-0 rounded-2xl z-10 pointer-events-none ${screenFlash === 'green' ? 'bg-green-400/30' : 'bg-red-400/30'}`}
                 />
               )}
-            </AnimatePresence>
 
             {/* Particles */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
               {particles.map((p) => (
-                <motion.span
+                <span
                   key={p.id}
-                  initial={{ x: `${p.x}%`, y: `${p.y}%`, scale: 0 }}
-                  animate={{ scale: [0, 1.5, 0], y: `${p.y - 20}%`, opacity: [1, 1, 0] }}
-                  transition={{ duration: 0.6 }}
                   className="absolute text-xl"
                 >
                   {p.emoji}
-                </motion.span>
+                </span>
               ))}
             </div>
 
             {/* Score popup */}
-            <AnimatePresence>
-              {scorePopup && (
-                <motion.div
+            {scorePopup && (
+                <div
                   key={scorePopup.id}
-                  initial={{ y: 0, opacity: 0, scale: 0.5 }}
-                  animate={{ y: -40, opacity: 1, scale: 1.2 }}
-                  exit={{ y: -60, opacity: 0 }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                   className="absolute top-0 left-1/2 -translate-x-1/2 z-30 font-black text-2xl drop-shadow-lg"
                   style={{ color: scorePopup.color }}
                 >
                   {scorePopup.text}
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
             <p className="text-center text-sm text-secondary mb-4">
               {t('点击文字显示的【颜色】', 'Click the COLOR the text is displayed in')}
             </p>
 
             {/* Color Word Display */}
-            <motion.div
+            <div
               key={`${challenge.wordIndex}-${challenge.colorIndex}`}
-              initial={{ scale: 0.7, opacity: 0, rotate: -5 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
               className="flex items-center justify-center py-10 mb-6"
             >
               <span
@@ -387,33 +348,24 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
               >
                 {t(word.name, word.nameEn)}
               </span>
-            </motion.div>
+            </div>
 
             {/* Answer feedback */}
-            <AnimatePresence>
-              {lastResult && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5, y: -10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+            {lastResult && (
+                <div
                   className={`text-center mb-4 text-xl font-black ${lastResult === 'correct' ? 'text-green-500' : 'text-red-500'}`}
                 >
                   {lastResult === 'correct'
                     ? `✓ ${t('正确！', 'Correct!')}`
                     : `✗ ${t('错误！', 'Wrong!')}`}
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
             {/* Color Buttons */}
             <div className="grid grid-cols-2 gap-3">
               {COLORS.map((color, i) => (
-                <motion.button
+                <button
                   key={color.hex}
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.93 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                   onClick={() => handleAnswer(i)}
                   className="flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg border-2 transition-all min-h-[56px] relative overflow-hidden"
                   style={{
@@ -426,7 +378,7 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
                     {color.symbol}
                   </span>
                   {t(color.name, color.nameEn)}
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
@@ -435,14 +387,12 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
         {/* Pre-game */}
         {!playing && !gameOver && countdown === 0 && (
           <div className="flex justify-center py-12">
-            <motion.button
+            <button
               onClick={startGame}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.93 }}
               className="px-8 py-4 bg-primary text-on-primary rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all min-h-[44px]"
             >
               {t('开始游戏', 'Start Game')}
-            </motion.button>
+            </button>
           </div>
         )}
 
@@ -460,44 +410,30 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
         )}
 
         {/* Game Over */}
-        <AnimatePresence>
-          {gameOver && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+        {gameOver && (
+            <div
               className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-fuchsia-50 dark:from-purple-900/20 dark:to-fuchsia-900/20 border border-purple-200 dark:border-purple-700/30 rounded-2xl text-center"
             >
-              <motion.p
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+              <p
                 className="text-3xl mb-2"
               >
                 🧠
-              </motion.p>
+              </p>
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
                 {t('时间到！', "Time's up!")}
               </p>
-              <motion.p
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, delay: 0.2 }}
+              <p
                 className="text-4xl font-black text-purple-500 mb-2"
               >
                 {score}
-              </motion.p>
+              </p>
               <p className="text-sm text-purple-400 mb-1">{t('得分', 'Score')}</p>
               {score === bestScore && score > 0 && (
-                <motion.p
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', delay: 0.3 }}
+                <p
                   className="text-sm text-yellow-500 mb-2"
                 >
                   🏆 {t('新纪录！', 'New Record!')}
-                </motion.p>
+                </p>
               )}
               <p className="text-xs text-secondary mb-4">
                 {t('最佳', 'Best')}: {bestScore}
@@ -508,10 +444,9 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
               >
                 {t('再来一局', 'Play Again')}
               </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

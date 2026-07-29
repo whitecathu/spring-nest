@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Delete, Divide, Equal, Minus, Plus, X } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -175,19 +175,15 @@ export default function Calculator({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex-grow max-w-md mx-auto w-full px-4 py-8">
-      <motion.button
+      <button
         onClick={onBack}
-        whileHover={{ x: -4 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         className="flex items-center gap-2 text-secondary hover:text-primary mb-6 transition-colors font-semibold text-sm"
       >
         <ArrowLeft className="w-5 h-5" />
         {t('返回工具列表', 'Back to Tools')}
-      </motion.button>
+      </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
       >
         {/* Display */}
@@ -202,172 +198,146 @@ export default function Calculator({ onBack }: { onBack: () => void }) {
           <div className="text-secondary/50 text-sm font-mono truncate w-full text-right">
             {expression}
           </div>
-          <motion.div
+          <div
             key={display}
-            initial={{ scale: 1.05 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 20 }}
             className="text-on-surface text-4xl font-bold tracking-tight truncate w-full text-right mt-1"
           >
             {display}
-          </motion.div>
+          </div>
         </div>
 
         {/* Keypad */}
         <div className="grid grid-cols-4 gap-3">
           {/* Row 1 */}
-          <motion.button
+          <button
             aria-label={t('清除', 'Clear')}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             onClick={handleClear}
             className="col-span-2 py-4 rounded-xl bg-red-50 text-red-500 font-bold text-lg hover:bg-red-100 transition-colors"
           >
             AC
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             aria-label={t('删除上一位', 'Delete previous digit')}
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
             onClick={handleDelete}
             className="py-4 rounded-xl bg-surface-container-high text-secondary font-bold text-lg hover:bg-surface-variant transition-colors flex items-center justify-center"
           >
             <Delete className="w-5 h-5" />
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             aria-label={t('除以', 'Divide')}
-            whileTap={{ scale: 0.88, transition: { type: 'spring', stiffness: 600, damping: 15 } }}
             onClick={() => handleOperator('/')}
             className={`py-4 rounded-xl font-bold text-lg transition-colors ${opActive('/') ? 'bg-primary text-on-primary' : 'bg-primary-container/50 text-primary hover:bg-primary-container'}`}
           >
             <Divide className="w-5 h-5 mx-auto" />
-          </motion.button>
+          </button>
 
           {/* Row 2 */}
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          <button
             onClick={() => handleNumber('7')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             7
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          </button>
+          <button
             onClick={() => handleNumber('8')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             8
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          </button>
+          <button
             onClick={() => handleNumber('9')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             9
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             aria-label={t('乘以', 'Multiply')}
-            whileTap={{ scale: 0.88, transition: { type: 'spring', stiffness: 600, damping: 15 } }}
             onClick={() => handleOperator('*')}
             className={`py-4 rounded-xl font-bold text-lg transition-colors ${opActive('*') ? 'bg-primary text-on-primary' : 'bg-primary-container/50 text-primary hover:bg-primary-container'}`}
           >
             <X className="w-5 h-5 mx-auto" />
-          </motion.button>
+          </button>
 
           {/* Row 3 */}
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          <button
             onClick={() => handleNumber('4')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             4
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          </button>
+          <button
             onClick={() => handleNumber('5')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             5
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          </button>
+          <button
             onClick={() => handleNumber('6')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             6
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             aria-label={t('减去', 'Subtract')}
-            whileTap={{ scale: 0.88, transition: { type: 'spring', stiffness: 600, damping: 15 } }}
             onClick={() => handleOperator('-')}
             className={`py-4 rounded-xl font-bold text-lg transition-colors ${opActive('-') ? 'bg-primary text-on-primary' : 'bg-primary-container/50 text-primary hover:bg-primary-container'}`}
           >
             <Minus className="w-5 h-5 mx-auto" />
-          </motion.button>
+          </button>
 
           {/* Row 4 */}
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          <button
             onClick={() => handleNumber('1')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             1
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          </button>
+          <button
             onClick={() => handleNumber('2')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             2
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          </button>
+          <button
             onClick={() => handleNumber('3')}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             3
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             aria-label={t('加上', 'Add')}
-            whileTap={{ scale: 0.88, transition: { type: 'spring', stiffness: 600, damping: 15 } }}
             onClick={() => handleOperator('+')}
             className={`py-4 rounded-xl font-bold text-lg transition-colors ${opActive('+') ? 'bg-primary text-on-primary' : 'bg-primary-container/50 text-primary hover:bg-primary-container'}`}
           >
             <Plus className="w-5 h-5 mx-auto" />
-          </motion.button>
+          </button>
 
           {/* Row 5 */}
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          <button
             onClick={() => handleNumber('0')}
             className="col-span-2 py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             0
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.9, transition: { type: 'spring', stiffness: 500, damping: 15 } }}
+          </button>
+          <button
             onClick={handleDecimal}
             className="py-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xl hover:bg-surface-container transition-colors border border-surface-variant/20"
           >
             .
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             aria-label={t('计算结果', 'Calculate result')}
-            whileTap={{ scale: 0.88 }}
-            transition={{ type: 'spring', stiffness: 600, damping: 15 }}
             onClick={handleEquals}
             className="py-4 rounded-xl bg-primary text-on-primary font-bold text-lg hover:bg-primary/90 transition-colors"
           >
             <Equal className="w-5 h-5 mx-auto" />
-          </motion.button>
+          </button>
         </div>
-      </motion.div>
+      </div>
 
       {/* History */}
       {history.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        <div
           className="mt-6 bg-white rounded-2xl p-4 shadow-sm border border-surface-variant/20"
         >
           <h3 className="text-sm font-bold text-secondary mb-3">{t('计算历史', 'History')}</h3>
@@ -387,7 +357,7 @@ export default function Calculator({ onBack }: { onBack: () => void }) {
           >
             {t('清除历史', 'Clear History')}
           </button>
-        </motion.div>
+        </div>
       )}
     </div>
   );

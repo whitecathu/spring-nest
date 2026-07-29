@@ -218,12 +218,11 @@ export async function getLeaderboard(gameSlug: string, limit = 20): Promise<Lead
     const userIds = [...new Set(data.map((row) => row.user_id as string))];
     const profileMap = new Map<string, string>();
     if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, username')
-        .in('id', userIds);
-      profiles?.forEach((profile) => {
-        profileMap.set(profile.id as string, (profile.username as string) || 'Anonymous');
+      const { data: profiles } = await supabase.rpc('list_public_profile_cards', {
+        ids: userIds,
+      });
+      profiles?.forEach((profile: { id: string; username?: string | null }) => {
+        profileMap.set(profile.id, profile.username || 'Anonymous');
       });
     }
     return data.map((row) => ({

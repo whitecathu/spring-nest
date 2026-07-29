@@ -1,196 +1,267 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { useTheme } from '../../contexts/ThemeContext';
-import { easeOutExpo, useReducedMotion } from '../../lib/animations';
-import { useVisualCapability } from '../../lib/visualCapability';
-import LightweightEmergenceSplash from './glassGarden/LightweightEmergenceSplash';
-import Aurora from './Aurora';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  markForestSplashSeen,
+  shouldShowForestSplash,
+} from '../../lib/forest/forestSplashMemory';
+import { useReducedMotion } from '../../lib/animations';
+import { useFocusTrap } from '../../lib/useFocusTrap';
+import ForestFogTransition, {
+  type ForestFogHandle,
+} from './ForestFogTransition';
+import SpringNestLogoMotion from './SpringNestLogoMotion';
 
-const TerrariumEmergenceSplash = lazy(() => import('./glassGarden/TerrariumEmergenceSplash'));
+const SPLASH_SRC = '/forest/splash-startup.mp4';
+const SPLASH_POSTER = '/forest/splash-poster.webp';
+const LOAD_TIMEOUT_MS = 1800;
+/** Show brand after the frame has settled. */
+const LOGO_AT_SEC = 1.8;
+/**
+ * Stock clip visually loops past ~6s — exit before the repeat.
+ * Keep wall-clock under one clean pass.
+ */
+const PLAY_UNTIL_SEC = 5.8;
+const PLAYBACK_RATE = 1;
+const FOREST_FILTER = 'brightness(1.06) contrast(1.05) saturate(0.92)';
 
-const SPLASH_SESSION_KEY = 'spring_nest_startup_splash_seen';
-const splashOrbitDots = Array.from({ length: 10 }, (_, index) => ({
-  angle: (index / 10) * Math.PI * 2,
-  size: 3 + (index % 3),
-  delay: index * 0.045,
-}));
+export type StartupSplashProps = {
+  onComplete?: () => void;
+  forceShow?: boolean;
+};
 
-function getShouldShowSplash() {
-  if (typeof window === 'undefined') return false;
+function destroyVideo(video: HTMLVideoElement | null) {
+  if (!video) return;
   try {
-    return sessionStorage.getItem(SPLASH_SESSION_KEY) !== '1';
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
   } catch {
-    // sessionStorage may be unavailable; show splash by default
-    return true;
+    // ignore
   }
 }
 
-function markSplashSeen() {
-  try {
-    sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
-  } catch {
-    // sessionStorage write may fail; splash will show again next visit
-  }
-}
-
-function getCompactSplash() {
-  if (typeof window === 'undefined') return false;
-  if (typeof window.matchMedia !== 'function') return false;
-  return (
-    window.matchMedia('(pointer: coarse)').matches ||
-    window.matchMedia('(max-width: 720px)').matches
-  );
-}
-
-function useCompactSplash() {
-  const [compact, setCompact] = useState(getCompactSplash);
-
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return;
-    const coarse = window.matchMedia('(pointer: coarse)');
-    const narrow = window.matchMedia('(max-width: 720px)');
-    const update = () => setCompact(getCompactSplash());
-
-    coarse.addEventListener('change', update);
-    narrow.addEventListener('change', update);
-    return () => {
-      coarse.removeEventListener('change', update);
-      narrow.removeEventListener('change', update);
-    };
-  }, []);
-
-  return compact;
-}
-
-export default function StartupSplash() {
+export default function StartupSplash({ onComplete, forceShow = false }: StartupSplashProps) {
   const reducedMotion = useReducedMotion();
-  const compact = useCompactSplash();
-  const capability = useVisualCapability();
-  const { resolved } = useTheme();
-  const dark = resolved === 'dark';
-  const [visible, setVisible] = useState(getShouldShowSplash);
-  const useDesktop3d = capability.mode === 'desktop-3d';
+  const rootRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fogRef = useRef<ForestFogHandle>(null);
+  const completedRef = useRef(false);
+  const logoShownRef = useRef(false);
+  const [showLogo, setShowLogo] = useState(false);
+  const [usePosterOnly, setUsePosterOnly] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [videoFade, setVideoFade] = useState(1);
+  const showFullSplash =
+    forceShow || (typeof window !== 'undefined' ? shouldShowForestSplash() : true);
 
-  const complete = useCallback(() => {
-    markSplashSeen();
-    setVisible(false);
-  }, []);
+  const finish = useCallback(
+    async (opts?: { gatherFirst?: boolean; markSeen?: boolean }) => {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      if (opts?.markSeen !== false) markForestSplashSeen();
+
+      setVideoFade(0);
+
+      try {
+        if (opts?.gatherFirst) await fogRef.current?.gather();
+        else fogRef.current?.setPeak?.();
+        await fogRef.current?.disperse();
+      } catch {
+        // continue even if fog animation fails
+      }
+
+      destroyVideo(videoRef.current);
+      setVisible(false);
+      onComplete?.();
+    },
+    [onComplete],
+  );
+
+  const runGatherThenComplete = useCallback(() => {
+    void finish({ gatherFirst: true, markSeen: true });
+  }, [finish]);
+
+  const runDisperseOnly = useCallback(() => {
+    void finish({ gatherFirst: false, markSeen: false });
+  }, [finish]);
+
+  const skip = useCallback(() => {
+    runGatherThenComplete();
+  }, [runGatherThenComplete]);
+
+  useFocusTrap(rootRef, {
+    enabled: visible && showFullSplash && !reducedMotion,
+    onEscape: skip,
+  });
 
   useEffect(() => {
     if (!visible) return;
 
-    const exitDelay = reducedMotion ? 80 : useDesktop3d ? 1700 : compact ? 1250 : 1400;
-    const timeout = window.setTimeout(complete, exitDelay);
-    return () => window.clearTimeout(timeout);
-  }, [compact, complete, reducedMotion, useDesktop3d, visible]);
+    if (!showFullSplash || reducedMotion) {
+      const t = window.setTimeout(() => {
+        runDisperseOnly();
+      }, reducedMotion ? 40 : 80);
+      return () => window.clearTimeout(t);
+    }
 
-  useEffect(() => {
-    if (!visible) return;
+    const video = videoRef.current;
+    if (!video) return;
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' || event.key === 'Enter') complete();
+    let disposed = false;
+    let endTimer: number | null = null;
+    let loadTimer: number | null = null;
+    let startedTimeline = false;
+
+    video.muted = true;
+    video.playsInline = true;
+    video.loop = false;
+    video.playbackRate = PLAYBACK_RATE;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+
+    const revealLogo = () => {
+      if (disposed || logoShownRef.current) return;
+      logoShownRef.current = true;
+      setShowLogo(true);
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [complete, visible]);
+    const startTimeline = (durationHint?: number) => {
+      if (disposed || startedTimeline) return;
+      startedTimeline = true;
 
-  const baseBackground = dark
-    ? 'linear-gradient(135deg, oklch(13% 0.018 152), oklch(10% 0.014 205) 58%, oklch(14% 0.018 78))'
-    : 'linear-gradient(135deg, oklch(99% 0.012 85), oklch(97% 0.026 140) 58%, oklch(98% 0.018 55))';
-  const auroraColors = dark ? ['#1a3a1a', '#3d7a4d', '#8fbc8f'] : ['#3d7a4d', '#8fbc8f', '#f5f0e0'];
-  const dotColor = dark ? 'oklch(83% 0.11 145 / 0.48)' : 'oklch(55% 0.11 145 / 0.44)';
+      const duration =
+        durationHint && Number.isFinite(durationHint) && durationHint > 0
+          ? durationHint
+          : video.duration && Number.isFinite(video.duration)
+            ? video.duration
+            : PLAY_UNTIL_SEC;
+
+      const playUntil = Math.min(PLAY_UNTIL_SEC, Math.max(LOGO_AT_SEC + 1.2, duration - 0.35));
+      const wallMs = (playUntil / PLAYBACK_RATE) * 1000;
+
+      endTimer = window.setTimeout(() => {
+        if (!disposed) runGatherThenComplete();
+      }, wallMs);
+    };
+
+    const onLoaded = () => {
+      if (disposed) return;
+      if (loadTimer) {
+        window.clearTimeout(loadTimer);
+        loadTimer = null;
+      }
+      const play = video.play();
+      if (play) void play.catch(() => setUsePosterOnly(true));
+      startTimeline(video.duration);
+    };
+
+    const onEnded = () => {
+      if (!disposed) runGatherThenComplete();
+    };
+
+    const onTimeUpdate = () => {
+      if (disposed) return;
+      if (video.currentTime >= LOGO_AT_SEC) revealLogo();
+      if (video.currentTime >= PLAY_UNTIL_SEC) {
+        video.pause();
+        runGatherThenComplete();
+      }
+    };
+
+    video.addEventListener('loadeddata', onLoaded);
+    video.addEventListener('ended', onEnded);
+    video.addEventListener('timeupdate', onTimeUpdate);
+    video.src = SPLASH_SRC;
+    video.load();
+
+    loadTimer = window.setTimeout(() => {
+      if (disposed || startedTimeline) return;
+      setUsePosterOnly(true);
+      revealLogo();
+      startTimeline(PLAY_UNTIL_SEC);
+    }, LOAD_TIMEOUT_MS);
+
+    return () => {
+      disposed = true;
+      if (endTimer) window.clearTimeout(endTimer);
+      if (loadTimer) window.clearTimeout(loadTimer);
+      video.removeEventListener('loadeddata', onLoaded);
+      video.removeEventListener('ended', onEnded);
+      video.removeEventListener('timeupdate', onTimeUpdate);
+      destroyVideo(video);
+    };
+  }, [visible, showFullSplash, reducedMotion, runGatherThenComplete, runDisperseOnly]);
+
+  if (!visible) return null;
 
   return (
-    <AnimatePresence>
-      {visible ? (
-        <motion.div
-          className="fixed inset-0 z-[60] grid cursor-default place-items-center overflow-hidden"
-          role="status"
-          aria-live="polite"
-          aria-label="Spring Nest loading"
-          onPointerDown={complete}
-          style={{ background: baseBackground }}
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          exit={{
-            opacity: 0,
-            y: reducedMotion ? 0 : -8,
-            scale: reducedMotion ? 1 : 1.01,
-          }}
-          transition={{ duration: reducedMotion ? 0.1 : 0.22, ease: easeOutExpo }}
-        >
-          <Aurora
-            colorStops={auroraColors}
-            amplitude={useDesktop3d ? 1.2 : 0.6}
-            blend={0.5}
-            speed={useDesktop3d ? 1.0 : 0.4}
-            className="absolute inset-0 opacity-60 dark:opacity-40"
-          />
-          <button
-            type="button"
-            className="absolute right-4 top-4 z-[1] rounded-full border border-primary/15 bg-white/55 px-4 py-2 text-sm font-bold text-primary shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 dark:bg-white/10 dark:hover:bg-white/15"
-            onClick={complete}
-          >
-            跳过
-          </button>
-          <motion.div
-            className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/10 sm:h-96 sm:w-96"
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={
-              reducedMotion
-                ? { opacity: 0, scale: 1 }
-                : { opacity: [0, 0.52, 0.36], scale: [0.96, 1.02, 1] }
-            }
-            transition={{ duration: 0.8, ease: easeOutExpo }}
-            aria-hidden="true"
-          />
-          {!reducedMotion && (
-            <div className="splash-orbit-field" aria-hidden="true">
-              {splashOrbitDots.map((dot, index) => (
-                <motion.span
-                  key={index}
-                  className="absolute left-1/2 top-1/2 rounded-full"
-                  style={{
-                    width: dot.size,
-                    height: dot.size,
-                    background: dotColor,
-                    willChange: 'transform, opacity',
-                  }}
-                  initial={{ opacity: 0, x: 0, y: 0, scale: 0.6 }}
-                  animate={{
-                    opacity: [0, compact ? 0.32 : 0.58, 0.14],
-                    x: Math.cos(dot.angle) * (compact ? 118 : 168),
-                    y: Math.sin(dot.angle) * (compact ? 86 : 126),
-                    scale: [0.6, 1, 0.82],
-                  }}
-                  transition={{ duration: 0.78, delay: dot.delay, ease: easeOutExpo }}
-                />
-              ))}
-            </div>
-          )}
+    <div
+      ref={rootRef}
+      className="fixed inset-0 z-[60] overflow-hidden bg-[#142018]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Spring Nest 开屏"
+      tabIndex={-1}
+    >
+      <img
+        src={SPLASH_POSTER}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover"
+        style={{ filter: FOREST_FILTER }}
+        decoding="async"
+      />
 
-          <Suspense
-            fallback={
-              <LightweightEmergenceSplash
-                compact={compact}
-                dark={dark}
-                reducedMotion={reducedMotion}
-              />
-            }
-          >
-            {useDesktop3d ? (
-              <TerrariumEmergenceSplash dark={dark} reducedMotion={reducedMotion} />
-            ) : (
-              <LightweightEmergenceSplash
-                compact={compact}
-                dark={dark}
-                reducedMotion={reducedMotion}
-              />
-            )}
-          </Suspense>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+      {showFullSplash && !reducedMotion && (
+        <video
+          ref={videoRef}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
+          muted
+          playsInline
+          preload="auto"
+          poster={SPLASH_POSTER}
+          style={{
+            filter: FOREST_FILTER,
+            opacity: usePosterOnly ? 0 : videoFade,
+          }}
+        />
+      )}
+
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+        style={{
+          background: `
+            radial-gradient(ellipse 48% 38% at 50% 44%, rgba(255,249,242,0.16) 0%, transparent 70%),
+            radial-gradient(ellipse at 50% 50%, transparent 34%, rgba(16, 26, 20, 0.48) 100%)
+          `,
+          opacity: videoFade,
+          transition: 'opacity 500ms ease',
+        }}
+      />
+
+      {showLogo && showFullSplash && !reducedMotion && (
+        <div className="pointer-events-none absolute inset-0 z-[2] grid place-items-center px-6">
+          <SpringNestLogoMotion variant="mark" animateIn markWidth="168px" />
+        </div>
+      )}
+
+      <ForestFogTransition ref={fogRef} initialOpacity={showFullSplash && !reducedMotion ? 0 : 0.85} />
+
+      {showFullSplash && !reducedMotion && (
+        <button
+          type="button"
+          onClick={skip}
+          className="absolute bottom-7 right-7 z-[3] min-h-11 rounded-full border px-5 py-2.5 font-nunito text-sm font-bold backdrop-blur-md transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          style={{
+            borderColor: 'rgba(255,255,255,0.42)',
+            background: 'rgba(255,255,255,0.28)',
+            color: '#fff',
+            boxShadow: '0 12px 32px -16px rgba(0,0,0,0.55)',
+            letterSpacing: '0.04em',
+          }}
+        >
+          跳过
+        </button>
+      )}
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Bell,
   Search,
   User,
   Leaf,
@@ -15,13 +14,14 @@ import {
   Monitor,
   Sun,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import LoginModal from './LoginModal';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { search } from '../services/searchService';
 import { trackSearch } from '../lib/analytics';
-import { MotionButton, MotionPanel } from './MotionSurface';
+import { MotionButton, MotionPanel } from './GsapSurface';
+import ForestAudio from './animations/ForestAudio';
 
 export default function Navigation() {
   const [showSearch, setShowSearch] = useState(false);
@@ -32,6 +32,7 @@ export default function Navigation() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { user, logout, language, t } = useUser();
   const { mode, setMode, resolved } = useTheme();
   const navigate = useNavigate();
@@ -44,6 +45,15 @@ export default function Navigation() {
     setShowMobileMenu(false);
     setShowUserMenu(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const main = document.getElementById('main-content');
+    if (!main) return;
+    const onScroll = () => setScrolled(main.scrollTop > 12);
+    onScroll();
+    main.addEventListener('scroll', onScroll, { passive: true });
+    return () => main.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Offline status monitoring
   useEffect(() => {
@@ -149,13 +159,8 @@ export default function Navigation() {
 
   return (
     <>
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -30, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -30, scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      {toastMessage && (
+          <div
             className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]"
           >
             <MotionPanel
@@ -166,22 +171,18 @@ export default function Navigation() {
               <Search className="w-4 h-4 text-primary" />
               {toastMessage}
             </MotionPanel>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-
-      <header className="sticky top-0 w-full z-50 bg-[#FFF9F2]/70 dark:bg-surface/70 backdrop-blur-xl border-b border-white/50 dark:border-white/10 shadow-[0_4px_30px_rgba(184,228,201,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)] transition-all duration-300">
+<header
+        data-forest-ui
+        className={`sticky top-0 w-full z-50 bg-[#FFF9F2]/75 dark:bg-surface/75 backdrop-blur-[16px] border-b border-[color:var(--forest-moss)]/25 dark:border-white/10 shadow-[0_4px_30px_rgba(45,74,54,0.12)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)] transition-all duration-300 ${scrolled ? 'forest-nav-scrolled' : ''}`}
+      >
         <div className="flex justify-between items-center w-full px-3 py-4 sm:px-6 max-w-7xl mx-auto relative">
-          <AnimatePresence>
-            {showSearch && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          {showSearch && (
+              <div
                 className="absolute inset-x-4 inset-y-0 flex items-center bg-[#FFF9F2]/90 dark:bg-surface/95 backdrop-blur-xl z-50"
               >
-                <div className="flex-grow flex flex-col">
+                <div className="flex-grow flex flex-col forest-search-glow">
                   <form
                     onSubmit={handleSearchSubmit}
                     className="flex items-center bg-white dark:bg-surface-container-high rounded-full px-5 py-3 shadow-[0_8px_25px_rgba(184,228,201,0.4)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] border border-primary/20 dark:border-primary/10"
@@ -249,13 +250,9 @@ export default function Navigation() {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
-
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+<div
             className="text-sm font-extrabold text-primary flex items-center gap-1 font-sans tracking-tight cursor-pointer transition-transform sm:gap-3 sm:text-2xl"
           >
             <Link
@@ -266,7 +263,7 @@ export default function Navigation() {
               <Leaf className="h-6 w-6 fill-primary sm:h-8 sm:w-8" />
               <span className="whitespace-nowrap">Spring Nest</span>
             </Link>
-          </motion.div>
+          </div>
 
           <nav
             className="hidden md:flex gap-10 items-center"
@@ -276,6 +273,7 @@ export default function Navigation() {
               <Link
                 key={item.id}
                 to={item.path}
+                aria-current={isActive(item.path) ? 'page' : undefined}
                 className={`relative inline-flex min-h-11 min-w-11 items-center justify-center font-nunito text-base tracking-wide transition-all duration-300 hover:scale-105 ${
                   isActive(item.path)
                     ? 'font-bold text-primary pb-1'
@@ -284,11 +282,9 @@ export default function Navigation() {
               >
                 {isEn ? item.enLabel : item.label}
                 {isActive(item.path) && (
-                  <motion.div
-                    layoutId="activeTab"
+                  <div
+
                     className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-primary-container shadow-[0_0_12px_rgba(63,103,81,0.18)]"
-                    initial={false}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 )}
               </Link>
@@ -335,6 +331,8 @@ export default function Navigation() {
               )}
             </MotionButton>
 
+            <ForestAudio className={iconButtonClass} />
+
             <MotionButton
               type="button"
               tone="icon"
@@ -346,15 +344,15 @@ export default function Navigation() {
             </MotionButton>
 
             <span className="hidden sm:inline-flex">
-              <MotionButton
-                type="button"
-                tone="icon"
-                onClick={() => navigate('/favorites')}
-                className={iconButtonClass}
-                aria-label={t('收藏', 'Favorites')}
-              >
-                <Bell className="w-5 h-5" />
-              </MotionButton>
+<MotionButton
+              type="button"
+              tone="icon"
+              onClick={() => navigate('/favorites')}
+              className={iconButtonClass}
+              aria-label={t('收藏', 'Favorites')}
+            >
+              <Heart className="w-5 h-5" />
+            </MotionButton>
             </span>
 
             {user ? (
@@ -438,23 +436,14 @@ export default function Navigation() {
       </header>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {showMobileMenu && (
+      {showMobileMenu && (
           <>
             {/* Backdrop with blur */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+            <div
               className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden"
               onClick={() => setShowMobileMenu(false)}
             />
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            <div
               className={`fixed top-[72px] left-0 right-0 z-40 border-b shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden ${navPanelClass}`}
             >
               <nav
@@ -463,16 +452,13 @@ export default function Navigation() {
                 aria-label={t('移动端导航', 'Mobile navigation')}
               >
                 {navItems.map((item, index) => (
-                  <motion.div
+                  <div
                     key={item.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.25, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-                    whileHover={{ x: 4 }}
                   >
                     <Link
                       to={item.path}
                       onClick={() => setShowMobileMenu(false)}
+                      aria-current={isActive(item.path) ? 'page' : undefined}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all min-h-[48px] ${
                         isActive(item.path)
                           ? 'bg-primary-container/30 text-primary ring-1 ring-primary/25'
@@ -486,7 +472,7 @@ export default function Navigation() {
                       {item.id === 'about' && <Heart className="w-5 h-5" />}
                       {isEn ? item.enLabel : item.label}
                     </Link>
-                  </motion.div>
+                  </div>
                 ))}
                 <div className="mt-2 grid gap-2 border-t border-surface-variant/40 pt-3">
                   <Link
@@ -494,7 +480,7 @@ export default function Navigation() {
                     onClick={() => setShowMobileMenu(false)}
                     className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
                   >
-                    <Bell className="h-5 w-5" />
+                    <Heart className="h-5 w-5" />
                     {t('我的收藏', 'Favorites')}
                   </Link>
                   {user ? (
@@ -521,12 +507,10 @@ export default function Navigation() {
                   )}
                 </div>
               </nav>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
-
-      <LoginModal
+<LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
         onLoginSuccess={handleLoginSuccess}

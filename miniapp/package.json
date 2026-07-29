@@ -1,0 +1,7 @@
+{
+  "name": "spring-nest-miniapp",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "WeChat mini-program shell for 春日小筑"
+}

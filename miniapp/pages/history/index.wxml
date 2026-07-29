@@ -1,0 +1,37 @@
+<view class="page-pad">
+  <view class="row between" wx:if="{{!empty}}">
+    <text class="text-headline-sm">最近使用</text>
+    <text class="clear" bindtap="onClear">清空</text>
+  </view>
+
+  <view wx:if="{{empty}}" class="empty glass-card">
+    <text class="text-headline-sm">暂无记录</text>
+    <text class="text-body-sm text-muted">打开任意工具后，会在这里留下足迹。</text>
+  </view>
+
+  <view class="list" wx:else>
+    <view
+      class="item glass-card"
+      wx:for="{{records}}"
+      wx:key="id"
+      data-slug="{{item.toolId}}"
+      bindtap="onOpen"
+    >
+      <view
+        class="icon-well"
+        style="background: {{item.tool.bg}}; color: {{item.tool.color}};"
+      >
+        <text class="icon-emoji">{{item.tool.icon}}</text>
+      </view>
+      <view class="flex-1">
+        <text class="title">{{item.name}}</text>
+        <text class="time">{{item.timeText}}</text>
+      </view>
+      <text
+        class="remove"
+        data-id="{{item.id}}"
+        catchtap="onRemove"
+      >删除</text>
+    </view>
+  </view>
+</view>

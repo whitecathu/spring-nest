@@ -1,0 +1,9 @@
+<view
+  class="brand-header"
+  style="padding-top: {{statusBarHeight}}px;"
+>
+  <view class="brand-inner" style="height: {{navBarHeight}}px;">
+    <image class="leaf" src="/assets/icons/leaf.png" mode="aspectFit" />
+    <text class="brand-title">Spring Nest</text>
+  </view>
+</view>

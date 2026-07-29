@@ -1,0 +1,24 @@
+<view class="list-page fav">
+  <view class="page-desc lead">常看卡片库，把重点题随时拿出来练。</view>
+
+  <view wx:if="{{isEmpty}}" class="empty-card">
+    <view class="empty-emoji">♡</view>
+    <view class="empty-title">暂无收藏</view>
+    <view class="empty-desc">练习页右上角可收藏题目，方便反复回顾。</view>
+  </view>
+
+  <block wx:else>
+    <view class="restudy-btn" bindtap="onRestudy">复习收藏 {{items.length}} 题</view>
+    <view class="item-list">
+      <view wx:for="{{items}}" wx:key="id" class="item-card">
+        <view class="item-top">
+          <view class="kind-pill green">{{item.kindLabel}}</view>
+          <view class="remove-btn" data-id="{{item.id}}" catchtap="onRemove">取消</view>
+        </view>
+        <view class="item-stem">{{item.stem}}</view>
+        <view class="item-answer">正确答案：{{item.answerLabel}}</view>
+        <view wx:if="{{item.explanation}}" class="item-exp">{{item.explanation}}</view>
+      </view>
+    </view>
+  </block>
+</view>

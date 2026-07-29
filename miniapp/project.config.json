@@ -1,0 +1,67 @@
+{
+  "description": "春日小筑工具小程序",
+  "packOptions": {
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "scripts"
+      },
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "file",
+        "value": "README.md"
+      },
+      {
+        "type": "file",
+        "value": "package.json"
+      },
+      {
+        "type": "suffix",
+        "value": ".md"
+      },
+      {
+        "type": "file",
+        "value": "assets/fonts/NotoSerifSC-Bold-CN.woff"
+      }
+    ],
+    "include": []
+  },
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "minified": true,
+    "postcss": true,
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "useCompilerPlugins": false,
+    "compileWorklet": false,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.5.5",
+  "appid": "wx1cba5f9a3dba1eba",
+  "projectname": "spring-nest-miniapp",
+  "miniprogramRoot": "./",
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "simulatorPluginLibVersion": {}
+}

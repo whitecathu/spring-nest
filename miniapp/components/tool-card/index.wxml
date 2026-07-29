@@ -1,0 +1,51 @@
+<view class="tool-card mode-{{mode}} glass-card" bindtap="onTap">
+  <view wx:if="{{mode === 'dev' && blob}}" class="blob blob-{{blob}}"></view>
+
+  <block wx:if="{{mode === 'hero'}}">
+    <view class="icon-well" style="background: {{tool.bg}}; color: {{tool.color}};">
+      <text class="icon-emoji">{{tool.icon}}</text>
+    </view>
+    <view class="meta flex-1">
+      <text class="title">{{tool.title}}</text>
+      <text class="desc" wx:if="{{tool.description}}">{{tool.description}}</text>
+    </view>
+    <text class="chevron">›</text>
+  </block>
+
+  <block wx:elif="{{mode === 'quick'}}">
+    <view class="icon-well quick-well" style="background: {{tool.bg}}; color: {{tool.color}};">
+      <text class="icon-emoji">{{tool.icon}}</text>
+    </view>
+    <text class="title">{{tool.title}}</text>
+  </block>
+
+  <block wx:elif="{{mode === 'dev'}}">
+    <view class="dev-top">
+      <view class="icon-well dev-well" style="background: {{tool.bg}}; color: {{tool.color}};">
+        <text class="icon-emoji">{{tool.icon}}</text>
+      </view>
+      <text class="chevron chevron-sm">›</text>
+    </view>
+    <view class="meta">
+      <text class="title">{{tool.title}}</text>
+      <text class="desc desc-wrap" wx:if="{{tool.description}}">{{tool.description}}</text>
+    </view>
+  </block>
+
+  <block wx:elif="{{mode === 'doc'}}">
+    <view class="icon-well doc-well" style="background: {{tool.bg}}; color: {{tool.color}};">
+      <text class="icon-emoji">{{tool.icon}}</text>
+    </view>
+    <text class="title doc-title">{{tool.title}}</text>
+  </block>
+
+  <block wx:else>
+    <view class="icon-well" style="background: {{tool.bg}}; color: {{tool.color}};">
+      <text class="icon-emoji">{{tool.icon}}</text>
+    </view>
+    <view class="meta">
+      <text class="title">{{tool.title}}</text>
+      <text class="desc" wx:if="{{tool.description}}">{{tool.description}}</text>
+    </view>
+  </block>
+</view>

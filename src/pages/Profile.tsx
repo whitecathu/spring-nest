@@ -16,7 +16,7 @@ import {
   X,
   AlertTriangle,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -118,12 +118,8 @@ export default function Profile() {
   const tabContent = useMemo(
     () => ({
       profile: (
-        <motion.div
+        <div
           key="profile"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="flex flex-col gap-8"
         >
           <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 shadow-sm border border-surface-variant/30">
@@ -179,15 +175,11 @@ export default function Profile() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       ),
       notifications: (
-        <motion.div
+        <div
           key="notifications"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="flex flex-col gap-8"
         >
           <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 shadow-sm border border-surface-variant/30">
@@ -241,15 +233,11 @@ export default function Profile() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
       ),
       security: (
-        <motion.div
+        <div
           key="security"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="flex flex-col gap-8"
         >
           <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 shadow-sm border border-surface-variant/30">
@@ -321,15 +309,11 @@ export default function Profile() {
               {t('注销账号', 'Delete Account')}
             </button>
           </div>
-        </motion.div>
+        </div>
       ),
       settings: (
-        <motion.div
+        <div
           key="settings"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="flex flex-col gap-8"
         >
           <div className="bg-white dark:bg-surface-container-high rounded-3xl p-8 shadow-sm border border-surface-variant/30">
@@ -392,7 +376,7 @@ export default function Profile() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       ),
     }),
     [
@@ -412,13 +396,14 @@ export default function Profile() {
   if (!user) {
     return (
       <div className="flex-grow flex flex-col items-center justify-center py-20 px-6">
+        <div className="forest-empty-panel flex max-w-md flex-col items-center px-8 py-12 text-center">
         <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-4">
           <User className="w-10 h-10 text-secondary/30" />
         </div>
-        <h1 className="font-nunito text-2xl font-bold text-on-surface mb-2">
+        <h1 className="font-nunito text-2xl font-bold forest-page-title mb-2">
           {t('未登录', 'Not Logged In')}
         </h1>
-        <p className="text-secondary text-sm mb-6">
+        <p className="forest-page-subtitle text-sm mb-6">
           {t('请先登录以查看个人中心', 'Please log in to view your profile')}
         </p>
         <button
@@ -427,6 +412,7 @@ export default function Profile() {
         >
           {t('返回首页', 'Back to Home')}
         </button>
+        </div>
       </div>
     );
   }
@@ -438,16 +424,11 @@ export default function Profile() {
           {feedback}
         </div>
       )}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="flex flex-col md:flex-row gap-8"
       >
         {/* Sidebar */}
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+        <div
           className="w-full md:w-64 shrink-0 flex flex-col gap-6"
         >
           <div className="bg-white dark:bg-surface-container-high rounded-3xl p-6 shadow-sm border border-surface-variant/30 flex flex-col items-center gap-4">
@@ -486,13 +467,13 @@ export default function Profile() {
               {t('退出账号', 'Log Out')}
             </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Content */}
         <div className="flex-grow">
-          <AnimatePresence mode="wait">{tabContent[activeTab]}</AnimatePresence>
-        </div>
-      </motion.div>
+          {tabContent[activeTab]}
+</div>
+      </div>
 
       {/* Password Modal */}
       {showPasswordModal && (

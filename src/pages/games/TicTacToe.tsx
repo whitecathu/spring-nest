@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Users, Bot } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -215,7 +215,7 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="text-center mb-4">
           <h1 className="text-3xl font-black text-on-surface">{t('井字棋', 'Tic-Tac-Toe')}</h1>
@@ -224,10 +224,8 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
 
         {/* Mode Toggle */}
         <div className="flex justify-center gap-2 mb-4">
-          <motion.button
+          <button
             onClick={() => handleModeChange('pvp')}
-            whileTap={{ scale: 0.93 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
               mode === 'pvp'
                 ? 'bg-primary text-on-primary'
@@ -236,11 +234,9 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
           >
             <Users className="w-4 h-4" />
             {t('双人对战', 'PvP')}
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             onClick={() => handleModeChange('ai')}
-            whileTap={{ scale: 0.93 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all min-h-[44px] ${
               mode === 'ai'
                 ? 'bg-primary text-on-primary'
@@ -249,7 +245,7 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
           >
             <Bot className="w-4 h-4" />
             {t('人机对战', 'vs AI')}
-          </motion.button>
+          </button>
         </div>
 
         {/* Score Display */}
@@ -274,16 +270,14 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
 
         {/* Turn Indicator */}
         <div className="text-center mb-3">
-          <motion.p
+          <p
             key={`${currentPlayer}-${winner}-${isDraw}`}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
             className={`text-lg font-bold ${
               winner ? 'text-green-500' : isDraw ? 'text-yellow-500' : 'text-on-surface'
             }`}
           >
             {statusText()}
-          </motion.p>
+          </p>
         </div>
 
         {/* Game Board */}
@@ -292,11 +286,8 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
             {board.map((cell, i) => {
               const isWinCell = winLine?.includes(i);
               return (
-                <motion.button
+                <button
                   key={i}
-                  whileTap={{ scale: cell ? 1 : 0.9 }}
-                  animate={isWinCell ? { scale: [1, 1.1, 1] } : undefined}
-                  transition={isWinCell ? { duration: 0.5, repeat: 2 } : undefined}
                   onClick={() => handleCellClick(i)}
                   aria-label={
                     cell
@@ -320,19 +311,14 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
                         : 'bg-surface-container-high hover:bg-surface-variant active:bg-surface-variant'
                   } ${cell === 'X' ? 'text-primary' : cell === 'O' ? 'text-tertiary' : 'text-transparent'}`}
                 >
-                  <AnimatePresence mode="wait">
-                    {cell && (
-                      <motion.span
+                  {cell && (
+                      <span
                         key={cell}
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 12 }}
                       >
                         {cell}
-                      </motion.span>
+                      </span>
                     )}
-                  </AnimatePresence>
-                </motion.button>
+                </button>
               );
             })}
           </div>
@@ -350,25 +336,17 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Game Over Overlay */}
-        <AnimatePresence>
-          {(winner || isDraw) && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+        {(winner || isDraw) && (
+            <div
               className="mt-6 p-6 bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 border border-green-200 dark:border-green-700/30 rounded-2xl text-center"
             >
               {winner && (
                 <>
-                  <motion.p
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+                  <p
                     className="text-3xl mb-2"
                   >
                     {winner === 'X' ? '🎉' : mode === 'ai' ? '🤖' : '🎉'}
-                  </motion.p>
+                  </p>
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
                     {mode === 'ai'
                       ? winner === 'X'
@@ -380,14 +358,11 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
               )}
               {isDraw && (
                 <>
-                  <motion.p
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 10, delay: 0.1 }}
+                  <p
                     className="text-3xl mb-2"
                   >
                     🤝
-                  </motion.p>
+                  </p>
                   <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
                     {t('平局！', "It's a draw!")}
                   </p>
@@ -399,10 +374,9 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
               >
                 {t('再来一局', 'Play Again')}
               </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { springBouncy, springSmooth } from '../../lib/animations';
@@ -536,7 +536,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -546,15 +546,12 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <motion.div
+              <div
                 key={score}
-                initial={{ scale: 1.6, color: '#fbbf24' }}
-                animate={{ scale: 1, color: 'var(--color-primary)' }}
-                transition={{ type: 'spring', stiffness: 800, damping: 10 }}
                 className="text-xl font-bold tabular-nums"
               >
                 {score}
-              </motion.div>
+              </div>
             </div>
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
@@ -766,9 +763,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
             {/* Bird — idle bobbing with breathing glow */}
             {(gameState === 'idle' || gameState === 'ready') && (
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              <div
                 className="absolute select-none"
                 style={{
                   left: BIRD_X * gameScale,
@@ -785,7 +780,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                 }}
               >
                 🐦
-              </motion.div>
+              </div>
             )}
 
             {/* Bird — playing */}
@@ -843,8 +838,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
             )}
 
             {/* Death particles */}
-            <AnimatePresence>
-              {deathParticles.map((particle) => (
+            {deathParticles.map((particle) => (
                 <div
                   key={particle.id}
                   className="absolute rounded-full pointer-events-none"
@@ -861,7 +855,6 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   }}
                 />
               ))}
-            </AnimatePresence>
 
             {/* Death white flash overlay */}
             {deathFlash && (
@@ -896,13 +889,8 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
             ))}
 
             {/* Milestone combo indicator */}
-            <AnimatePresence>
-              {milestoneCombo !== null && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5, y: 0 }}
-                  animate={{ opacity: 1, scale: 1.2, y: -40 }}
-                  exit={{ opacity: 0, y: -70 }}
-                  transition={{ ...springBouncy, duration: 0.8 }}
+            {milestoneCombo !== null && (
+                <div
                   className="absolute z-30 pointer-events-none flex items-center gap-2"
                   style={{
                     left: (GAME_WIDTH / 2) * gameScale,
@@ -921,17 +909,14 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     <Zap className="w-4 h-4" />
                     {milestoneCombo}
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
             {/* Idle / Ready / Game Over Overlay */}
             {gameState !== 'playing' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 z-10">
                 {gameState === 'idle' && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                  <div
                     className="text-center cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -969,13 +954,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     <p className="text-xs text-white/60 drop-shadow">
                       {t('躲避管道，飞得越远越好！', 'Dodge pipes, fly as far as you can!')}
                     </p>
-                  </motion.div>
+                  </div>
                 )}
                 {gameState === 'ready' && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={springBouncy}
+                  <div
                     className="text-center"
                   >
                     <p
@@ -993,13 +975,10 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     <p className="text-lg font-bold text-white/90 drop-shadow mt-2">
                       {t('准备好了吗？', 'Get Ready!')}
                     </p>
-                  </motion.div>
+                  </div>
                 )}
                 {gameState === 'over' && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={springSmooth}
+                  <div
                     className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4"
                   >
                     <p className="text-2xl font-bold text-on-surface mb-2">
@@ -1008,42 +987,30 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                     <p className="text-5xl mb-3">💀</p>
 
                     {/* Score breakdown animation */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2, ...springSmooth }}
+                    <div
                     >
                       <p className="text-3xl font-black text-primary mb-1">{score}</p>
                       <p className="text-sm text-secondary mb-1">{t('得分', 'Score')}</p>
-                    </motion.div>
+                    </div>
 
                     {score > 0 && score === bestScore && (
-                      <motion.p
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, ...springBouncy }}
+                      <p
                         className="text-sm text-green-500 mb-3"
                       >
                         {t('新纪录！', 'New Record!')}
-                      </motion.p>
+                      </p>
                     )}
 
                     {score > 0 && score % 5 === 0 && (
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5 }}
+                      <p
                         className="text-xs text-amber-500 mb-2 flex items-center justify-center gap-1"
                       >
                         <Zap className="w-3 h-3" />
                         {t('完美里程碑！', 'Perfect Milestone!')}
-                      </motion.p>
+                      </p>
                     )}
 
-                    <motion.button
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6, ...springSmooth }}
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         startGame();
@@ -1051,8 +1018,8 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                       className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold min-h-[48px]"
                     >
                       {t('再来一局', 'Play Again')}
-                    </motion.button>
-                  </motion.div>
+                    </button>
+                  </div>
                 )}
               </div>
             )}
@@ -1062,23 +1029,20 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
         {/* Controls */}
         {(gameState === 'playing' || gameState === 'over') && (
           <div className="flex justify-center gap-4">
-            <motion.button
+            <button
               onClick={startGame}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.93 }}
-              transition={springBouncy}
               className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2 min-h-[48px]"
             >
               <RotateCcw className="w-5 h-5" />
               {t('重新开始', 'Restart')}
-            </motion.button>
+            </button>
           </div>
         )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('点击屏幕或按空格键让小鸟飞翔', 'Tap screen or press Space to fly')}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

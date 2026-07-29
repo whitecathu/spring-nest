@@ -1,0 +1,35 @@
+.brand-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  background: rgba(254, 248, 242, 0.92);
+  border-bottom: 1px solid rgba(193, 200, 193, 0.18);
+  box-shadow: 0 1px 8px rgba(63, 103, 81, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.brand-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 20px;
+  gap: 10px;
+}
+
+.leaf {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-family: "Plus Jakarta Sans", "Nunito Sans", "PingFang SC", "Helvetica Neue", sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: #274f3a;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}

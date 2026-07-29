@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, Check, Download, FileWarning, Info, Loader2, RotateCcw } from 'lucide-react';
 import FileDropzone from '../../components/tools/FileDropzone';
 import { useUser } from '../../contexts/UserContext';
@@ -146,9 +146,7 @@ export default function PdfToWord({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="rounded-3xl border border-surface-variant/30 bg-white p-6 shadow-lg dark:bg-surface-container-high"
       >
         <div className="mb-6 text-center">
@@ -199,10 +197,8 @@ export default function PdfToWord({ onBack }: { onBack: () => void }) {
         {(isConverting || status === 'success') && (
           <div className="mt-4">
             <div className="h-2 overflow-hidden rounded-full bg-surface-container-high">
-              <motion.div
+              <div
                 className="h-full rounded-full bg-primary"
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.25 }}
               />
             </div>
             <p className="mt-2 text-right text-xs font-semibold text-secondary">{progress}%</p>
@@ -295,7 +291,7 @@ export default function PdfToWord({ onBack }: { onBack: () => void }) {
           <RotateCcw className="h-4 w-4" />
           {t('清空并重新开始', 'Clear and restart')}
         </button>
-      </motion.div>
+      </div>
 
       <section className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-surface-variant/30 bg-white/80 p-5 dark:bg-surface-container-high/70">

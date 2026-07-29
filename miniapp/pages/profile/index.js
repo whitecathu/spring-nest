@@ -65,17 +65,17 @@ Page({
     }
 
     const doLogin = () => {
-      wx.showLoading({ title: '登录中', mask: true });
+      wx.showLoading({ title: '保存中', mask: true });
       auth
         .loginWithProfile({ nickName: nickName, avatarUrl: avatarUrl })
         .then(() => {
           wx.hideLoading();
-          wx.showToast({ title: '登录成功', icon: 'success' });
+          wx.showToast({ title: '已保存到本机', icon: 'success' });
           this.refreshUser();
         })
         .catch((err) => {
           wx.hideLoading();
-          wx.showToast({ title: (err && err.message) || '登录失败', icon: 'none' });
+          wx.showToast({ title: (err && err.message) || '保存失败', icon: 'none' });
         });
     };
 
@@ -93,14 +93,14 @@ Page({
 
   onLogout() {
     wx.showModal({
-      title: '退出登录',
-      content: '将清除本机保存的头像与昵称，不影响收藏与工具数据。',
+      title: '清除本机资料',
+      content: '将清除本机保存的头像与昵称，不影响收藏与工具数据。不会触及任何云端账号。',
       success: (res) => {
         if (!res.confirm) return;
         auth.logout();
         this.setData({ draftNickName: '', draftAvatarUrl: '' });
         this.refreshUser();
-        wx.showToast({ title: '已退出', icon: 'none' });
+        wx.showToast({ title: '已清除', icon: 'none' });
       },
     });
   },

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Trophy, Heart, Zap } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadBestScore, saveBestScore } from '../../lib/gameScore';
@@ -845,7 +845,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -902,21 +902,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
         {/* Game Area */}
         <div ref={containerRef} className="flex justify-center mb-4">
-          <motion.div
-            animate={
-              shakeIntensity > 0
-                ? {
-                    x:
-                      shakeIntensity >= 3
-                        ? [0, -8, 8, -6, 6, -3, 3, 0]
-                        : shakeIntensity >= 2
-                          ? [0, -4, 4, -2, 2, 0]
-                          : [0, -2, 2, -1, 1, 0],
-                    y: shakeIntensity >= 3 ? [0, 3, -3, 2, -2, 0] : [0, 0, 0, 0, 0, 0],
-                  }
-                : {}
-            }
-            transition={{ duration: shakeIntensity >= 3 ? 0.35 : 0.2 }}
+          <div
             className="relative overflow-hidden rounded-2xl select-none touch-none"
             style={{
               width: GAME_WIDTH * gameScale,
@@ -997,11 +983,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
             {/* Brick destruction flash/glow effects - brighter */}
             {brickFlashes.map((flash) => (
-              <motion.div
+              <div
                 key={`flash-${flash.id}`}
-                initial={{ opacity: 1, scale: 1 }}
-                animate={{ opacity: 0, scale: 2.5 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
                 className="absolute rounded-md pointer-events-none"
                 style={{
                   left: flash.x * gameScale,
@@ -1019,16 +1002,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             {particles.map((p) => {
               const particleColor = COLOR_HEX[p.color as BrickColor] || '#ffffff';
               return (
-                <motion.div
+                <div
                   key={p.id}
-                  initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-                  animate={{
-                    opacity: [1, 0.8, 0],
-                    scale: [1, 0.7, 0.1],
-                    x: [0, p.vx * 10, p.vx * 18],
-                    y: [0, p.vy * 6, p.vy * 18 + 90],
-                  }}
-                  transition={{ duration: 1.1, ease: 'easeOut' }}
                   className="absolute rounded-full pointer-events-none"
                   style={{
                     left: p.x * gameScale,
@@ -1060,9 +1035,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             )}
 
             {/* Paddle with glow and hit response */}
-            <motion.div
-              animate={paddleHitFlash ? { scaleX: 1.22, scaleY: 0.78 } : { scaleX: 1, scaleY: 1 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 12 }}
+            <div
               className="absolute rounded-full"
               style={{
                 left: paddleX * gameScale,
@@ -1121,11 +1094,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
             {/* Collision flash at paddle/ball impact */}
             {collisionFlashes.map((flash) => (
-              <motion.div
+              <div
                 key={`cf-${flash.id}`}
-                initial={{ opacity: 0.9, scale: 0.3 }}
-                animate={{ opacity: 0, scale: 1.5 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
                 className="absolute rounded-full pointer-events-none"
                 style={{
                   left: (flash.x - 15) * gameScale,
@@ -1141,11 +1111,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
             {/* Score popups floating up from broken bricks */}
             {scorePopups.map((popup) => (
-              <motion.div
+              <div
                 key={`sp-${popup.id}`}
-                initial={{ opacity: 1, y: 0, scale: 0.8 }}
-                animate={{ opacity: 0, y: -60, scale: 1.2 }}
-                transition={{ duration: 1, ease: 'easeOut' }}
                 className="absolute pointer-events-none font-black text-center"
                 style={{
                   left: (popup.x - 20) * gameScale,
@@ -1157,15 +1124,12 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                 }}
               >
                 {popup.text}
-              </motion.div>
+              </div>
             ))}
 
             {/* Life Lost Flash - dramatic red vignette */}
             {lifeLostFlash && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.12 }}
+              <div
                 className="absolute inset-0 pointer-events-none z-50"
                 style={{
                   background:
@@ -1176,23 +1140,15 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
 
             {/* Level transition flash */}
             {levelFlash && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 0.85, 0] }}
-                transition={{ duration: 0.3 }}
+              <div
                 className="absolute inset-0 bg-white pointer-events-none z-50"
               />
             )}
 
             {/* Combo counter display with scale animation */}
-            <AnimatePresence>
-              {comboDisplay >= 2 && (
-                <motion.div
+            {comboDisplay >= 2 && (
+                <div
                   key="combo"
-                  initial={{ opacity: 0, scale: 0.3, y: 20 }}
-                  animate={{ opacity: 1, scale: [0.3, 1.3, 1], y: 0 }}
-                  exit={{ opacity: 0, scale: 0.3, y: -20 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 12 }}
                   className="absolute top-2 right-2 z-30 flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-full"
                   style={{
                     background:
@@ -1219,19 +1175,13 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                       }}
                     />
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
             {/* Level banner */}
-            <AnimatePresence>
-              {levelBannerLevel !== null && (
-                <motion.div
+            {levelBannerLevel !== null && (
+                <div
                   key={`level-${levelBannerLevel}`}
-                  initial={{ opacity: 0, scale: 0.3, y: 30 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 1.2, y: -30 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                   className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none"
                 >
                   <div
@@ -1246,9 +1196,8 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                       {t('关卡', 'Level')} {levelBannerLevel}
                     </p>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
             {/* Mobile touch indicator */}
             {touchActive && gameState === 'playing' && (
@@ -1269,9 +1218,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             {gameState !== 'playing' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 z-10">
                 {gameState === 'idle' && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                  <div
                     className="text-center cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1299,13 +1246,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                     <p className="text-sm text-white/80">
                       {t('滑动或移动鼠标控制挡板', 'Swipe or move mouse to control paddle')}
                     </p>
-                  </motion.div>
+                  </div>
                 )}
                 {gameState === 'won' && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  <div
                     className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4"
                   >
                     <p className="text-2xl font-bold text-on-surface mb-2">
@@ -1339,13 +1283,10 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                         {t('重新开始', 'Restart')}
                       </button>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
                 {gameState === 'lost' && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  <div
                     className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4"
                   >
                     <p className="text-2xl font-bold text-on-surface mb-2">
@@ -1368,26 +1309,23 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
                     >
                       {t('再来一局', 'Play Again')}
                     </button>
-                  </motion.div>
+                  </div>
                 )}
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
 
         {/* Controls */}
         {gameState === 'playing' && (
           <div className="flex justify-center gap-4">
-            <motion.button
+            <button
               onClick={startGame}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.93 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
               className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2 min-h-[48px]"
             >
               <RotateCcw className="w-5 h-5" />
               {t('重新开始', 'Restart')}
-            </motion.button>
+            </button>
           </div>
         )}
 
@@ -1397,7 +1335,7 @@ export default function BrickBreaker({ onBack }: { onBack: () => void }) {
             'Swipe or move mouse within the game area to control the paddle',
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

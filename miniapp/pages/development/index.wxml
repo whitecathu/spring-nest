@@ -1,0 +1,42 @@
+<view class="development">
+  <brand-header />
+  <view class="page-pad tab-page">
+    <view class="page-intro">
+      <text class="text-headline-md text-on-surface">开发</text>
+      <text class="text-body-sm text-muted subtitle">为您打造的高效、便捷的日常开发工具箱。</text>
+    </view>
+
+    <view class="section-gap">
+      <view class="row gap-sm section-label">
+        <text class="section-icon">⟨/⟩</text>
+        <text class="text-headline-sm text-primary">开发辅助</text>
+      </view>
+      <view class="list">
+        <tool-card
+          wx:for="{{devTools}}"
+          wx:key="slug"
+          tool="{{item}}"
+          mode="dev"
+          blob="{{index % 2 === 0 ? 'primary' : 'tertiary'}}"
+          bind:open="onOpenTool"
+        />
+      </view>
+    </view>
+
+    <view class="section-gap">
+      <view class="row gap-sm section-label">
+        <text class="section-icon heart">♥</text>
+        <text class="text-headline-sm text-secondary">安全隐私</text>
+      </view>
+      <view class="list">
+        <tool-card
+          wx:for="{{securityTools}}"
+          wx:key="slug"
+          tool="{{item}}"
+          mode="dev"
+          bind:open="onOpenTool"
+        />
+      </view>
+    </view>
+  </view>
+</view>

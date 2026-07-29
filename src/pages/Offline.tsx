@@ -17,14 +17,14 @@ export default function Offline() {
         canonical="/offline"
         noindex
       />
-      <section className="mx-auto flex max-w-2xl flex-col items-center text-center">
+      <section className="mx-auto flex max-w-2xl flex-col items-center text-center forest-readable-hero py-8">
         <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary-container/40 text-primary">
           <WifiOff className="h-9 w-9" />
         </div>
-        <h1 className="mb-4 font-nunito text-3xl font-black text-on-surface sm:text-4xl">
+        <h1 className="mb-4 font-nunito text-3xl font-black forest-page-title sm:text-4xl">
           {t('你当前处于离线状态', 'You are offline')}
         </h1>
-        <p className="max-w-xl text-base leading-relaxed text-secondary">
+        <p className="max-w-xl text-base leading-relaxed forest-page-subtitle">
           {t(
             '已缓存的工具和小游戏仍可继续打开。网络恢复后，刷新页面即可回到最新内容。',
             'Cached tools and games may still open. Refresh once your connection returns to load the latest content.',

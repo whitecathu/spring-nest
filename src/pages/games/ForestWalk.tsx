@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Clock, Trophy, Leaf } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { loadBestScore, saveBestScore } from '../../lib/gameScore';
@@ -265,7 +265,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-black text-on-surface">{t('森林漫步', 'Forest Walk')}</h1>
@@ -302,29 +302,11 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        <AnimatePresence>
-          {combo >= 2 && playing && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.3, rotate: -15 }}
-              animate={{
-                opacity: 1,
-                scale: [0.3, 1.2, 1],
-                rotate: [15, -5, 0],
-              }}
-              exit={{ opacity: 0, scale: 0.3, rotate: 15 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+        {combo >= 2 && playing && (
+            <div
               className="text-center mb-2"
             >
-              <motion.span
-                animate={
-                  combo >= 5
-                    ? {
-                        scale: [1, 1.15, 1],
-                        rotate: [0, -3, 3, 0],
-                      }
-                    : {}
-                }
-                transition={{ repeat: Infinity, duration: 0.8 }}
+              <span
                 className={`inline-block text-sm font-black drop-shadow-lg ${
                   combo >= 5
                     ? 'text-2xl bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400 bg-clip-text text-transparent'
@@ -338,56 +320,33 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
                   : combo >= 3
                     ? `🔥 ${t('连击', 'Combo')} x${combo}`
                     : `✨ x${combo}`}
-              </motion.span>
-            </motion.div>
+              </span>
+            </div>
           )}
-        </AnimatePresence>
 
-        <motion.div
+        <div
           ref={gameAreaRef}
-          animate={
-            branchShake
-              ? {
-                  x: [0, -8, 8, -6, 6, -3, 3, 0],
-                  transition: { duration: 0.4 },
-                }
-              : { x: 0 }
-          }
           className={`relative bg-gradient-to-b from-green-100/60 via-green-200/40 to-green-300/50 dark:from-green-900/30 dark:via-green-800/20 dark:to-green-700/30 rounded-3xl overflow-hidden mb-4 border-2 border-green-300/30 dark:border-green-700/30 ${
             branchShake ? 'ring-2 ring-red-400/60' : ''
           }`}
           style={{ height: '400px' }}
         >
           {/* Branch hit red flash overlay */}
-          <AnimatePresence>
-            {branchShake && (
-              <motion.div
-                initial={{ opacity: 0.35 }}
-                animate={{ opacity: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
+          {branchShake && (
+              <div
                 className="absolute inset-0 bg-red-500/20 pointer-events-none z-30 rounded-3xl"
               />
             )}
-          </AnimatePresence>
 
           {/* Floating background decorations (parallax) */}
           {FLOATING_DECOR.map((decor, i) => (
-            <motion.div
+            <div
               key={`decor-${i}`}
               className="absolute pointer-events-none select-none"
               style={{ top: decor.top, opacity: decor.opacity, fontSize: '1.5rem' }}
-              initial={{ left: '-10%' }}
-              animate={{ left: ['110%', '-10%'] }}
-              transition={{
-                duration: decor.duration,
-                repeat: Infinity,
-                delay: decor.delay,
-                ease: 'linear',
-              }}
             >
               {decor.emoji}
-            </motion.div>
+            </div>
           ))}
 
           {/* Tree silhouettes at the bottom */}
@@ -409,10 +368,8 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
           <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-green-600/30 to-transparent pointer-events-none" />
 
           {items.map((item) => (
-            <motion.button
+            <button
               key={item.id}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: item.size }}
               className={`absolute cursor-pointer active:scale-125 transition-transform touch-none select-none ${
                 item.type === 'branch' ? 'hover:scale-110' : 'hover:scale-125'
               }`}
@@ -425,19 +382,14 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
               onClick={() => catchItem(item)}
             >
               {item.emoji}
-            </motion.button>
+            </button>
           ))}
 
-          <AnimatePresence>
-            {animals
+          {animals
               .filter((a) => a.visible)
               .map((animal) => (
-                <motion.button
+                <button
                   key={animal.id}
-                  initial={{ opacity: 0, scale: 0, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0, y: -20 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                   className="absolute cursor-pointer text-3xl active:scale-125 transition-transform touch-none select-none"
                   style={{
                     left: `${animal.x}%`,
@@ -447,19 +399,13 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
                   onClick={() => catchAnimal(animal)}
                 >
                   {animal.emoji}
-                </motion.button>
+                </button>
               ))}
-          </AnimatePresence>
 
           {/* Score popups with better styling */}
-          <AnimatePresence>
-            {hitEffect && (
-              <motion.div
+          {hitEffect && (
+              <div
                 key={hitEffect.id}
-                initial={{ opacity: 1, y: 0, scale: 0.6 }}
-                animate={{ opacity: 0, y: -50, scale: 1.4 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.7, ease: 'easeOut' }}
                 className="absolute pointer-events-none z-20"
                 style={{
                   left: `${hitEffect.x}%`,
@@ -478,23 +424,17 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
                 >
                   {hitEffect.text}
                 </span>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
 
           {/* Sparkle / celebration particles */}
-          <AnimatePresence>
-            {particles.map((p) => {
+          {particles.map((p) => {
               const rad = (p.angle * Math.PI) / 180;
               const tx = Math.cos(rad) * p.distance;
               const ty = Math.sin(rad) * p.distance;
               return (
-                <motion.div
+                <div
                   key={p.id}
-                  initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-                  animate={{ opacity: 0, x: tx, y: ty, scale: 0.3 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
                   className="absolute pointer-events-none text-sm z-20"
                   style={{
                     left: `${p.x}%`,
@@ -503,16 +443,13 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
                   }}
                 >
                   {p.emoji}
-                </motion.div>
+                </div>
               );
             })}
-          </AnimatePresence>
 
           {!playing && !gameOver && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-green-900/20 backdrop-blur-sm">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+              <div
                 className="text-center"
               >
                 <p className="text-5xl mb-4">🌳</p>
@@ -531,10 +468,10 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
                 >
                   {t('开始漫步', 'Start Walking')}
                 </button>
-              </motion.div>
+              </div>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {(playing || gameOver) && (
           <div className="flex justify-center">
@@ -548,13 +485,8 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
-        <AnimatePresence>
-          {gameOver && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 30 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        {gameOver && (
+            <div
               className="mt-6 p-6 rounded-2xl text-center border"
               style={{
                 background:
@@ -562,14 +494,11 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
                 borderColor: 'rgba(34,197,94,0.25)',
               }}
             >
-              <motion.p
+              <p
                 className="text-5xl mb-3"
-                initial={{ scale: 0 }}
-                animate={{ scale: [0, 1.3, 1] }}
-                transition={{ delay: 0.15, type: 'spring', stiffness: 400, damping: 10 }}
               >
                 🌿
-              </motion.p>
+              </p>
               <p className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent dark:from-green-400 dark:to-emerald-300 mb-2">
                 {t('漫步结束！', 'Walk Complete!')}
               </p>
@@ -577,26 +506,20 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
                 {t('得分', 'Score')}: <span className="text-xl">{score}</span>
               </p>
               {score > 0 && score >= bestScore && (
-                <motion.p
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 10, delay: 0.3 }}
+                <p
                   className="text-base text-amber-500 font-bold mb-2"
                 >
                   🏆 {t('新纪录！', 'New Record!')} 🏆
-                </motion.p>
+                </p>
               )}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={startGame}
                 className="mt-3 px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-shadow"
               >
                 {t('再来一局', 'Play Again')}
-              </motion.button>
-            </motion.div>
+              </button>
+            </div>
           )}
-        </AnimatePresence>
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t(
@@ -604,7 +527,7 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
             'Tap leaves to collect, tapping branches loses points',
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
