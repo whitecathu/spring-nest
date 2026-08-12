@@ -38,7 +38,7 @@
       </view>
     </view>
 
-    <view class="section-gap">
+    <view class="section-gap" wx:if="{{docTools.length}}">
       <view class="row gap-sm section-label">
         <text class="section-icon">▤</text>
         <text class="text-headline-sm text-primary">文档转换</text>

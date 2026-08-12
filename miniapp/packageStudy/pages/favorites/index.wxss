@@ -1,7 +1,7 @@
 .list-page {
   min-height: 100vh;
   padding: 16px 18px calc(28px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(45, 106, 79, 0.06) 0%, transparent 180px), #FAF8F5;
+  background: linear-gradient(180deg, rgba(45, 106, 79, 0.06) 0%, transparent 180px), #faf8f5;
   box-sizing: border-box;
 }
 
@@ -17,14 +17,14 @@
 }
 
 .fav .page-desc {
-  color: #71A488;
+  color: #71a488;
 }
 
 .empty-card {
   margin-top: 28px;
   background: #fff;
   border-radius: 28px;
-  border: 1px dashed #E5F3EB;
+  border: 1px dashed #e5f3eb;
   padding: 36px 20px;
   text-align: center;
 }
@@ -34,8 +34,8 @@
   height: 52px;
   margin: 0 auto 10px;
   border-radius: 999px;
-  background: #F2FAF5;
-  color: #1D8554;
+  background: #f2faf5;
+  color: #1d8554;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,19 +45,19 @@
 .empty-title {
   font-size: 15px;
   font-weight: 900;
-  color: #174C32;
+  color: #174c32;
 }
 
 .empty-desc {
   margin-top: 8px;
   font-size: 12px;
-  color: #71A488;
+  color: #71a488;
   line-height: 1.6;
 }
 
 .restudy-btn {
   margin-top: 20px;
-  background: #1D8554;
+  background: #1d8554;
   color: #fff;
   border-radius: 999px;
   padding: 14px;
@@ -82,7 +82,7 @@
 .item-card {
   background: #fff;
   border-radius: 22px;
-  border: 1px solid #E5F3EB;
+  border: 1px solid #e5f3eb;
   padding: 16px;
   box-shadow: 0 2px 10px rgba(29, 27, 24, 0.03);
 }
@@ -101,8 +101,8 @@
 }
 
 .kind-pill.green {
-  background: #F2FAF5;
-  color: #1D8554;
+  background: #f2faf5;
+  color: #1d8554;
 }
 
 .remove-btn {

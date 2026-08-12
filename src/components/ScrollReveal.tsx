@@ -31,14 +31,15 @@ export default function ScrollReveal({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          gsap.fromTo(ref.current,
+          gsap.fromTo(
+            ref.current,
             { opacity: 0, ...directionOffset[direction] },
-            { opacity: 1, x: 0, y: 0, duration: 0.5, delay, ease: 'power2.out' }
+            { opacity: 1, x: 0, y: 0, duration: 0.5, delay, ease: 'power2.out' },
           );
           observer.disconnect();
         }
       },
-      { rootMargin: '-60px' }
+      { rootMargin: '-60px' },
     );
 
     observer.observe(ref.current);

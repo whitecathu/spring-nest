@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  memo,
-  useCallback,
-  useImperativeHandle,
-  useRef,
-} from 'react';
+import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 import gsap from 'gsap';
 
 export type ForestFogHandle = {
@@ -23,11 +17,16 @@ const ForestFogTransition = forwardRef<ForestFogHandle, ForestFogTransitionProps
   function ForestFogTransition({ className = '', initialOpacity = 0 }, ref) {
     const rootRef = useRef<HTMLDivElement>(null);
     const running = useRef<gsap.core.Tween | null>(null);
+    const settleRunning = useRef<(() => void) | null>(null);
 
     const killRunning = useCallback(() => {
       running.current?.kill();
       running.current = null;
+      settleRunning.current?.();
+      settleRunning.current = null;
     }, []);
+
+    useEffect(() => killRunning, [killRunning]);
 
     useImperativeHandle(
       ref,
@@ -38,6 +37,12 @@ const ForestFogTransition = forwardRef<ForestFogHandle, ForestFogTransitionProps
           killRunning();
           el.style.pointerEvents = 'auto';
           return new Promise<void>((resolve) => {
+            const settle = () => {
+              if (settleRunning.current === settle) settleRunning.current = null;
+              running.current = null;
+              resolve();
+            };
+            settleRunning.current = settle;
             gsap.set(el, {
               opacity: 0.15,
               '--fog-inset': '42%',
@@ -49,10 +54,8 @@ const ForestFogTransition = forwardRef<ForestFogHandle, ForestFogTransitionProps
               ease: 'power2.inOut',
               '--fog-inset': '8%',
               '--fog-core': '0.92',
-              onComplete: () => {
-                running.current = null;
-                resolve();
-              },
+              onComplete: settle,
+              onInterrupt: settle,
             } as gsap.TweenVars);
           });
         },
@@ -62,6 +65,13 @@ const ForestFogTransition = forwardRef<ForestFogHandle, ForestFogTransitionProps
           killRunning();
           el.style.pointerEvents = 'auto';
           return new Promise<void>((resolve) => {
+            const settle = () => {
+              if (settleRunning.current === settle) settleRunning.current = null;
+              running.current = null;
+              el.style.pointerEvents = 'none';
+              resolve();
+            };
+            settleRunning.current = settle;
             gsap.set(el, {
               opacity: 1,
               '--fog-inset': '8%',
@@ -73,11 +83,8 @@ const ForestFogTransition = forwardRef<ForestFogHandle, ForestFogTransitionProps
               ease: 'power2.out',
               '--fog-inset': '48%',
               '--fog-core': '0',
-              onComplete: () => {
-                running.current = null;
-                el.style.pointerEvents = 'none';
-                resolve();
-              },
+              onComplete: settle,
+              onInterrupt: settle,
             } as gsap.TweenVars);
           });
         },

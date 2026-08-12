@@ -67,12 +67,7 @@
     {
       "root": "packageTools",
       "name": "packageTools",
-      "pages": [
-        "pages/scanner/index",
-        "pages/bookkeeping/index",
-        "pages/word-to-pdf/index",
-        "pages/pdf-to-word/index"
-      ]
+      "pages": ["pages/scanner/index", "pages/bookkeeping/index"]
     }
   ],
   "style": "v2",

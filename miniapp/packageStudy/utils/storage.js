@@ -29,10 +29,10 @@ function normalizeDeck(raw) {
   if (!raw || typeof raw !== 'object') return null;
   var questions = Array.isArray(raw.questions)
     ? raw.questions
-      .map(function (q, index) {
-        return helpers.normalizeQuestion(q, helpers.toText(q && q.id, 'q-' + index));
-      })
-      .filter(helpers.isValidQuestion)
+        .map(function (q, index) {
+          return helpers.normalizeQuestion(q, helpers.toText(q && q.id, 'q-' + index));
+        })
+        .filter(helpers.isValidQuestion)
     : [];
   return {
     id: helpers.toText(raw.id, helpers.uid('deck')),
@@ -63,9 +63,11 @@ function saveDecks(decks) {
 }
 
 function getDeckById(deckId) {
-  return getDecks().find(function (deck) {
-    return deck.id === deckId;
-  }) || null;
+  return (
+    getDecks().find(function (deck) {
+      return deck.id === deckId;
+    }) || null
+  );
 }
 
 function upsertDeck(deck) {
@@ -131,7 +133,10 @@ function markQuestionsMastered(questionIds, mastered) {
       return Object.assign({}, q, { mastered: !!mastered });
     });
     return changed
-      ? Object.assign({}, deck, { questions: questions, lastReviewed: helpers.getDisplayReviewDate() })
+      ? Object.assign({}, deck, {
+          questions: questions,
+          lastReviewed: helpers.getDisplayReviewDate(),
+        })
       : deck;
   });
   saveDecks(decks);

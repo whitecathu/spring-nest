@@ -9,18 +9,22 @@ function createId() {
   return Date.now() + '-' + Math.floor(Math.random() * 1e9).toString(16);
 }
 
-function saveValid(records) {
+function normalizeValid(records) {
   const known = new Set(catalog.getAllTools().map((t) => t.slug));
-  const valid = (records || [])
+  return (records || [])
     .filter((r) => r && known.has(r.toolId))
     .sort((a, b) => b.openedAt - a.openedAt)
     .slice(0, MAX_HISTORY);
+}
+
+function saveValid(records) {
+  const valid = normalizeValid(records);
   storage.setJSON(HISTORY_KEY, valid);
   return valid;
 }
 
 function getHistory() {
-  return saveValid(storage.getJSON(HISTORY_KEY, []));
+  return normalizeValid(storage.getJSON(HISTORY_KEY, []));
 }
 
 function addHistory(toolId) {

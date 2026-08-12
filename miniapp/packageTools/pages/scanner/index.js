@@ -27,7 +27,13 @@ Page({
       historyUtil.addHistory('scanner');
     } catch (e) {}
     this.setData({
-      tool: tool || { title: '文档扫描', description: '拍照或选图，处理后保存到相册', icon: '📄', bg: '#c0edd1', color: '#274f3a' },
+      tool: tool || {
+        title: '文档扫描',
+        description: '拍照或选图，处理后保存到相册',
+        icon: '📄',
+        bg: '#c0edd1',
+        color: '#274f3a',
+      },
       favorite: favorites.isFavorite('scanner'),
     });
     wx.setNavigationBarTitle({ title: (tool && tool.title) || '文档扫描' });
@@ -199,11 +205,14 @@ Page({
       return;
     }
 
-    wx.canvasToTempFilePath({
-      canvasId: 'scanCanvasLegacy',
-      success: (res) => finish(res.tempFilePath),
-      fail: () => finish(this.data.imagePath),
-    }, this);
+    wx.canvasToTempFilePath(
+      {
+        canvasId: 'scanCanvasLegacy',
+        success: (res) => finish(res.tempFilePath),
+        fail: () => finish(this.data.imagePath),
+      },
+      this,
+    );
   },
 });
 

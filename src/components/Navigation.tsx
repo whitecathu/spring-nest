@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback, type FormEvent } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router';
 import {
   Search,
   User,
@@ -160,101 +160,93 @@ export default function Navigation() {
   return (
     <>
       {toastMessage && (
-          <div
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]"
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]">
+          <MotionPanel
+            role="status"
+            aria-live="polite"
+            className="surface-glass flex items-center gap-3 rounded-full px-6 py-3 font-sans text-sm font-medium text-on-surface"
           >
-            <MotionPanel
-              role="status"
-              aria-live="polite"
-              className="surface-glass flex items-center gap-3 rounded-full px-6 py-3 font-sans text-sm font-medium text-on-surface"
-            >
-              <Search className="w-4 h-4 text-primary" />
-              {toastMessage}
-            </MotionPanel>
-          </div>
-        )}
-<header
+            <Search className="w-4 h-4 text-primary" />
+            {toastMessage}
+          </MotionPanel>
+        </div>
+      )}
+      <header
         data-forest-ui
         className={`sticky top-0 w-full z-50 bg-[#FFF9F2]/75 dark:bg-surface/75 backdrop-blur-[16px] border-b border-[color:var(--forest-moss)]/25 dark:border-white/10 shadow-[0_4px_30px_rgba(45,74,54,0.12)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)] transition-all duration-300 ${scrolled ? 'forest-nav-scrolled' : ''}`}
       >
         <div className="flex justify-between items-center w-full px-3 py-4 sm:px-6 max-w-7xl mx-auto relative">
           {showSearch && (
-              <div
-                className="absolute inset-x-4 inset-y-0 flex items-center bg-[#FFF9F2]/90 dark:bg-surface/95 backdrop-blur-xl z-50"
-              >
-                <div className="flex-grow flex flex-col forest-search-glow">
-                  <form
-                    onSubmit={handleSearchSubmit}
-                    className="flex items-center bg-white dark:bg-surface-container-high rounded-full px-5 py-3 shadow-[0_8px_25px_rgba(184,228,201,0.4)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] border border-primary/20 dark:border-primary/10"
+            <div className="absolute inset-x-4 inset-y-0 flex items-center bg-[#FFF9F2]/90 dark:bg-surface/95 backdrop-blur-xl z-50">
+              <div className="flex-grow flex flex-col forest-search-glow">
+                <form
+                  onSubmit={handleSearchSubmit}
+                  className="flex items-center bg-white dark:bg-surface-container-high rounded-full px-5 py-3 shadow-[0_8px_25px_rgba(184,228,201,0.4)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] border border-primary/20 dark:border-primary/10"
+                >
+                  <Search className="w-5 h-5 text-primary mr-3 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder={t('搜索游戏、工具...', 'Search games, tools...')}
+                    aria-label={t('搜索游戏、工具', 'Search games and tools')}
+                    value={searchQuery}
+                    onChange={(e) => handleSearchInput(e.target.value)}
+                    className="outline-none bg-transparent text-base w-full text-on-surface font-sans"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSearch(false);
+                      setSearchQuery('');
+                      setSearchResults([]);
+                      setHasSearched(false);
+                    }}
+                    className="text-secondary/50 hover:text-primary p-2.5 shrink-0 transition-colors bg-surface-container-low dark:bg-surface-container rounded-full ml-3"
+                    aria-label={t('关闭搜索', 'Close search')}
                   >
-                    <Search className="w-5 h-5 text-primary mr-3 shrink-0" />
-                    <input
-                      type="text"
-                      placeholder={t('搜索游戏、工具...', 'Search games, tools...')}
-                      aria-label={t('搜索游戏、工具', 'Search games and tools')}
-                      value={searchQuery}
-                      onChange={(e) => handleSearchInput(e.target.value)}
-                      className="outline-none bg-transparent text-base w-full text-on-surface font-sans"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowSearch(false);
-                        setSearchQuery('');
-                        setSearchResults([]);
-                        setHasSearched(false);
-                      }}
-                      className="text-secondary/50 hover:text-primary p-2.5 shrink-0 transition-colors bg-surface-container-low dark:bg-surface-container rounded-full ml-3"
-                      aria-label={t('关闭搜索', 'Close search')}
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </form>
+                    <X className="w-5 h-5" />
+                  </button>
+                </form>
 
-                  {searchQuery && hasSearched && (
-                    <div className="absolute top-full left-4 right-4 mt-2 bg-white dark:bg-surface-container-high rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 max-h-80 overflow-y-auto z-50">
-                      {searchResults.length > 0 ? (
-                        searchResults.map((result) => (
-                          <button
-                            key={result.item.id}
-                            onClick={() => handleResultClick(result)}
-                            className="w-full text-left px-5 py-3 hover:bg-surface-container-low dark:hover:bg-surface-container transition-colors flex items-center gap-3 border-b border-surface-variant/20 last:border-b-0"
+                {searchQuery && hasSearched && (
+                  <div className="absolute top-full left-4 right-4 mt-2 bg-white dark:bg-surface-container-high rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 max-h-80 overflow-y-auto z-50">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((result) => (
+                        <button
+                          key={result.item.id}
+                          onClick={() => handleResultClick(result)}
+                          className="w-full text-left px-5 py-3 hover:bg-surface-container-low dark:hover:bg-surface-container transition-colors flex items-center gap-3 border-b border-surface-variant/20 last:border-b-0"
+                        >
+                          <span
+                            className={`w-10 h-10 rounded-lg ${result.item.iconBg || 'bg-surface-container'} flex items-center justify-center text-xl shrink-0`}
                           >
-                            <span
-                              className={`w-10 h-10 rounded-lg ${result.item.iconBg || 'bg-surface-container'} flex items-center justify-center text-xl shrink-0`}
-                            >
-                              {result.item.icon || (result.item.type === 'game' ? '🎮' : '🛠️')}
-                            </span>
-                            <div>
-                              <p className="font-semibold text-on-surface text-sm">
-                                {t(result.item.title, result.item.titleEn)}
-                              </p>
-                              <p className="text-xs text-secondary">
-                                {result.item.category} ·{' '}
-                                {result.item.type === 'game'
-                                  ? t('游戏', 'Game')
-                                  : t('工具', 'Tool')}
-                              </p>
-                            </div>
-                          </button>
-                        ))
-                      ) : (
-                        <div className="text-center py-8 text-secondary text-sm">
-                          <p className="font-medium">{t('未找到相关结果', 'No results found')}</p>
-                          <p className="text-xs mt-1">
-                            {t('试试其他关键词', 'Try different keywords')}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                            {result.item.icon || (result.item.type === 'game' ? '🎮' : '🛠️')}
+                          </span>
+                          <div>
+                            <p className="font-semibold text-on-surface text-sm">
+                              {t(result.item.title, result.item.titleEn)}
+                            </p>
+                            <p className="text-xs text-secondary">
+                              {result.item.category} ·{' '}
+                              {result.item.type === 'game' ? t('游戏', 'Game') : t('工具', 'Tool')}
+                            </p>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-secondary text-sm">
+                        <p className="font-medium">{t('未找到相关结果', 'No results found')}</p>
+                        <p className="text-xs mt-1">
+                          {t('试试其他关键词', 'Try different keywords')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-<div
-            className="text-sm font-extrabold text-primary flex items-center gap-1 font-sans tracking-tight cursor-pointer transition-transform sm:gap-3 sm:text-2xl"
-          >
+            </div>
+          )}
+          <div className="text-sm font-extrabold text-primary flex items-center gap-1 font-sans tracking-tight cursor-pointer transition-transform sm:gap-3 sm:text-2xl">
             <Link
               to="/"
               className="flex min-h-11 items-center gap-1 sm:gap-3"
@@ -282,10 +274,7 @@ export default function Navigation() {
               >
                 {isEn ? item.enLabel : item.label}
                 {isActive(item.path) && (
-                  <div
-
-                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-primary-container shadow-[0_0_12px_rgba(63,103,81,0.18)]"
-                  />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-primary-container shadow-[0_0_12px_rgba(63,103,81,0.18)]" />
                 )}
               </Link>
             ))}
@@ -344,15 +333,15 @@ export default function Navigation() {
             </MotionButton>
 
             <span className="hidden sm:inline-flex">
-<MotionButton
-              type="button"
-              tone="icon"
-              onClick={() => navigate('/favorites')}
-              className={iconButtonClass}
-              aria-label={t('收藏', 'Favorites')}
-            >
-              <Heart className="w-5 h-5" />
-            </MotionButton>
+              <MotionButton
+                type="button"
+                tone="icon"
+                onClick={() => navigate('/favorites')}
+                className={iconButtonClass}
+                aria-label={t('收藏', 'Favorites')}
+              >
+                <Heart className="w-5 h-5" />
+              </MotionButton>
             </span>
 
             {user ? (
@@ -437,80 +426,78 @@ export default function Navigation() {
 
       {/* Mobile Menu */}
       {showMobileMenu && (
-          <>
-            {/* Backdrop with blur */}
-            <div
-              className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden"
-              onClick={() => setShowMobileMenu(false)}
-            />
-            <div
-              className={`fixed top-[72px] left-0 right-0 z-40 border-b shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden ${navPanelClass}`}
+        <>
+          {/* Backdrop with blur */}
+          <div
+            className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden"
+            onClick={() => setShowMobileMenu(false)}
+          />
+          <div
+            className={`fixed top-[72px] left-0 right-0 z-40 border-b shadow-[0_8px_30px_rgba(0,0,0,0.1)] md:hidden ${navPanelClass}`}
+          >
+            <nav
+              id="mobile-navigation"
+              className="flex flex-col p-4 gap-2"
+              aria-label={t('移动端导航', 'Mobile navigation')}
             >
-              <nav
-                id="mobile-navigation"
-                className="flex flex-col p-4 gap-2"
-                aria-label={t('移动端导航', 'Mobile navigation')}
-              >
-                {navItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                  >
-                    <Link
-                      to={item.path}
-                      onClick={() => setShowMobileMenu(false)}
-                      aria-current={isActive(item.path) ? 'page' : undefined}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all min-h-[48px] ${
-                        isActive(item.path)
-                          ? 'bg-primary-container/30 text-primary ring-1 ring-primary/25'
-                          : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container ring-1 ring-transparent'
-                      }`}
-                    >
-                      {item.id === 'home' && <Leaf className="w-5 h-5" />}
-                      {item.id === 'games' && <Gamepad2 className="w-5 h-5" />}
-                      {item.id === 'tools' && <Wrench className="w-5 h-5" />}
-                      {item.id === 'leaderboard' && <Trophy className="w-5 h-5" />}
-                      {item.id === 'about' && <Heart className="w-5 h-5" />}
-                      {isEn ? item.enLabel : item.label}
-                    </Link>
-                  </div>
-                ))}
-                <div className="mt-2 grid gap-2 border-t border-surface-variant/40 pt-3">
+              {navItems.map((item, index) => (
+                <div key={item.id}>
                   <Link
-                    to="/favorites"
+                    to={item.path}
+                    onClick={() => setShowMobileMenu(false)}
+                    aria-current={isActive(item.path) ? 'page' : undefined}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-nunito text-base font-semibold transition-all min-h-[48px] ${
+                      isActive(item.path)
+                        ? 'bg-primary-container/30 text-primary ring-1 ring-primary/25'
+                        : 'text-secondary hover:bg-surface-container-low dark:hover:bg-surface-container ring-1 ring-transparent'
+                    }`}
+                  >
+                    {item.id === 'home' && <Leaf className="w-5 h-5" />}
+                    {item.id === 'games' && <Gamepad2 className="w-5 h-5" />}
+                    {item.id === 'tools' && <Wrench className="w-5 h-5" />}
+                    {item.id === 'leaderboard' && <Trophy className="w-5 h-5" />}
+                    {item.id === 'about' && <Heart className="w-5 h-5" />}
+                    {isEn ? item.enLabel : item.label}
+                  </Link>
+                </div>
+              ))}
+              <div className="mt-2 grid gap-2 border-t border-surface-variant/40 pt-3">
+                <Link
+                  to="/favorites"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
+                >
+                  <Heart className="h-5 w-5" />
+                  {t('我的收藏', 'Favorites')}
+                </Link>
+                {user ? (
+                  <Link
+                    to="/profile"
                     onClick={() => setShowMobileMenu(false)}
                     className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
                   >
-                    <Heart className="h-5 w-5" />
-                    {t('我的收藏', 'Favorites')}
+                    <User className="h-5 w-5" />
+                    {t('个人中心', 'Profile')}
                   </Link>
-                  {user ? (
-                    <Link
-                      to="/profile"
-                      onClick={() => setShowMobileMenu(false)}
-                      className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
-                    >
-                      <User className="h-5 w-5" />
-                      {t('个人中心', 'Profile')}
-                    </Link>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMobileMenu(false);
-                        setShowLoginModal(true);
-                      }}
-                      className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 text-left font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
-                    >
-                      <User className="h-5 w-5" />
-                      {t('登录', 'Log in')}
-                    </button>
-                  )}
-                </div>
-              </nav>
-            </div>
-          </>
-        )}
-<LoginModal
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMobileMenu(false);
+                      setShowLoginModal(true);
+                    }}
+                    className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 text-left font-nunito text-base font-semibold text-secondary transition-all hover:bg-surface-container-low dark:hover:bg-surface-container"
+                  >
+                    <User className="h-5 w-5" />
+                    {t('登录', 'Log in')}
+                  </button>
+                )}
+              </div>
+            </nav>
+          </div>
+        </>
+      )}
+      <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
         onLoginSuccess={handleLoginSuccess}

@@ -228,9 +228,7 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
 
         {/* Stats */}
         <div className="flex justify-center gap-3 mb-4">
-          <div
-            className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-          >
+          <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
             <div className="text-xs text-secondary font-medium flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {t('时间', 'Time')}
@@ -241,29 +239,20 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
               {timeLeft}s
             </div>
           </div>
-          <div
-            className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-          >
+          <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
             <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-            <div
-              key={score}
-              className="text-xl font-bold text-primary"
-            >
+            <div key={score} className="text-xl font-bold text-primary">
               {score}
             </div>
           </div>
-          <div
-            className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-          >
+          <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
             <div className="text-xs text-secondary font-medium flex items-center gap-1">
               <Trophy className="w-3 h-3" />
               {t('最佳', 'Best')}
             </div>
             <div className="text-xl font-bold text-tertiary">{bestScore}</div>
           </div>
-          <div
-            className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-          >
+          <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
             <div className="text-xs text-secondary font-medium flex items-center gap-1">
               <Flame className="w-3 h-3" />
               {t('连击', 'Combo')}
@@ -279,44 +268,36 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
 
         {/* Combo escalation indicator */}
         {combo >= 3 && playing && (
-            <div
-              key={combo}
-              className="text-center mb-2"
+          <div key={combo} className="text-center mb-2">
+            <span
+              className={`font-black ${combo >= 8 ? 'text-2xl text-red-500' : combo >= 5 ? 'text-xl text-orange-500' : 'text-lg text-yellow-500'}`}
             >
-              <span
-                className={`font-black ${combo >= 8 ? 'text-2xl text-red-500' : combo >= 5 ? 'text-xl text-orange-500' : 'text-lg text-yellow-500'}`}
-              >
-                🔥 {combo} {t('连击！', 'Combo!')}
-              </span>
-            </div>
-          )}
+              🔥 {combo} {t('连击！', 'Combo!')}
+            </span>
+          </div>
+        )}
 
         {/* Countdown */}
         {countdown > 0 && !playing && !gameOver && (
-            <div
-              className="flex items-center justify-center py-20"
-            >
-              <span className="text-8xl font-black text-primary drop-shadow-lg">{countdown}</span>
-            </div>
-          )}
+          <div className="flex items-center justify-center py-20">
+            <span className="text-8xl font-black text-primary drop-shadow-lg">{countdown}</span>
+          </div>
+        )}
 
         {/* Game Area */}
         {playing && word && textColor && (
           <div className="mb-6 relative">
             {/* Screen flash overlay */}
             {screenFlash && (
-                <div
-                  className={`absolute inset-0 rounded-2xl z-10 pointer-events-none ${screenFlash === 'green' ? 'bg-green-400/30' : 'bg-red-400/30'}`}
-                />
-              )}
+              <div
+                className={`absolute inset-0 rounded-2xl z-10 pointer-events-none ${screenFlash === 'green' ? 'bg-green-400/30' : 'bg-red-400/30'}`}
+              />
+            )}
 
             {/* Particles */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
               {particles.map((p) => (
-                <span
-                  key={p.id}
-                  className="absolute text-xl"
-                >
+                <span key={p.id} className="absolute text-xl">
                   {p.emoji}
                 </span>
               ))}
@@ -324,14 +305,14 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
 
             {/* Score popup */}
             {scorePopup && (
-                <div
-                  key={scorePopup.id}
-                  className="absolute top-0 left-1/2 -translate-x-1/2 z-30 font-black text-2xl drop-shadow-lg"
-                  style={{ color: scorePopup.color }}
-                >
-                  {scorePopup.text}
-                </div>
-              )}
+              <div
+                key={scorePopup.id}
+                className="absolute top-0 left-1/2 -translate-x-1/2 z-30 font-black text-2xl drop-shadow-lg"
+                style={{ color: scorePopup.color }}
+              >
+                {scorePopup.text}
+              </div>
+            )}
 
             <p className="text-center text-sm text-secondary mb-4">
               {t('点击文字显示的【颜色】', 'Click the COLOR the text is displayed in')}
@@ -352,14 +333,14 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
 
             {/* Answer feedback */}
             {lastResult && (
-                <div
-                  className={`text-center mb-4 text-xl font-black ${lastResult === 'correct' ? 'text-green-500' : 'text-red-500'}`}
-                >
-                  {lastResult === 'correct'
-                    ? `✓ ${t('正确！', 'Correct!')}`
-                    : `✗ ${t('错误！', 'Wrong!')}`}
-                </div>
-              )}
+              <div
+                className={`text-center mb-4 text-xl font-black ${lastResult === 'correct' ? 'text-green-500' : 'text-red-500'}`}
+              >
+                {lastResult === 'correct'
+                  ? `✓ ${t('正确！', 'Correct!')}`
+                  : `✗ ${t('错误！', 'Wrong!')}`}
+              </div>
+            )}
 
             {/* Color Buttons */}
             <div className="grid grid-cols-2 gap-3">
@@ -411,41 +392,27 @@ export default function ColorStroop({ onBack }: { onBack: () => void }) {
 
         {/* Game Over */}
         {gameOver && (
-            <div
-              className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-fuchsia-50 dark:from-purple-900/20 dark:to-fuchsia-900/20 border border-purple-200 dark:border-purple-700/30 rounded-2xl text-center"
+          <div className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-fuchsia-50 dark:from-purple-900/20 dark:to-fuchsia-900/20 border border-purple-200 dark:border-purple-700/30 rounded-2xl text-center">
+            <p className="text-3xl mb-2">🧠</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+              {t('时间到！', "Time's up!")}
+            </p>
+            <p className="text-4xl font-black text-purple-500 mb-2">{score}</p>
+            <p className="text-sm text-purple-400 mb-1">{t('得分', 'Score')}</p>
+            {score === bestScore && score > 0 && (
+              <p className="text-sm text-yellow-500 mb-2">🏆 {t('新纪录！', 'New Record!')}</p>
+            )}
+            <p className="text-xs text-secondary mb-4">
+              {t('最佳', 'Best')}: {bestScore}
+            </p>
+            <button
+              onClick={startGame}
+              className="px-6 py-3 bg-purple-500 text-white rounded-full font-semibold hover:bg-purple-600 transition-colors min-h-[44px]"
             >
-              <p
-                className="text-3xl mb-2"
-              >
-                🧠
-              </p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-                {t('时间到！', "Time's up!")}
-              </p>
-              <p
-                className="text-4xl font-black text-purple-500 mb-2"
-              >
-                {score}
-              </p>
-              <p className="text-sm text-purple-400 mb-1">{t('得分', 'Score')}</p>
-              {score === bestScore && score > 0 && (
-                <p
-                  className="text-sm text-yellow-500 mb-2"
-                >
-                  🏆 {t('新纪录！', 'New Record!')}
-                </p>
-              )}
-              <p className="text-xs text-secondary mb-4">
-                {t('最佳', 'Best')}: {bestScore}
-              </p>
-              <button
-                onClick={startGame}
-                className="px-6 py-3 bg-purple-500 text-white rounded-full font-semibold hover:bg-purple-600 transition-colors min-h-[44px]"
-              >
-                {t('再来一局', 'Play Again')}
-              </button>
-            </div>
-          )}
+              {t('再来一局', 'Play Again')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

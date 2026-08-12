@@ -42,7 +42,12 @@ function makeParticles(count: number, w: number, h: number): Particle[] {
     y: Math.random() * h,
     vx: (Math.random() - 0.5) * (0.15 + layer * 0.12),
     vy: (Math.random() - 0.5) * (0.1 + layer * 0.08),
-    size: layer === 0 ? 1 + Math.random() : layer === 1 ? 1.6 + Math.random() * 1.4 : 2.2 + Math.random() * 1.8,
+    size:
+      layer === 0
+        ? 1 + Math.random()
+        : layer === 1
+          ? 1.6 + Math.random() * 1.4
+          : 2.2 + Math.random() * 1.8,
     layer,
     life: 0.4 + Math.random() * 0.6,
     seed: i * 1.17,

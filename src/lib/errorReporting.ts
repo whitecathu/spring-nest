@@ -15,23 +15,98 @@ export interface ErrorContext {
 }
 
 type Reporter = (error: Error, context?: ErrorContext) => void;
+type SentryModule = typeof import('@sentry/react');
 
 let analyticsEnabled = false;
 let configuredReporter: Reporter | null = null;
+let sentryModule: SentryModule | null = null;
+let consentGeneration = 0;
+let initializationPromise: Promise<void> | null = null;
+
+async function initializeSentry(generation: number): Promise<void> {
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  if (!analyticsEnabled || !dsn) return;
+  if (sentryModule) return;
+
+  try {
+    const Sentry = await import('@sentry/react');
+    if (!analyticsEnabled || generation !== consentGeneration) return;
+
+    Sentry.init({
+      dsn,
+      environment: import.meta.env.MODE,
+      release: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : undefined,
+      integrations: [Sentry.browserTracingIntegration()],
+      tracesSampleRate: import.meta.env.PROD ? 0.1 : 0,
+      sendDefaultPii: false,
+      beforeSend(event) {
+        return analyticsEnabled ? event : null;
+      },
+    });
+
+    if (!analyticsEnabled || generation !== consentGeneration) {
+      await Sentry.close(0);
+      return;
+    }
+
+    sentryModule = Sentry;
+    configuredReporter = (error, context) => {
+      if (!analyticsEnabled) return;
+      Sentry.captureException(error, {
+        extra: context ?? {},
+        tags: context?.source ? { source: context.source } : undefined,
+      });
+    };
+  } catch {
+    sentryModule = null;
+    configuredReporter = null;
+  }
+}
 
 /**
  * Gates whether non-console reporting is active. Called by ConsentContext
  * once the user accepts analytics cookies. Safe to call multiple times.
  */
-export function setAnalyticsConsent(enabled: boolean): void {
+export async function setAnalyticsConsent(enabled: boolean): Promise<void> {
   analyticsEnabled = enabled;
+  const generation = ++consentGeneration;
+
+  if (!enabled) {
+    configuredReporter = null;
+    const activeSentry = sentryModule;
+    sentryModule = null;
+    initializationPromise = null;
+    if (activeSentry) {
+      try {
+        await activeSentry.close(0);
+      } catch {
+        // Consent revocation must remain reliable even if the SDK shutdown fails.
+      }
+    }
+    return;
+  }
+
+  if (!initializationPromise && !sentryModule) {
+    const pendingInitialization = initializeSentry(generation);
+    initializationPromise = pendingInitialization;
+    try {
+      await pendingInitialization;
+    } finally {
+      if (initializationPromise === pendingInitialization) {
+        initializationPromise = null;
+      }
+    }
+    return;
+  }
+  await initializationPromise;
 }
 
 /**
  * Plug a concrete reporter (e.g. a thin `Sentry.captureException` wrapper).
- * Installed during app bootstrap when the DSN is present.
+ * The consent-gated lazy initializer uses this seam; tests and alternate
+ * deployments may also install a reporter explicitly.
  */
-export function configureErrorReporter(reporter: Reporter): void {
+export function configureErrorReporter(reporter: Reporter | null): void {
   configuredReporter = reporter;
 }
 

@@ -311,13 +311,7 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
                         : 'bg-surface-container-high hover:bg-surface-variant active:bg-surface-variant'
                   } ${cell === 'X' ? 'text-primary' : cell === 'O' ? 'text-tertiary' : 'text-transparent'}`}
                 >
-                  {cell && (
-                      <span
-                        key={cell}
-                      >
-                        {cell}
-                      </span>
-                    )}
+                  {cell && <span key={cell}>{cell}</span>}
                 </button>
               );
             })}
@@ -337,45 +331,37 @@ export default function TicTacToe({ onBack }: { onBack: () => void }) {
 
         {/* Game Over Overlay */}
         {(winner || isDraw) && (
-            <div
-              className="mt-6 p-6 bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 border border-green-200 dark:border-green-700/30 rounded-2xl text-center"
+          <div className="mt-6 p-6 bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 border border-green-200 dark:border-green-700/30 rounded-2xl text-center">
+            {winner && (
+              <>
+                <p className="text-3xl mb-2">
+                  {winner === 'X' ? '🎉' : mode === 'ai' ? '🤖' : '🎉'}
+                </p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
+                  {mode === 'ai'
+                    ? winner === 'X'
+                      ? t('你赢了！', 'You win!')
+                      : t('电脑赢了', 'AI wins')
+                    : t('玩家', 'Player ') + winner + t(' 赢了！', ' wins!')}
+                </p>
+              </>
+            )}
+            {isDraw && (
+              <>
+                <p className="text-3xl mb-2">🤝</p>
+                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
+                  {t('平局！', "It's a draw!")}
+                </p>
+              </>
+            )}
+            <button
+              onClick={resetBoard}
+              className="px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors min-h-[44px]"
             >
-              {winner && (
-                <>
-                  <p
-                    className="text-3xl mb-2"
-                  >
-                    {winner === 'X' ? '🎉' : mode === 'ai' ? '🤖' : '🎉'}
-                  </p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
-                    {mode === 'ai'
-                      ? winner === 'X'
-                        ? t('你赢了！', 'You win!')
-                        : t('电脑赢了', 'AI wins')
-                      : t('玩家', 'Player ') + winner + t(' 赢了！', ' wins!')}
-                  </p>
-                </>
-              )}
-              {isDraw && (
-                <>
-                  <p
-                    className="text-3xl mb-2"
-                  >
-                    🤝
-                  </p>
-                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
-                    {t('平局！', "It's a draw!")}
-                  </p>
-                </>
-              )}
-              <button
-                onClick={resetBoard}
-                className="px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors min-h-[44px]"
-              >
-                {t('再来一局', 'Play Again')}
-              </button>
-            </div>
-          )}
+              {t('再来一局', 'Play Again')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

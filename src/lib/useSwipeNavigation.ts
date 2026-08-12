@@ -1,5 +1,5 @@
 import { useRef, useCallback, type TouchEvent as ReactTouchEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 
 const NAV_ORDER = ['/', '/games', '/tools', '/leaderboard', '/about'];
 

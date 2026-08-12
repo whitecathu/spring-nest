@@ -1,6 +1,6 @@
 import { ArrowUp, Home, Leaf, Github, Mail } from 'lucide-react';
 import gsap from 'gsap';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useUser } from '../contexts/UserContext';
 
 export default function Footer() {
@@ -11,27 +11,18 @@ export default function Footer() {
       className="w-full rounded-t-[64px] mt-auto border-t border-primary-container/40 bg-gradient-to-b from-white/60 to-[#FFF9F2] backdrop-blur-xl relative overflow-hidden"
       aria-label={t('页脚', 'Footer')}
     >
-      <div
-        className="pointer-events-none absolute right-0 top-0 h-56 w-56 rounded-full bg-primary-container/20 blur-[70px] sm:h-96 sm:w-96 sm:blur-[100px]"
-      ></div>
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 h-56 w-56 rounded-full bg-tertiary-container/20 blur-[70px] sm:h-96 sm:w-96 sm:blur-[100px]"
-      ></div>
+      <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 rounded-full bg-primary-container/20 blur-[70px] sm:h-96 sm:w-96 sm:blur-[100px]"></div>
+      <div className="pointer-events-none absolute bottom-0 left-0 h-56 w-56 rounded-full bg-tertiary-container/20 blur-[70px] sm:h-96 sm:w-96 sm:blur-[100px]"></div>
 
       <div className="max-w-7xl mx-auto px-6 py-20 flex flex-col items-center text-center gap-10 relative z-10">
-        <div
-          className="text-3xl font-extrabold text-primary font-nunito flex items-center gap-3"
-        >
-          <div
-          >
+        <div className="text-3xl font-extrabold text-primary font-nunito flex items-center gap-3">
+          <div>
             <Leaf className="w-10 h-10 fill-primary" />
           </div>
           {t('Spring Nest 春日小筑', 'Spring Nest')}
         </div>
 
-        <p
-          className="font-sans text-secondary/80 max-w-md font-medium text-lg leading-relaxed"
-        >
+        <p className="font-sans text-secondary/80 max-w-md font-medium text-lg leading-relaxed">
           {t(
             '以春风之轻盈，构建治愈系数字角落。',
             'Building a healing digital corner with the lightness of a spring breeze.',
@@ -40,9 +31,7 @@ export default function Footer() {
           {t('发现日常小确幸，让生活更有温度。', 'Discovering daily joys, making life warmer.')}
         </p>
 
-        <div
-          className="flex items-center gap-6 text-primary/60"
-        >
+        <div className="flex items-center gap-6 text-primary/60">
           <a
             href="https://github.com"
             target="_blank"
@@ -61,9 +50,7 @@ export default function Footer() {
           </a>
         </div>
 
-        <div
-          className="flex flex-wrap items-center justify-center gap-2 text-sm text-secondary/60"
-        >
+        <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-secondary/60">
           <Link
             to="/"
             className="inline-flex min-h-11 items-center gap-1 rounded-full px-2 transition-colors hover:text-primary"
@@ -117,9 +104,7 @@ export default function Footer() {
           </button>
         </div>
 
-        <div
-          className="font-nunito text-xs uppercase tracking-[0.2em] text-primary/50 mt-4 font-semibold"
-        >
+        <div className="font-nunito text-xs uppercase tracking-[0.2em] text-primary/50 mt-4 font-semibold">
           &copy; {new Date().getFullYear()} Spring Nest.{' '}
           {t('用爱与温暖滋养你的数字探索。', 'Nurturing your digital discovery with love.')}
         </div>

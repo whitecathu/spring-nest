@@ -37,7 +37,11 @@ export default function LoadingState({
 
   if (variant === 'page') {
     return (
-      <div role="status" aria-live="polite" className={`flex flex-grow items-center justify-center min-h-[50vh] px-4 ${className}`}>
+      <div
+        role="status"
+        aria-live="polite"
+        className={`flex flex-grow items-center justify-center min-h-[50vh] px-4 ${className}`}
+      >
         {content}
       </div>
     );

@@ -109,9 +109,8 @@ function SpringNestLogoMotion({
   const panelBorder = dark ? 'oklch(82% 0.08 145 / 0.12)' : 'oklch(45% 0.08 145 / 0.12)';
   const markSize = compact ? 92 : 108;
   const rootRef = useRef<HTMLDivElement>(null);
-  const markOnlySize = typeof window !== 'undefined'
-    ? Math.max(72, Math.min(160, window.innerWidth * 0.18))
-    : 120;
+  const markOnlySize =
+    typeof window !== 'undefined' ? Math.max(72, Math.min(160, window.innerWidth * 0.18)) : 120;
 
   useEffect(() => {
     const el = rootRef.current;

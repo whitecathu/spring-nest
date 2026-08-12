@@ -2,21 +2,26 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  lint-and-test:
-    name: Lint, Test & Build
+  validate:
+    name: Web, Miniapp & Quality Gates
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,23 +32,40 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Format check
+      - name: Generated files are current
+        run: npm run check:generated
+
+      - name: Prettier
         run: npm run format:check
 
-      - name: Generate site assets
-        run: npm run generate:site-assets
-
-      - name: Lint
+      - name: ESLint
         run: npm run lint
 
-      - name: Typecheck
+      - name: TypeScript
         run: npm run typecheck
 
       - name: Unit tests
         run: npm run test
 
-      - name: Build
+      - name: Miniapp validation
+        run: npm run verify:miniapp
+        env:
+          MINIAPP_VERIFY_STRICT: '1'
+
+      - name: Official npm audit
+        run: npm audit --audit-level=high --registry=https://registry.npmjs.org
+
+      - name: Production build
         run: npm run build
+
+      - name: Build budgets
+        run: npm run check:bundle
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Chromium and mobile Chromium E2E
+        run: npm run test:e2e
 
       - name: Lighthouse CI
         run: npm run lhci
@@ -55,28 +77,95 @@ jobs:
           path: dist/
           retention-days: 1
 
-  deploy:
-    name: Deploy to Cloudflare Pages
+  database:
+    name: Supabase migrations, RLS & RPC
     runs-on: ubuntu-latest
-    needs: lint-and-test
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
         with:
-          node-version: 22
-          cache: npm
+          version: latest
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Start local Supabase
+        run: supabase start
 
-      - name: Build
-        run: npm run build
+      - name: Rebuild database from versioned migrations
+        run: supabase db reset --local
 
-      - name: Deploy to Cloudflare Pages
+      - name: Run database tests
+        run: supabase test db
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop --no-backup
+
+  migrate-production:
+    name: Apply production database migrations
+    runs-on: ubuntu-latest
+    needs: [validate, database]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Require production migration configuration
+        run: |
+          if test -n "$SUPABASE_ACCESS_TOKEN" && test -n "$SUPABASE_DB_PASSWORD" && test -n "$SUPABASE_PROJECT_REF"; then
+            echo "Production Supabase migration configuration is present."
+          else
+            echo "::error::Production Supabase secrets are required before the frontend can be deployed."
+            exit 1
+          fi
+
+      - name: Link production project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Apply migrations before frontend deployment
+        run: supabase db push --include-all
+
+  deploy:
+    name: Deploy Cloudflare Pages
+    runs-on: ubuntu-latest
+    needs: [validate, migrate-production]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Detect Cloudflare deployment configuration
+        id: cloudflare-config
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if test -n "$CLOUDFLARE_API_TOKEN" && test -n "$CLOUDFLARE_ACCOUNT_ID"; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Cloudflare secrets are not configured; CI deployment is skipped."
+          fi
+
+      - name: Download validated build
+        if: steps.cloudflare-config.outputs.configured == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Deploy production
+        if: steps.cloudflare-config.outputs.configured == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

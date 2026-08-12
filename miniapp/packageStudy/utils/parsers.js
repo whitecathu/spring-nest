@@ -1,18 +1,20 @@
 const helpers = require('./helpers');
 
 function getBaseFileName(fileName) {
-  return String(fileName || '题库导入')
-    .split(/[\\/]/)
-    .pop()
-    .replace(/\.[^/.]+$/, '')
-    .replace(/\s+/g, ' ')
-    .trim() || '题库导入';
+  return (
+    String(fileName || '题库导入')
+      .split(/[\\/]/)
+      .pop()
+      .replace(/\.[^/.]+$/, '')
+      .replace(/\s+/g, ' ')
+      .trim() || '题库导入'
+  );
 }
 
 function makeQuestion(partial, index, prefix) {
   return helpers.normalizeQuestion(
     partial,
-    (prefix || 'import') + '-' + Date.now().toString(36) + '-' + index
+    (prefix || 'import') + '-' + Date.now().toString(36) + '-' + index,
   );
 }
 
@@ -44,7 +46,7 @@ function parseTxt(text, fileName) {
         stem = line.replace(/^(q:|问题:|问:|【?问题】?\s*[:：]?\s*)/i, '');
       } else if (/^(a:|答案:|答:|【?答案】?)/i.test(line)) {
         answer = helpers.normalizeImportedChoiceAnswer(
-          line.replace(/^(a:|答案:|答:|【?答案】?\s*[:：]?\s*)/i, '')
+          line.replace(/^(a:|答案:|答:|【?答案】?\s*[:：]?\s*)/i, ''),
         );
       } else if (/^(解析:|explanation:|exp:|【?解析】?)/i.test(line)) {
         explanation = line.replace(/^(解析:|explanation:|exp:|【?解析】?\s*[:：]?\s*)/i, '');
@@ -56,18 +58,21 @@ function parseTxt(text, fileName) {
             .map(function (o) {
               return o.trim();
             })
-            .filter(Boolean)
+            .filter(Boolean),
         );
       } else if (/^(正确选项:|正确答案:|answer:|【?正确答案】?)/i.test(line)) {
         answer = helpers.normalizeImportedChoiceAnswer(
-          line.replace(/^(正确选项:|正确答案:|answer:|【?正确答案】?\s*[:：]?\s*)/i, '')
+          line.replace(/^(正确选项:|正确答案:|answer:|【?正确答案】?\s*[:：]?\s*)/i, ''),
         );
       }
     });
 
     if (!stem) {
       var found = lines.find(function (line) {
-        return !/^[A-Z]\s*[.．、)]/.test(line) && !/^(正确选项:|正确答案:|答案:|answer:|【?正确答案】?)/i.test(line);
+        return (
+          !/^[A-Z]\s*[.．、)]/.test(line) &&
+          !/^(正确选项:|正确答案:|答案:|answer:|【?正确答案】?)/i.test(line)
+        );
       });
       stem = (found || '').replace(/^\d+[\.\、．]\s*/, '').trim();
     }
@@ -96,7 +101,7 @@ function parseTxt(text, fileName) {
           explanation: explanation || '科学复习，高效掌握。',
         },
         idx,
-        'txt'
+        'txt',
       );
     } else if (stem && (answer === '是' || answer === '否')) {
       q = makeQuestion(
@@ -108,7 +113,7 @@ function parseTxt(text, fileName) {
           explanation: explanation || '判断题，请选择题干表述是否正确。',
         },
         idx,
-        'txt'
+        'txt',
       );
     }
     if (q) questions.push(q);
@@ -194,7 +199,11 @@ function parseDelimitedRows(text, delimiter) {
   }
   function pushRow() {
     pushCell();
-    if (row.some(function (value) { return value.length > 0; })) {
+    if (
+      row.some(function (value) {
+        return value.length > 0;
+      })
+    ) {
       rows.push(row);
     }
     row = [];
@@ -252,49 +261,75 @@ function parseCsv(text, fileName) {
 
   var firstHeaders = rows[0].map(normalizeHeaderToken);
   var hasHeader = firstHeaders.some(function (header) {
-    return [
-      'type', '类型', '题型',
-      'question', 'q', '题目', '题干', '问题', 'stem',
-      'options', 'choices', '选项',
-      'answer', 'correctanswer', '答案', '参考答案', '正确答案', '正确选项',
-      'optiona', 'optionb', 'a', 'b',
-    ].indexOf(header) >= 0;
+    return (
+      [
+        'type',
+        '类型',
+        '题型',
+        'question',
+        'q',
+        '题目',
+        '题干',
+        '问题',
+        'stem',
+        'options',
+        'choices',
+        '选项',
+        'answer',
+        'correctanswer',
+        '答案',
+        '参考答案',
+        '正确答案',
+        '正确选项',
+        'optiona',
+        'optionb',
+        'a',
+        'b',
+      ].indexOf(header) >= 0
+    );
   });
 
   var questionIndex = hasHeader
     ? findHeaderIndex(firstHeaders, ['question', 'q', '题目', '题干', '问题', 'stem'])
     : -1;
-  var optionsIndex = hasHeader
-    ? findHeaderIndex(firstHeaders, ['options', 'choices', '选项'])
-    : -1;
+  var optionsIndex = hasHeader ? findHeaderIndex(firstHeaders, ['options', 'choices', '选项']) : -1;
   var answerIndex = hasHeader
-    ? findHeaderIndex(firstHeaders, ['answer', 'correctanswer', '答案', '参考答案', '正确答案', '正确选项'])
+    ? findHeaderIndex(firstHeaders, [
+        'answer',
+        'correctanswer',
+        '答案',
+        '参考答案',
+        '正确答案',
+        '正确选项',
+      ])
     : -1;
   var explanationIndex = hasHeader
     ? findHeaderIndex(firstHeaders, ['explanation', 'exp', '解析', '解析描述', '答案解析', '说明'])
     : -1;
   var optionColumnIndexes = hasHeader
     ? firstHeaders
-      .map(function (header, index) {
-        return { header: header, index: index };
-      })
-      .filter(function (item) {
-        return /^(选项)?[a-h]$/.test(item.header)
-          || /^[a-h](选项)?$/.test(item.header)
-          || /^option[a-h]$/.test(item.header);
-      })
-      .map(function (item) {
-        return item.index;
-      })
+        .map(function (header, index) {
+          return { header: header, index: index };
+        })
+        .filter(function (item) {
+          return (
+            /^(选项)?[a-h]$/.test(item.header) ||
+            /^[a-h](选项)?$/.test(item.header) ||
+            /^option[a-h]$/.test(item.header)
+          );
+        })
+        .map(function (item) {
+          return item.index;
+        })
     : [];
 
   // MVP shortcut: stem,optionA,optionB,optionC,optionD,answer
   if (!hasHeader && rows[0].length >= 6) {
     hasHeader = false;
   } else if (
-    hasHeader
-    && optionColumnIndexes.length === 0
-    && firstHeaders.join(',').indexOf('optiona') >= 0
+    hasHeader &&
+    optionColumnIndexes.length === 0 &&
+    firstHeaders.join(',').indexOf('optiona') >= 0
   ) {
     optionColumnIndexes = ['optiona', 'optionb', 'optionc', 'optiond', 'optione', 'optionf']
       .map(function (key) {
@@ -325,14 +360,16 @@ function parseCsv(text, fileName) {
             .map(function (o) {
               return o.trim();
             })
-            .filter(Boolean)
+            .filter(Boolean),
         );
       }
       if (options.length < 2 && optionColumnIndexes.length > 0) {
         options = helpers.normalizeChoiceOptions(
-          optionColumnIndexes.map(function (i) {
-            return row[i] || '';
-          }).filter(Boolean)
+          optionColumnIndexes
+            .map(function (i) {
+              return row[i] || '';
+            })
+            .filter(Boolean),
         );
       }
     } else {
@@ -348,18 +385,21 @@ function parseCsv(text, fileName) {
       if (likelyAnswerIndex < 0 && row.length >= 6) likelyAnswerIndex = 5;
       answerText = likelyAnswerIndex >= 0 ? row[likelyAnswerIndex] || '' : '';
       explanation = likelyAnswerIndex >= 0 ? row[likelyAnswerIndex + 1] || '' : '';
-      var optionCells = likelyAnswerIndex > 1
-        ? row.slice(1, likelyAnswerIndex).filter(Boolean)
-        : row.slice(1, 5).filter(Boolean);
+      var optionCells =
+        likelyAnswerIndex > 1
+          ? row.slice(1, likelyAnswerIndex).filter(Boolean)
+          : row.slice(1, 5).filter(Boolean);
       options = helpers.normalizeChoiceOptions(optionCells);
     }
 
     var answer = helpers.normalizeImportedChoiceAnswer(answerText);
-    stem = String(stem || '').replace(/^\d+\s*[、.．]\s*/, '').trim();
+    stem = String(stem || '')
+      .replace(/^\d+\s*[、.．]\s*/, '')
+      .trim();
     if (!stem || !answer) return;
 
     var q = null;
-    if ((options.length < 2) && (answer === '是' || answer === '否')) {
+    if (options.length < 2 && (answer === '是' || answer === '否')) {
       q = makeQuestion(
         {
           stem: stem,
@@ -369,7 +409,7 @@ function parseCsv(text, fileName) {
           explanation: explanation || '判断题，请选择题干表述是否正确。',
         },
         rowIndex,
-        'csv'
+        'csv',
       );
     } else if (options.length >= 2 && /^[A-Z]{1,8}$/.test(answer)) {
       q = makeQuestion(
@@ -377,10 +417,12 @@ function parseCsv(text, fileName) {
           stem: stem,
           options: options,
           answer: answer,
-          explanation: explanation || (answer.length > 1 ? '多项选择题，请完整选择所有正确项。' : '题库导入答案已同步。'),
+          explanation:
+            explanation ||
+            (answer.length > 1 ? '多项选择题，请完整选择所有正确项。' : '题库导入答案已同步。'),
         },
         rowIndex,
-        'csv'
+        'csv',
       );
     }
     if (q) questions.push(q);
@@ -410,7 +452,12 @@ function detectAndParse(text, fileName) {
       if (name.endsWith('.json')) throw e;
     }
   }
-  if (name.endsWith('.csv') || (trimmed.indexOf(',') >= 0 && trimmed.indexOf('\n') >= 0 && /答案|answer|option/i.test(trimmed.split('\n')[0]))) {
+  if (
+    name.endsWith('.csv') ||
+    (trimmed.indexOf(',') >= 0 &&
+      trimmed.indexOf('\n') >= 0 &&
+      /答案|answer|option/i.test(trimmed.split('\n')[0]))
+  ) {
     try {
       return parseCsv(trimmed, fileName || 'import.csv');
     } catch (e) {

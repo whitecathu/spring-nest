@@ -4,6 +4,7 @@ import { syncFavoritesToCloud } from '../services/cloudSyncService';
 import { getFavorites, toggleFavorite, isFavorited } from '../services/favoriteService';
 import { trackFavorite } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
+import { publishSyncFailure } from '../services/syncResult';
 
 export function useFavorites() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
@@ -21,7 +22,7 @@ export function useFavorites() {
     const nextFavorites = getFavorites(userId);
     setFavoriteIds(nextFavorites);
     if (supabase && userId !== 'guest') {
-      syncFavoritesToCloud(userId, nextFavorites).catch(() => {});
+      void syncFavoritesToCloud(userId, nextFavorites).then(publishSyncFailure);
     }
     return nowFavorited;
   }, []);

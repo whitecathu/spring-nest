@@ -20,7 +20,11 @@ function sanitizeHref(href: string): string | null {
   if (!trimmed || /[\s<>"']/.test(trimmed)) return null;
   if (/^(https?:|mailto:)/i.test(trimmed)) return trimmed;
   if (trimmed.startsWith('#') && !trimmed.includes(':')) return trimmed;
-  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+  if (
+    trimmed.startsWith('/') &&
+    !trimmed.startsWith('//') &&
+    !/^[a-z][a-z0-9+.-]*:/i.test(trimmed)
+  ) {
     return trimmed;
   }
   return null;
@@ -62,7 +66,10 @@ function parseInline(text: string): string {
 
   // Escape remaining plain text, then restore safe HTML tokens
   processed = escapeHtml(processed);
-  processed = processed.replace(/\u0000(\d+)\u0000/g, (_, index: string) => stashed[Number(index)] ?? '');
+  processed = processed.replace(
+    /\u0000(\d+)\u0000/g,
+    (_, index: string) => stashed[Number(index)] ?? '',
+  );
 
   return processed;
 }
@@ -223,9 +230,7 @@ export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h1 className="text-2xl font-bold text-on-surface text-center mb-4">
           {t('Markdown 预览', 'Markdown Preview')}
         </h1>
@@ -278,6 +283,7 @@ export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
           <div>
             <div className="text-xs font-bold text-secondary mb-2">{t('编辑', 'Edit')}</div>
             <textarea
+              aria-label={t('Markdown 编辑器', 'Markdown editor')}
               value={markdown}
               onChange={(e) => setMarkdown(e.target.value)}
               placeholder={t('输入 Markdown 文本...', 'Type Markdown here...')}
@@ -302,6 +308,7 @@ export default function MarkdownPreview({ onBack }: { onBack: () => void }) {
         <div className="md:hidden">
           {mobileTab === 'edit' ? (
             <textarea
+              aria-label={t('Markdown 编辑器', 'Markdown editor')}
               value={markdown}
               onChange={(e) => setMarkdown(e.target.value)}
               placeholder={t('输入 Markdown 文本...', 'Type Markdown here...')}

@@ -1,6 +1,7 @@
 const storage = require('../../utils/storage');
 const helpers = require('./helpers');
 const studyStorage = require('./storage');
+const deadlineTimer = require('../../utils/deadline-timer');
 
 const SESSION_KEY = 'spring_review_active_session_v1';
 const EXAM_SETTINGS_KEY = 'spring_review_exam_settings_v1';
@@ -9,16 +10,29 @@ const DEFAULT_EXAM_DURATION_MINUTES = 60;
 
 function normalizeExamSettings(input) {
   input = input || {};
+  var examTimeRemaining = helpers.clampNumber(
+    typeof value.examTimeRemaining === 'number'
+      ? value.examTimeRemaining
+      : DEFAULT_EXAM_DURATION_MINUTES * 60,
+    0,
+    24 * 60 * 60,
+  );
+  var savedAt = typeof value.savedAt === 'number' ? value.savedAt : Date.now();
+  var examDeadline =
+    typeof value.examDeadline === 'number' && Number.isFinite(value.examDeadline)
+      ? value.examDeadline
+      : savedAt + examTimeRemaining * 1000;
+
   return {
     questionCount: helpers.clampNumber(
       input.questionCount != null ? input.questionCount : DEFAULT_EXAM_QUESTION_COUNT,
       1,
-      999
+      999,
     ),
     durationMinutes: helpers.clampNumber(
       input.durationMinutes != null ? input.durationMinutes : DEFAULT_EXAM_DURATION_MINUTES,
       5,
-      240
+      240,
     ),
   };
 }
@@ -54,7 +68,12 @@ function normalizeActiveStudySession(value, decks) {
 
   var deckId = typeof value.deckId === 'string' ? value.deckId : null;
   var deckList = decks || studyStorage.getDecks();
-  if (deckId && !deckList.some(function (deck) { return deck.id === deckId; })) {
+  if (
+    deckId &&
+    !deckList.some(function (deck) {
+      return deck.id === deckId;
+    })
+  ) {
     // Allow restudy from incorrect/favorites without a deck.
     if (deckId.indexOf('restudy-') !== 0 && deckId !== 'incorrect' && deckId !== 'favorites') {
       return null;
@@ -85,7 +104,7 @@ function normalizeActiveStudySession(value, decks) {
     currentQuestionIdx: helpers.clampNumber(
       typeof value.currentQuestionIdx === 'number' ? value.currentQuestionIdx : 0,
       0,
-      questions.length - 1
+      questions.length - 1,
     ),
     showExplanation: Boolean(value.showExplanation),
     selectedOption: typeof value.selectedOption === 'string' ? value.selectedOption : null,
@@ -94,25 +113,21 @@ function normalizeActiveStudySession(value, decks) {
     correctCountInSession: helpers.clampNumber(
       typeof value.correctCountInSession === 'number' ? value.correctCountInSession : 0,
       0,
-      questions.length
+      questions.length,
     ),
-    practiceStartedAt: typeof value.practiceStartedAt === 'number' ? value.practiceStartedAt : Date.now(),
+    practiceStartedAt:
+      typeof value.practiceStartedAt === 'number' ? value.practiceStartedAt : Date.now(),
     examDurationSeconds: helpers.clampNumber(
       typeof value.examDurationSeconds === 'number'
         ? value.examDurationSeconds
         : DEFAULT_EXAM_DURATION_MINUTES * 60,
       60,
-      24 * 60 * 60
+      24 * 60 * 60,
     ),
-    examTimeRemaining: helpers.clampNumber(
-      typeof value.examTimeRemaining === 'number'
-        ? value.examTimeRemaining
-        : DEFAULT_EXAM_DURATION_MINUTES * 60,
-      0,
-      24 * 60 * 60
-    ),
+    examTimeRemaining: examTimeRemaining,
+    examDeadline: examDeadline,
     examAnswers: examAnswers,
-    savedAt: typeof value.savedAt === 'number' ? value.savedAt : Date.now(),
+    savedAt: savedAt,
   };
 }
 
@@ -127,7 +142,7 @@ function saveActiveSession(session) {
   }
   var normalized = normalizeActiveStudySession(
     Object.assign({}, session, { savedAt: Date.now() }),
-    studyStorage.getDecks()
+    studyStorage.getDecks(),
   );
   if (!normalized) {
     clearActiveSession();
@@ -171,6 +186,7 @@ function createSession(options) {
     practiceStartedAt: Date.now(),
     examDurationSeconds: durationSeconds,
     examTimeRemaining: durationSeconds,
+    examDeadline: mode === 'exam' ? deadlineTimer.createDeadline(durationSeconds) : null,
     examAnswers: {},
     savedAt: Date.now(),
   };

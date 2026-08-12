@@ -1,7 +1,21 @@
-import * as XLSX from 'xlsx';
 import type { BookkeepingEntry } from './bookkeeping';
 
 export type BillFormat = 'wechat' | 'alipay' | 'generic' | 'unknown';
+
+export const MAX_BILL_IMPORT_BYTES = 10 * 1024 * 1024;
+export const MAX_BILL_IMPORT_ROWS = 20_000;
+
+type BillImportKind = 'text' | 'xlsx';
+
+const MIME_BY_EXTENSION: Record<string, ReadonlySet<string>> = {
+  csv: new Set(['', 'text/csv', 'application/csv', 'text/plain']),
+  txt: new Set(['', 'text/plain', 'text/csv']),
+  xlsx: new Set([
+    '',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/zip',
+  ]),
+};
 
 export interface ImportedRow {
   date: string;
@@ -102,25 +116,79 @@ function guessCategory(note: string, format: BillFormat): string {
 
 // ─── Encoding Detection & Decode ─────────────────────────────────────────────
 
-async function decodeFile(file: File): Promise<string> {
-  // Check if xlsx/xls file (by magic bytes: PK for xlsx, or extension)
-  const isXlsx =
-    file.name.endsWith('.xlsx') ||
-    file.name.endsWith('.xls') ||
-    file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-    file.type === 'application/vnd.ms-excel';
+export function validateBillImportFile(file: File): BillImportKind {
+  if (file.size > MAX_BILL_IMPORT_BYTES) {
+    throw new Error('导入文件不能超过 10 MB');
+  }
 
-  if (isXlsx) {
+  const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
+  if (extension === 'xls') {
+    throw new Error('不再支持旧版 .xls，请另存为 .xlsx 后重试');
+  }
+
+  const acceptedMimes = MIME_BY_EXTENSION[extension];
+  if (!acceptedMimes) {
+    throw new Error('仅支持 .csv、.txt 和 .xlsx 文件');
+  }
+
+  const mime = file.type.toLowerCase();
+  if (!acceptedMimes.has(mime)) {
+    throw new Error(`文件扩展名与 MIME 类型不一致：.${extension} / ${mime || 'unknown'}`);
+  }
+
+  return extension === 'xlsx' ? 'xlsx' : 'text';
+}
+
+function hasZipHeader(buffer: ArrayBuffer): boolean {
+  const bytes = new Uint8Array(buffer, 0, Math.min(buffer.byteLength, 4));
+  if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4b) return false;
+  return (
+    (bytes[2] === 0x03 && bytes[3] === 0x04) ||
+    (bytes[2] === 0x05 && bytes[3] === 0x06) ||
+    (bytes[2] === 0x07 && bytes[3] === 0x08)
+  );
+}
+
+function serializeSpreadsheetRows(rows: unknown[][]): string {
+  return rows
+    .map((row) =>
+      row
+        .map((cell) => {
+          const value =
+            cell instanceof Date
+              ? cell.toISOString().replace('T', ' ').slice(0, 19)
+              : cell == null
+                ? ''
+                : String(cell);
+          return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+        })
+        .join(','),
+    )
+    .join('\n');
+}
+
+async function decodeFile(file: File): Promise<string> {
+  const kind = validateBillImportFile(file);
+
+  if (kind === 'xlsx') {
     const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: 'array' });
-    const sheetName = workbook.SheetNames[0];
-    if (!sheetName) return '';
-    const sheet = workbook.Sheets[sheetName];
-    // Convert to CSV text
-    return XLSX.utils.sheet_to_csv(sheet);
+    if (!hasZipHeader(buffer)) {
+      throw new Error('无效的 .xlsx：文件头不是 ZIP/OOXML 容器');
+    }
+
+    const { default: readXlsxFile } = await import('read-excel-file/browser');
+    const sheets = await readXlsxFile(buffer);
+    const rows = sheets[0]?.data ?? [];
+    if (rows.length > MAX_BILL_IMPORT_ROWS) {
+      throw new Error(`工作表不能超过 ${MAX_BILL_IMPORT_ROWS.toLocaleString()} 行`);
+    }
+    return serializeSpreadsheetRows(rows);
   }
 
   let text = await file.text();
+  if (text.split(/\r?\n/).length > MAX_BILL_IMPORT_ROWS) {
+    throw new Error(`账单不能超过 ${MAX_BILL_IMPORT_ROWS.toLocaleString()} 行`);
+  }
 
   // Remove BOM
   if (text.charCodeAt(0) === 0xfeff) {
@@ -138,11 +206,21 @@ async function decodeFile(file: File): Promise<string> {
   }
 
   // Also try GBK if file looks like garbled Chinese
-  if (!text.includes('交易') && !text.includes('微信') && !text.includes('支付宝') && !text.includes('记录时间')) {
+  if (
+    !text.includes('交易') &&
+    !text.includes('微信') &&
+    !text.includes('支付宝') &&
+    !text.includes('记录时间')
+  ) {
     try {
       const buffer = await file.arrayBuffer();
       const gbkText = new TextDecoder('gbk').decode(buffer);
-      if (gbkText.includes('交易') || gbkText.includes('微信') || gbkText.includes('支付宝') || gbkText.includes('记录时间')) {
+      if (
+        gbkText.includes('交易') ||
+        gbkText.includes('微信') ||
+        gbkText.includes('支付宝') ||
+        gbkText.includes('记录时间')
+      ) {
         text = gbkText;
       }
     } catch {

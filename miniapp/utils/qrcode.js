@@ -110,7 +110,7 @@ function utf8Bytes(text) {
         0xf0 | (cp >> 18),
         0x80 | ((cp >> 12) & 0x3f),
         0x80 | ((cp >> 6) & 0x3f),
-        0x80 | (cp & 0x3f)
+        0x80 | (cp & 0x3f),
       );
     } else {
       out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
@@ -274,12 +274,38 @@ function drawFormat(m, mask) {
   const bits = formatBits(mask);
   const n = m.length;
   const positions1 = [
-    [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 7], [8, 8],
-    [7, 8], [5, 8], [4, 8], [3, 8], [2, 8], [1, 8], [0, 8],
+    [8, 0],
+    [8, 1],
+    [8, 2],
+    [8, 3],
+    [8, 4],
+    [8, 5],
+    [8, 7],
+    [8, 8],
+    [7, 8],
+    [5, 8],
+    [4, 8],
+    [3, 8],
+    [2, 8],
+    [1, 8],
+    [0, 8],
   ];
   const positions2 = [
-    [n - 1, 8], [n - 2, 8], [n - 3, 8], [n - 4, 8], [n - 5, 8], [n - 6, 8], [n - 7, 8],
-    [8, n - 8], [8, n - 7], [8, n - 6], [8, n - 5], [8, n - 4], [8, n - 3], [8, n - 2], [8, n - 1],
+    [n - 1, 8],
+    [n - 2, 8],
+    [n - 3, 8],
+    [n - 4, 8],
+    [n - 5, 8],
+    [n - 6, 8],
+    [n - 7, 8],
+    [8, n - 8],
+    [8, n - 7],
+    [8, n - 6],
+    [8, n - 5],
+    [8, n - 4],
+    [8, n - 3],
+    [8, n - 2],
+    [8, n - 1],
   ];
   for (let i = 0; i < 15; i++) {
     const bit = ((bits >> (14 - i)) & 1) === 1;
@@ -392,7 +418,8 @@ function createQrCode(text) {
     for (let j = 0; j < aligns.length; j++) {
       const ax = aligns[j];
       const ay = aligns[i];
-      if ((ax < 10 && ay < 10) || (ax > size - 11 && ay < 10) || (ax < 10 && ay > size - 11)) continue;
+      if ((ax < 10 && ay < 10) || (ax > size - 11 && ay < 10) || (ax < 10 && ay > size - 11))
+        continue;
       placeAlignment(m, ax, ay);
     }
   }

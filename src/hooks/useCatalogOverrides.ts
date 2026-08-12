@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { applyCatalogOverrides, fetchCatalogOverrides, type CatalogOverride } from '../services/catalogService';
+import {
+  applyCatalogOverrides,
+  fetchCatalogOverrides,
+  type CatalogOverride,
+} from '../services/catalogService';
 import type { AppItem, AppItemType } from '../types/app';
 
 export function useCatalogItems(items: AppItem[], itemType: AppItemType, platform = 'web') {

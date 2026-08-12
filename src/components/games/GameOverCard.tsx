@@ -28,13 +28,25 @@ export default function GameOverCard({
 
   useEffect(() => {
     if (cardRef.current) {
-      gsap.fromTo(cardRef.current, { opacity: 0, scale: 0.85, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(1.4)' });
+      gsap.fromTo(
+        cardRef.current,
+        { opacity: 0, scale: 0.85, y: 20 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(1.4)' },
+      );
     }
     if (emojiRef.current) {
-      gsap.fromTo(emojiRef.current, { scale: 0 }, { scale: 1, duration: 0.4, delay: 0.1, ease: 'back.out(2)' });
+      gsap.fromTo(
+        emojiRef.current,
+        { scale: 0 },
+        { scale: 1, duration: 0.4, delay: 0.1, ease: 'back.out(2)' },
+      );
     }
     if (isNewRecord && recordRef.current) {
-      gsap.fromTo(recordRef.current, { scale: 0 }, { scale: 1, duration: 0.4, delay: 0.3, ease: 'back.out(2)' });
+      gsap.fromTo(
+        recordRef.current,
+        { scale: 0 },
+        { scale: 1, duration: 0.4, delay: 0.3, ease: 'back.out(2)' },
+      );
     }
   }, [isNewRecord]);
 
@@ -42,7 +54,7 @@ export default function GameOverCard({
     <div
       ref={cardRef}
       className="mt-6 p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-700/30 rounded-2xl text-center"
-  >
+    >
       <p ref={emojiRef} className="text-3xl mb-2">
         {emoji}
       </p>
@@ -54,7 +66,10 @@ export default function GameOverCard({
       </p>
       {extraInfo}
       {isNewRecord && (
-        <p ref={recordRef} className="text-sm text-orange-500 flex items-center justify-center gap-1 mb-4">
+        <p
+          ref={recordRef}
+          className="text-sm text-orange-500 flex items-center justify-center gap-1 mb-4"
+        >
           <Trophy className="w-4 h-4" />
           {t('新纪录！', 'New Record!')}
         </p>
@@ -62,7 +77,7 @@ export default function GameOverCard({
       <button
         onClick={onRestart}
         className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]"
-    >
+      >
         {restartLabel ?? t('再来一局', 'Play Again')}
       </button>
     </div>

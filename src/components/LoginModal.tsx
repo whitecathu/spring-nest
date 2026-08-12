@@ -260,9 +260,14 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
           <p className="text-center text-on-surface-variant font-medium text-sm mb-8">
             {modalState === 'login' &&
               t('登录 Spring Nest 发现更多美好', 'Log in to discover more')}
-            {modalState === 'register' && otpMode &&
-              t('验证码已发送，请输入邮箱中的 6 位数字', 'Code sent — enter the 6 digits from your email')}
-            {modalState === 'register' && !otpMode &&
+            {modalState === 'register' &&
+              otpMode &&
+              t(
+                '验证码已发送，请输入邮箱中的 6 位数字',
+                'Code sent — enter the 6 digits from your email',
+              )}
+            {modalState === 'register' &&
+              !otpMode &&
               t('注册 Spring Nest 享受宁静时光', 'Sign up to enjoy peaceful moments')}
             {modalState === 'forgot_password' &&
               (isUsingSupabase()

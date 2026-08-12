@@ -1,5 +1,5 @@
 import { ArrowRight, Heart, Play } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import type { SurfaceMotionTone } from '../lib/animations';
 import type { AppItem } from '../types/app';
 import { MotionButton, MotionCard } from './GsapSurface';

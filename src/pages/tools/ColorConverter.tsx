@@ -161,9 +161,7 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('颜色转换器', 'Color Converter')}
         </h2>
@@ -180,6 +178,7 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
             </label>
             <input
               type="color"
+              aria-label={t('颜色拾取器', 'Color picker')}
               value={hex}
               onChange={(e) => syncFromHex(e.target.value)}
               className="w-full h-12 rounded-xl cursor-pointer border-0 bg-transparent"
@@ -193,6 +192,7 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
           <div className="flex gap-2">
             <input
               type="text"
+              aria-label="HEX"
               value={hexInput}
               onChange={(e) => handleHexChange(e.target.value)}
               className="flex-1 bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface font-mono text-sm outline-none focus:border-primary/50"
@@ -258,6 +258,7 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
                 </span>
                 <input
                   type="range"
+                  aria-label={label}
                   min={0}
                   max={255}
                   value={value}
@@ -321,6 +322,7 @@ export default function ColorConverter({ onBack }: { onBack: () => void }) {
                 </span>
                 <input
                   type="range"
+                  aria-label={label}
                   min={0}
                   max={max}
                   value={value}

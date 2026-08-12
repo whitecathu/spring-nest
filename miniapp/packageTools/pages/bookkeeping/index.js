@@ -3,6 +3,10 @@ const favorites = require('../../../utils/favorites');
 const historyUtil = require('../../../utils/history');
 const toast = require('../../../utils/toast');
 const storage = require('../../../utils/storage');
+const localDate = require('../../../utils/local-date');
+const bookkeeping = require('../../utils/bookkeeping');
+
+const toCsv = bookkeeping.toCsv;
 
 const STORAGE_KEY = 'bookkeeping:ledger:v1';
 const CATEGORIES = ['餐饮', '交通', '购物', '居住', '工资', '其它'];
@@ -25,7 +29,7 @@ function round2(n) {
 }
 
 function currentMonth() {
-  return new Date().toISOString().slice(0, 7);
+  return localDate.formatLocalMonth();
 }
 
 function entryMonth(item) {
@@ -33,7 +37,7 @@ function entryMonth(item) {
     return String(item.date).slice(0, 7);
   }
   if (item && item.ts) {
-    return new Date(item.ts).toISOString().slice(0, 7);
+    return localDate.formatLocalMonth(new Date(item.ts));
   }
   return currentMonth();
 }
@@ -76,28 +80,6 @@ function buildBars(list) {
     value: round2(e.value),
     height: Math.max(8, Math.round((e.value / max) * 100)),
   }));
-}
-
-function csvEscape(value) {
-  const text = String(value == null ? '' : value);
-  if (/[",\n\r]/.test(text)) {
-    return '"' + text.replace(/"/g, '""') + '"';
-  }
-  return text;
-}
-
-function toCsv(list) {
-  const header = 'date,type,category,amount,note';
-  const rows = list.map((item) =>
-    [
-      csvEscape(item.date || ''),
-      csvEscape(item.type === 'income' ? 'income' : 'expense'),
-      csvEscape(item.category || ''),
-      csvEscape(item.amount),
-      csvEscape(item.note || ''),
-    ].join(','),
-  );
-  return header + '\n' + rows.join('\n');
 }
 
 function filterEntries(list, month, query) {
@@ -168,7 +150,9 @@ Page({
   },
 
   refresh() {
-    const allEntries = loadLedger().slice().sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const allEntries = loadLedger()
+      .slice()
+      .sort((a, b) => (b.ts || 0) - (a.ts || 0));
     const monthOptions = buildMonthOptions(allEntries);
     let selectedMonth = this.data.selectedMonth || currentMonth();
     if (monthOptions.indexOf(selectedMonth) < 0) {
@@ -245,11 +229,16 @@ Page({
       note: String(this.data.formNote || '').trim(),
       category: this.data.formCategory || '其它',
       ts: now.getTime(),
-      date: now.toISOString().slice(0, 10),
+      date: localDate.formatLocalDate(now),
     };
     const list = loadLedger();
     list.push(entry);
-    saveLedger(list);
+    try {
+      saveLedger(list);
+    } catch (err) {
+      toast.showToast((err && err.message) || '保存失败，本次记录未写入');
+      return;
+    }
     this.setData({
       formAmount: '',
       formNote: '',
@@ -267,7 +256,12 @@ Page({
       success: (res) => {
         if (!res.confirm) return;
         const list = loadLedger().filter((item) => item.id !== id);
-        saveLedger(list);
+        try {
+          saveLedger(list);
+        } catch (err) {
+          toast.showToast((err && err.message) || '删除失败，请重试');
+          return;
+        }
         this.refresh();
       },
     });
@@ -286,7 +280,12 @@ Page({
           removeIds[item.id] = true;
         });
         const list = loadLedger().filter((item) => !removeIds[item.id]);
-        saveLedger(list);
+        try {
+          saveLedger(list);
+        } catch (err) {
+          toast.showToast((err && err.message) || '清空失败，请重试');
+          return;
+        }
         this.refresh();
         toast.showToast('已清空当前筛选');
       },

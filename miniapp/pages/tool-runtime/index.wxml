@@ -88,7 +88,7 @@
       <label class="switch-row"><switch checked="{{pwdSymbols}}" data-field="pwdSymbols" bindchange="onSwitch" />符号</label>
     </view>
     <view class="row gap-md">
-      <button class="btn-primary flex-1" data-action="run" bindtap="handleAction">生成密码</button>
+      <button class="btn-primary flex-1" data-action="run" bindtap="handleAction" loading="{{passwordBusy}}" disabled="{{passwordBusy}}">生成密码</button>
       <button class="btn-ghost flex-1" data-action="copy" bindtap="handleAction">复制</button>
     </view>
   </block>

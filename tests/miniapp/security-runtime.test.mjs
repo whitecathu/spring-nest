@@ -1,11 +1,11 @@
-// @vitest-environment node
+// @vitest-environment jsdom
 
 import { createRequire } from 'node:module';
 
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const require = createRequire(import.meta.url);
-const engines = require('../utils/tool-engines');
+const engines = require('../../miniapp/utils/tool-engines');
 const originalTimeZone = process.env.TZ;
 
 function secureRandomStub(fillByte = () => 0) {
@@ -122,19 +122,19 @@ describe('secure password generation', () => {
 });
 
 describe('local date keys', () => {
-  it('keeps the Shanghai calendar day and month after local midnight', () => {
-    const { formatLocalDate, formatLocalMonth } = require('../utils/local-date');
-    const shanghaiTime = new Date('2026-07-29T00:30:00+08:00');
+  it('keeps the device-local calendar day and month after midnight', () => {
+    const { formatLocalDate, formatLocalMonth } = require('../../miniapp/utils/local-date');
+    const localTime = new Date(2026, 6, 29, 0, 30);
 
-    expect(formatLocalDate(shanghaiTime)).toBe('2026-07-29');
-    expect(formatLocalMonth(shanghaiTime)).toBe('2026-07');
+    expect(formatLocalDate(localTime)).toBe('2026-07-29');
+    expect(formatLocalMonth(localTime)).toBe('2026-07');
   });
 
   it('does not roll the first day of a month back to the previous month', () => {
-    const { formatLocalDate, formatLocalMonth } = require('../utils/local-date');
-    const shanghaiMonthStart = new Date('2026-07-01T00:30:00+08:00');
+    const { formatLocalDate, formatLocalMonth } = require('../../miniapp/utils/local-date');
+    const localMonthStart = new Date(2026, 6, 1, 0, 30);
 
-    expect(formatLocalDate(shanghaiMonthStart)).toBe('2026-07-01');
-    expect(formatLocalMonth(shanghaiMonthStart)).toBe('2026-07');
+    expect(formatLocalDate(localMonthStart)).toBe('2026-07-01');
+    expect(formatLocalMonth(localMonthStart)).toBe('2026-07');
   });
 });

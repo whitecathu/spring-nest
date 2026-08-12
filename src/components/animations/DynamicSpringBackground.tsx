@@ -5,12 +5,11 @@ import { useReducedMotion } from '../../lib/animations';
 import { backgroundProfiles, type BackgroundProfile } from '../../lib/backgroundProfiles';
 import { BACKGROUND_INTENT_EVENT, type BackgroundIntent } from '../../lib/backgroundIntent';
 import { useVisualCapability } from '../../lib/visualCapability';
-import { useForestRuntimeOptional, useForestRuntimeSelectorOptional } from '../../lib/forest/ForestRuntime';
 import {
-  particleCap,
-  tierAllowsParticles,
-  tierAllowsVideo,
-} from '../../lib/forest/forestTier';
+  useForestRuntimeOptional,
+  useForestRuntimeSelectorOptional,
+} from '../../lib/forest/ForestRuntime';
+import { particleCap, tierAllowsParticles, tierAllowsVideo } from '../../lib/forest/forestTier';
 import BackgroundScene from './BackgroundScene';
 import ForestVideoBackground from './ForestVideoBackground';
 import ForestCompositeMask from './ForestCompositeMask';
@@ -81,14 +80,10 @@ function DynamicSpringBackground({ profile }: DynamicSpringBackgroundProps) {
         : profile;
   const palette = resolved === 'dark' ? activeProfile.dark : activeProfile.light;
   const containerRef = useRef<HTMLDivElement>(null);
-  const videoEnabled =
-    tierAllowsVideo(tier) && !reducedMotion && !compact && !splashActive;
+  const videoEnabled = tierAllowsVideo(tier) && !reducedMotion && !compact && !splashActive;
   // GlassGarden only when video off (low / fallback)
   const showDesktopGlassGarden =
-    !videoEnabled &&
-    capability.mode === 'desktop-3d' &&
-    !reducedMotion &&
-    !compact;
+    !videoEnabled && capability.mode === 'desktop-3d' && !reducedMotion && !compact;
   const showParticles = tierAllowsParticles(tier) && !reducedMotion;
 
   const haloPositions = useMemo<HaloPosition[]>(

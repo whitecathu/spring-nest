@@ -117,7 +117,11 @@ function ForestVideoBackground({
           loop
           preload="metadata"
           poster={BG_POSTER}
-          style={{ filter: FOREST_FILTER, opacity: ready ? 1 : 0, transition: 'opacity 0.45s ease' }}
+          style={{
+            filter: FOREST_FILTER,
+            opacity: ready ? 1 : 0,
+            transition: 'opacity 0.45s ease',
+          }}
         />
       )}
     </div>

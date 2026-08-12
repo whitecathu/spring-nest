@@ -188,33 +188,28 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center relative">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <div
-                key={score}
-                className="text-xl font-bold text-primary tabular-nums"
-              >
+              <div key={score} className="text-xl font-bold text-primary tabular-nums">
                 {score}
               </div>
               {/* +1 floating text with particle dots */}
               {showScorePopup && (
-                  <>
-                    <div
-                      className="absolute -top-6 left-1/2 -translate-x-1/2 text-green-500 font-bold text-lg pointer-events-none whitespace-nowrap z-20"
-                    >
-                      +1
-                    </div>
-                    {/* Particle dots flying outward */}
-                    {[0, 1, 2, 3, 4, 5].map((i) => {
-                      const angle = (i / 6) * Math.PI * 2;
-                      const dist = 28 + Math.random() * 12;
-                      return (
-                        <span
-                          key={`particle-${i}`}
-                          className="absolute left-1/2 top-1/2 w-1.5 h-1.5 rounded-full bg-green-400 pointer-events-none z-20"
-                        />
-                      );
-                    })}
-                  </>
-                )}
+                <>
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-green-500 font-bold text-lg pointer-events-none whitespace-nowrap z-20">
+                    +1
+                  </div>
+                  {/* Particle dots flying outward */}
+                  {[0, 1, 2, 3, 4, 5].map((i) => {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const dist = 28 + Math.random() * 12;
+                    return (
+                      <span
+                        key={`particle-${i}`}
+                        className="absolute left-1/2 top-1/2 w-1.5 h-1.5 rounded-full bg-green-400 pointer-events-none z-20"
+                      />
+                    );
+                  })}
+                </>
+              )}
             </div>
             <div
               className={`bg-surface-container-high rounded-xl px-3 py-2 text-center relative ${isNewRecord ? 'ring-2 ring-amber-400' : ''}`}
@@ -223,16 +218,10 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
                 <Trophy className="w-3 h-3" />
                 {t('最佳', 'Best')}
               </div>
-              <div
-                className="text-xl font-bold text-tertiary tabular-nums"
-              >
-                {bestScore}
-              </div>
+              <div className="text-xl font-bold text-tertiary tabular-nums">{bestScore}</div>
               {/* New record glow */}
               {isNewRecord && (
-                <div
-                  className="absolute inset-0 rounded-xl bg-amber-400/20 pointer-events-none"
-                />
+                <div className="absolute inset-0 rounded-xl bg-amber-400/20 pointer-events-none" />
               )}
             </div>
           </div>
@@ -241,61 +230,45 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         {/* Status */}
         <div className="text-center mb-4">
           {gameState === 'showing' && (
-              <p
-                key="showing"
-                className="text-sm font-semibold text-amber-500"
-              >
-                {t('👀 仔细看...', '👀 Watch carefully...')}
-              </p>
-            )}
-            {gameState === 'input' && (
-              <p
-                key="input"
-                className="text-sm font-semibold text-green-500"
-              >
-                {t('🎯 轮到你了！', '🎯 Your turn!')}
-              </p>
-            )}
-            {gameState === 'idle_next' && (
-              <p
-                key="next"
-                className="text-sm font-semibold text-blue-500"
-              >
-                {formatRound(sequence.length)}
-              </p>
-            )}
-            {gameState === 'wrong' && (
-              <p
-                key="wrong"
-                className="text-sm font-semibold text-red-500"
-              >
-                {t('💥 答错了！', '💥 Wrong!')}
-              </p>
-            )}
+            <p key="showing" className="text-sm font-semibold text-amber-500">
+              {t('👀 仔细看...', '👀 Watch carefully...')}
+            </p>
+          )}
+          {gameState === 'input' && (
+            <p key="input" className="text-sm font-semibold text-green-500">
+              {t('🎯 轮到你了！', '🎯 Your turn!')}
+            </p>
+          )}
+          {gameState === 'idle_next' && (
+            <p key="next" className="text-sm font-semibold text-blue-500">
+              {formatRound(sequence.length)}
+            </p>
+          )}
+          {gameState === 'wrong' && (
+            <p key="wrong" className="text-sm font-semibold text-red-500">
+              {t('💥 答错了！', '💥 Wrong!')}
+            </p>
+          )}
         </div>
 
         {/* Combo */}
         {combo >= 3 && gameState !== 'wrong' && (
-            <div
-              className="flex items-center justify-center gap-1 mb-3 relative"
-            >
-              {/* Glow pulse behind combo text */}
-              <span
-                className="absolute inset-0 rounded-full -mx-2 -my-1"
-                style={{ boxShadow: '0 0 16px 4px rgba(245,158,11,0.35)' }}
-              />
-              <Zap className="w-4 h-4 text-amber-500 relative z-10" />
-              <span className="text-sm font-bold text-amber-500 relative z-10">
-                {combo}x {t('连击', 'Combo')}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center justify-center gap-1 mb-3 relative">
+            {/* Glow pulse behind combo text */}
+            <span
+              className="absolute inset-0 rounded-full -mx-2 -my-1"
+              style={{ boxShadow: '0 0 16px 4px rgba(245,158,11,0.35)' }}
+            />
+            <Zap className="w-4 h-4 text-amber-500 relative z-10" />
+            <span className="text-sm font-bold text-amber-500 relative z-10">
+              {combo}x {t('连击', 'Combo')}
+            </span>
+          </div>
+        )}
 
         {/* Sequence length display during input */}
         {gameState === 'input' && (
-          <p
-            className="text-center text-xs text-secondary mb-2"
-          >
+          <p className="text-center text-xs text-secondary mb-2">
             {t(`序列长度: ${sequence.length}`, `Sequence: ${sequence.length} colors`)}
           </p>
         )}
@@ -315,25 +288,21 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
         )}
 
         {/* Color Grid */}
-        <div
-          className="grid grid-cols-2 gap-4 max-w-[320px] mx-auto mb-6 relative"
-        >
+        <div className="grid grid-cols-2 gap-4 max-w-[320px] mx-auto mb-6 relative">
           {/* Red flash overlay on wrong */}
           {gameState === 'wrong' && (
-              <div
-                className="absolute inset-0 bg-red-500/20 rounded-2xl pointer-events-none z-10"
-              />
-            )}
+            <div className="absolute inset-0 bg-red-500/20 rounded-2xl pointer-events-none z-10" />
+          )}
           {/* Golden flash on level up / speed increase */}
           {levelUpFlash && (
-              <div
-                className="absolute -inset-1 rounded-3xl pointer-events-none z-10"
-                style={{
-                  boxShadow:
-                    '0 0 20px 4px rgba(234,179,8,0.5), inset 0 0 20px 4px rgba(234,179,8,0.15)',
-                }}
-              />
-            )}
+            <div
+              className="absolute -inset-1 rounded-3xl pointer-events-none z-10"
+              style={{
+                boxShadow:
+                  '0 0 20px 4px rgba(234,179,8,0.5), inset 0 0 20px 4px rgba(234,179,8,0.15)',
+              }}
+            />
+          )}
           {COLORS.map((color) => (
             <button
               key={color.id}
@@ -360,19 +329,16 @@ export default function SimonSays({ onBack }: { onBack: () => void }) {
 
         {/* Controls */}
         {(gameState === 'idle' || gameState === 'wrong') && (
-            <div
-              key="controls"
-              className="flex justify-center"
+          <div key="controls" className="flex justify-center">
+            <button
+              onClick={startGame}
+              className="px-8 py-3 bg-primary text-on-primary rounded-full font-semibold flex items-center gap-2 min-h-[48px]"
             >
-              <button
-                onClick={startGame}
-                className="px-8 py-3 bg-primary text-on-primary rounded-full font-semibold flex items-center gap-2 min-h-[48px]"
-              >
-                <RotateCcw className="w-5 h-5" />
-                {gameState === 'wrong' ? t('再来一局', 'Play Again') : t('开始游戏', 'Start Game')}
-              </button>
-            </div>
-          )}
+              <RotateCcw className="w-5 h-5" />
+              {gameState === 'wrong' ? t('再来一局', 'Play Again') : t('开始游戏', 'Start Game')}
+            </button>
+          </div>
+        )}
 
         {/* Instructions */}
         <div className="mt-4 text-center text-xs text-secondary/50">

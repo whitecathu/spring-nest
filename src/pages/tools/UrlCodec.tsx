@@ -74,9 +74,7 @@ export default function UrlCodec({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('URL 编解码', 'URL Codec')}
         </h2>
@@ -130,6 +128,7 @@ export default function UrlCodec({ onBack }: { onBack: () => void }) {
           </label>
           <div className="relative">
             <textarea
+              aria-label={t('待编码 URL 文本', 'URL text to encode')}
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
@@ -183,6 +182,7 @@ export default function UrlCodec({ onBack }: { onBack: () => void }) {
           </label>
           <div className="relative">
             <textarea
+              aria-label={t('编码结果', 'Encoded result')}
               value={output}
               readOnly
               className="w-full bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface text-sm outline-none min-h-[100px] resize-y font-mono"

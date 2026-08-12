@@ -200,9 +200,7 @@ export default function UnitConverter({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('单位换算', 'Unit Converter')}
         </h2>
@@ -232,12 +230,14 @@ export default function UnitConverter({ onBack }: { onBack: () => void }) {
           <div className="flex gap-2">
             <input
               type="number"
+              aria-label={t('待转换数值', 'Value to convert')}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               className="flex-1 bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface text-lg outline-none focus:border-primary/50"
               placeholder="0"
             />
             <select
+              aria-label={t('源单位', 'Source unit')}
               value={fromUnit}
               onChange={(e) => setFromUnit(e.target.value)}
               className="bg-surface-container-low border border-surface-variant/30 rounded-xl px-3 py-3 text-on-surface outline-none focus:border-primary/50 font-medium text-sm min-w-[120px]"
@@ -270,6 +270,7 @@ export default function UnitConverter({ onBack }: { onBack: () => void }) {
               {result || '—'}
             </div>
             <select
+              aria-label={t('目标单位', 'Target unit')}
               value={toUnit}
               onChange={(e) => setToUnit(e.target.value)}
               className="bg-surface-container-low border border-surface-variant/30 rounded-xl px-3 py-3 text-on-surface outline-none focus:border-primary/50 font-medium text-sm min-w-[120px]"

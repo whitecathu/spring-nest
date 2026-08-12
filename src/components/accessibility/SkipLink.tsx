@@ -14,10 +14,7 @@ const EN = 'Skip to main content';
  * view at top-left; clicking it moves focus to the main region so subsequent
  * Tab keystrokes continue from the first focusable element inside main.
  */
-export default function SkipLink({
-  targetId = 'main-content',
-  label,
-}: SkipLinkProps) {
+export default function SkipLink({ targetId = 'main-content', label }: SkipLinkProps) {
   const [forcedLabel] = useState(label);
 
   return (
@@ -34,11 +31,7 @@ export default function SkipLink({
           target.setAttribute('tabindex', '-1');
           target.focus({ preventScroll: false });
           // Clean up after move so it doesn't become tab-stoppable.
-          target.addEventListener(
-            'blur',
-            () => target.removeAttribute('tabindex'),
-            { once: true },
-          );
+          target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
         }
       }}
     >

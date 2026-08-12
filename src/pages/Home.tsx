@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import gsap from 'gsap';
 import {
   Gamepad2,
@@ -199,12 +199,8 @@ export default function Home() {
       >
         <HomeHeroStage toolsCount={tools.length} gamesCount={games.length} />
 
-        <div
-          className="relative z-10 flex w-full max-w-5xl flex-col items-center forest-readable-hero"
-        >
-          <p
-            className="font-nunito text-base font-bold text-primary mb-3 tracking-wide"
-          >
+        <div className="relative z-10 flex w-full max-w-5xl flex-col items-center forest-readable-hero">
+          <p className="font-nunito text-base font-bold text-primary mb-3 tracking-wide">
             <ShinyText
               text="Spring Nest"
               speed={4}
@@ -212,14 +208,10 @@ export default function Home() {
               color="var(--color-primary)"
             />
           </p>
-          <h1
-            className="font-sans font-extrabold text-3xl sm:text-4xl lg:text-5xl forest-page-title mb-4 tracking-tight max-w-4xl"
-          >
+          <h1 className="font-sans font-extrabold text-3xl sm:text-4xl lg:text-5xl forest-page-title mb-4 tracking-tight max-w-4xl">
             {t('免费在线实用工具与休闲小游戏合集', 'Free Online Tools and Casual Games')}
           </h1>
-          <p
-            className="font-nunito text-lg forest-page-subtitle max-w-2xl mx-auto mb-8"
-          >
+          <p className="font-nunito text-lg forest-page-subtitle max-w-2xl mx-auto mb-8">
             {t(
               '免费、轻量、无需登录、即开即用。搜索工具、小游戏、描述或标签，快速打开你需要的内容。',
               'Free, lightweight, no sign-in required, ready on open. Search tools, games, descriptions, or tags and jump straight in.',
@@ -248,10 +240,7 @@ export default function Home() {
                   type="search"
                   value={heroQuery}
                   onChange={(event) => setHeroQuery(event.target.value)}
-                  placeholder={t(
-                    '搜索计算器、2048、JSON…',
-                    'Search calculator, 2048, JSON…',
-                  )}
+                  placeholder={t('搜索计算器、2048、JSON…', 'Search calculator, 2048, JSON…')}
                   className="min-h-[48px] min-w-0 flex-1 bg-transparent px-2 text-base text-on-surface outline-none placeholder:text-secondary/60"
                 />
                 <button
@@ -288,9 +277,7 @@ export default function Home() {
         {/* ========== 2. Recent Usage ========== */}
         {recentItems.length > 0 && (
           <section className="py-12" data-forest-terrain="cards">
-            <div
-              className="flex items-center gap-3 mb-6"
-            >
+            <div className="flex items-center gap-3 mb-6">
               <Clock className="w-5 h-5 text-primary" />
               <h2 className="font-nunito font-bold text-xl text-on-surface drop-shadow-[0_1px_10px_rgba(255,249,242,0.85)]">
                 {t('最近使用', 'Recent')}
@@ -299,10 +286,7 @@ export default function Home() {
 
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1 snap-x snap-mandatory">
               {recentItems.map((item, i) => (
-                <article
-                  key={`${item.type}-${item.id}`}
-                  className="flex-shrink-0 w-44 snap-start"
-                >
+                <article key={`${item.type}-${item.id}`} className="flex-shrink-0 w-44 snap-start">
                   <Link
                     to={item.route}
                     className="min-h-[150px] bg-white dark:bg-surface-container-high rounded-xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_24px_rgba(184,228,201,0.15)] transition-all duration-300 border border-surface-variant/20 flex flex-col items-center gap-3 text-center"
@@ -329,9 +313,7 @@ export default function Home() {
 
         {/* ========== 3. Featured Tools ========== */}
         <section className="py-12" data-forest-terrain="cards">
-          <div
-            className="flex items-center justify-between mb-8"
-          >
+          <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <Flower2 className="w-5 h-5 text-primary fill-primary" />
               <h2 className="font-nunito font-bold text-2xl text-on-surface">
@@ -365,9 +347,7 @@ export default function Home() {
 
         {/* ========== 4. Featured Games ========== */}
         <section className="py-12" data-forest-terrain="cards">
-          <div
-            className="flex items-center justify-between mb-8"
-          >
+          <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <Sparkles className="w-5 h-5 text-tertiary fill-tertiary" />
               <h2 className="font-nunito font-bold text-2xl text-on-surface">
@@ -402,9 +382,7 @@ export default function Home() {
         {/* ========== 5. New Items ========== */}
         {newItems.length > 0 && (
           <section className="py-12" data-forest-terrain="cards">
-            <div
-              className="flex items-center gap-3 mb-6"
-            >
+            <div className="flex items-center gap-3 mb-6">
               <Zap className="w-5 h-5 text-amber-500" />
               <h2 className="font-nunito font-bold text-xl text-on-surface">
                 {t('新上线', 'New')}
@@ -413,10 +391,7 @@ export default function Home() {
 
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1 snap-x snap-mandatory">
               {newItems.map((item, i) => (
-                <article
-                  key={item.id}
-                  className="flex-shrink-0 w-48 snap-start"
-                >
+                <article key={item.id} className="flex-shrink-0 w-48 snap-start">
                   <Link
                     to={item.route}
                     className="min-h-[88px] bg-white dark:bg-surface-container-high rounded-xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_24px_rgba(255,219,205,0.2)] transition-all duration-300 border border-surface-variant/20 flex flex-col gap-3"
@@ -452,9 +427,7 @@ export default function Home() {
 
         {/* ========== 5b. All Tools ========== */}
         <section className="py-12" data-forest-terrain="cards">
-          <div
-            className="flex items-center justify-between mb-8"
-          >
+          <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="font-nunito font-bold text-2xl text-on-surface">
                 {t('全部工具', 'All Tools')}
@@ -492,9 +465,7 @@ export default function Home() {
 
         {/* ========== 5c. All Games ========== */}
         <section className="py-12" data-forest-terrain="cards">
-          <div
-            className="flex items-center justify-between mb-8"
-          >
+          <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="font-nunito font-bold text-2xl text-on-surface">
                 {t('全部小游戏', 'All Games')}
@@ -532,9 +503,7 @@ export default function Home() {
 
         {/* ========== 6. Why Spring Nest ========== */}
         <section className="py-12" data-forest-terrain="cards">
-          <div
-            className="mb-8"
-          >
+          <div className="mb-8">
             <h2 className="font-nunito font-bold text-2xl text-on-surface mb-2">
               {t('为什么选择春日小筑', 'Why Spring Nest')}
             </h2>
@@ -591,9 +560,7 @@ export default function Home() {
 
         {/* ========== 6. Category Quick Links ========== */}
         <section className="py-12 pb-20">
-          <div
-            className="mb-10"
-          >
+          <div className="mb-10">
             <h2 className="font-nunito font-bold text-2xl text-on-surface mb-2">
               {t('分类入口', 'Browse by Category')}
             </h2>

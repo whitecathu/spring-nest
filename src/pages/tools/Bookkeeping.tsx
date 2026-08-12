@@ -1,20 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import gsap from 'gsap';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowLeft,
-  CalendarDays,
   CircleDollarSign,
-  Download,
-  FileUp,
-  PiggyBank,
   Plus,
-  ReceiptText,
   RotateCcw,
-  Search,
   Settings2,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
   Upload,
   X,
   WalletCards,
@@ -23,7 +13,6 @@ import { useUser } from '../../contexts/UserContext';
 import {
   BOOKKEEPING_STORAGE_KEY,
   createBookkeepingEntry,
-  deserializeBookkeepingEntries,
   filterBookkeepingEntries,
   getCurrentMonth,
   getTodayDate,
@@ -41,14 +30,7 @@ import {
   getCategoryLabel,
   type CategoryConfig,
 } from '../../lib/bookkeepingCategories';
-import { springBouncy, springSmooth, toolPageEnter } from '../../lib/animations';
-import {
-  syncBookkeepingToCloud,
-  syncBudgetsToCloud,
-  syncCategoriesToCloud,
-  syncRecurringToCloud,
-  syncLedgersToCloud,
-} from '../../services/bookkeepingSyncService';
+import { toolPageEnter } from '../../lib/animations';
 import {
   loadBudgets,
   setBudget as setBudgetConfig,
@@ -62,10 +44,8 @@ import {
   processRecurringEntries,
   type RecurringRule,
 } from '../../lib/bookkeepingRecurring';
-import BillImporter from '../../components/tools/bookkeeping/BillImporter';
 import BudgetPanel from '../../components/tools/bookkeeping/BudgetPanel';
 import RecurringManager from '../../components/tools/bookkeeping/RecurringManager';
-import StatisticsCharts from '../../components/tools/bookkeeping/StatisticsCharts';
 import LedgerSelector from '../../components/tools/bookkeeping/LedgerSelector';
 import {
   loadLedgers,
@@ -76,83 +56,23 @@ import {
   DEFAULT_LEDGER_ID,
   type Ledger,
 } from '../../lib/bookkeepingLedgers';
+import {
+  accountOptions,
+  buildSampleEntries,
+  loadBookkeepingEntries,
+} from './bookkeeping/bookkeepingPageHelpers';
+import { BookkeepingSummaryTiles } from './bookkeeping/BookkeepingSummaryTiles';
+import { BookkeepingSyncStatus } from './bookkeeping/BookkeepingSyncStatus';
+import { MonthlyLedgerPanel } from './bookkeeping/MonthlyLedgerPanel';
+import { TransactionList } from './bookkeeping/TransactionList';
+import { useBookkeepingCloudSync } from './bookkeeping/useBookkeepingCloudSync';
 
-const accountOptions = [
-  { zh: '现金', en: 'Cash' },
-  { zh: '银行卡', en: 'Bank card' },
-  { zh: '微信', en: 'WeChat' },
-  { zh: '支付宝', en: 'Alipay' },
-];
-
-function loadEntries() {
-  if (typeof window === 'undefined') return [];
-  return deserializeBookkeepingEntries(window.localStorage.getItem(BOOKKEEPING_STORAGE_KEY));
-}
-
-function shiftDate(days: number) {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, '0'),
-    String(date.getDate()).padStart(2, '0'),
-  ].join('-');
-}
-
-function buildSampleEntries() {
-  const samples: BookkeepingDraft[] = [
-    {
-      type: 'expense',
-      amount: '32.80',
-      category: '餐饮',
-      date: getTodayDate(),
-      account: '微信',
-      note: '午餐',
-      tags: [],
-    },
-    {
-      type: 'expense',
-      amount: '8.00',
-      category: '交通',
-      date: shiftDate(-1),
-      account: '支付宝',
-      note: '地铁',
-      tags: [],
-    },
-    {
-      type: 'income',
-      amount: '5200',
-      category: '工资',
-      date: shiftDate(-2),
-      account: '银行卡',
-      note: '月度收入',
-      tags: [],
-    },
-    {
-      type: 'expense',
-      amount: '126.50',
-      category: '学习',
-      date: shiftDate(-4),
-      account: '银行卡',
-      note: '课程资料',
-      tags: [],
-    },
-  ];
-
-  return samples
-    .map((draft, index) =>
-      createBookkeepingEntry(draft, {
-        id: `book_sample_${index}`,
-        now: Date.now() - index * 1000,
-      }),
-    )
-    .filter((entry): entry is BookkeepingEntry => Boolean(entry));
-}
+const BillImporter = lazy(() => import('../../components/tools/bookkeeping/BillImporter'));
 
 export default function Bookkeeping({ onBack }: { onBack: () => void }) {
   const { t, user, isSupabaseEnabled } = useUser();
   const lang = t('zh', 'en') === 'zh' ? 'zh' : 'en';
-  const [entries, setEntries] = useState<BookkeepingEntry[]>(loadEntries);
+  const [entries, setEntries] = useState<BookkeepingEntry[]>(loadBookkeepingEntries);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
   const [typeFilter, setTypeFilter] = useState<'all' | BookkeepingEntryType>('all');
   const [query, setQuery] = useState('');
@@ -220,7 +140,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
 
   // Process recurring entries on mount
   useEffect(() => {
-    const currentEntries = loadEntries();
+    const currentEntries = loadBookkeepingEntries();
     const { newEntries, updatedRules } = processRecurringEntries(recurringRules, currentEntries);
     if (newEntries.length > 0) {
       setEntries((prev) => [...newEntries, ...prev]);
@@ -234,38 +154,17 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     window.localStorage.setItem(BOOKKEEPING_STORAGE_KEY, JSON.stringify(entries));
-    if (user?.id) {
-      syncBookkeepingToCloud(user.id, entries);
-    }
-  }, [entries, user?.id]);
+  }, [entries]);
 
-  // Sync budgets to cloud
-  useEffect(() => {
-    if (user?.id && isSupabaseEnabled) {
-      syncBudgetsToCloud(user.id, budgets).catch(() => {});
-    }
-  }, [budgets, user?.id, isSupabaseEnabled]);
-
-  // Sync categories to cloud
-  useEffect(() => {
-    if (user?.id && isSupabaseEnabled) {
-      syncCategoriesToCloud(user.id, categories).catch(() => {});
-    }
-  }, [categories, user?.id, isSupabaseEnabled]);
-
-  // Sync recurring rules to cloud
-  useEffect(() => {
-    if (user?.id && isSupabaseEnabled) {
-      syncRecurringToCloud(user.id, recurringRules).catch(() => {});
-    }
-  }, [recurringRules, user?.id, isSupabaseEnabled]);
-
-  // Sync ledgers to cloud
-  useEffect(() => {
-    if (user?.id && isSupabaseEnabled) {
-      syncLedgersToCloud(user.id, ledgers).catch(() => {});
-    }
-  }, [ledgers, user?.id, isSupabaseEnabled]);
+  const bookkeepingSync = useBookkeepingCloudSync({
+    enabled: isSupabaseEnabled,
+    userId: user?.id,
+    entries,
+    budgets,
+    categories,
+    recurringRules,
+    ledgers,
+  });
 
   useEffect(
     () => () => {
@@ -432,12 +331,6 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
     }
   };
 
-  const filterButtons: Array<{ id: 'all' | BookkeepingEntryType; label: string }> = [
-    { id: 'all', label: t('全部', 'All') },
-    { id: 'expense', label: t('支出', 'Expense') },
-    { id: 'income', label: t('收入', 'Income') },
-  ];
-
   return (
     <div
       className="relative mx-auto w-full max-w-6xl px-4 py-6"
@@ -467,6 +360,15 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
         <ArrowLeft className="h-5 w-5" />
         {t('返回工具列表', 'Back to Tools')}
       </button>
+
+      <div className="mb-4 flex justify-end">
+        <BookkeepingSyncStatus
+          t={t}
+          status={bookkeepingSync.status}
+          lastError={bookkeepingSync.lastError}
+          onRetry={() => void bookkeepingSync.retry()}
+        />
+      </div>
 
       <div {...toolPageEnter} className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
         <section className="rounded-3xl border border-surface-variant/30 bg-white/85 p-5 shadow-lg shadow-primary-container/20 dark:bg-surface-container-high/80 dark:shadow-none">
@@ -562,90 +464,88 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
             </div>
 
             {showCategoryManager && (
-                <div
-                  className="overflow-hidden"
-                >
-                  <div className="rounded-2xl border border-surface-variant/40 bg-surface-container-low p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-secondary">
-                        {t('管理分类', 'Manage Categories')}
+              <div className="overflow-hidden">
+                <div className="rounded-2xl border border-surface-variant/40 bg-surface-container-low p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-secondary">
+                      {t('管理分类', 'Manage Categories')}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetCategories();
+                        setCategories(loadCategories());
+                      }}
+                      className="text-xs text-secondary hover:text-primary transition-colors"
+                    >
+                      {t('重置默认', 'Reset')}
+                    </button>
+                  </div>
+                  {(['expense', 'income'] as const).map((type) => (
+                    <div key={type}>
+                      <p className="mb-1.5 text-xs font-semibold text-on-surface-variant">
+                        {type === 'expense' ? t('支出分类', 'Expense') : t('收入分类', 'Income')}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          resetCategories();
-                          setCategories(loadCategories());
-                        }}
-                        className="text-xs text-secondary hover:text-primary transition-colors"
-                      >
-                        {t('重置默认', 'Reset')}
-                      </button>
-                    </div>
-                    {(['expense', 'income'] as const).map((type) => (
-                      <div key={type}>
-                        <p className="mb-1.5 text-xs font-semibold text-on-surface-variant">
-                          {type === 'expense' ? t('支出分类', 'Expense') : t('收入分类', 'Income')}
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {categories[type].map((cat) => (
-                            <span
-                              key={cat}
-                              className="inline-flex items-center gap-1 rounded-full bg-surface-container-high px-2.5 py-1 text-xs font-medium text-on-surface"
-                            >
-                              {getCategoryLabel(cat, lang)}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setCategories(removeCategory(type, cat));
-                                  if (draft.category === cat) {
-                                    const updated = loadCategories();
-                                    setDraft((d) => ({
-                                      ...d,
-                                      category: updated[type][0],
-                                    }));
-                                  }
-                                }}
-                                className="ml-0.5 text-secondary hover:text-red-500 transition-colors"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                        <div className="mt-2 flex gap-2">
-                          <input
-                            value={newCategoryName}
-                            onChange={(e) => setNewCategoryName(e.target.value)}
-                            placeholder={t('新分类名', 'New category')}
-                            className="flex-1 rounded-lg border border-surface-variant/40 bg-surface px-2.5 py-1.5 text-xs outline-none focus:border-primary"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                if (newCategoryName.trim()) {
-                                  setCategories(addCategory(type, newCategoryName));
-                                  setNewCategoryName('');
+                      <div className="flex flex-wrap gap-1.5">
+                        {categories[type].map((cat) => (
+                          <span
+                            key={cat}
+                            className="inline-flex items-center gap-1 rounded-full bg-surface-container-high px-2.5 py-1 text-xs font-medium text-on-surface"
+                          >
+                            {getCategoryLabel(cat, lang)}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCategories(removeCategory(type, cat));
+                                if (draft.category === cat) {
+                                  const updated = loadCategories();
+                                  setDraft((d) => ({
+                                    ...d,
+                                    category: updated[type][0],
+                                  }));
                                 }
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
+                              }}
+                              className="ml-0.5 text-secondary hover:text-red-500 transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <input
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder={t('新分类名', 'New category')}
+                          className="flex-1 rounded-lg border border-surface-variant/40 bg-surface px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
                               if (newCategoryName.trim()) {
                                 setCategories(addCategory(type, newCategoryName));
                                 setNewCategoryName('');
                               }
-                            }}
-                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-on-primary"
-                          >
-                            <Plus className="h-3 w-3" />
-                          </button>
-                        </div>
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newCategoryName.trim()) {
+                              setCategories(addCategory(type, newCategoryName));
+                              setNewCategoryName('');
+                            }
+                          }}
+                          className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-on-primary"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-[0.8fr_1.2fr]">
               <label className="grid gap-2 text-sm font-bold text-on-surface">
@@ -700,6 +600,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
                             tags: d.tags.filter((t) => t !== tag),
                           }))
                         }
+                        aria-label={t(`删除标签 ${tag}`, `Remove tag ${tag}`)}
                         className="text-on-primary-container/60 hover:text-red-500 transition-colors"
                       >
                         <X className="h-3 w-3" />
@@ -709,6 +610,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
                 </div>
               )}
               <input
+                aria-label={t('交易标签', 'Transaction tags')}
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -756,32 +658,7 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
         </section>
 
         <section className="space-y-5">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <SummaryTile
-              icon={<TrendingUp className="h-5 w-5" />}
-              label={t('本月收入', 'Monthly income')}
-              value={formatMoney(summary.income)}
-              tone="text-primary"
-            />
-            <SummaryTile
-              icon={<TrendingDown className="h-5 w-5" />}
-              label={t('本月支出', 'Monthly expense')}
-              value={formatMoney(summary.expense)}
-              tone="text-tertiary"
-            />
-            <SummaryTile
-              icon={<PiggyBank className="h-5 w-5" />}
-              label={t('本月结余', 'Balance')}
-              value={formatMoney(summary.balance)}
-              tone={summary.balance >= 0 ? 'text-primary' : 'text-red-600 dark:text-red-300'}
-            />
-            <SummaryTile
-              icon={<CalendarDays className="h-5 w-5" />}
-              label={t('有支出日均', 'Daily expense')}
-              value={formatMoney(summary.dailyExpense)}
-              tone="text-on-surface"
-            />
-          </div>
+          <BookkeepingSummaryTiles t={t} summary={summary} formatMoney={formatMoney} />
 
           <LedgerSelector
             t={t}
@@ -812,257 +689,64 @@ export default function Bookkeeping({ onBack }: { onBack: () => void }) {
             onDelete={handleRecurringDelete}
           />
 
-          <div className="rounded-3xl border border-surface-variant/30 bg-white/80 p-5 dark:bg-surface-container-high/75">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-black text-on-surface">
-                  {t('月度账目', 'Monthly ledger')}
-                </h2>
-                <p className="mt-1 text-sm text-secondary">
-                  {t(
-                    '筛选、查看分类占比并导出本月数据。',
-                    'Filter, review categories, and export this month.',
-                  )}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowImporter(true)}
-                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-surface-container px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-variant"
-                >
-                  <FileUp className="h-4 w-4" />
-                  {t('导入', 'Import')}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleExport}
-                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-surface-container px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-variant"
-                >
-                  <Download className="h-4 w-4" />
-                  {t('导出 CSV', 'Export CSV')}
-                </button>
-              </div>
-            </div>
+          <MonthlyLedgerPanel
+            t={t}
+            entries={entries}
+            selectedMonth={selectedMonth}
+            onSelectedMonthChange={setSelectedMonth}
+            query={query}
+            onQueryChange={setQuery}
+            typeFilter={typeFilter}
+            onTypeFilterChange={setTypeFilter}
+            summary={summary}
+            formatMoney={formatMoney}
+            showCharts={showCharts}
+            onToggleCharts={() => setShowCharts((current) => !current)}
+            onOpenImporter={() => setShowImporter(true)}
+            onExport={handleExport}
+          />
 
-            <div className="grid gap-3 md:grid-cols-[160px_1fr]">
-              <label className="grid gap-2 text-sm font-bold text-on-surface">
-                {t('月份', 'Month')}
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(event) => setSelectedMonth(event.target.value || getCurrentMonth())}
-                  className="min-h-[48px] rounded-2xl border border-surface-variant/40 bg-surface-container-low px-4 text-on-surface outline-none focus:border-primary"
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-bold text-on-surface">
-                {t('搜索', 'Search')}
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary/60" />
-                  <input
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder={t(
-                      '搜索分类、账户、备注或日期',
-                      'Search category, account, note, or date',
-                    )}
-                    className="min-h-[48px] w-full rounded-2xl border border-surface-variant/40 bg-surface-container-low py-3 pl-11 pr-4 text-on-surface outline-none focus:border-primary"
-                  />
-                </div>
-              </label>
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {filterButtons.map((button) => (
-                <button
-                  key={button.id}
-                  type="button"
-                  onClick={() => setTypeFilter(button.id)}
-                  className={`min-h-[44px] rounded-full px-4 text-sm font-bold transition-colors ${
-                    typeFilter === button.id
-                      ? 'bg-primary text-on-primary'
-                      : 'bg-surface-container-low text-secondary hover:bg-surface-container-high'
-                  }`}
-                >
-                  {button.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-on-surface">
-                  {typeFilter === 'income'
-                    ? t('收入分类占比', 'Income categories')
-                    : t('支出分类占比', 'Expense categories')}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setShowCharts((v) => !v)}
-                  className="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
-                >
-                  {showCharts ? t('简化视图', 'Simple') : t('图表视图', 'Charts')}
-                </button>
-              </div>
-              {showCharts ? (
-                <StatisticsCharts t={t} entries={entries} selectedMonth={selectedMonth} typeFilter={typeFilter} />
-              ) : summary.categoryTotals.length > 0 ? (
-                <div className="space-y-3">
-                  {summary.categoryTotals.slice(0, 6).map((category) => (
-                    <div key={category.category}>
-                      <div className="mb-1 flex justify-between gap-3 text-sm">
-                        <span className="font-semibold text-on-surface">{category.category}</span>
-                        <span className="font-bold tabular-nums text-secondary">
-                          {formatMoney(category.total)}
-                        </span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-surface-container-high">
-                        <div
-                          className="h-full rounded-full bg-primary"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="rounded-2xl bg-surface-container-low p-4 text-sm leading-relaxed text-secondary">
-                  {typeFilter === 'income'
-                    ? t('本月还没有收入记录。', 'No income records this month yet.')
-                    : t('本月还没有支出记录。', 'No expense records this month yet.')}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-surface-variant/30 bg-white/80 p-5 dark:bg-surface-container-high/75">
-            <h2 className="mb-4 flex items-center gap-2 text-xl font-black text-on-surface">
-              <ReceiptText className="h-5 w-5 text-primary" />
-              {t('记录明细', 'Transactions')}
-            </h2>
-
-            {visibleEntries.length > 0 ? (
-                <div className="space-y-3">
-                  {visibleEntries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="grid gap-3 rounded-2xl bg-surface-container-low p-4 sm:grid-cols-[1fr_auto] sm:items-center"
-                    >
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-black ${
-                              entry.type === 'income'
-                                ? 'bg-primary-container/50 text-on-primary-container'
-                                : 'bg-tertiary-container/50 text-on-tertiary-container'
-                            }`}
-                          >
-                            {entry.type === 'income' ? t('收入', 'Income') : t('支出', 'Expense')}
-                          </span>
-                          <span className="text-sm font-bold text-on-surface">
-                            {entry.category}
-                          </span>
-                          <span className="text-xs font-semibold text-secondary">{entry.date}</span>
-                        </div>
-                        <p className="mt-2 truncate text-sm text-secondary">
-                          {entry.note || t('无备注', 'No note')} · {entry.account}
-                        </p>
-                        {entry.tags && entry.tags.length > 0 && (
-                          <div className="mt-1.5 flex flex-wrap gap-1">
-                            {entry.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="rounded-full bg-primary-container/30 px-2 py-0.5 text-[10px] font-semibold text-on-primary-container"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between gap-3 sm:justify-end">
-                        <span
-                          className={`text-lg font-black tabular-nums ${
-                            entry.type === 'income'
-                              ? 'text-primary'
-                              : 'text-on-surface dark:text-on-surface'
-                          }`}
-                        >
-                          {entry.type === 'income' ? '+' : '-'}
-                          {formatMoney(entry.amount)}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setEntries((current) => current.filter((item) => item.id !== entry.id))
-                          }
-                          aria-label={t('删除这条记录', 'Delete this record')}
-                          title={t('删除', 'Delete')}
-                          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-secondary transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div
-                  key="empty-ledger"
-                  className="rounded-2xl bg-surface-container-low p-8 text-center"
-                >
-                  <ReceiptText className="mx-auto mb-3 h-10 w-10 text-secondary/35" />
-                  <p className="text-sm font-semibold text-secondary">
-                    {t(
-                      '没有匹配的记录。新增一笔或调整筛选条件。',
-                      'No matching records. Add one or adjust filters.',
-                    )}
-                  </p>
-                </div>
-              )}
-          </div>
+          <TransactionList
+            t={t}
+            entries={visibleEntries}
+            formatMoney={formatMoney}
+            onDelete={(id) => setEntries((current) => current.filter((entry) => entry.id !== id))}
+          />
         </section>
       </div>
 
       {showImporter && (
-        <BillImporter
-          t={t}
-          onImport={handleBillImport}
-          onClose={() => { setShowImporter(false); setDroppedFile(null); }}
-          initialFile={droppedFile}
-        />
+        <Suspense
+          fallback={
+            <div
+              role="status"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 text-sm font-bold text-white"
+            >
+              {t('正在加载导入工具…', 'Loading importer…')}
+            </div>
+          }
+        >
+          <BillImporter
+            t={t}
+            onImport={handleBillImport}
+            onClose={() => {
+              setShowImporter(false);
+              setDroppedFile(null);
+            }}
+            initialFile={droppedFile}
+          />
+        </Suspense>
       )}
 
       {toast && (
-          <div
-            role="status"
-            aria-live="polite"
-            className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-on-surface px-4 py-2 text-sm font-bold text-surface shadow-lg"
-          >
-            {toast}
-          </div>
-        )}
-    </div>
-  );
-}
-
-function SummaryTile({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  tone: string;
-}) {
-  return (
-    <div className="rounded-3xl border border-surface-variant/30 bg-white/80 p-4 dark:bg-surface-container-high/75">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-surface-container-low text-primary">
-        {icon}
-      </div>
-      <p className="text-xs font-bold uppercase text-secondary">{label}</p>
-      <p className={`mt-1 break-words text-xl font-black tabular-nums ${tone}`}>{value}</p>
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-on-surface px-4 py-2 text-sm font-bold text-surface shadow-lg"
+        >
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

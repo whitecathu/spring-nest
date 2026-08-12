@@ -25,11 +25,7 @@ export {
 
 export { isInteractiveForestTarget, isDecorativeHit } from './hitTest';
 
-export {
-  createWindField,
-  type WindField,
-  type WindSample,
-} from './windField';
+export { createWindField, type WindField, type WindSample } from './windField';
 
 export {
   TERRAIN_DAMPING,

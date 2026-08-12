@@ -503,42 +503,32 @@ export default function NumberPuzzle({ onBack }: { onBack: () => void }) {
 
         {/* Win overlay */}
         {won && (
-            <div
-              className="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-2xl text-center"
-            >
-              <p
-                className="text-3xl mb-2"
-              >
-                🧩
-              </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
-                {t('恭喜完成！', 'Congratulations!')}
-              </p>
-              <div className="flex justify-center gap-4 mb-4">
-                <div>
-                  <p className="text-xs text-green-500">{t('步数', 'Moves')}</p>
-                  <p className="text-xl font-bold text-green-600">{moves}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-green-500">{t('用时', 'Time')}</p>
-                  <p className="text-xl font-bold text-green-600">{formatTime(elapsed)}</p>
-                </div>
+          <div className="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-2xl text-center">
+            <p className="text-3xl mb-2">🧩</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
+              {t('恭喜完成！', 'Congratulations!')}
+            </p>
+            <div className="flex justify-center gap-4 mb-4">
+              <div>
+                <p className="text-xs text-green-500">{t('步数', 'Moves')}</p>
+                <p className="text-xl font-bold text-green-600">{moves}</p>
               </div>
-              {(moves === bestMoves || elapsed === bestTime) && (
-                <p
-                  className="text-sm text-yellow-500 mb-3"
-                >
-                  🏆 {t('新纪录！', 'New Record!')}
-                </p>
-              )}
-              <button
-                onClick={() => newGame()}
-                className="px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors min-h-[44px]"
-              >
-                {t('再来一局', 'Play Again')}
-              </button>
+              <div>
+                <p className="text-xs text-green-500">{t('用时', 'Time')}</p>
+                <p className="text-xl font-bold text-green-600">{formatTime(elapsed)}</p>
+              </div>
             </div>
-          )}
+            {(moves === bestMoves || elapsed === bestTime) && (
+              <p className="text-sm text-yellow-500 mb-3">🏆 {t('新纪录！', 'New Record!')}</p>
+            )}
+            <button
+              onClick={() => newGame()}
+              className="px-6 py-3 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors min-h-[44px]"
+            >
+              {t('再来一局', 'Play Again')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

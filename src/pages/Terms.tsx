@@ -43,9 +43,7 @@ function Section({ icon, title, children, defaultOpen = false }: SectionProps) {
         )}
       </button>
       {isOpen && (
-        <div
-          className="px-6 pb-6"
-        >
+        <div className="px-6 pb-6">
           <div className="text-on-surface-variant leading-relaxed space-y-4">{children}</div>
         </div>
       )}
@@ -72,9 +70,7 @@ export default function Terms() {
   };
 
   return (
-    <div
-      className="max-w-[900px] mx-auto px-6 py-16 w-full"
-    >
+    <div className="max-w-[900px] mx-auto px-6 py-16 w-full">
       <SEO
         title={t('服务条款 - Spring Nest 春日小筑', 'Terms of Service - Spring Nest')}
         description={t(

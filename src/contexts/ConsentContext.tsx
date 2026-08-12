@@ -30,6 +30,9 @@ interface ConsentContextValue {
 }
 
 const CONSENT_KEY = 'spring_nest_consent_v1';
+const GOOGLE_FONTS_ID = 'spring-nest-google-fonts';
+const GOOGLE_FONTS_URL =
+  'https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=optional';
 const defaultState: ConsentState = { necessary: true, analytics: false, given: false };
 
 const ConsentContext = createContext<ConsentContextValue | undefined>(undefined);
@@ -63,7 +66,25 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
   // Whenever the user's decision changes, sync to the error reporter so
   // off-device error forwarding (Sentry) respects consent.
   useEffect(() => {
-    setAnalyticsConsent(consent.analytics && consent.given);
+    void setAnalyticsConsent(consent.analytics && consent.given);
+  }, [consent.analytics, consent.given]);
+
+  useEffect(() => {
+    const existing = document.getElementById(GOOGLE_FONTS_ID);
+    if (!consent.analytics || !consent.given) {
+      existing?.remove();
+      return;
+    }
+    if (existing) return;
+
+    const stylesheet = document.createElement('link');
+    stylesheet.id = GOOGLE_FONTS_ID;
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = GOOGLE_FONTS_URL;
+    stylesheet.referrerPolicy = 'no-referrer';
+    document.head.appendChild(stylesheet);
+
+    return () => stylesheet.remove();
   }, [consent.analytics, consent.given]);
 
   const acceptAll = useCallback(() => {

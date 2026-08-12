@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import gsap from 'gsap';
 import { Flower2, Sparkles, ArrowRight } from 'lucide-react';
 import type { AppItem } from '../../types/app';
@@ -30,9 +30,7 @@ export default function FeaturedTools({
     <>
       {/* Featured Tools */}
       <section className="py-12">
-        <div
-          className="flex items-center justify-between mb-8"
-        >
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <Flower2 className="w-5 h-5 text-primary fill-primary" />
             <h2 className="font-nunito font-bold text-2xl text-on-surface">
@@ -48,9 +46,7 @@ export default function FeaturedTools({
           </button>
         </div>
 
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredTools.map((tool) => (
             <div key={tool.id}>
               <CatalogItemCard
@@ -69,9 +65,7 @@ export default function FeaturedTools({
 
       {/* Featured Games */}
       <section className="py-12">
-        <div
-          className="flex items-center justify-between mb-8"
-        >
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-tertiary fill-tertiary" />
             <h2 className="font-nunito font-bold text-2xl text-on-surface">
@@ -87,9 +81,7 @@ export default function FeaturedTools({
           </button>
         </div>
 
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredGames.map((game) => (
             <div key={game.id}>
               <CatalogItemCard

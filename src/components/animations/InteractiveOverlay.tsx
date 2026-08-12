@@ -18,12 +18,7 @@ const pVy = new Float32Array(MAX_PARTICLES);
 const pLife = new Float32Array(MAX_PARTICLES);
 const pSize = new Float32Array(MAX_PARTICLES);
 
-function initParticles(
-  count: number,
-  w: number,
-  h: number,
-  start: number,
-) {
+function initParticles(count: number, w: number, h: number, start: number) {
   for (let i = start; i < start + count && i < MAX_PARTICLES; i++) {
     pX[i] = Math.random() * w;
     pY[i] = Math.random() * h;
@@ -34,12 +29,7 @@ function initParticles(
   }
 }
 
-function burstParticles(
-  cx: number,
-  cy: number,
-  count: number,
-  start: number,
-) {
+function burstParticles(cx: number, cy: number, count: number, start: number) {
   for (let i = start; i < start + count && i < MAX_PARTICLES; i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = 1.5 + Math.random() * 3;
@@ -52,11 +42,7 @@ function burstParticles(
   }
 }
 
-function InteractiveOverlayInner({
-  mode,
-  dark,
-  pointerRef,
-}: InteractiveOverlayProps) {
+function InteractiveOverlayInner({ mode, dark, pointerRef }: InteractiveOverlayProps) {
   const reducedMotion = useReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const countRef = useRef(0);
@@ -92,9 +78,7 @@ function InteractiveOverlayInner({
 
     initParticles(baseCount, window.innerWidth, window.innerHeight, 0);
 
-    const color = dark
-      ? 'oklch(83% 0.11 145 / 0.5)'
-      : 'oklch(50% 0.11 145 / 0.4)';
+    const color = dark ? 'oklch(83% 0.11 145 / 0.5)' : 'oklch(50% 0.11 145 / 0.4)';
 
     let raf = 0;
     const render = () => {

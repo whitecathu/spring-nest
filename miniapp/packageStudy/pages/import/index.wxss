@@ -1,7 +1,7 @@
 .import-page {
   min-height: 100vh;
   padding: 16px 18px calc(28px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(165, 208, 182, 0.14) 0%, transparent 200px), #FAF8F5;
+  background: linear-gradient(180deg, rgba(165, 208, 182, 0.14) 0%, transparent 200px), #faf8f5;
   box-sizing: border-box;
 }
 
@@ -23,7 +23,7 @@
   margin: 10px 0 4px;
   font-size: 13px;
   font-weight: 700;
-  color: #2D6A4F;
+  color: #2d6a4f;
 }
 
 .file-card {
@@ -49,8 +49,8 @@
   width: 84px;
   height: 84px;
   border-radius: 24px;
-  background: #FAF3EB;
-  color: #8B786D;
+  background: #faf3eb;
+  color: #8b786d;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,7 +125,7 @@
   font-size: 15px;
   font-weight: 700;
   line-height: 48px;
-  font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+  font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
   box-sizing: border-box;
   color: #1b4332;
 }
@@ -172,7 +172,7 @@
   margin-top: 4px;
   font-size: 11px;
   font-weight: 800;
-  color: #2D6A4F;
+  color: #2d6a4f;
 }
 
 .tip-line {

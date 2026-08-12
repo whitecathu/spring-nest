@@ -42,21 +42,18 @@ export function useFocusTrap(
     // Remember the element that had focus before we opened the trap so we can
     // hand it back on teardown.
     const previouslyFocused =
-      typeof document !== 'undefined'
-        ? (document.activeElement as HTMLElement | null)
-        : null;
+      typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
 
     // Move focus into the dialog.
     const focusTarget =
-      initialFocus ??
-      (container.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? container);
+      initialFocus ?? container.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? container;
     // Defer a tick so transition/mount completes before we steal focus.
     const t = window.setTimeout(() => focusTarget.focus({ preventScroll: true }), 0);
 
     const getFocusable = (): HTMLElement[] =>
-      Array.from(
-        container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+        (el) => el.offsetParent !== null || el === document.activeElement,
+      );
 
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -75,9 +72,7 @@ export function useFocusTrap(
       const first = candidates[0];
       const last = candidates[candidates.length - 1];
       const activeEl =
-        typeof document !== 'undefined'
-          ? (document.activeElement as HTMLElement | null)
-          : null;
+        typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
 
       if (e.shiftKey) {
         if (activeEl === first || !container.contains(activeEl)) {

@@ -1,5 +1,5 @@
 import { Home, RefreshCw, WifiOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import SEO from '../components/SEO';
 import { useUser } from '../contexts/UserContext';
 

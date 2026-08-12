@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { createFpsTierController, useForestTier, type ForestTier } from './forestTier';
 import { createWindField, type WindSample } from './windField';
 import { detectTerrainFromScroller, type ForestTerrain } from './scrollTerrain';
@@ -480,9 +480,7 @@ export function ForestRuntimeProvider({ children }: { children: ReactNode }) {
   // Prefer the getter-based API so consumers always read live snapshot fields.
   const value = apiRef.current;
 
-  return (
-    <ForestRuntimeContext.Provider value={value}>{children}</ForestRuntimeContext.Provider>
-  );
+  return <ForestRuntimeContext.Provider value={value}>{children}</ForestRuntimeContext.Provider>;
 }
 
 export function useForestRuntime(): ForestRuntimeApi {

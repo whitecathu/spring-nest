@@ -7,10 +7,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  workers: process.env.CI ? 1 : 4,
+  reporter: [['html', { open: 'never' }]],
   use: {
     baseURL: previewUrl,
+    serviceWorkers: 'block',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -35,8 +36,8 @@ export default defineConfig({
   webServer: {
     command: process.env.CI
       ? 'npm run preview -- --host 127.0.0.1 --port 4173'
-      : 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173',
+      : 'npm run build -- --mode e2e && npm run preview -- --host 127.0.0.1 --port 4173',
     url: previewUrl,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
 });

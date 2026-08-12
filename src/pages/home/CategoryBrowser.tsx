@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import gsap from 'gsap';
 import {
   Gamepad2,
@@ -91,9 +91,7 @@ export default function CategoryBrowser({ t }: CategoryBrowserProps) {
 
   return (
     <section className="py-12 pb-20">
-      <div
-        className="mb-10"
-      >
+      <div className="mb-10">
         <h2 className="font-nunito font-bold text-2xl text-on-surface mb-2">
           {t('分类入口', 'Browse by Category')}
         </h2>

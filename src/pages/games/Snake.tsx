@@ -332,20 +332,13 @@ export default function Snake({ onBack }: { onBack: () => void }) {
             </p>
           </div>
           <div className="flex gap-2">
-            <div
-              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <div
-                key={score}
-                className="text-xl font-bold text-primary tabular-nums"
-              >
+              <div key={score} className="text-xl font-bold text-primary tabular-nums">
                 {score}
               </div>
             </div>
-            <div
-              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
                 <Trophy className="w-3 h-3" />
                 {t('最佳', 'Best')}
@@ -399,18 +392,8 @@ export default function Snake({ onBack }: { onBack: () => void }) {
                   key={i}
                   className={`aspect-square rounded-sm flex items-center justify-center text-xs ${cellBg}`}
                 >
-                  {isHead && (
-                    <div
-                      className="w-[85%] h-[85%] rounded-sm"
-                    />
-                  )}
-                  {isFood && (
-                    <span
-                      className="drop-shadow-sm"
-                    >
-                      🍎
-                    </span>
-                  )}
+                  {isHead && <div className="w-[85%] h-[85%] rounded-sm" />}
+                  {isFood && <span className="drop-shadow-sm">🍎</span>}
                 </div>
               );
             })}
@@ -437,19 +420,19 @@ export default function Snake({ onBack }: { onBack: () => void }) {
           {/* Score popup layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {scorePopups.map((p) => {
-                const cellPercent = 100 / GRID_SIZE;
-                const px = (p.cellX + 0.5) * cellPercent;
-                const py = (p.cellY + 0.5) * cellPercent;
-                return (
-                  <div
-                    key={p.id}
-                    className="absolute font-black text-lg text-emerald-500 drop-shadow-md"
-                    style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
-                  >
-                    +1
-                  </div>
-                );
-              })}
+              const cellPercent = 100 / GRID_SIZE;
+              const px = (p.cellX + 0.5) * cellPercent;
+              const py = (p.cellY + 0.5) * cellPercent;
+              return (
+                <div
+                  key={p.id}
+                  className="absolute font-black text-lg text-emerald-500 drop-shadow-md"
+                  style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
+                >
+                  +1
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -539,38 +522,28 @@ export default function Snake({ onBack }: { onBack: () => void }) {
 
         {/* Game Over Panel - matched to WhackAMole style */}
         {gameOver && (
-            <div
-              className="mt-6 p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-700/30 rounded-2xl text-center"
+          <div className="mt-6 p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-700/30 rounded-2xl text-center">
+            <p className="text-3xl mb-2">🐍</p>
+            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
+              {t('游戏结束', 'Game Over')}
+            </p>
+            <p className="text-xl font-bold text-orange-500 mb-1">
+              {t('得分', 'Score')}: {score}
+            </p>
+            <p className="text-xs text-orange-400 mb-1">
+              {t('难度', 'Difficulty')}: {t(...SPEEDS[difficulty].label)}
+            </p>
+            {score > 0 && score === bestScore && (
+              <p className="text-sm text-orange-500 mb-4">🏆 {t('新纪录！', 'New Record!')}</p>
+            )}
+            <button
+              onClick={startGame}
+              className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]"
             >
-              <p
-                className="text-3xl mb-2"
-              >
-                🐍
-              </p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
-                {t('游戏结束', 'Game Over')}
-              </p>
-              <p className="text-xl font-bold text-orange-500 mb-1">
-                {t('得分', 'Score')}: {score}
-              </p>
-              <p className="text-xs text-orange-400 mb-1">
-                {t('难度', 'Difficulty')}: {t(...SPEEDS[difficulty].label)}
-              </p>
-              {score > 0 && score === bestScore && (
-                <p
-                  className="text-sm text-orange-500 mb-4"
-                >
-                  🏆 {t('新纪录！', 'New Record!')}
-                </p>
-              )}
-              <button
-                onClick={startGame}
-                className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]"
-              >
-                {t('再来一局', 'Play Again')}
-              </button>
-            </div>
-          )}
+              {t('再来一局', 'Play Again')}
+            </button>
+          </div>
+        )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t(

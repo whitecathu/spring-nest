@@ -38,9 +38,7 @@ export default function About() {
   };
 
   return (
-    <div
-      className="max-w-[1200px] mx-auto px-6 py-16 w-full"
-    >
+    <div className="max-w-[1200px] mx-auto px-6 py-16 w-full">
       <SEO
         title={t('关于 Spring Nest 春日小筑', 'About Spring Nest')}
         description={t(
@@ -87,9 +85,7 @@ export default function About() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
 
-          <div
-            className="absolute bottom-12 left-12 glass-card p-8 rounded-3xl max-w-md hidden lg:block"
-          >
+          <div className="absolute bottom-12 left-12 glass-card p-8 rounded-3xl max-w-md hidden lg:block">
             <div className="flex items-center gap-3 mb-2 text-primary font-bold">
               <Sprout className="w-5 h-5" />
               Spring Nest Story
@@ -127,10 +123,7 @@ export default function About() {
               color: 'bg-secondary-container text-on-secondary-container',
             },
           ].map((stat, i) => (
-            <div
-              key={i}
-              className="glass-card rounded-[32px] p-8 text-center"
-            >
+            <div key={i} className="glass-card rounded-[32px] p-8 text-center">
               <div
                 className={`w-16 h-16 ${stat.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}
               >
@@ -167,10 +160,7 @@ export default function About() {
             { name: 'Vitest', desc: t('单元测试', 'Unit Testing') },
             { name: 'Playwright', desc: t('E2E 测试', 'E2E Testing') },
           ].map((tech, i) => (
-            <div
-              key={i}
-              className="bg-surface-container-high rounded-2xl p-5 text-center"
-            >
+            <div key={i} className="bg-surface-container-high rounded-2xl p-5 text-center">
               <p className="font-bold text-on-surface mb-1">{tech.name}</p>
               <p className="text-xs text-secondary">{tech.desc}</p>
             </div>
@@ -231,9 +221,7 @@ export default function About() {
 
         {/* Mission & Vision Cards */}
         <div className="lg:col-span-5 space-y-8 lg:mt-12">
-          <div
-            className="glass-card p-10 rounded-[40px] border-l-8 border-primary"
-          >
+          <div className="glass-card p-10 rounded-[40px] border-l-8 border-primary">
             <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary">
               <Verified className="w-8 h-8" />
             </div>
@@ -248,9 +236,7 @@ export default function About() {
             </p>
           </div>
 
-          <div
-            className="bg-surface-container-high p-10 rounded-[40px] border-l-8 border-tertiary"
-          >
+          <div className="bg-surface-container-high p-10 rounded-[40px] border-l-8 border-tertiary">
             <div className="w-14 h-14 bg-tertiary/10 rounded-2xl flex items-center justify-center mb-6 text-tertiary">
               <Users className="w-8 h-8" />
             </div>
@@ -274,9 +260,7 @@ export default function About() {
           <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-primary-container/30 rounded-full blur-[80px] group-hover:bg-primary-container/40 transition-colors"></div>
 
           <div className="relative z-10">
-            <div
-              className="w-20 h-20 bg-white/80 rounded-3xl flex items-center justify-center shadow-xl mb-8 mx-auto text-primary"
-            >
+            <div className="w-20 h-20 bg-white/80 rounded-3xl flex items-center justify-center shadow-xl mb-8 mx-auto text-primary">
               <Mail className="w-10 h-10" />
             </div>
             <h3 className="text-4xl font-bold text-on-surface mb-6 font-nunito">

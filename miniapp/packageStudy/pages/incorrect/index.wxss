@@ -1,7 +1,7 @@
 .list-page {
   min-height: 100vh;
   padding: 16px 18px calc(28px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(178, 56, 56, 0.06) 0%, transparent 180px), #FAF8F5;
+  background: linear-gradient(180deg, rgba(178, 56, 56, 0.06) 0%, transparent 180px), #faf8f5;
   box-sizing: border-box;
 }
 
@@ -16,7 +16,7 @@
 .page-desc {
   margin-top: 0;
   font-size: 13px;
-  color: #AA7474;
+  color: #aa7474;
   font-weight: 500;
   line-height: 1.55;
   flex: 1;
@@ -30,7 +30,7 @@
   flex-shrink: 0;
   font-size: 12px;
   font-weight: 800;
-  color: #B23838;
+  color: #b23838;
   padding: 6px 10px;
   margin-top: -2px;
   border-radius: 999px;
@@ -41,7 +41,7 @@
   margin-top: 28px;
   background: #fff;
   border-radius: 28px;
-  border: 1px dashed #F7EAEB;
+  border: 1px dashed #f7eaeb;
   padding: 36px 20px;
   text-align: center;
 }
@@ -51,8 +51,8 @@
   height: 52px;
   margin: 0 auto 10px;
   border-radius: 999px;
-  background: #FDF3F3;
-  color: #B23838;
+  background: #fdf3f3;
+  color: #b23838;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,19 +63,19 @@
 .empty-title {
   font-size: 15px;
   font-weight: 900;
-  color: #5C1D1D;
+  color: #5c1d1d;
 }
 
 .empty-desc {
   margin-top: 8px;
   font-size: 12px;
-  color: #AA7474;
+  color: #aa7474;
   line-height: 1.6;
 }
 
 .restudy-btn {
   margin-top: 20px;
-  background: #B23838;
+  background: #b23838;
   color: #fff;
   border-radius: 999px;
   padding: 14px;
@@ -100,7 +100,7 @@
 .item-card {
   background: #fff;
   border-radius: 22px;
-  border: 1px solid #F7EAEB;
+  border: 1px solid #f7eaeb;
   padding: 16px;
   box-shadow: 0 2px 10px rgba(29, 27, 24, 0.03);
 }
@@ -119,13 +119,13 @@
 }
 
 .kind-pill.red {
-  background: #FDF3F3;
-  color: #B23838;
+  background: #fdf3f3;
+  color: #b23838;
 }
 
 .kind-pill.green {
-  background: #F2FAF5;
-  color: #1D8554;
+  background: #f2faf5;
+  color: #1d8554;
 }
 
 .remove-btn {

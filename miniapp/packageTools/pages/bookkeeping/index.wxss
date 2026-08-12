@@ -66,8 +66,12 @@
   letter-spacing: -0.02em;
 }
 
-.sum-val.income { color: #195125; }
-.sum-val.expense { color: #93000a; }
+.sum-val.income {
+  color: #195125;
+}
+.sum-val.expense {
+  color: #93000a;
+}
 
 .chart {
   padding: 16px 14px 14px;
@@ -135,10 +139,14 @@
   border-radius: 999px;
   border: none;
   padding: 10px 0;
-  transition: transform 0.1s ease, background-color 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    background-color 0.15s ease;
 }
 
-.type-btn::after { border: none; }
+.type-btn::after {
+  border: none;
+}
 
 .type-btn:active {
   transform: scale(0.97);
@@ -193,9 +201,18 @@
   padding-right: 10px;
 }
 
-.entry-cat { font-weight: 700; color: var(--on-surface); }
-.entry-note { font-size: 12px; color: var(--on-surface-variant); }
-.entry-date { font-size: 11px; color: var(--outline); }
+.entry-cat {
+  font-weight: 700;
+  color: var(--on-surface);
+}
+.entry-note {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.entry-date {
+  font-size: 11px;
+  color: var(--outline);
+}
 
 .entry-side {
   display: flex;
@@ -205,9 +222,17 @@
   flex-shrink: 0;
 }
 
-.entry-amount { font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-.entry-amount.income { color: #195125; }
-.entry-amount.expense { color: #93000a; }
+.entry-amount {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.entry-amount.income {
+  color: #195125;
+}
+.entry-amount.expense {
+  color: #93000a;
+}
 .entry-del {
   font-size: 11px;
   font-weight: 600;
@@ -215,6 +240,13 @@
   padding: 2px 6px;
 }
 
-.row { display: flex; align-items: center; }
-.gap-md { gap: 12px; }
-.flex-1 { flex: 1; }
+.row {
+  display: flex;
+  align-items: center;
+}
+.gap-md {
+  gap: 12px;
+}
+.flex-1 {
+  flex: 1;
+}

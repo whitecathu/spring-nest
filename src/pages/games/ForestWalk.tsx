@@ -303,26 +303,24 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         </div>
 
         {combo >= 2 && playing && (
-            <div
-              className="text-center mb-2"
-            >
-              <span
-                className={`inline-block text-sm font-black drop-shadow-lg ${
-                  combo >= 5
-                    ? 'text-2xl bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400 bg-clip-text text-transparent'
-                    : combo >= 3
-                      ? 'text-lg text-orange-500'
-                      : 'text-amber-500'
-                }`}
-              >
-                {combo >= 5
-                  ? `🔥 ${t('超级连击', 'Super Combo')} x${combo} 🔥`
+          <div className="text-center mb-2">
+            <span
+              className={`inline-block text-sm font-black drop-shadow-lg ${
+                combo >= 5
+                  ? 'text-2xl bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400 bg-clip-text text-transparent'
                   : combo >= 3
-                    ? `🔥 ${t('连击', 'Combo')} x${combo}`
-                    : `✨ x${combo}`}
-              </span>
-            </div>
-          )}
+                    ? 'text-lg text-orange-500'
+                    : 'text-amber-500'
+              }`}
+            >
+              {combo >= 5
+                ? `🔥 ${t('超级连击', 'Super Combo')} x${combo} 🔥`
+                : combo >= 3
+                  ? `🔥 ${t('连击', 'Combo')} x${combo}`
+                  : `✨ x${combo}`}
+            </span>
+          </div>
+        )}
 
         <div
           ref={gameAreaRef}
@@ -333,10 +331,8 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         >
           {/* Branch hit red flash overlay */}
           {branchShake && (
-              <div
-                className="absolute inset-0 bg-red-500/20 pointer-events-none z-30 rounded-3xl"
-              />
-            )}
+            <div className="absolute inset-0 bg-red-500/20 pointer-events-none z-30 rounded-3xl" />
+          )}
 
           {/* Floating background decorations (parallax) */}
           {FLOATING_DECOR.map((decor, i) => (
@@ -386,72 +382,70 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
           ))}
 
           {animals
-              .filter((a) => a.visible)
-              .map((animal) => (
-                <button
-                  key={animal.id}
-                  className="absolute cursor-pointer text-3xl active:scale-125 transition-transform touch-none select-none"
-                  style={{
-                    left: `${animal.x}%`,
-                    top: `${animal.y}%`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                  onClick={() => catchAnimal(animal)}
-                >
-                  {animal.emoji}
-                </button>
-              ))}
+            .filter((a) => a.visible)
+            .map((animal) => (
+              <button
+                key={animal.id}
+                className="absolute cursor-pointer text-3xl active:scale-125 transition-transform touch-none select-none"
+                style={{
+                  left: `${animal.x}%`,
+                  top: `${animal.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                onClick={() => catchAnimal(animal)}
+              >
+                {animal.emoji}
+              </button>
+            ))}
 
           {/* Score popups with better styling */}
           {hitEffect && (
-              <div
-                key={hitEffect.id}
-                className="absolute pointer-events-none z-20"
+            <div
+              key={hitEffect.id}
+              className="absolute pointer-events-none z-20"
+              style={{
+                left: `${hitEffect.x}%`,
+                top: `${hitEffect.y}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              <span
+                className="font-black text-xl drop-shadow-lg"
                 style={{
-                  left: `${hitEffect.x}%`,
-                  top: `${hitEffect.y}%`,
-                  transform: 'translate(-50%, -50%)',
+                  color: hitEffect.text.startsWith('-') ? '#ef4444' : '#16a34a',
+                  textShadow: hitEffect.text.startsWith('-')
+                    ? '0 0 8px rgba(239,68,68,0.6)'
+                    : '0 0 8px rgba(34,197,94,0.6)',
                 }}
               >
-                <span
-                  className="font-black text-xl drop-shadow-lg"
-                  style={{
-                    color: hitEffect.text.startsWith('-') ? '#ef4444' : '#16a34a',
-                    textShadow: hitEffect.text.startsWith('-')
-                      ? '0 0 8px rgba(239,68,68,0.6)'
-                      : '0 0 8px rgba(34,197,94,0.6)',
-                  }}
-                >
-                  {hitEffect.text}
-                </span>
-              </div>
-            )}
+                {hitEffect.text}
+              </span>
+            </div>
+          )}
 
           {/* Sparkle / celebration particles */}
           {particles.map((p) => {
-              const rad = (p.angle * Math.PI) / 180;
-              const tx = Math.cos(rad) * p.distance;
-              const ty = Math.sin(rad) * p.distance;
-              return (
-                <div
-                  key={p.id}
-                  className="absolute pointer-events-none text-sm z-20"
-                  style={{
-                    left: `${p.x}%`,
-                    top: `${p.y}%`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                >
-                  {p.emoji}
-                </div>
-              );
-            })}
+            const rad = (p.angle * Math.PI) / 180;
+            const tx = Math.cos(rad) * p.distance;
+            const ty = Math.sin(rad) * p.distance;
+            return (
+              <div
+                key={p.id}
+                className="absolute pointer-events-none text-sm z-20"
+                style={{
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+              >
+                {p.emoji}
+              </div>
+            );
+          })}
 
           {!playing && !gameOver && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-green-900/20 backdrop-blur-sm">
-              <div
-                className="text-center"
-              >
+              <div className="text-center">
                 <p className="text-5xl mb-4">🌳</p>
                 <p className="text-lg font-bold text-on-surface mb-2">
                   {t('森林漫步', 'Forest Walk')}
@@ -486,40 +480,34 @@ export default function ForestWalk({ onBack }: { onBack: () => void }) {
         )}
 
         {gameOver && (
-            <div
-              className="mt-6 p-6 rounded-2xl text-center border"
-              style={{
-                background:
-                  'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.15), rgba(52,211,153,0.08))',
-                borderColor: 'rgba(34,197,94,0.25)',
-              }}
+          <div
+            className="mt-6 p-6 rounded-2xl text-center border"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.15), rgba(52,211,153,0.08))',
+              borderColor: 'rgba(34,197,94,0.25)',
+            }}
+          >
+            <p className="text-5xl mb-3">🌿</p>
+            <p className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent dark:from-green-400 dark:to-emerald-300 mb-2">
+              {t('漫步结束！', 'Walk Complete!')}
+            </p>
+            <p className="text-base text-green-600 dark:text-green-400 mb-1 font-semibold">
+              {t('得分', 'Score')}: <span className="text-xl">{score}</span>
+            </p>
+            {score > 0 && score >= bestScore && (
+              <p className="text-base text-amber-500 font-bold mb-2">
+                🏆 {t('新纪录！', 'New Record!')} 🏆
+              </p>
+            )}
+            <button
+              onClick={startGame}
+              className="mt-3 px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-shadow"
             >
-              <p
-                className="text-5xl mb-3"
-              >
-                🌿
-              </p>
-              <p className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent dark:from-green-400 dark:to-emerald-300 mb-2">
-                {t('漫步结束！', 'Walk Complete!')}
-              </p>
-              <p className="text-base text-green-600 dark:text-green-400 mb-1 font-semibold">
-                {t('得分', 'Score')}: <span className="text-xl">{score}</span>
-              </p>
-              {score > 0 && score >= bestScore && (
-                <p
-                  className="text-base text-amber-500 font-bold mb-2"
-                >
-                  🏆 {t('新纪录！', 'New Record!')} 🏆
-                </p>
-              )}
-              <button
-                onClick={startGame}
-                className="mt-3 px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-shadow"
-              >
-                {t('再来一局', 'Play Again')}
-              </button>
-            </div>
-          )}
+              {t('再来一局', 'Play Again')}
+            </button>
+          </div>
+        )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t(

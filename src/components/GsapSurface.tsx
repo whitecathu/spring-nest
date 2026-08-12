@@ -159,12 +159,7 @@ export function TiltGlareCard({
       }}
     >
       {!reducedMotion && (
-        <div
-          ref={glareRef}
-          aria-hidden="true"
-          className="tilt-card-glare"
-          style={{ opacity: 0 }}
-        />
+        <div ref={glareRef} aria-hidden="true" className="tilt-card-glare" style={{ opacity: 0 }} />
       )}
       <div ref={contentRef} className="tilt-card-content" style={{ z: 0 } as any}>
         {children}
@@ -194,11 +189,7 @@ export function MotionButton({
   const motionClass = cx('motion-button', `motion-button-${tone}`, className);
 
   return (
-    <button
-      ref={reducedMotion ? undefined : interactiveRef}
-      {...props}
-      className={motionClass}
-    >
+    <button ref={reducedMotion ? undefined : interactiveRef} {...props} className={motionClass}>
       {children}
     </button>
   );

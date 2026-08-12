@@ -52,9 +52,7 @@ export default function EmptyState({
       )}
       <div className="space-y-1.5">
         <h3 className="text-lg font-bold text-on-surface">{title}</h3>
-        {description && (
-          <p className="text-sm text-secondary leading-relaxed">{description}</p>
-        )}
+        {description && <p className="text-sm text-secondary leading-relaxed">{description}</p>}
       </div>
       {(action || secondaryAction) && (
         <div className="flex flex-wrap items-center justify-center gap-3 pt-1">

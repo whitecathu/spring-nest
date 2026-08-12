@@ -2,6 +2,13 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import vm from 'node:vm';
+import {
+  miniProgramHiddenSlugs,
+  miniProgramOfflineSlugs,
+  miniProgramTabs,
+  miniProgramToolCatalog,
+  miniProgramToolCategories,
+} from '../src/lib/miniProgram/toolCatalog';
 
 const STRICT = process.env.MINIAPP_VERIFY_STRICT === '1';
 
@@ -29,6 +36,7 @@ const expectedCategories = [
 ];
 
 const expectedOfflineSlugs = ['weather', 'ip-lookup', 'text-to-speech'];
+const expectedHiddenSlugs = ['word-to-pdf', 'pdf-to-word'];
 
 const expectedToolSlugs = [
   'calculator',
@@ -221,12 +229,49 @@ assertSameJson(
   expectedOfflineSlugs,
   'offline slugs must match weather / ip-lookup / text-to-speech',
 );
+assertSameJson(
+  generated.hiddenSlugs || [],
+  expectedHiddenSlugs,
+  'hidden slugs must match word-to-pdf / pdf-to-word',
+);
 assert(
   expectedOfflineSlugs.every((slug) => {
     const tool = generated.tools.find((item) => item.slug === slug);
     return tool && tool.offline === true;
   }),
   'offline tools must be marked offline: true in generated catalog',
+);
+assert(
+  expectedHiddenSlugs.every((slug) => {
+    const tool = generated.tools.find((item) => item.slug === slug);
+    return tool && tool.hidden === true && tool.homePriority === 0;
+  }),
+  'hidden tools must be marked hidden: true with zero home priority',
+);
+const unavailableSlugs = new Set([...expectedOfflineSlugs, ...expectedHiddenSlugs]);
+assert(
+  generated.tools
+    .filter((tool) => !unavailableSlugs.has(tool.slug))
+    .every(
+      (tool) =>
+        tool.capabilitySource === 'miniapp' &&
+        typeof tool.description === 'string' &&
+        tool.description.trim() &&
+        typeof tool.descriptionEn === 'string' &&
+        tool.descriptionEn.trim() &&
+        Array.isArray(tool.features) &&
+        tool.features.length > 0 &&
+        Array.isArray(tool.featuresEn) &&
+        tool.featuresEn.length > 0,
+    ),
+  'every visible tool must publish explicit non-empty miniapp capability copy',
+);
+const packageTools = appJson.subpackages?.find((subpackage) => subpackage.root === 'packageTools');
+assert(packageTools, 'app.json must define the packageTools subpackage');
+assert(
+  !packageTools.pages.includes('pages/word-to-pdf/index') &&
+    !packageTools.pages.includes('pages/pdf-to-word/index'),
+  'hidden document-conversion pages must not be packaged',
 );
 assert(
   !!appJson.__usePrivacyCheck__,
@@ -346,6 +391,23 @@ assert(
 );
 
 if (STRICT) {
+  assertSameJson(
+    {
+      tabs: generated.tabs,
+      categories: generated.categories,
+      offlineSlugs: generated.offlineSlugs,
+      hiddenSlugs: generated.hiddenSlugs,
+      tools: generated.tools,
+    },
+    {
+      tabs: miniProgramTabs,
+      categories: miniProgramToolCategories,
+      offlineSlugs: [...miniProgramOfflineSlugs],
+      hiddenSlugs: [...miniProgramHiddenSlugs],
+      tools: miniProgramToolCatalog,
+    },
+    'generated miniapp catalog must deeply match its TypeScript source',
+  );
   const runtimeWxml = readText('miniapp/pages/tool-runtime/index.wxml');
   for (const tool of generated.tools) {
     assert(
@@ -366,7 +428,10 @@ if (STRICT) {
     '伪码',
   ]) {
     assert(!runtimeJs.includes(forbidden), `runtime JS contains placeholder text: ${forbidden}`);
-    assert(!runtimeWxml.includes(forbidden), `runtime WXML contains placeholder text: ${forbidden}`);
+    assert(
+      !runtimeWxml.includes(forbidden),
+      `runtime WXML contains placeholder text: ${forbidden}`,
+    );
   }
   assert(
     !runtimeJs.includes('copyToolSummary'),
@@ -392,11 +457,20 @@ if (STRICT) {
     runtimeJs.includes('importQuestionBankArchive'),
     'question bank must attempt docx/zip archive import',
   );
-  assert(runtimeJs.includes('this.ipLookupRequestId'), 'IP lookup must guard stale async responses');
+  assert(
+    runtimeJs.includes('this.ipLookupRequestId'),
+    'IP lookup must guard stale async responses',
+  );
   assert(runtimeJs.includes('card.fullCopy'), 'copy action must support complete export payloads');
   assert(!runtimeJs.includes('wx.getLocation'), 'runtime must not call getLocation while offline');
-  assert(!runtimeJs.includes('wttr.in'), 'runtime must not hardcode wttr.in while weather is offline');
-  assert(!runtimeJs.includes('ipapi.co'), 'runtime must not hardcode ipapi.co while ip-lookup is offline');
+  assert(
+    !runtimeJs.includes('wttr.in'),
+    'runtime must not hardcode wttr.in while weather is offline',
+  );
+  assert(
+    !runtimeJs.includes('ipapi.co'),
+    'runtime must not hardcode ipapi.co while ip-lookup is offline',
+  );
 }
 
 console.log(

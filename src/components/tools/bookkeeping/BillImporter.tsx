@@ -29,7 +29,7 @@ export default function BillImporter({ t, onImport, onClose, initialFile }: Bill
       initialHandled.current = true;
       handleFile(initialFile);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialFile]);
 
   const handleFile = async (file: File) => {
@@ -133,12 +133,15 @@ export default function BillImporter({ t, onImport, onClose, initialFile }: Bill
                   )}
                 </p>
                 <p className="text-xs text-neutral-400">
-                  {t('支持 .csv / .xlsx 格式，自动识别编码', 'Supports .csv / .xlsx, auto-detect encoding')}
+                  {t(
+                    '支持 .csv / .xlsx 格式，自动识别编码',
+                    'Supports .csv / .xlsx, auto-detect encoding',
+                  )}
                 </p>
                 <input
                   ref={fileRef}
                   type="file"
-                  accept=".csv,.txt,.xlsx,.xls"
+                  accept=".csv,.txt,.xlsx"
                   onChange={handleFileChange}
                   className="hidden"
                 />

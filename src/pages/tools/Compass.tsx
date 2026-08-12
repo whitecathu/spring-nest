@@ -163,9 +163,7 @@ export default function Compass({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
           {t('春日指南针', 'Spring Compass')}
         </h2>
@@ -208,9 +206,7 @@ export default function Compass({ onBack }: { onBack: () => void }) {
             })}
           </svg>
 
-          <div
-            className="absolute inset-0"
-          >
+          <div className="absolute inset-0">
             <svg className="w-full h-full" viewBox="0 0 300 300">
               <defs>
                 <linearGradient id="northGrad" x1="0" y1="0" x2="0" y2="1">

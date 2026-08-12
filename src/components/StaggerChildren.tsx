@@ -23,14 +23,15 @@ export default function StaggerChildren({
       ([entry]) => {
         if (entry.isIntersecting) {
           const children = Array.from(ref.current!.children) as HTMLElement[];
-          gsap.fromTo(children,
+          gsap.fromTo(
+            children,
             { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', stagger: staggerDelay }
+            { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', stagger: staggerDelay },
           );
           observer.disconnect();
         }
       },
-      { rootMargin: '-40px' }
+      { rootMargin: '-40px' },
     );
 
     observer.observe(ref.current);
@@ -56,9 +57,5 @@ export function StaggerItem({
   children: ReactNode;
   className?: string;
 }) {
-  return (
-    <div className={className}>
-      {children}
-    </div>
-  );
+  return <div className={className}>{children}</div>;
 }

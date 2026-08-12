@@ -6,15 +6,16 @@ const PACKAGE_PATHS = {
   'question-bank-importer': '/packageStudy/pages/home/index',
   scanner: '/packageTools/pages/scanner/index',
   bookkeeping: '/packageTools/pages/bookkeeping/index',
-  'word-to-pdf': '/packageTools/pages/word-to-pdf/index',
-  'pdf-to-word': '/packageTools/pages/pdf-to-word/index',
 };
 
 const BG_MAP = {
   'bg-primary-fixed/40 text-primary': { bg: 'rgba(192,237,209,0.4)', color: '#274f3a' },
   'bg-secondary-fixed/40 text-secondary': { bg: 'rgba(180,242,181,0.4)', color: '#336a3a' },
   'bg-tertiary-fixed/40 text-tertiary': { bg: 'rgba(255,219,206,0.4)', color: '#604033' },
-  'bg-surface-variant/80 text-on-surface-variant': { bg: 'rgba(231,226,219,0.8)', color: '#414943' },
+  'bg-surface-variant/80 text-on-surface-variant': {
+    bg: 'rgba(231,226,219,0.8)',
+    color: '#414943',
+  },
   'bg-primary text-on-primary': { bg: '#274f3a', color: '#ffffff' },
   'bg-secondary-container/40 text-secondary': { bg: 'rgba(180,242,181,0.4)', color: '#336a3a' },
   'bg-tertiary-container/30 text-tertiary': { bg: 'rgba(122,87,73,0.3)', color: '#604033' },
@@ -38,34 +39,55 @@ const OFFLINE_SLUGS = new Set(
     : ['weather', 'ip-lookup', 'text-to-speech'],
 );
 
+const HIDDEN_SLUGS = new Set(Array.isArray(data.hiddenSlugs) ? data.hiddenSlugs : []);
+
 function isOfflineSlug(slug) {
   return OFFLINE_SLUGS.has(slug);
+}
+
+function isHiddenSlug(slug) {
+  return HIDDEN_SLUGS.has(slug);
+}
+
+function isUnavailableSlug(slug) {
+  return isOfflineSlug(slug) || isHiddenSlug(slug);
 }
 
 function decorate(tool) {
   if (!tool) return null;
   const mapped = BG_MAP[tool.bg] || { bg: '#c0edd1', color: '#274f3a' };
   const offline = !!(tool.offline || isOfflineSlug(tool.slug));
+  const hidden = !!(tool.hidden || isHiddenSlug(tool.slug));
   return Object.assign({}, tool, {
     bg: mapped.bg,
     color: mapped.color,
     bgClass: tool.bg,
     packagePath: PACKAGE_PATHS[tool.slug] || '',
     offline: offline,
+    hidden: hidden,
+    unavailable: offline || hidden,
   });
 }
 
-function getAllTools() {
-  return (data.tools || []).map(decorate).filter((t) => t && !t.offline);
+function getAllTools(options) {
+  const includeUnavailable = !!(options && options.includeUnavailable);
+  const includeOffline = includeUnavailable || !!(options && options.includeOffline);
+  return (data.tools || [])
+    .map(decorate)
+    .filter(
+      (tool) => tool && (includeUnavailable || (!tool.hidden && (includeOffline || !tool.offline))),
+    );
 }
 
 function findBySlug(slug, options) {
   if (!slug) return null;
-  const includeOffline = !!(options && options.includeOffline);
+  const includeUnavailable = !!(options && options.includeUnavailable);
+  const includeOffline = includeUnavailable || !!(options && options.includeOffline);
   const list = data.tools || [];
   for (let i = 0; i < list.length; i++) {
     if (list[i].slug === slug) {
       const tool = decorate(list[i]);
+      if (tool && tool.hidden && !includeUnavailable) return null;
       if (tool && tool.offline && !includeOffline) return null;
       return tool;
     }
@@ -81,10 +103,12 @@ function getBySection(section) {
   return getAllTools().filter((t) => t.section === section);
 }
 
-function searchTools(query) {
-  const q = String(query || '').trim().toLowerCase();
+function searchTools(query, options) {
+  const q = String(query || '')
+    .trim()
+    .toLowerCase();
   if (!q) return [];
-  return getAllTools().filter((t) => {
+  return getAllTools(options).filter((t) => {
     const hay = (
       t.title +
       ' ' +
@@ -116,7 +140,7 @@ function getCategories() {
 
 function openTool(tool) {
   if (!tool) return;
-  if (tool.offline || isOfflineSlug(tool.slug)) {
+  if (tool.unavailable || isUnavailableSlug(tool.slug)) {
     wx.showToast({ title: '该工具已暂时下线', icon: 'none' });
     return;
   }
@@ -142,8 +166,11 @@ module.exports = {
   getCategories,
   openTool,
   isOfflineSlug,
+  isHiddenSlug,
+  isUnavailableSlug,
   PACKAGE_PATHS,
   QUICK_SLUGS,
   OFFLINE_SLUGS,
+  HIDDEN_SLUGS,
   catalog: data,
 };

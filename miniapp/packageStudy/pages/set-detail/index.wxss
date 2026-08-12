@@ -1,7 +1,7 @@
 .detail-page {
   min-height: 100vh;
   padding: 16px 18px calc(32px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(165, 208, 182, 0.14) 0%, transparent 200px), #FAF8F5;
+  background: linear-gradient(180deg, rgba(165, 208, 182, 0.14) 0%, transparent 200px), #faf8f5;
   box-sizing: border-box;
 }
 
@@ -69,8 +69,13 @@
   font-weight: 800;
 }
 
-.btn-ghost-sm { color: #78716c; }
-.btn-forest-sm { background: #1b4332; color: #fff; }
+.btn-ghost-sm {
+  color: #78716c;
+}
+.btn-forest-sm {
+  background: #1b4332;
+  color: #fff;
+}
 
 .mode-grid {
   display: grid;

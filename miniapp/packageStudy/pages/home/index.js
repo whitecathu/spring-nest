@@ -68,10 +68,7 @@ Page({
     if (normalized) {
       filtered = decks
         .map(function (deck) {
-          var deckText = [deck.name, deck.desc, deck.emoji]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase();
+          var deckText = [deck.name, deck.desc, deck.emoji].filter(Boolean).join(' ').toLowerCase();
           var deckMatches = deckText.indexOf(normalized) >= 0;
           var matchCount = deck.questions.reduce(function (count, q) {
             var text = [q.stem, q.answer, q.explanation, q.category, q.tag]

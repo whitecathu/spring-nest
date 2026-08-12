@@ -7,9 +7,11 @@ coverage/
 *.log
 .env*
 !.env.example
+!.env.e2e
 playwright-report/
 test-results/
 .qa-screenshots/
 .tmp-visual-qa/
 .zcode/
 .superpowers/
+miniapp/project.private.config.json

@@ -35,7 +35,7 @@
   border-radius: 20px;
   padding: 0 46px 0 18px;
   box-sizing: border-box;
-  font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+  font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
   font-size: 15px;
   line-height: 50px;
   background: rgba(237, 231, 225, 0.78);

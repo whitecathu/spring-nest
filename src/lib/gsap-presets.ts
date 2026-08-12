@@ -131,7 +131,12 @@ export const gridStagger = {
 
 // ── Hero Orchestration ─────────────────────────────────────
 export const heroStagger = {
-  stage: { stagger: staggers.relaxed, delay: staggers.tight, duration: durations.slow, ease: easeExpoOut },
+  stage: {
+    stagger: staggers.relaxed,
+    delay: staggers.tight,
+    duration: durations.slow,
+    ease: easeExpoOut,
+  },
   item: { duration: 0.4, ease: easeSmooth },
   panel: { duration: 0.5, ease: easeSmooth },
 };

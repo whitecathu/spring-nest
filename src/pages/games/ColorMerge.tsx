@@ -320,30 +320,28 @@ export default function ColorMerge({ onBack }: { onBack: () => void }) {
         </div>
 
         {gameOver && (
-            <div
-              className="mt-6 p-6 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/30 rounded-2xl text-center"
+          <div className="mt-6 p-6 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/30 rounded-2xl text-center">
+            <p className="text-2xl mb-2">🎨</p>
+            <p className="text-xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+              {t('没有可用的移动了！', 'No more moves!')}
+            </p>
+            <p className="text-sm text-purple-500 dark:text-purple-400 mb-1">
+              {t('得分', 'Score')}: {score}
+            </p>
+            <p className="text-sm text-purple-500 dark:text-purple-400 mb-4">
+              {t('步数', 'Moves')}: {moves}
+            </p>
+            {score > 0 && score >= bestScore && (
+              <p className="text-sm text-purple-500 mb-2">🏆 {t('新纪录！', 'New Record!')}</p>
+            )}
+            <button
+              onClick={reset}
+              className="px-6 py-2 bg-purple-500 text-white rounded-full font-semibold hover:bg-purple-600 transition-colors"
             >
-              <p className="text-2xl mb-2">🎨</p>
-              <p className="text-xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                {t('没有可用的移动了！', 'No more moves!')}
-              </p>
-              <p className="text-sm text-purple-500 dark:text-purple-400 mb-1">
-                {t('得分', 'Score')}: {score}
-              </p>
-              <p className="text-sm text-purple-500 dark:text-purple-400 mb-4">
-                {t('步数', 'Moves')}: {moves}
-              </p>
-              {score > 0 && score >= bestScore && (
-                <p className="text-sm text-purple-500 mb-2">🏆 {t('新纪录！', 'New Record!')}</p>
-              )}
-              <button
-                onClick={reset}
-                className="px-6 py-2 bg-purple-500 text-white rounded-full font-semibold hover:bg-purple-600 transition-colors"
-              >
-                {t('再来一局', 'Play Again')}
-              </button>
-            </div>
-          )}
+              {t('再来一局', 'Play Again')}
+            </button>
+          </div>
+        )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('点击一个色块，再点击相邻色块交换', 'Tap a tile, then tap an adjacent tile to swap')}

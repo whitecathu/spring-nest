@@ -320,10 +320,7 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
             {gameState === 'playing' && (
               <div className="bg-surface-container-high rounded-xl px-3 py-2 text-center">
                 <div className="text-xs text-secondary font-medium">{t('WPM', 'WPM')}</div>
-                <div
-                  key={liveWpm}
-                  className="text-xl font-bold text-primary tabular-nums"
-                >
+                <div key={liveWpm} className="text-xl font-bold text-primary tabular-nums">
                   {liveWpm}
                 </div>
               </div>
@@ -365,12 +362,12 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
             <div className="relative bg-surface-container rounded-2xl p-6 min-h-[120px] flex flex-wrap gap-x-2 gap-y-1 items-start content-start">
               {/* Word flash overlay */}
               {wordFlash && (
-                  <div
-                    className={`absolute inset-0 rounded-2xl pointer-events-none z-10 ${
-                      wordFlash === 'correct' ? 'bg-green-400/15' : 'bg-red-400/15'
-                    }`}
-                  />
-                )}
+                <div
+                  className={`absolute inset-0 rounded-2xl pointer-events-none z-10 ${
+                    wordFlash === 'correct' ? 'bg-green-400/15' : 'bg-red-400/15'
+                  }`}
+                />
+              )}
               {displayWords.map((word, i) => {
                 const result = i < currentIndex ? wordResults.get(i) : undefined;
                 let wordClass = 'text-on-surface-variant';
@@ -394,10 +391,7 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
                         if (isCorrectChar) charClass = 'text-green-500';
                         if (isWrongChar) charClass = 'text-red-500';
                         return (
-                          <span
-                            key={ci}
-                            className={charClass}
-                          >
+                          <span key={ci} className={charClass}>
                             {char}
                           </span>
                         );
@@ -414,10 +408,7 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
                 }
 
                 return (
-                  <span
-                    key={i}
-                    className={wordClass}
-                  >
+                  <span key={i} className={wordClass}>
                     {word}
                   </span>
                 );
@@ -449,28 +440,22 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
 
             {/* Streak indicator with exit animation */}
             {streak >= 3 && !streakLost && (
-                <div
-                  key="streak"
-                  className="flex items-center gap-1 mt-2 justify-center"
-                >
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  <span className="text-sm font-bold text-amber-500">
-                    {streak}x {t('连击', 'Streak')}
-                  </span>
-                </div>
-              )}
+              <div key="streak" className="flex items-center gap-1 mt-2 justify-center">
+                <Zap className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-bold text-amber-500">
+                  {streak}x {t('连击', 'Streak')}
+                </span>
+              </div>
+            )}
 
             {/* Streak break animation */}
             {streakLost && (
-                <div
-                  key="streak-lost"
-                  className="flex items-center justify-center gap-1 mt-2"
-                >
-                  <span className="text-sm font-bold text-red-500">
-                    💥 {t('连击中断！', 'Streak Lost!')}
-                  </span>
-                </div>
-              )}
+              <div key="streak-lost" className="flex items-center justify-center gap-1 mt-2">
+                <span className="text-sm font-bold text-red-500">
+                  💥 {t('连击中断！', 'Streak Lost!')}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -494,16 +479,12 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
 
         {/* Game Over */}
         {gameState === 'over' && (
-          <div
-            className="bg-surface-container rounded-2xl p-6 text-center"
-          >
+          <div className="bg-surface-container rounded-2xl p-6 text-center">
             <p className="text-4xl mb-2">⌨️</p>
             <p className="text-2xl font-bold text-on-surface mb-4">
               {t('测试完成！', 'Test Complete!')}
             </p>
-            <div
-              className="grid grid-cols-3 gap-4 mb-4"
-            >
+            <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
                 <p className="text-3xl font-black text-primary">{wpm}</p>
                 <p className="text-xs text-secondary">{t('WPM', 'WPM')}</p>
@@ -518,9 +499,7 @@ export default function TypingSpeedTest({ onBack }: { onBack: () => void }) {
               </div>
             </div>
             {wpm > 0 && wpm >= bestWPM && (
-              <p
-                className="text-sm text-green-500 font-bold mb-2"
-              >
+              <p className="text-sm text-green-500 font-bold mb-2">
                 🏆 {t('新纪录！', 'New Record!')}
               </p>
             )}

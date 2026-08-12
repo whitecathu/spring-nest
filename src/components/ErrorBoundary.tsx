@@ -31,7 +31,6 @@ export default class ErrorBoundary extends Component<Props, State> {
   // state so the boundary can render children again for a fresh attempt.
   componentDidUpdate(prevProps: Props) {
     if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
-      // eslint-disable-next-line react/no-did-update-set-state
       this.setState((s) => ({ hasError: false, error: null, retryKey: s.retryKey + 1 }));
     }
   }
@@ -39,7 +38,10 @@ export default class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error('[ErrorBoundary]', error, info.componentStack);
     // Defer off the React render commit phase.
-    reportError(error, { componentStack: info.componentStack ?? undefined, source: 'ErrorBoundary' });
+    reportError(error, {
+      componentStack: info.componentStack ?? undefined,
+      source: 'ErrorBoundary',
+    });
   }
 
   private handleRetry = () => {

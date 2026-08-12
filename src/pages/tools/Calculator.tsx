@@ -183,9 +183,7 @@ export default function Calculator({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         {/* Display */}
         <div className="bg-surface-container-low rounded-2xl p-4 mb-6 min-h-[80px] flex flex-col justify-end items-end relative">
           <button
@@ -337,9 +335,7 @@ export default function Calculator({ onBack }: { onBack: () => void }) {
 
       {/* History */}
       {history.length > 0 && (
-        <div
-          className="mt-6 bg-white rounded-2xl p-4 shadow-sm border border-surface-variant/20"
-        >
+        <div className="mt-6 bg-white rounded-2xl p-4 shadow-sm border border-surface-variant/20">
           <h3 className="text-sm font-bold text-secondary mb-3">{t('计算历史', 'History')}</h3>
           <div className="space-y-2">
             {history.map((h, i) => (

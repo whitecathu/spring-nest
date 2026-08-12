@@ -1,36 +1,36 @@
 # Spring Nest (春日小筑)
 
-[![CI](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml)
+[![CI](https://github.com/whitecathu/spring-nest/actions/workflows/ci.yml/badge.svg)](https://github.com/whitecathu/spring-nest/actions/workflows/ci.yml)
 
 > 藏尽春日好物，聚齐实用与欢喜 — 一个治愈系数字角落
 
 <!-- AUTO:STATS_START -->
 
-Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 29 个效率工具和 19 个休闲小游戏，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
+Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 29 个效率工具和 19 个休闲小游戏，当前由 48 个测试文件覆盖 298 个测试用例，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
 
 <!-- AUTO:STATS_END -->
 
 ## 技术栈
 
-| 技术                   | 用途                |
-| ---------------------- | ------------------- |
-| React 19               | UI 框架             |
-| Vite 6                 | 构建工具            |
-| TypeScript 5.8         | 类型安全            |
-| Tailwind CSS 4         | 原子化 CSS          |
-| React Router 6         | 客户端路由          |
-| Motion (Framer Motion) | 动画                |
-| Lucide React           | 图标库              |
-| qrcode                 | 二维码生成          |
-| Vite PWA Plugin        | PWA 离线支持        |
-| Vitest                 | 单元测试 (83 tests) |
-| Playwright             | E2E 端到端测试      |
+| 技术            | 用途           |
+| --------------- | -------------- |
+| React 19        | UI 框架        |
+| Vite 6          | 构建工具       |
+| TypeScript 5.8  | 类型安全       |
+| Tailwind CSS 4  | 原子化 CSS     |
+| React Router 8  | 客户端路由     |
+| GSAP            | 动画           |
+| Lucide React    | 图标库         |
+| qrcode          | 二维码生成     |
+| Vite PWA Plugin | PWA 离线支持   |
+| Vitest          | 单元与组件测试 |
+| Playwright      | E2E 端到端测试 |
 
 ## 已实现功能
 
 ### 核心功能
 
-- 登录/注册（localStorage 本地账号，邮箱校验，密码>=6位，本地密码以哈希形式保存）
+- 登录/注册（localStorage 本地账号或 Supabase Auth，邮箱规范化，密码 8–128 位，本地密码以哈希形式保存）
 - 收藏功能（游戏+工具，按用户ID持久化）
 - 全文搜索（搜索名称、描述、分类、标签，结果排序）
 - 中英双语切换
@@ -131,7 +131,7 @@ Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，�
 
 ## 本地运行
 
-**前置要求**: Node.js 18+
+**前置要求**: Node.js 22+
 
 ```bash
 npm install        # 安装依赖
@@ -139,9 +139,10 @@ npm run dev        # 启动开发服务器 (http://localhost:3000)
 npm run typecheck  # TypeScript 类型检查
 npm run build      # 生产构建
 npm run preview    # 预览构建产物
-npm run test       # 运行 83 个单元测试
-npm run test:e2e   # 运行 15 个 Playwright 生产预览 E2E 测试
-npm run lint       # TypeScript 类型检查
+npm run test       # 运行 Vitest 单元与组件测试
+npm run test:e2e   # 运行桌面与移动 Chromium E2E
+npm run lint       # 真实 ESLint 检查
+npm run check:bundle # 检查首屏与 PWA 构建预算
 ```
 
 ## 工具小程序
@@ -159,21 +160,18 @@ npm run verify:miniapp   # 校验三 Tab、29 个工具和无游戏入口
 
 ## 构建与测试
 
-```bash
-npm run build    # ✅ 通过，约 30 chunks，gzip ~160KB
-npm run test     # ✅ 通过，5 files / 83 tests
-npm run test:e2e # ✅ 通过，15 个 Playwright 生产预览 E2E 测试
-npm run lint     # ✅ 通过，无 TypeScript 错误
-```
+正式门禁依次执行生成文件一致性、Prettier、ESLint、TypeScript、Vitest、小程序校验、生产构建、构建预算、Chromium E2E、Lighthouse、Supabase 数据库测试和官方 npm audit。测试数与工具/游戏数由生成脚本维护，不在文档中保存历史“已通过”声明。
 
 ## CI/CD
 
-项目使用 GitHub Actions 进行持续集成，每次 push 或 PR 到 `main` / `master` 分支自动运行：
+项目以 `main` 为唯一开发与发布主线。GitHub Actions 在 push 到 `main` 或面向 `main` 的 PR 上运行：
 
-| 阶段          | 内容                                           | 依赖                 |
-| ------------- | ---------------------------------------------- | -------------------- |
-| lint-and-test | TypeScript 类型检查 + 83 个单元测试 + 生产构建 | 无                   |
-| e2e           | Playwright 端到端测试                          | lint-and-test 通过后 |
+| 阶段               | 内容                                                                |
+| ------------------ | ------------------------------------------------------------------- |
+| validate           | 生成一致性、格式、ESLint、类型、单测、小程序、审计、构建、E2E、LHCI |
+| database           | 从版本化迁移重建 Supabase，并运行 pgTAP/RLS/RPC 测试                |
+| migrate-production | `main` 构建通过后，先把新增迁移应用到正式 Supabase                  |
+| deploy             | 下载已验证构建并部署到 Cloudflare Pages `main`                      |
 
 CI 配置见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
 
@@ -207,10 +205,10 @@ docs/                    # 文档
 
 ## 数据持久化
 
-本项目当前版本采用 **localStorage** 数据持久化策略:
+本项目采用 **local-first** 数据持久化策略：
 
-- **localStorage**: 所有数据保存在浏览器本地，无需后端服务，支持离线使用
-- 未来版本可选接入 Supabase 实现云端数据同步
+- **localStorage**：主要数据源，本地写入先成功，支持离线使用。
+- **Supabase**：用户启用且配置后作为安全镜像；同步失败不会回滚本地数据，可在个人资料页查看状态并重试。
 
 ### localStorage 存储
 
@@ -244,46 +242,31 @@ docs/                    # 文档
 
 ## Supabase 配置（可选）
 
-本项目默认使用 localStorage 本地存储，无需任何后端。如需云端同步、排行榜等功能，可配置 Supabase：
+本项目默认使用 localStorage，无需后端。如需认证、云端安全镜像和排行榜，可配置 Supabase：
 
 1. 复制 `.env.example` 为 `.env`，填入 Supabase 项目 URL 和 Anon Key
-2. 在 Supabase SQL Editor 中执行 `docs/RLS-SQL.md` 中的脚本
-3. 在 Supabase Auth Settings 中配置 Site URL 和 Redirect URLs
+2. 使用 Supabase CLI 执行 `supabase db reset --local` 验证全部版本化迁移
+3. 使用 `supabase db push` 部署迁移，并在 Auth Settings 配置 Site URL 和 Redirect URLs
+
+生产 CI 还需要 `SUPABASE_ACCESS_TOKEN`、`SUPABASE_PROJECT_REF` 和 `SUPABASE_DB_PASSWORD`，确保数据库迁移先于前端部署。
 
 详见 [docs/安全规则.md](docs/安全规则.md) 和 [docs/数据库设计.md](docs/数据库设计.md)。
 
 ## 部署
 
-构建产物在 `dist/` 目录，可部署到 Vercel、Netlify、GitHub Pages、Cloudflare Pages 等。
+构建产物在 `dist/`。正式平台是 Cloudflare Pages；仓库中的 `vercel.json` 仅保留兼容部署，并与 Cloudflare `public/_headers` 使用同等安全响应头。
 
-### Vercel
+### Cloudflare Pages
 
-项目已包含 `vercel.json`，自动处理 SPA 路由回退。
-
-```bash
-# CLI 部署
-npx vercel --prod
-
-# 或直接导入 GitHub 仓库，Vercel 自动检测 Vite 项目
-```
-
-如需 Supabase，在 Vercel/Netlify 环境变量中添加 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`。
-
-### Netlify
-
-项目已包含 `public/_redirects`，构建时自动复制到 `dist/`。
+`main` 的质量门禁和数据库迁移成功后，CI 使用 Wrangler 部署 `spring-nest` 项目。
 
 ```bash
-npx netlify deploy --prod --dir=dist
-# Publish directory: dist
+npx wrangler pages deploy dist --project-name=spring-nest --branch=main
 ```
 
-**环境变量配置**:
+### 账单导入限制
 
-1. 在 Netlify Dashboard → Site settings → Environment variables 中添加:
-   - `VITE_SUPABASE_URL` = `https://your-project.supabase.co`
-   - `VITE_SUPABASE_ANON_KEY` = `your-anon-key`
-2. 重新部署以使环境变量生效
+本地记账支持 `.csv`、`.txt` 与现代 `.xlsx`。不接受旧二进制 `.xls`；单文件最大 10MB、最多 20,000 行，并校验扩展名、MIME 与 OOXML/ZIP 文件头。
 
 ### 部署验证
 

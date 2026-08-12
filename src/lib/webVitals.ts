@@ -21,15 +21,17 @@ function handleMetric(metric: Metric) {
   }
 
   // Sentry breadcrumb for correlating perf with later crashes.
-  void import('@sentry/react').then((Sentry) => {
-    Sentry.addBreadcrumb({
-      category: 'web-vital',
-      message: `${metric.name}: ${Number(metric.value.toFixed(2))} (${metric.rating})`,
-      level: 'info',
+  void import('@sentry/react')
+    .then((Sentry) => {
+      Sentry.addBreadcrumb({
+        category: 'web-vital',
+        message: `${metric.name}: ${Number(metric.value.toFixed(2))} (${metric.rating})`,
+        level: 'info',
+      });
+    })
+    .catch(() => {
+      /* Sentry not present — ignore */
     });
-  }).catch(() => {
-    /* Sentry not present — ignore */
-  });
 
   // Light touch custom analytics event (no-op in dev).
   trackPageView(`/${metric.name}/${metric.rating}`);

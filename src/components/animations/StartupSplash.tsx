@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  markForestSplashSeen,
-  shouldShowForestSplash,
-} from '../../lib/forest/forestSplashMemory';
+import { markForestSplashSeen, shouldShowForestSplash } from '../../lib/forest/forestSplashMemory';
 import { useReducedMotion } from '../../lib/animations';
 import { useFocusTrap } from '../../lib/useFocusTrap';
-import ForestFogTransition, {
-  type ForestFogHandle,
-} from './ForestFogTransition';
+import ForestFogTransition, { type ForestFogHandle } from './ForestFogTransition';
 import SpringNestLogoMotion from './SpringNestLogoMotion';
 
 const SPLASH_SRC = '/forest/splash-startup.mp4';
 const SPLASH_POSTER = '/forest/splash-poster.webp';
 const LOAD_TIMEOUT_MS = 1800;
+const TOTAL_WATCHDOG_MS = 8_000;
+const EXIT_TRANSITION_MAX_MS = 1_500;
 /** Show brand after the frame has settled. */
 const LOGO_AT_SEC = 1.8;
 /**
@@ -45,6 +42,7 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
   const videoRef = useRef<HTMLVideoElement>(null);
   const fogRef = useRef<ForestFogHandle>(null);
   const completedRef = useRef(false);
+  const exitStartedRef = useRef(false);
   const logoShownRef = useRef(false);
   const [showLogo, setShowLogo] = useState(false);
   const [usePosterOnly, setUsePosterOnly] = useState(false);
@@ -53,22 +51,12 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
   const showFullSplash =
     forceShow || (typeof window !== 'undefined' ? shouldShowForestSplash() : true);
 
-  const finish = useCallback(
-    async (opts?: { gatherFirst?: boolean; markSeen?: boolean }) => {
+  const completeImmediately = useCallback(
+    (markSeen = true) => {
       if (completedRef.current) return;
       completedRef.current = true;
-      if (opts?.markSeen !== false) markForestSplashSeen();
-
+      if (markSeen) markForestSplashSeen();
       setVideoFade(0);
-
-      try {
-        if (opts?.gatherFirst) await fogRef.current?.gather();
-        else fogRef.current?.setPeak?.();
-        await fogRef.current?.disperse();
-      } catch {
-        // continue even if fog animation fails
-      }
-
       destroyVideo(videoRef.current);
       setVisible(false);
       onComplete?.();
@@ -76,17 +64,44 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
     [onComplete],
   );
 
+  const finishWithTransition = useCallback(
+    (opts?: { gatherFirst?: boolean; markSeen?: boolean }) => {
+      if (completedRef.current || exitStartedRef.current) return;
+      exitStartedRef.current = true;
+      setVideoFade(0);
+      const markSeen = opts?.markSeen !== false;
+      const transitionTimeout = window.setTimeout(
+        () => completeImmediately(markSeen),
+        EXIT_TRANSITION_MAX_MS,
+      );
+
+      const animate = async () => {
+        if (opts?.gatherFirst) await fogRef.current?.gather();
+        else fogRef.current?.setPeak?.();
+        await fogRef.current?.disperse();
+      };
+
+      void animate()
+        .catch(() => undefined)
+        .finally(() => {
+          window.clearTimeout(transitionTimeout);
+          completeImmediately(markSeen);
+        });
+    },
+    [completeImmediately],
+  );
+
   const runGatherThenComplete = useCallback(() => {
-    void finish({ gatherFirst: true, markSeen: true });
-  }, [finish]);
+    finishWithTransition({ gatherFirst: true, markSeen: true });
+  }, [finishWithTransition]);
 
   const runDisperseOnly = useCallback(() => {
-    void finish({ gatherFirst: false, markSeen: false });
-  }, [finish]);
+    finishWithTransition({ gatherFirst: false, markSeen: false });
+  }, [finishWithTransition]);
 
   const skip = useCallback(() => {
-    runGatherThenComplete();
-  }, [runGatherThenComplete]);
+    completeImmediately(true);
+  }, [completeImmediately]);
 
   useFocusTrap(rootRef, {
     enabled: visible && showFullSplash && !reducedMotion,
@@ -96,10 +111,23 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
   useEffect(() => {
     if (!visible) return;
 
+    const watchdog = window.setTimeout(
+      () => completeImmediately(showFullSplash),
+      TOTAL_WATCHDOG_MS,
+    );
+    return () => window.clearTimeout(watchdog);
+  }, [completeImmediately, showFullSplash, visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+
     if (!showFullSplash || reducedMotion) {
-      const t = window.setTimeout(() => {
-        runDisperseOnly();
-      }, reducedMotion ? 40 : 80);
+      const t = window.setTimeout(
+        () => {
+          runDisperseOnly();
+        },
+        reducedMotion ? 40 : 80,
+      );
       return () => window.clearTimeout(t);
     }
 
@@ -244,7 +272,10 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
         </div>
       )}
 
-      <ForestFogTransition ref={fogRef} initialOpacity={showFullSplash && !reducedMotion ? 0 : 0.85} />
+      <ForestFogTransition
+        ref={fogRef}
+        initialOpacity={showFullSplash && !reducedMotion ? 0 : 0.85}
+      />
 
       {showFullSplash && !reducedMotion && (
         <button

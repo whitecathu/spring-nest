@@ -1,6 +1,7 @@
 const studyStorage = require('../../utils/storage');
 const sessionUtil = require('../../utils/session');
 const helpers = require('../../utils/helpers');
+const deadlineTimer = require('../../../utils/deadline-timer');
 
 Page({
   data: {
@@ -48,9 +49,11 @@ Page({
     if (!session) {
       wx.showToast({ title: '没有进行中的练习', icon: 'none' });
       setTimeout(function () {
-        wx.navigateBack({ fail: function () {
-          wx.redirectTo({ url: '/packageStudy/pages/home/index' });
-        }});
+        wx.navigateBack({
+          fail: function () {
+            wx.redirectTo({ url: '/packageStudy/pages/home/index' });
+          },
+        });
       }, 400);
       return;
     }
@@ -67,7 +70,17 @@ Page({
   },
 
   onHide() {
+    if (this._timer) {
+      clearInterval(this._timer);
+      this._timer = null;
+    }
     this.persistSession(true);
+  },
+
+  onShow() {
+    if (this._session && this._session.mode === 'exam' && !this.data.practiceComplete) {
+      this.startExamTimer();
+    }
   },
 
   clearTimers() {
@@ -91,18 +104,29 @@ Page({
   startExamTimer() {
     var that = this;
     if (this._timer) clearInterval(this._timer);
-    this._timer = setInterval(function () {
+    var update = function () {
       if (!that._session || that.data.practiceComplete) return;
-      var remain = Math.max(0, (that._session.examTimeRemaining || 0) - 1);
+      var deadline = that._session.examDeadline;
+      if (typeof deadline !== 'number' || !Number.isFinite(deadline)) {
+        deadline = deadlineTimer.createDeadline(Math.max(1, that._session.examTimeRemaining || 0));
+        that._session.examDeadline = deadline;
+      }
+      var remain = deadlineTimer.getRemainingSeconds(deadline);
       that._session.examTimeRemaining = remain;
       that.setData({
         examTimeRemaining: remain,
         examTimerText: that.formatTimer(remain),
       });
-      that.persistSession(false);
       if (remain <= 0) {
         that.finishExam();
       }
+    };
+    update();
+    if (!this._session || this.data.practiceComplete) return;
+    this._timer = setInterval(function () {
+      update();
+      if (!that._session || that.data.practiceComplete) return;
+      that.persistSession(false);
     }, 1000);
   },
 
@@ -216,7 +240,8 @@ Page({
       isCorrect = true;
       showExplanation = true;
     } else if (this._session.mode === 'exam') {
-      selectedOption = (this._session.examAnswers && this._session.examAnswers[question.id]) || null;
+      selectedOption =
+        (this._session.examAnswers && this._session.examAnswers[question.id]) || null;
     }
 
     this._session.currentQuestionIdx = idx;
@@ -422,13 +447,15 @@ Page({
     studyStorage.addIncorrect(incorrectQuestions);
     studyStorage.markQuestionsMastered(correctIds, true);
     studyStorage.markQuestionsMastered(
-      incorrectQuestions.map(function (q) { return q.id; }),
-      false
+      incorrectQuestions.map(function (q) {
+        return q.id;
+      }),
+      false,
     );
     studyStorage.recordPracticeStats(
       session.questions.length,
       correctCount,
-      session.practiceStartedAt
+      session.practiceStartedAt,
     );
     sessionUtil.clearActiveSession();
     this._session = null;
@@ -450,15 +477,13 @@ Page({
     var session = this._session;
     if (session.mode === 'reccite') {
       studyStorage.markQuestionsMastered(
-        session.questions.map(function (q) { return q.id; }),
-        true
+        session.questions.map(function (q) {
+          return q.id;
+        }),
+        true,
       );
     }
-    studyStorage.recordPracticeStats(
-      answered,
-      correct,
-      session.practiceStartedAt
-    );
+    studyStorage.recordPracticeStats(answered, correct, session.practiceStartedAt);
     sessionUtil.clearActiveSession();
     this._session = null;
 
@@ -472,9 +497,11 @@ Page({
   onExit() {
     var that = this;
     if (this.data.practiceComplete) {
-      wx.navigateBack({ fail: function () {
-        wx.redirectTo({ url: '/packageStudy/pages/home/index' });
-      }});
+      wx.navigateBack({
+        fail: function () {
+          wx.redirectTo({ url: '/packageStudy/pages/home/index' });
+        },
+      });
       return;
     }
     wx.showModal({
@@ -484,9 +511,11 @@ Page({
       success: function (res) {
         if (!res.confirm) return;
         that.persistSession(true);
-        wx.navigateBack({ fail: function () {
-          wx.redirectTo({ url: '/packageStudy/pages/home/index' });
-        }});
+        wx.navigateBack({
+          fail: function () {
+            wx.redirectTo({ url: '/packageStudy/pages/home/index' });
+          },
+        });
       },
     });
   },

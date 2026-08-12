@@ -91,20 +91,19 @@ export default function Base64Codec({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('Base64 编解码', 'Base64 Codec')}
         </h2>
 
         {/* Input */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-secondary mb-2">
+          <label htmlFor="base64-input" className="block text-sm font-medium text-secondary mb-2">
             {t('原文', 'Input')}
           </label>
           <div className="relative">
             <textarea
+              id="base64-input"
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
@@ -116,6 +115,7 @@ export default function Base64Codec({ onBack }: { onBack: () => void }) {
             {input && (
               <button
                 onClick={() => handleCopy(input, 'input')}
+                aria-label={t('复制原文', 'Copy input')}
                 className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 text-secondary hover:text-primary transition-colors"
               >
                 {copiedInput ? (
@@ -153,11 +153,12 @@ export default function Base64Codec({ onBack }: { onBack: () => void }) {
 
         {/* Output */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-secondary mb-2">
+          <label htmlFor="base64-output" className="block text-sm font-medium text-secondary mb-2">
             {t('Base64', 'Base64')}
           </label>
           <div className="relative">
             <textarea
+              id="base64-output"
               value={output}
               readOnly
               className="w-full bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface text-sm outline-none min-h-[100px] resize-y font-mono"
@@ -166,6 +167,7 @@ export default function Base64Codec({ onBack }: { onBack: () => void }) {
             {output && (
               <button
                 onClick={() => handleCopy(output, 'output')}
+                aria-label={t('复制结果', 'Copy result')}
                 className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 text-secondary hover:text-primary transition-colors"
               >
                 {copiedOutput ? (

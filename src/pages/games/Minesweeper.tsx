@@ -214,17 +214,9 @@ const GameCell = memo(function GameCell({
       aria-pressed={cell.flagged}
     >
       {content}
-      {isRipple && (
-        <span
-          className="absolute inset-0 bg-white/40 rounded"
-        />
-      )}
+      {isRipple && <span className="absolute inset-0 bg-white/40 rounded" />}
       {/* Haptic-like visual press feedback */}
-      {isPressed && (
-        <span
-          className="absolute inset-0 bg-white/30 rounded pointer-events-none"
-        />
-      )}
+      {isPressed && <span className="absolute inset-0 bg-white/30 rounded pointer-events-none" />}
     </button>
   );
 });
@@ -649,9 +641,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
 
         {/* Status Bar */}
         <div className="flex justify-between items-center mb-3 max-w-md mx-auto">
-          <div
-            className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5"
-          >
+          <div className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5">
             <Bomb className="w-4 h-4 text-red-500" />
             <span className="font-bold text-on-surface tabular-nums text-sm">{minesLeft}</span>
           </div>
@@ -666,9 +656,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
               </span>
             </button>
           </div>
-          <div
-            className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5"
-          >
+          <div className="bg-surface-container-high rounded-xl px-3 py-1.5 flex items-center gap-1.5">
             <Timer className="w-4 h-4 text-blue-500" />
             <span className="font-bold text-on-surface tabular-nums text-sm">
               {formatTime(time)}
@@ -736,28 +724,24 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
 
             {/* White flash followed by red flash overlay on mine hit */}
             {whiteFlash && (
-                <div
-                  className="absolute inset-0 bg-white rounded-2xl pointer-events-none z-10"
-                />
-              )}
+              <div className="absolute inset-0 bg-white rounded-2xl pointer-events-none z-10" />
+            )}
             {redFlash && (
-                <div
-                  className="absolute inset-0 bg-red-500 rounded-2xl pointer-events-none z-10"
-                />
-              )}
+              <div className="absolute inset-0 bg-red-500 rounded-2xl pointer-events-none z-10" />
+            )}
 
             {/* Debris particles on explosion */}
             {debris.map((d) => (
-                <div
-                  key={d.id}
-                  className="absolute rounded-sm pointer-events-none z-20"
-                  style={{
-                    width: d.size,
-                    height: d.size,
-                    backgroundColor: d.color,
-                  }}
-                />
-              ))}
+              <div
+                key={d.id}
+                className="absolute rounded-sm pointer-events-none z-20"
+                style={{
+                  width: d.size,
+                  height: d.size,
+                  backgroundColor: d.color,
+                }}
+              />
+            ))}
           </div>
         </div>
 
@@ -773,15 +757,11 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
               style={{ left: 0 }}
             />
             <div className="relative flex items-center z-10">
-              <span
-                className="flex items-center gap-2 px-5 py-1.5 rounded-full transition-colors"
-              >
+              <span className="flex items-center gap-2 px-5 py-1.5 rounded-full transition-colors">
                 <Flag className="w-5 h-5" />
                 {t('揭开', 'Reveal')}
               </span>
-              <span
-                className="flex items-center gap-2 px-5 py-1.5 rounded-full transition-colors"
-              >
+              <span className="flex items-center gap-2 px-5 py-1.5 rounded-full transition-colors">
                 <Flag className="w-5 h-5" />
                 {t('标旗', 'Flag')}
               </span>
@@ -797,95 +777,69 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
         {/* Confetti Particles */}
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           {confetti.map((p) => {
-              const shapeClass =
-                p.shape === 'circle' ? 'rounded-full' : p.shape === 'triangle' ? '' : 'rounded-sm';
-              const shapeStyle: React.CSSProperties =
-                p.shape === 'triangle'
-                  ? {
-                      backgroundColor: 'transparent',
-                      width: 0,
-                      height: 0,
-                      borderLeft: `${p.size / 2}px solid transparent`,
-                      borderRight: `${p.size / 2}px solid transparent`,
-                      borderBottom: `${p.size}px solid ${p.color}`,
-                    }
-                  : {
-                      backgroundColor: p.color,
-                      width: p.size,
-                      height: p.size,
-                    };
-              return (
-                <div
-                  key={p.id}
-                  className={`absolute ${shapeClass}`}
-                  style={shapeStyle}
-                />
-              );
-            })}
+            const shapeClass =
+              p.shape === 'circle' ? 'rounded-full' : p.shape === 'triangle' ? '' : 'rounded-sm';
+            const shapeStyle: React.CSSProperties =
+              p.shape === 'triangle'
+                ? {
+                    backgroundColor: 'transparent',
+                    width: 0,
+                    height: 0,
+                    borderLeft: `${p.size / 2}px solid transparent`,
+                    borderRight: `${p.size / 2}px solid transparent`,
+                    borderBottom: `${p.size}px solid ${p.color}`,
+                  }
+                : {
+                    backgroundColor: p.color,
+                    width: p.size,
+                    height: p.size,
+                  };
+            return <div key={p.id} className={`absolute ${shapeClass}`} style={shapeStyle} />;
+          })}
         </div>
 
         {/* Game Over Overlay */}
         {(gameState === 'won' || gameState === 'lost') && (
-            <div
-              className={`mt-6 p-6 rounded-2xl text-center ${
-                gameState === 'won'
-                  ? 'bg-green-50 border border-green-200'
-                  : 'bg-red-50 border border-red-200'
-              }`}
-            >
-              {gameState === 'won' ? (
-                <>
-                  <p
-                    className="text-2xl mb-1"
-                  >
-                    {t('恭喜通关！', 'You Win!')}
+          <div
+            className={`mt-6 p-6 rounded-2xl text-center ${
+              gameState === 'won'
+                ? 'bg-green-50 border border-green-200'
+                : 'bg-red-50 border border-red-200'
+            }`}
+          >
+            {gameState === 'won' ? (
+              <>
+                <p className="text-2xl mb-1">{t('恭喜通关！', 'You Win!')}</p>
+                <p className="text-4xl mb-3">🎉</p>
+                <p className="text-lg font-bold text-green-600 mb-1">
+                  {t('用时', 'Time')}: {formatTime(time)}
+                </p>
+                {time > 0 && time <= bestTime && (
+                  <p className="text-sm text-green-500 mb-2 font-bold">
+                    🏆 {t('新纪录！', 'New Record!')}
                   </p>
-                  <p
-                    className="text-4xl mb-3"
-                  >
-                    🎉
-                  </p>
-                  <p
-                    className="text-lg font-bold text-green-600 mb-1"
-                  >
-                    {t('用时', 'Time')}: {formatTime(time)}
-                  </p>
-                  {time > 0 && time <= bestTime && (
-                    <p
-                      className="text-sm text-green-500 mb-2 font-bold"
-                    >
-                      🏆 {t('新纪录！', 'New Record!')}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p
-                    className="text-2xl mb-1"
-                  >
-                    {t('踩到地雷！', 'Boom! Game Over')}
-                  </p>
-                  <p
-                    className="text-4xl mb-3"
-                  >
-                    💥
-                  </p>
-                </>
-              )}
-              <div className="flex justify-center gap-3">
-                <button
-                  onClick={startGame}
-                  className={`px-6 py-3 rounded-full font-semibold text-white min-h-[48px] transition-colors ${
-                    gameState === 'won'
-                      ? 'bg-green-500 hover:bg-green-600'
-                      : 'bg-red-500 hover:bg-red-600'
-                  }`}
-                >
-                  {t('再来一局', 'Play Again')}
-                </button>
-              </div>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-2xl mb-1">{t('踩到地雷！', 'Boom! Game Over')}</p>
+                <p className="text-4xl mb-3">💥</p>
+              </>
+            )}
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={startGame}
+                className={`px-6 py-3 rounded-full font-semibold text-white min-h-[48px] transition-colors ${
+                  gameState === 'won'
+                    ? 'bg-green-500 hover:bg-green-600'
+                    : 'bg-red-500 hover:bg-red-600'
+                }`}
+              >
+                {t('再来一局', 'Play Again')}
+              </button>
             </div>
-          )}
+          </div>
+        )}
       </div>
     </div>
   );

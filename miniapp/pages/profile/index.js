@@ -45,15 +45,39 @@ Page({
     if (!url) return;
     this.setData({ draftAvatarUrl: url });
     if (this.data.loggedIn) {
-      const user = Object.assign({}, this.data.user || {}, { avatarUrl: url });
-      auth.setUser(user);
-      this.refreshUser();
+      return this.saveLocalProfile((this.data.user && this.data.user.nickName) || '', url, true);
     }
   },
 
   onNickInput(e) {
     const value = (e && e.detail && e.detail.value) || '';
     this.setData({ draftNickName: value });
+  },
+
+  saveLocalProfile(nickName, avatarUrl, replacingAvatar) {
+    wx.showLoading({ title: '保存中', mask: true });
+    return auth
+      .loginWithProfile({ nickName: nickName, avatarUrl: avatarUrl })
+      .then((user) => {
+        wx.hideLoading();
+        this.setData({ draftAvatarUrl: user.avatarUrl || '' });
+        this.refreshUser();
+        wx.showToast({
+          title: replacingAvatar ? '头像已保存' : '已保存到本机',
+          icon: 'success',
+        });
+        return user;
+      })
+      .catch((err) => {
+        wx.hideLoading();
+        if (replacingAvatar) {
+          const current = auth.getUser();
+          this.setData({ draftAvatarUrl: (current && current.avatarUrl) || '' });
+          this.refreshUser();
+        }
+        wx.showToast({ title: (err && err.message) || '保存失败', icon: 'none' });
+        return null;
+      });
   },
 
   onLogin() {
@@ -65,18 +89,7 @@ Page({
     }
 
     const doLogin = () => {
-      wx.showLoading({ title: '保存中', mask: true });
-      auth
-        .loginWithProfile({ nickName: nickName, avatarUrl: avatarUrl })
-        .then(() => {
-          wx.hideLoading();
-          wx.showToast({ title: '已保存到本机', icon: 'success' });
-          this.refreshUser();
-        })
-        .catch((err) => {
-          wx.hideLoading();
-          wx.showToast({ title: (err && err.message) || '保存失败', icon: 'none' });
-        });
+      this.saveLocalProfile(nickName, avatarUrl, false);
     };
 
     if (typeof wx.requirePrivacyAuthorize === 'function') {
@@ -97,10 +110,19 @@ Page({
       content: '将清除本机保存的头像与昵称，不影响收藏与工具数据。不会触及任何云端账号。',
       success: (res) => {
         if (!res.confirm) return;
-        auth.logout();
-        this.setData({ draftNickName: '', draftAvatarUrl: '' });
-        this.refreshUser();
-        wx.showToast({ title: '已清除', icon: 'none' });
+        wx.showLoading({ title: '清除中', mask: true });
+        auth
+          .logout()
+          .then(() => {
+            wx.hideLoading();
+            this.setData({ draftNickName: '', draftAvatarUrl: '' });
+            this.refreshUser();
+            wx.showToast({ title: '已清除', icon: 'none' });
+          })
+          .catch((err) => {
+            wx.hideLoading();
+            wx.showToast({ title: (err && err.message) || '清除失败', icon: 'none' });
+          });
       },
     });
   },

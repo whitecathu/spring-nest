@@ -7,7 +7,9 @@ const dismissedKey = 'spring_nest_dismissed_announcements';
 function getDismissedIds() {
   try {
     const parsed = JSON.parse(localStorage.getItem(dismissedKey) || '[]');
-    return Array.isArray(parsed) ? new Set(parsed.filter((value) => typeof value === 'string')) : new Set<string>();
+    return Array.isArray(parsed)
+      ? new Set(parsed.filter((value) => typeof value === 'string'))
+      : new Set<string>();
   } catch {
     // localStorage may be unavailable or data corrupted
     return new Set<string>();
@@ -15,9 +17,12 @@ function getDismissedIds() {
 }
 
 function severityClass(severity: Announcement['severity']) {
-  if (severity === 'critical') return 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-100';
-  if (severity === 'warning') return 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100';
-  if (severity === 'success') return 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100';
+  if (severity === 'critical')
+    return 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-100';
+  if (severity === 'warning')
+    return 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100';
+  if (severity === 'success')
+    return 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100';
   return 'border-primary/20 bg-primary-container/30 text-on-primary-container dark:border-primary/20 dark:bg-primary/15 dark:text-primary';
 }
 
@@ -33,11 +38,16 @@ export default function AnnouncementBanner() {
 
   if (!announcement) return null;
 
-  const Icon = announcement.severity === 'warning' || announcement.severity === 'critical' ? AlertTriangle : Info;
+  const Icon =
+    announcement.severity === 'warning' || announcement.severity === 'critical'
+      ? AlertTriangle
+      : Info;
 
   return (
     <div className="relative z-40 px-4 pt-3">
-      <div className={`mx-auto flex max-w-5xl items-start gap-3 rounded-2xl border px-4 py-3 shadow-sm ${severityClass(announcement.severity)}`}>
+      <div
+        className={`mx-auto flex max-w-5xl items-start gap-3 rounded-2xl border px-4 py-3 shadow-sm ${severityClass(announcement.severity)}`}
+      >
         <Icon className="mt-0.5 h-5 w-5 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold">{announcement.title}</p>

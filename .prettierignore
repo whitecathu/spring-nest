@@ -6,5 +6,9 @@ test-results
 coverage
 lhci-report
 .lighthouseci
+.tmp-visual-qa
+.zcode
+.superpowers
+build
 package-lock.json
 *.log

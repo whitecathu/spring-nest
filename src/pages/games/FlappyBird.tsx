@@ -546,10 +546,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
           <div className="flex gap-2">
             <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <div
-                key={score}
-                className="text-xl font-bold tabular-nums"
-              >
+              <div key={score} className="text-xl font-bold tabular-nums">
                 {score}
               </div>
             </div>
@@ -839,22 +836,22 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
             {/* Death particles */}
             {deathParticles.map((particle) => (
-                <div
-                  key={particle.id}
-                  className="absolute rounded-full pointer-events-none"
-                  style={{
-                    left: (BIRD_X + BIRD_SIZE / 2) * gameScale,
-                    top: birdY * gameScale,
-                    width: particle.size * gameScale,
-                    height: particle.size * gameScale,
-                    backgroundColor: particle.color,
-                    animation: `particle-fly ${particle.duration}s ease-out forwards`,
-                    willChange: 'transform, opacity',
-                    ['--px' as string]: `${particle.vx * gameScale}px`,
-                    ['--py' as string]: `${particle.vy * gameScale}px`,
-                  }}
-                />
-              ))}
+              <div
+                key={particle.id}
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  left: (BIRD_X + BIRD_SIZE / 2) * gameScale,
+                  top: birdY * gameScale,
+                  width: particle.size * gameScale,
+                  height: particle.size * gameScale,
+                  backgroundColor: particle.color,
+                  animation: `particle-fly ${particle.duration}s ease-out forwards`,
+                  willChange: 'transform, opacity',
+                  ['--px' as string]: `${particle.vx * gameScale}px`,
+                  ['--py' as string]: `${particle.vy * gameScale}px`,
+                }}
+              />
+            ))}
 
             {/* Death white flash overlay */}
             {deathFlash && (
@@ -890,27 +887,27 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
 
             {/* Milestone combo indicator */}
             {milestoneCombo !== null && (
+              <div
+                className="absolute z-30 pointer-events-none flex items-center gap-2"
+                style={{
+                  left: (GAME_WIDTH / 2) * gameScale,
+                  top: (GAME_HEIGHT / 2 - 60) * gameScale,
+                  transform: 'translateX(-50%)',
+                }}
+              >
                 <div
-                  className="absolute z-30 pointer-events-none flex items-center gap-2"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-lg"
                   style={{
-                    left: (GAME_WIDTH / 2) * gameScale,
-                    top: (GAME_HEIGHT / 2 - 60) * gameScale,
-                    transform: 'translateX(-50%)',
+                    background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                    color: '#78350f',
+                    boxShadow: '0 0 20px rgba(251, 191, 36, 0.5), 0 4px 12px rgba(0,0,0,0.15)',
                   }}
                 >
-                  <div
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-lg"
-                    style={{
-                      background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                      color: '#78350f',
-                      boxShadow: '0 0 20px rgba(251, 191, 36, 0.5), 0 4px 12px rgba(0,0,0,0.15)',
-                    }}
-                  >
-                    <Zap className="w-4 h-4" />
-                    {milestoneCombo}
-                  </div>
+                  <Zap className="w-4 h-4" />
+                  {milestoneCombo}
                 </div>
-              )}
+              </div>
+            )}
 
             {/* Idle / Ready / Game Over Overlay */}
             {gameState !== 'playing' && (
@@ -957,9 +954,7 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   </div>
                 )}
                 {gameState === 'ready' && (
-                  <div
-                    className="text-center"
-                  >
+                  <div className="text-center">
                     <p
                       className="text-8xl font-black text-white drop-shadow-lg"
                       style={{
@@ -978,33 +973,24 @@ export default function FlappyBird({ onBack }: { onBack: () => void }) {
                   </div>
                 )}
                 {gameState === 'over' && (
-                  <div
-                    className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4"
-                  >
+                  <div className="text-center bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 mx-4">
                     <p className="text-2xl font-bold text-on-surface mb-2">
                       {t('游戏结束', 'Game Over')}
                     </p>
                     <p className="text-5xl mb-3">💀</p>
 
                     {/* Score breakdown animation */}
-                    <div
-                    >
+                    <div>
                       <p className="text-3xl font-black text-primary mb-1">{score}</p>
                       <p className="text-sm text-secondary mb-1">{t('得分', 'Score')}</p>
                     </div>
 
                     {score > 0 && score === bestScore && (
-                      <p
-                        className="text-sm text-green-500 mb-3"
-                      >
-                        {t('新纪录！', 'New Record!')}
-                      </p>
+                      <p className="text-sm text-green-500 mb-3">{t('新纪录！', 'New Record!')}</p>
                     )}
 
                     {score > 0 && score % 5 === 0 && (
-                      <p
-                        className="text-xs text-amber-500 mb-2 flex items-center justify-center gap-1"
-                      >
+                      <p className="text-xs text-amber-500 mb-2 flex items-center justify-center gap-1">
                         <Zap className="w-3 h-3" />
                         {t('完美里程碑！', 'Perfect Milestone!')}
                       </p>

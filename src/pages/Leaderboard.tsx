@@ -23,8 +23,7 @@ function getRankIcon(rank: number) {
     );
   if (rank === 2)
     return (
-      <div
-      >
+      <div>
         <Medal className="w-5 h-5 text-gray-400" />
       </div>
     );
@@ -85,9 +84,7 @@ export default function Leaderboard() {
           )}
           canonical="/leaderboard"
         />
-        <div
-          className="forest-empty-panel text-center max-w-md mx-auto px-8 py-12"
-        >
+        <div className="forest-empty-panel text-center max-w-md mx-auto px-8 py-12">
           <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-4 mx-auto">
             <CloudOff className="w-10 h-10 text-secondary/40" />
           </div>
@@ -115,9 +112,7 @@ export default function Leaderboard() {
         )}
         canonical="/leaderboard"
       />
-      <div
-        className="text-center mb-10 forest-readable-hero py-6"
-      >
+      <div className="text-center mb-10 forest-readable-hero py-6">
         <div className="flex items-center justify-center gap-3 mb-4">
           <Trophy className="w-8 h-8 text-primary" />
           <h1 className="font-nunito text-3xl font-bold forest-page-title">
@@ -149,55 +144,46 @@ export default function Leaderboard() {
 
       {/* Leaderboard List */}
       {loading ? (
-          <div
-            key="loading"
-            className="flex items-center justify-center py-20"
-          >
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          </div>
-        ) : entries.length === 0 ? (
-          <div
-            key="empty"
-            className="forest-empty-panel text-center py-16 px-6"
-          >
-            <Trophy className="w-12 h-12 text-secondary/30 mx-auto mb-4" />
-            <p className="text-on-surface font-medium">{t('暂无排名数据', 'No ranking data yet')}</p>
-            <p className="text-secondary text-sm mt-1">
-              {t('成为第一个上榜的玩家吧！', 'Be the first player on the board!')}
-            </p>
-          </div>
-        ) : (
-          <div
-            key={activeTab}
-            className="space-y-3"
-          >
-            {entries.map((entry, index) => {
-              const rank = index + 1;
-              return (
-                <div
-                  key={`${entry.username}-${rank}`}
-                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${getRankBg(rank)}`}
-                >
-                  <div className="w-10 h-10 flex items-center justify-center">
-                    {getRankIcon(rank)}
-                  </div>
-                  <div className="flex-grow">
-                    <p className="font-bold text-on-surface">{entry.username}</p>
-                    <p className="text-xs text-secondary">
-                      {new Date(entry.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-nunito text-xl font-bold text-primary">
-                      {entry.score.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-secondary">{t('分', 'pts')}</p>
-                  </div>
+        <div key="loading" className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      ) : entries.length === 0 ? (
+        <div key="empty" className="forest-empty-panel text-center py-16 px-6">
+          <Trophy className="w-12 h-12 text-secondary/30 mx-auto mb-4" />
+          <p className="text-on-surface font-medium">{t('暂无排名数据', 'No ranking data yet')}</p>
+          <p className="text-secondary text-sm mt-1">
+            {t('成为第一个上榜的玩家吧！', 'Be the first player on the board!')}
+          </p>
+        </div>
+      ) : (
+        <div key={activeTab} className="space-y-3">
+          {entries.map((entry, index) => {
+            const rank = index + 1;
+            return (
+              <div
+                key={`${entry.username}-${rank}`}
+                className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${getRankBg(rank)}`}
+              >
+                <div className="w-10 h-10 flex items-center justify-center">
+                  {getRankIcon(rank)}
                 </div>
-              );
-            })}
-          </div>
-        )}
-</div>
+                <div className="flex-grow">
+                  <p className="font-bold text-on-surface">{entry.username}</p>
+                  <p className="text-xs text-secondary">
+                    {new Date(entry.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-nunito text-xl font-bold text-primary">
+                    {entry.score.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-secondary">{t('分', 'pts')}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

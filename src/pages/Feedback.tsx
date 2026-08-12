@@ -57,9 +57,7 @@ export default function Feedback() {
   };
 
   return (
-    <main
-      className="mx-auto w-full max-w-[900px] px-6 py-16"
-    >
+    <main className="mx-auto w-full max-w-[900px] px-6 py-16">
       <SEO
         title={t('反馈建议 - Spring Nest 春日小筑', 'Feedback - Spring Nest')}
         description={t(
@@ -109,7 +107,10 @@ export default function Feedback() {
         >
           {!user && (
             <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
-              {t('反馈提交需要登录。你仍可浏览和使用基础功能。', 'Feedback requires sign-in. Core browsing and tools still work.')}
+              {t(
+                '反馈提交需要登录。你仍可浏览和使用基础功能。',
+                'Feedback requires sign-in. Core browsing and tools still work.',
+              )}
             </div>
           )}
 

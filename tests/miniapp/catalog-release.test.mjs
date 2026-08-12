@@ -1,13 +1,17 @@
-// @vitest-environment node
+// @vitest-environment jsdom
 
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
 const require = createRequire(import.meta.url);
-const appConfig = require('../app.json');
-const generatedCatalog = require('../data/tools.js');
-const catalog = require('../utils/catalog.js');
+const miniappRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../miniapp');
+const appConfig = require('../../miniapp/app.json');
+const generatedCatalog = require('../../miniapp/data/tools.js');
+const catalog = require('../../miniapp/utils/catalog.js');
 
 const REQUIRED_HIDDEN_SLUGS = ['word-to-pdf', 'pdf-to-word'];
 
@@ -22,6 +26,10 @@ function getUnavailableSlugs() {
 }
 
 describe('mini program catalog release contract', () => {
+  it('keeps generated catalog output deterministic', () => {
+    expect(generatedCatalog).not.toHaveProperty('generatedAt');
+  });
+
   it('publishes an explicit hidden-tool list for unsupported document conversions', () => {
     expect(generatedCatalog.hiddenSlugs).toEqual(expect.any(Array));
     expect(generatedCatalog.hiddenSlugs).toEqual(expect.arrayContaining(REQUIRED_HIDDEN_SLUGS));
@@ -70,6 +78,17 @@ describe('mini program catalog release contract', () => {
     expect(packageTools).toBeDefined();
     expect(packageTools.pages).not.toContain('pages/word-to-pdf/index');
     expect(packageTools.pages).not.toContain('pages/pdf-to-word/index');
+  });
+
+  it('does not render an empty document-conversion section', () => {
+    const efficiencyTemplate = fs.readFileSync(
+      path.join(miniappRoot, 'pages/efficiency/index.wxml'),
+      'utf8',
+    );
+
+    expect(efficiencyTemplate).toMatch(
+      /<view class="section-gap" wx:if="\{\{docTools\.length\}\}">/,
+    );
   });
 
   it('publishes mini-program-specific capability copy for every visible tool', () => {

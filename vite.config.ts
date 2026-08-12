@@ -56,9 +56,29 @@ export default defineConfig(({ mode }) => {
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,woff2,rar}'],
         globIgnores: [
-          '**/assets/word-to-pdf-vendor-*.js',
-          '**/assets/pdf-to-word-vendor-*.js',
+          '**/assets/GlassGardenCanvas-*.js',
+          '**/assets/Bookkeeping-*.js',
+          '**/assets/BillImporter-*.js',
+          '**/assets/StatisticsCharts-*.js',
+          '**/assets/QuestionBankImporter-*.js',
+          '**/assets/WordToPdf-*.js',
+          '**/assets/PdfToWord-*.js',
+          '**/assets/word-to-pdf-*.js',
+          '**/assets/pdf-to-word-*.js',
+          '**/assets/question-bank-*.js',
           '**/assets/pdf.worker-*.mjs',
+        ],
+        manifestTransforms: [
+          async (entries) => ({
+            manifest: entries.filter((entry) => {
+              if (!entry.url.startsWith('assets/')) {
+                return !/\.(?:rar|wasm)$/i.test(entry.url);
+              }
+              if (/\/app-[^/]+\.js$/i.test(entry.url)) return true;
+              if (/\.css$/i.test(entry.url)) return true;
+              return /\.(?:js|mjs)$/i.test(entry.url) && entry.size <= 64 * 1024;
+            }),
+          }),
         ],
         navigateFallback: undefined,
         runtimeCaching: [
@@ -137,17 +157,7 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            motion: ['motion'],
-            lucide: ['lucide-react'],
-            qrcode: ['qrcode'],
-            'word-to-pdf-vendor': ['mammoth', 'html2pdf.js'],
-            'pdf-to-word-vendor': ['pdfjs-dist', 'docx'],
-            'question-bank-vendor': ['zustand', 'jszip', 'node-unrar-js'],
-            'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
-            'ogl-vendor': ['ogl'],
-          },
+          entryFileNames: 'assets/app-[hash].js',
         },
       },
     },

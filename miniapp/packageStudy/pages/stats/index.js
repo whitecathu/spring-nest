@@ -26,24 +26,27 @@ Page({
     var decks = studyStorage.getDecks();
     var totalQuestions = 0;
     var masteredCount = 0;
-    var deckStats = decks.map(function (deck) {
-      var total = deck.questions.length;
-      var mastered = deck.questions.filter(function (q) {
-        return q.mastered;
-      }).length;
-      totalQuestions += total;
-      masteredCount += mastered;
-      return {
-        id: deck.id,
-        name: deck.name,
-        emoji: deck.emoji,
-        total: total,
-        mastered: mastered,
-        rate: total > 0 ? Math.round((mastered / total) * 100) : 0,
-      };
-    }).filter(function (item) {
-      return item.total > 0;
-    }).slice(0, 5);
+    var deckStats = decks
+      .map(function (deck) {
+        var total = deck.questions.length;
+        var mastered = deck.questions.filter(function (q) {
+          return q.mastered;
+        }).length;
+        totalQuestions += total;
+        masteredCount += mastered;
+        return {
+          id: deck.id,
+          name: deck.name,
+          emoji: deck.emoji,
+          total: total,
+          mastered: mastered,
+          rate: total > 0 ? Math.round((mastered / total) * 100) : 0,
+        };
+      })
+      .filter(function (item) {
+        return item.total > 0;
+      })
+      .slice(0, 5);
 
     var dailyCounts = (stats.dailyCounts || [0, 0, 0, 0, 0, 0, 0]).map(function (value) {
       return Number(value) || 0;

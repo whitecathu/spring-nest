@@ -31,7 +31,9 @@ function createForestAudioEngine(): Engine {
 
   const ensureGraph = async () => {
     if (!ctx) {
-      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AC =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       ctx = new AC();
       master = ctx.createGain();
       master.gain.value = 0;
@@ -164,7 +166,10 @@ export type ForestAudioToggleProps = {
   followRuntime?: boolean;
 };
 
-export function ForestAudioToggle({ className = '', followRuntime = true }: ForestAudioToggleProps) {
+export function ForestAudioToggle({
+  className = '',
+  followRuntime = true,
+}: ForestAudioToggleProps) {
   const { muted, toggle, engine } = useForestAudioEngine();
   const windStrength = useForestRuntimeSelectorOptional((s) => s.wind.strength, 0);
   const scrollVy = useForestRuntimeSelectorOptional((s) => s.scroll.vy, 0);

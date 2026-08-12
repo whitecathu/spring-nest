@@ -152,9 +152,7 @@ export default function WordSearch({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <div
-        className="space-y-5"
-      >
+      <div className="space-y-5">
         <div>
           <h1 className="flex items-center gap-3 text-3xl font-black text-on-surface">
             <Search className="h-8 w-8 text-primary" />

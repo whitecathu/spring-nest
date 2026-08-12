@@ -146,9 +146,7 @@ export default function PdfToWord({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="rounded-3xl border border-surface-variant/30 bg-white p-6 shadow-lg dark:bg-surface-container-high"
-      >
+      <div className="rounded-3xl border border-surface-variant/30 bg-white p-6 shadow-lg dark:bg-surface-container-high">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-bold text-on-surface">{t('PDF 转 Word', 'PDF to Word')}</h2>
           <p className="mt-2 text-sm leading-relaxed text-secondary">
@@ -197,9 +195,7 @@ export default function PdfToWord({ onBack }: { onBack: () => void }) {
         {(isConverting || status === 'success') && (
           <div className="mt-4">
             <div className="h-2 overflow-hidden rounded-full bg-surface-container-high">
-              <div
-                className="h-full rounded-full bg-primary"
-              />
+              <div className="h-full rounded-full bg-primary" />
             </div>
             <p className="mt-2 text-right text-xs font-semibold text-secondary">{progress}%</p>
             <div className="mt-3 grid grid-cols-5 gap-2">

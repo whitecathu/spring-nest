@@ -1,14 +1,14 @@
 .stats-page {
   min-height: 100vh;
   padding: 16px 18px calc(28px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(91, 50, 202, 0.06) 0%, transparent 180px), #FAF8F5;
+  background: linear-gradient(180deg, rgba(91, 50, 202, 0.06) 0%, transparent 180px), #faf8f5;
   box-sizing: border-box;
 }
 
 .page-desc {
   margin-top: 0;
   font-size: 13px;
-  color: #8174A9;
+  color: #8174a9;
   font-weight: 500;
   line-height: 1.55;
 }
@@ -36,42 +36,54 @@
 }
 
 .kpi-card.streak {
-  background: #F4F3FC;
-  border: 1px solid #E9E6F6;
+  background: #f4f3fc;
+  border: 1px solid #e9e6f6;
 }
 .kpi-card.today {
-  background: #F2FAF5;
-  border: 1px solid #E5F3EB;
+  background: #f2faf5;
+  border: 1px solid #e5f3eb;
 }
 .kpi-card.rate {
-  background: #FCF7F2;
-  border: 1px solid #F5ECE2;
+  background: #fcf7f2;
+  border: 1px solid #f5ece2;
 }
 .kpi-card.time {
-  background: #FDF3F3;
-  border: 1px solid #F7EAEB;
+  background: #fdf3f3;
+  border: 1px solid #f7eaeb;
 }
 
 .kpi-label {
   font-size: 12px;
   font-weight: 800;
-  color: #8174A9;
+  color: #8174a9;
 }
 
-.kpi-card.today .kpi-label { color: #71A488; }
-.kpi-card.rate .kpi-label { color: #A1826F; }
-.kpi-card.time .kpi-label { color: #AA7474; }
+.kpi-card.today .kpi-label {
+  color: #71a488;
+}
+.kpi-card.rate .kpi-label {
+  color: #a1826f;
+}
+.kpi-card.time .kpi-label {
+  color: #aa7474;
+}
 
 .kpi-value {
   font-size: 32px;
   font-weight: 900;
-  color: #2A165C;
+  color: #2a165c;
   line-height: 1;
 }
 
-.kpi-card.today .kpi-value { color: #174C32; }
-.kpi-card.rate .kpi-value { color: #523624; }
-.kpi-card.time .kpi-value { color: #5C1D1D; }
+.kpi-card.today .kpi-value {
+  color: #174c32;
+}
+.kpi-card.rate .kpi-value {
+  color: #523624;
+}
+.kpi-card.time .kpi-value {
+  color: #5c1d1d;
+}
 
 .kpi-unit {
   margin-left: 4px;
@@ -90,7 +102,7 @@
 .panel-title {
   font-size: 15px;
   font-weight: 900;
-  color: #2A165C;
+  color: #2a165c;
   margin-bottom: 14px;
 }
 
@@ -122,7 +134,7 @@
   width: 70%;
   max-width: 22px;
   border-radius: 999px 999px 8px 8px;
-  background: linear-gradient(180deg, #5B32CA, #8174A9);
+  background: linear-gradient(180deg, #5b32ca, #8174a9);
   min-height: 8px;
 }
 
@@ -130,7 +142,7 @@
   margin-top: 6px;
   font-size: 10px;
   font-weight: 800;
-  color: #8174A9;
+  color: #8174a9;
 }
 
 .meta-row {
@@ -151,7 +163,7 @@
 
 .meta-strong {
   font-weight: 900;
-  color: #2A165C;
+  color: #2a165c;
 }
 
 .deck-stat {
@@ -178,5 +190,5 @@
 .deck-fill {
   height: 100%;
   border-radius: 999px;
-  background: #5B32CA;
+  background: #5b32ca;
 }

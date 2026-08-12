@@ -326,9 +326,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
         {t('返回游戏列表', 'Back to Games')}
       </button>
 
-      <div
-        style={{ transform: `translate(${shake.x}px, ${shake.y}px)` }}
-      >
+      <div style={{ transform: `translate(${shake.x}px, ${shake.y}px)` }}>
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -338,9 +336,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <div
-              className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {t('时间', 'Time')}
@@ -351,29 +347,20 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
                 {timeLeft}s
               </div>
             </div>
-            <div
-              className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <div
-                key={score}
-                className="text-xl font-bold text-primary"
-              >
+              <div key={score} className="text-xl font-bold text-primary">
                 {score}
               </div>
             </div>
-            <div
-              className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
                 <Trophy className="w-3 h-3" />
                 {t('最佳', 'Best')}
               </div>
               <div className="text-xl font-bold text-tertiary">{bestScore}</div>
             </div>
-            <div
-              className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-3 py-2 sm:px-4 text-center">
               <div className="text-xs text-secondary font-medium">
                 🔥 {t('最佳连击', 'Best Combo')}
               </div>
@@ -384,12 +371,10 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
 
         {/* Countdown overlay */}
         {countdown > 0 && !playing && !gameOver && (
-            <div
-              className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-            >
-              <span className="text-8xl font-black text-primary drop-shadow-lg">{countdown}</span>
-            </div>
-          )}
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <span className="text-8xl font-black text-primary drop-shadow-lg">{countdown}</span>
+          </div>
+        )}
 
         {/* Game Board */}
         <div
@@ -418,30 +403,27 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
 
                     {/* Mole */}
                     {hasMole && !wasHit && (
-                        <button
-                          key={`mole-${i}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            whack(i);
-                          }}
-                          className="absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 cursor-pointer select-none"
-                        >
-                          <span
-                          >
-                            🐹
-                          </span>
-                        </button>
-                      )}
+                      <button
+                        key={`mole-${i}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          whack(i);
+                        }}
+                        className="absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 cursor-pointer select-none"
+                      >
+                        <span>🐹</span>
+                      </button>
+                    )}
 
-                      {/* Death expression */}
-                      {wasHit && (
-                        <div
-                          key={`dead-${i}`}
-                          className="absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 pointer-events-none select-none"
-                        >
-                          <span className="drop-shadow-lg">{deathEmoji}</span>
-                        </div>
-                      )}
+                    {/* Death expression */}
+                    {wasHit && (
+                      <div
+                        key={`dead-${i}`}
+                        className="absolute bottom-0 w-[90%] aspect-square rounded-t-full text-4xl flex items-end justify-center pb-1 pointer-events-none select-none"
+                      >
+                        <span className="drop-shadow-lg">{deathEmoji}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -451,11 +433,7 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
           {/* Particle layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {particles.map((p) => (
-              <div
-                key={p.id}
-                className="absolute text-center"
-                style={{ fontSize: `${p.size}px` }}
-              >
+              <div key={p.id} className="absolute text-center" style={{ fontSize: `${p.size}px` }}>
                 {p.emoji}
               </div>
             ))}
@@ -464,38 +442,35 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
           {/* Score popup layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {scorePopups.map((p) => (
-                <div
-                  key={p.id}
-                  className="absolute font-black text-lg drop-shadow-md"
-                  style={{ color: p.color, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
-                >
-                  {p.text}
-                </div>
-              ))}
+              <div
+                key={p.id}
+                className="absolute font-black text-lg drop-shadow-md"
+                style={{ color: p.color, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
+              >
+                {p.text}
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Combo indicator */}
         {combo >= 2 && playing && (
-            <div
-              key={combo}
-              className="text-center mb-4"
+          <div key={combo} className="text-center mb-4">
+            <span
+              className={`font-black inline-block ${
+                combo >= 10
+                  ? 'text-4xl text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]'
+                  : combo >= 7
+                    ? 'text-3xl text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]'
+                    : combo >= 5
+                      ? 'text-2xl text-yellow-500'
+                      : 'text-xl text-primary'
+              }`}
             >
-              <span
-                className={`font-black inline-block ${
-                  combo >= 10
-                    ? 'text-4xl text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]'
-                    : combo >= 7
-                      ? 'text-3xl text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]'
-                      : combo >= 5
-                        ? 'text-2xl text-yellow-500'
-                        : 'text-xl text-primary'
-                }`}
-              >
-                🔥 {combo} {t('连击！', 'Combo!')}
-              </span>
-            </div>
-          )}
+              🔥 {combo} {t('连击！', 'Combo!')}
+            </span>
+          </div>
+        )}
 
         {/* Controls */}
         <div className="flex justify-center gap-4">
@@ -519,40 +494,30 @@ export default function WhackAMole({ onBack }: { onBack: () => void }) {
         </div>
 
         {gameOver && (
-            <div
-              className="mt-6 p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-700/30 rounded-2xl text-center"
+          <div className="mt-6 p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-700/30 rounded-2xl text-center">
+            <p className="text-3xl mb-2">🎯</p>
+            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
+              {t('时间到！', "Time's up!")}
+            </p>
+            <p className="text-xl font-bold text-orange-500 mb-1">
+              {t('得分', 'Score')}: {score}
+            </p>
+            {bestCombo > 0 && (
+              <p className="text-sm text-orange-400 mb-1">
+                🔥 {t('最佳连击', 'Best Combo')}: {bestCombo}
+              </p>
+            )}
+            {score > 0 && score === bestScore && (
+              <p className="text-sm text-orange-500 mb-4">🏆 {t('新纪录！', 'New Record!')}</p>
+            )}
+            <button
+              onClick={startGame}
+              className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]"
             >
-              <p
-                className="text-3xl mb-2"
-              >
-                🎯
-              </p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
-                {t('时间到！', "Time's up!")}
-              </p>
-              <p className="text-xl font-bold text-orange-500 mb-1">
-                {t('得分', 'Score')}: {score}
-              </p>
-              {bestCombo > 0 && (
-                <p className="text-sm text-orange-400 mb-1">
-                  🔥 {t('最佳连击', 'Best Combo')}: {bestCombo}
-                </p>
-              )}
-              {score > 0 && score === bestScore && (
-                <p
-                  className="text-sm text-orange-500 mb-4"
-                >
-                  🏆 {t('新纪录！', 'New Record!')}
-                </p>
-              )}
-              <button
-                onClick={startGame}
-                className="px-6 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors min-h-[48px]"
-              >
-                {t('再来一局', 'Play Again')}
-              </button>
-            </div>
-          )}
+              {t('再来一局', 'Play Again')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

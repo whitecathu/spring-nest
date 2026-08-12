@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { User } from 'lucide-react';
 import { MotionButton } from '../GsapSurface';
 import type { UserProfile } from '../../contexts/UserContext';
@@ -63,9 +63,7 @@ export default function UserMenu({
 
       <div
         className={`absolute right-0 top-full mt-2 w-48 bg-white/95 dark:bg-surface-container-high/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-surface-variant/40 transition-all duration-200 transform origin-top-right flex flex-col p-2 z-50 ${
-          showUserMenu
-            ? 'opacity-100 visible translate-y-0'
-            : 'opacity-0 invisible -translate-y-1'
+          showUserMenu ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1'
         }`}
       >
         <Link

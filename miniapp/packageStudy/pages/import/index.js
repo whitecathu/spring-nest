@@ -1,6 +1,7 @@
 const parsers = require('../../utils/parsers');
 const studyStorage = require('../../utils/storage');
 const helpers = require('../../utils/helpers');
+const importLimits = require('../../utils/import-limits');
 
 var EMOJI_PRESETS = ['📚', '🌿', '🧠', '✏️', '🧪', '📖', '💡', '🎯'];
 
@@ -42,22 +43,25 @@ Page({
   },
 
   applyParsed(result, fileName) {
+    var questions = result.questions || [];
+    importLimits.assertQuestionCount(questions);
     this.setData({
       step: 'preview',
-      previewQuestions: (result.questions || []).slice(0, 8),
-      previewCount: (result.questions || []).length,
+      previewQuestions: questions.slice(0, 8),
+      previewCount: questions.length,
       importTitle: result.name || parsers.getBaseFileName(fileName) || '新题集',
       importEmoji: result.emoji || '📚',
       fileName: fileName || '',
       importError: '',
-      _parsedQuestions: result.questions || [],
+      _parsedQuestions: questions,
     });
-    this._parsedQuestions = result.questions || [];
+    this._parsedQuestions = questions;
     wx.setNavigationBarTitle({ title: '确认题集' });
   },
 
   onParsePaste() {
     try {
+      importLimits.assertImportSize(this.data.pasteText);
       var result = parsers.detectAndParse(this.data.pasteText, 'paste.txt');
       this.applyParsed(result, '粘贴文本');
     } catch (err) {
@@ -91,12 +95,19 @@ Page({
     var fs = wx.getFileSystemManager();
     var path = file.path || file.tempFilePath;
     var name = file.name || 'import.txt';
+    try {
+      importLimits.assertImportSize(Number(file.size));
+    } catch (err) {
+      that.setData({ importError: err.message });
+      return;
+    }
     wx.showLoading({ title: '解析中', mask: true });
     fs.readFile({
       filePath: path,
       encoding: 'utf8',
       success: function (res) {
         try {
+          importLimits.assertImportSize(res.data);
           var result = parsers.detectAndParse(res.data, name);
           that.applyParsed(result, name);
         } catch (err) {
@@ -120,8 +131,7 @@ Page({
       return;
     }
     var title = String(this.data.importTitle || '').trim() || '新题集';
-    this.setData({ saving: true });
-    studyStorage.addDeck({
+    var deck = {
       id: helpers.uid('deck'),
       name: title,
       desc: '导入于 ' + helpers.getDisplayReviewDate() + '，共 ' + questions.length + ' 道题。',
@@ -129,8 +139,21 @@ Page({
       color: '#2D6A4F',
       questions: questions,
       createdAt: Date.now(),
-    });
-    this.setData({ saving: false });
+    };
+    try {
+      importLimits.assertQuestionCount(questions);
+      importLimits.assertStorageCapacity(deck);
+      this.setData({ saving: true, importError: '' });
+      studyStorage.addDeck(deck);
+    } catch (err) {
+      this.setData({
+        saving: false,
+        importError: (err && err.message) || '题集保存失败，请重试。',
+      });
+      wx.showToast({ title: '题集保存失败', icon: 'none' });
+      return;
+    }
+    this.setData({ saving: false, importError: '' });
     wx.showToast({ title: '题集已保存', icon: 'success' });
     setTimeout(function () {
       wx.redirectTo({ url: '/packageStudy/pages/home/index' });

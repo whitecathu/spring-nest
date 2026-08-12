@@ -35,7 +35,9 @@
   font-size: 26px;
   color: var(--on-surface);
   flex-shrink: 0;
-  transition: transform 0.1s ease, background-color 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    background-color 0.15s ease;
   position: relative;
   z-index: 2;
 }
@@ -114,7 +116,9 @@
   justify-content: center;
   flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 3px rgba(63, 103, 81, 0.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 1px 3px rgba(63, 103, 81, 0.05);
 }
 
 .intro-icon .icon-emoji {

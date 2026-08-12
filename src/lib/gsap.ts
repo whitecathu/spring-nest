@@ -129,13 +129,7 @@ interface ScrollRevealOptions {
 export function useScrollReveal<T extends HTMLElement>(
   options: ScrollRevealOptions = {},
 ): RefCallback<T> {
-  const {
-    direction = 'up',
-    delay = 0,
-    duration = 0.5,
-    distance = 24,
-    once = true,
-  } = options;
+  const { direction = 'up', delay = 0, duration = 0.5, distance = 24, once = true } = options;
   const reducedMotion = useReducedMotion();
   const ref = useRef<T | null>(null);
   const tweenRef = useRef<gsap.core.Tween | null>(null);
@@ -308,7 +302,11 @@ export function useInteractive<T extends HTMLElement>(
 
       function onEnter() {
         tweenRef.current?.kill();
-        tweenRef.current = gsap.to(node!, { scale: hoverScale, duration: 0.25, ease: 'power2.out' });
+        tweenRef.current = gsap.to(node!, {
+          scale: hoverScale,
+          duration: 0.25,
+          ease: 'power2.out',
+        });
       }
       function onLeave() {
         tweenRef.current?.kill();
@@ -320,7 +318,11 @@ export function useInteractive<T extends HTMLElement>(
       }
       function onUp() {
         tweenRef.current?.kill();
-        tweenRef.current = gsap.to(node!, { scale: hoverScale, duration: 0.2, ease: 'back.out(1.7)' });
+        tweenRef.current = gsap.to(node!, {
+          scale: hoverScale,
+          duration: 0.2,
+          ease: 'back.out(1.7)',
+        });
       }
 
       node.addEventListener('mouseenter', onEnter);
@@ -476,9 +478,7 @@ export function useSpringValue(
 }
 
 // ── Timeline Helper ────────────────────────────────────────
-export function useTimeline(
-  deps: readonly unknown[] = [],
-): gsap.core.Timeline {
+export function useTimeline(deps: readonly unknown[] = []): gsap.core.Timeline {
   const tlRef = useRef<gsap.core.Timeline>(gsap.timeline({ paused: true }));
 
   useEffect(() => {
@@ -491,19 +491,21 @@ export function useTimeline(
 }
 
 // ── Quick Setter (high-performance) ────────────────────────
-export function useQuickSetter<T extends HTMLElement>(
-  property: string,
-  unit: string = '',
-) {
+export function useQuickSetter<T extends HTMLElement>(property: string, unit: string = '') {
   const ref = useRef<T | null>(null);
   const setterRef = useRef<((v: number) => void) | null>(null);
 
-  const callbackRef: RefCallback<T> = useCallback((node: T | null) => {
-    ref.current = node;
-    if (node) {
-      setterRef.current = gsap.quickSetter(node as any, property, unit) as unknown as (v: number) => void;
-    }
-  }, [property, unit]);
+  const callbackRef: RefCallback<T> = useCallback(
+    (node: T | null) => {
+      ref.current = node;
+      if (node) {
+        setterRef.current = gsap.quickSetter(node as any, property, unit) as unknown as (
+          v: number,
+        ) => void;
+      }
+    },
+    [property, unit],
+  );
 
   const set = useCallback((value: number) => {
     setterRef.current?.(value);

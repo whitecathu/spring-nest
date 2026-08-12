@@ -15,7 +15,11 @@ function sanitizeHref(href: string): string | null {
   if (!trimmed || /[\s<>"']/.test(trimmed)) return null;
   if (/^(https?:|mailto:)/i.test(trimmed)) return trimmed;
   if (trimmed.startsWith('#') && !trimmed.includes(':')) return trimmed;
-  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+  if (
+    trimmed.startsWith('/') &&
+    !trimmed.startsWith('//') &&
+    !/^[a-z][a-z0-9+.-]*:/i.test(trimmed)
+  ) {
     return trimmed;
   }
   return null;
@@ -46,7 +50,10 @@ function parseInline(text: string): string {
   );
 
   processed = escapeHtml(processed);
-  processed = processed.replace(/\u0000(\d+)\u0000/g, (_, index: string) => stashed[Number(index)] ?? '');
+  processed = processed.replace(
+    /\u0000(\d+)\u0000/g,
+    (_, index: string) => stashed[Number(index)] ?? '',
+  );
   return processed;
 }
 

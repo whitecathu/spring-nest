@@ -241,9 +241,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
           {t('轻量扫描仪', 'Lite Scanner')}
         </h2>
@@ -256,101 +254,95 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
 
         <div className="relative w-full aspect-[4/3] bg-black rounded-2xl overflow-hidden mb-4">
           {!capturedImage ? (
-              <div
-                key="camera"
-                className="w-full h-full"
-              >
-                <video
-                  ref={videoRef}
-                  className="w-full h-full object-cover"
-                  playsInline
-                  muted
-                  autoPlay
-                />
-                {!cameraActive && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-container-low">
-                    {hasCamera ? (
-                      <>
-                        <Camera className="w-12 h-12 text-secondary/40 mb-3" />
+            <div key="camera" className="w-full h-full">
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                playsInline
+                muted
+                autoPlay
+              />
+              {!cameraActive && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-container-low">
+                  {hasCamera ? (
+                    <>
+                      <Camera className="w-12 h-12 text-secondary/40 mb-3" />
+                      <button
+                        onClick={startCamera}
+                        className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold text-sm"
+                      >
+                        {t('打开相机', 'Open Camera')}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="w-12 h-12 text-secondary/40 mb-3" />
+                      <p className="max-w-[260px] px-4 text-center text-sm leading-relaxed text-secondary mb-3">
+                        {cameraError || t('无法访问相机', 'Cannot access camera')}
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2">
                         <button
                           onClick={startCamera}
-                          className="px-6 py-3 bg-primary text-on-primary rounded-full font-semibold text-sm"
+                          className="px-5 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold text-sm"
                         >
-                          {t('打开相机', 'Open Camera')}
+                          {t('重试相机', 'Retry Camera')}
                         </button>
-                      </>
-                    ) : (
-                      <>
-                        <Camera className="w-12 h-12 text-secondary/40 mb-3" />
-                        <p className="max-w-[260px] px-4 text-center text-sm leading-relaxed text-secondary mb-3">
-                          {cameraError || t('无法访问相机', 'Cannot access camera')}
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          <button
-                            onClick={startCamera}
-                            className="px-5 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold text-sm"
-                          >
-                            {t('重试相机', 'Retry Camera')}
-                          </button>
-                          <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="px-5 py-3 bg-primary text-on-primary rounded-full font-semibold text-sm flex items-center gap-2"
-                          >
-                            <Upload className="w-4 h-4" />
-                            {t('上传图片', 'Upload Image')}
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-                {cameraActive && (
-                  <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-4">
-                    <button
-                      onClick={handleFlipCamera}
-                      className="p-3 bg-black/40 backdrop-blur-sm text-white rounded-full hover:bg-black/60 transition-colors"
-                      aria-label={t('翻转相机', 'Flip camera')}
-                    >
-                      <FlipHorizontal className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={handleCapture}
-                      className="w-16 h-16 bg-white rounded-full border-4 border-primary shadow-lg hover:scale-105 active:scale-95 transition-transform"
-                      aria-label={t('拍照', 'Capture')}
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="p-3 bg-black/40 backdrop-blur-sm text-white rounded-full hover:bg-black/60 transition-colors"
-                      aria-label={t('上传图片', 'Upload')}
-                    >
-                      <Upload className="w-5 h-5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div
-                key="preview"
-                className="w-full h-full relative"
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-5 py-3 bg-primary text-on-primary rounded-full font-semibold text-sm flex items-center gap-2"
+                        >
+                          <Upload className="w-4 h-4" />
+                          {t('上传图片', 'Upload Image')}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              {cameraActive && (
+                <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-4">
+                  <button
+                    onClick={handleFlipCamera}
+                    className="p-3 bg-black/40 backdrop-blur-sm text-white rounded-full hover:bg-black/60 transition-colors"
+                    aria-label={t('翻转相机', 'Flip camera')}
+                  >
+                    <FlipHorizontal className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleCapture}
+                    className="w-16 h-16 bg-white rounded-full border-4 border-primary shadow-lg hover:scale-105 active:scale-95 transition-transform"
+                    aria-label={t('拍照', 'Capture')}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-3 bg-black/40 backdrop-blur-sm text-white rounded-full hover:bg-black/60 transition-colors"
+                    aria-label={t('上传图片', 'Upload')}
+                  >
+                    <Upload className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div key="preview" className="w-full h-full relative">
+              <img
+                src={capturedImage}
+                alt={t('扫描预览', 'Scan preview')}
+                className="w-full h-full object-contain transition-all duration-300"
+                style={{ filter: getFilterString() }}
+              />
+              <button
+                onClick={() => {
+                  setCapturedImage(null);
+                  setActivePreset('none');
+                }}
+                className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-sm text-white rounded-full hover:bg-black/60 transition-colors"
+                aria-label={t('关闭', 'Close')}
               >
-                <img
-                  src={capturedImage}
-                  alt={t('扫描预览', 'Scan preview')}
-                  className="w-full h-full object-contain transition-all duration-300"
-                  style={{ filter: getFilterString() }}
-                />
-                <button
-                  onClick={() => {
-                    setCapturedImage(null);
-                    setActivePreset('none');
-                  }}
-                  className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-sm text-white rounded-full hover:bg-black/60 transition-colors"
-                  aria-label={t('关闭', 'Close')}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         <canvas ref={canvasRef} className="hidden" />
@@ -403,9 +395,7 @@ export default function Scanner({ onBack }: { onBack: () => void }) {
             </div>
 
             {showCustom && (
-              <div
-                className="space-y-3 mb-4"
-              >
+              <div className="space-y-3 mb-4">
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="flex items-center gap-2 text-sm font-medium text-secondary">

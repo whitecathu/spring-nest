@@ -56,15 +56,7 @@ describe('mini program tool catalog', () => {
       'privacy',
     ]);
     const allowedTabs = new Set(['discover', 'development', 'efficiency']);
-    const allowedSections = new Set([
-      'daily',
-      'fun',
-      'dev',
-      'security',
-      'time',
-      'learning',
-      'doc',
-    ]);
+    const allowedSections = new Set(['daily', 'fun', 'dev', 'security', 'time', 'learning', 'doc']);
 
     for (const tool of miniProgramToolCatalog) {
       expect(allowedTabs.has(tool.tabId)).toBe(true);
@@ -89,7 +81,11 @@ describe('mini program tool catalog', () => {
   });
 
   it('groups tools by tab and section helpers', () => {
-    expect(getToolsByTab('discover').map((tool) => tool.slug).sort()).toEqual(
+    expect(
+      getToolsByTab('discover')
+        .map((tool) => tool.slug)
+        .sort(),
+    ).toEqual(
       [
         'bmi-calculator',
         'bookkeeping',
@@ -104,9 +100,11 @@ describe('mini program tool catalog', () => {
         'tip-calculator',
       ].sort(),
     );
-    expect(getToolsByTab('development').map((tool) => tool.slug).sort()).toEqual(
-      ['base64-codec', 'json-formatter', 'password', 'url-codec'].sort(),
-    );
+    expect(
+      getToolsByTab('development')
+        .map((tool) => tool.slug)
+        .sort(),
+    ).toEqual(['base64-codec', 'json-formatter', 'password', 'url-codec'].sort());
     expect(getToolsByTab('profile')).toEqual([]);
     expect(getToolsBySection('quick').map((tool) => tool.slug)).toEqual([
       'calculator',

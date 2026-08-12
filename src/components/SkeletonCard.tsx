@@ -43,7 +43,9 @@ function SingleSkeletonCard({ variant = 'game' }: Pick<SkeletonCardProps, 'varia
       ease: 'power1.inOut',
     });
 
-    return () => { tween.kill(); };
+    return () => {
+      tween.kill();
+    };
   }, [reducedMotion]);
 
   if (variant === 'tool') {

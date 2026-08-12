@@ -35,6 +35,13 @@ async function expectHealthyRoute(page: Page, route: string) {
 test.describe('route and URL-state production coverage', () => {
   test.describe.configure({ timeout: 90000 });
 
+  test.beforeEach(async ({ page }) => {
+    await page.route(/\.(?:mp4|webm)(?:\?.*)?$/, (route) => route.abort());
+    await page.addInitScript(() => {
+      localStorage.setItem('spring_nest_forest_splash', String(Date.now()));
+    });
+  });
+
   test('base app routes render without 404 or crash', async ({ page }) => {
     for (const route of baseRoutes) {
       await expectHealthyRoute(page, route);
@@ -47,6 +54,51 @@ test.describe('route and URL-state production coverage', () => {
     for (const route of dataRoutes) {
       await expectHealthyRoute(page, route);
       await expect(page.locator('main')).toContainText(/FAQ|使用方法|玩法说明|How to/);
+    }
+  });
+
+  test('all routes expose real accessible names for visible form controls', async ({ page }) => {
+    const routes = [
+      ...baseRoutes,
+      ...tools.map((item) => item.route),
+      ...games.map((item) => item.route),
+    ];
+
+    for (const route of routes) {
+      await page.goto(route);
+      const missingLabels = await page.evaluate(() =>
+        Array.from(
+          document.querySelectorAll(
+            'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])',
+          ),
+        )
+          .filter((element) => {
+            const style = window.getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            if (
+              style.display === 'none' ||
+              style.visibility === 'hidden' ||
+              rect.width === 0 ||
+              rect.height === 0
+            )
+              return false;
+            const id = element.getAttribute('id');
+            return (
+              !element.getAttribute('aria-label') &&
+              !element.getAttribute('aria-labelledby') &&
+              !element.closest('label') &&
+              !(id && document.querySelector(`label[for="${CSS.escape(id)}"]`)) &&
+              !element.getAttribute('title')
+            );
+          })
+          .map((element) => ({
+            tag: element.tagName.toLowerCase(),
+            type: element.getAttribute('type'),
+            placeholder: element.getAttribute('placeholder'),
+          })),
+      );
+
+      expect(missingLabels, `${route} unlabeled visible form controls`).toEqual([]);
     }
   });
 
@@ -146,10 +198,7 @@ test.describe('route and URL-state production coverage', () => {
   test('primary pages pass basic axe accessibility scan', async ({ page }) => {
     for (const route of ['/', '/tools', '/games', '/search']) {
       await page.goto(route);
-      const results = await new AxeBuilder({ page })
-        .include('main')
-        .disableRules(['color-contrast'])
-        .analyze();
+      const results = await new AxeBuilder({ page }).include('main').analyze();
       expect(results.violations, `${route} axe violations`).toEqual([]);
     }
   });

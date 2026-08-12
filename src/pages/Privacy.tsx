@@ -10,7 +10,6 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import gsap from 'gsap';
 import { useUser } from '../contexts/UserContext';
 import SEO from '../components/SEO';
 
@@ -43,9 +42,7 @@ function Section({ icon, title, children, defaultOpen = false }: SectionProps) {
         )}
       </button>
       {isOpen && (
-        <div
-          className="px-6 pb-6"
-        >
+        <div className="px-6 pb-6">
           <div className="text-on-surface-variant leading-relaxed space-y-4">{children}</div>
         </div>
       )}
@@ -56,25 +53,8 @@ function Section({ icon, title, children, defaultOpen = false }: SectionProps) {
 export default function Privacy() {
   const { t } = useUser();
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
-  };
-
   return (
-    <div
-      className="max-w-[900px] mx-auto px-6 py-16 w-full"
-    >
+    <div className="max-w-[900px] mx-auto px-6 py-16 w-full">
       <SEO
         title={t('隐私政策 - Spring Nest 春日小筑', 'Privacy Policy - Spring Nest')}
         description={t(
@@ -92,7 +72,7 @@ export default function Privacy() {
           {t('隐私政策', 'Privacy Policy')}
         </h1>
         <p className="forest-page-subtitle text-lg">
-          {t('最后更新: 2026年5月', 'Last updated: May 2026')}
+          {t('最后更新: 2026年7月', 'Last updated: July 2026')}
         </p>
         <p className="forest-page-subtitle mt-4 max-w-2xl mx-auto">
           {t(
@@ -163,8 +143,8 @@ export default function Privacy() {
             </ul>
             <p className="text-sm text-secondary mt-4">
               {t(
-                '所有数据仅在您的浏览器本地使用，不会用于广告推送或出售给第三方。',
-                'All data is used only locally in your browser and will not be used for advertising or sold to third parties.',
+                '我们不会出售个人数据，也不会将其用于定向广告。启用云同步或明确同意分析后，完成相应功能所必需的数据可能由下述第三方服务处理。',
+                'We do not sell personal data or use it for targeted advertising. When cloud sync is enabled or analytics consent is granted, the data needed for those features may be processed by the third parties listed below.',
               )}
             </p>
           </Section>
@@ -185,14 +165,14 @@ export default function Privacy() {
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>
                 {t(
-                  '所有数据仅存储在您的设备上，不经过任何第三方服务器',
-                  'All data is stored only on your device and does not pass through any third-party servers',
+                  '本地数据默认保存在您的设备；登录并启用 Supabase 后，资料与同步数据会传输到 Supabase',
+                  'Local data stays on your device by default; after sign-in with Supabase enabled, profile and sync data is sent to Supabase',
                 )}
               </li>
               <li>
                 {t(
-                  '不收集、不上传、不共享您的个人数据',
-                  'We do not collect, upload, or share your personal data',
+                  '分析遥测默认关闭，只有您明确同意后才会加载 Sentry；撤回同意后客户端会停止发送',
+                  'Analytics telemetry is off by default. Sentry loads only after explicit consent and stops sending after consent is withdrawn',
                 )}
               </li>
               <li>
@@ -220,19 +200,35 @@ export default function Privacy() {
               <h4 className="font-bold text-on-surface mb-2">Cloudflare Pages / Static hosting</h4>
               <p className="text-sm">
                 {t(
-                  '仅用于网站托管和部署，不涉及任何用户数据的处理或存储。',
-                  'Used only for website hosting and deployment, without any processing or storage of user data.',
+                  '用于网站托管、安全防护和内容分发。Cloudflare 可能按照其服务规则处理访问 IP、请求信息和安全日志。',
+                  'Used for hosting, security, and content delivery. Cloudflare may process visitor IP addresses, request metadata, and security logs under its service terms.',
                 )}
               </p>
             </div>
             <div className="bg-surface-container-low dark:bg-surface-container rounded-2xl p-4 mt-2">
-              <h4 className="font-bold text-on-surface mb-2">
-                wttr.in / ipapi.co / Google Fonts / Supabase
-              </h4>
+              <h4 className="font-bold text-on-surface mb-2">Supabase</h4>
               <p className="text-sm">
                 {t(
-                  '天气工具会请求 wttr.in，IP 查询会请求 ipapi.co，字体可能来自 Google Fonts。Supabase 只有在站点配置了公开环境变量时才启用。',
-                  'Weather requests wttr.in, IP Lookup requests ipapi.co, and fonts may load from Google Fonts. Supabase is enabled only when public environment variables are configured.',
+                  '站点配置 Supabase 后，它提供认证和可选云同步。邮箱、用户标识、资料、收藏、设置和记账数据可能存储在 Supabase；本地写入仍是主要数据源。',
+                  'When configured, Supabase provides authentication and optional cloud sync. Email, user ID, profile, favorites, settings, and bookkeeping data may be stored there; local writes remain the primary data source.',
+                )}
+              </p>
+            </div>
+            <div className="bg-surface-container-low dark:bg-surface-container rounded-2xl p-4 mt-2">
+              <h4 className="font-bold text-on-surface mb-2">Sentry</h4>
+              <p className="text-sm">
+                {t(
+                  '仅在您明确同意分析且站点配置了 DSN 后加载，用于错误诊断和低采样率性能追踪。我们关闭默认个人身份信息采集，并在发送前再次检查实时许可。',
+                  'Loaded only after explicit analytics consent and when a DSN is configured, for error diagnostics and low-rate performance tracing. Default PII collection is disabled and consent is checked again before sending.',
+                )}
+              </p>
+            </div>
+            <div className="bg-surface-container-low dark:bg-surface-container rounded-2xl p-4 mt-2">
+              <h4 className="font-bold text-on-surface mb-2">wttr.in / ipapi.co / Google Fonts</h4>
+              <p className="text-sm">
+                {t(
+                  '当您使用天气或 IP 查询工具时，浏览器会分别请求 wttr.in 或 ipapi.co，这些服务会接收完成请求所需的网络信息。仅在您同意分析后，页面字体才可能从 Google Fonts 获取；Google 会接收字体请求所附的 IP 和浏览器信息。',
+                  'When you use Weather or IP Lookup, your browser requests wttr.in or ipapi.co respectively, and those services receive network information needed to answer. Fonts may load from Google Fonts only after you consent to analytics; Google receives the IP address and browser metadata attached to the request.',
                 )}
               </p>
             </div>
@@ -260,8 +256,8 @@ export default function Privacy() {
             </ul>
             <p className="text-sm text-secondary mt-4">
               {t(
-                '所有数据均保存在您的设备上，您可以随时通过清除浏览器数据来删除这些信息。',
-                'All data is stored on your device. You can delete this information at any time by clearing your browser data.',
+                '清除浏览器数据会删除本地记录，但不会自动删除已同步到 Supabase 的账号或云端副本。云端资料需要通过账号功能或联系我们处理。',
+                'Clearing browser data deletes local records but does not automatically delete an account or cloud copy already synced to Supabase. Cloud profile data must be handled through account features or by contacting us.',
               )}
             </p>
           </Section>
@@ -299,8 +295,8 @@ export default function Privacy() {
               <li>
                 <strong>{t('撤回同意权:', 'Right to Withdraw Consent:')}</strong>
                 {t(
-                  '您可以随时停止使用我们的服务并删除本地数据。',
-                  'You can stop using our services and delete local data at any time.',
+                  '您可以拒绝或撤回分析许可；撤回后 Sentry 客户端将停止发送新的遥测事件。',
+                  'You may reject or withdraw analytics consent; after withdrawal, the Sentry client stops sending new telemetry events.',
                 )}
               </li>
             </ul>

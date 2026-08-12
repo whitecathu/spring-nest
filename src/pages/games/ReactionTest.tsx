@@ -181,9 +181,7 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
             </p>
           </div>
           <div className="flex gap-2">
-            <div
-              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
                 <Trophy className="w-3 h-3" />
                 {t('最佳', 'Best')}
@@ -204,106 +202,72 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
         >
           {/* Screen flash overlay */}
           {screenFlash && (
-              <div
-                className={`absolute inset-0 rounded-2xl ${
-                  screenFlash === 'green' ? 'bg-green-300/40' : 'bg-red-300/40'
-                }`}
-              />
-            )}
+            <div
+              className={`absolute inset-0 rounded-2xl ${
+                screenFlash === 'green' ? 'bg-green-300/40' : 'bg-red-300/40'
+              }`}
+            />
+          )}
 
           {/* Particles */}
           {particles.map((p) => (
-            <span
-              key={p.id}
-              className="absolute text-2xl pointer-events-none"
-            >
+            <span key={p.id} className="absolute text-2xl pointer-events-none">
               {p.emoji}
             </span>
           ))}
 
           {phase === 'idle' && (
-              <div
-                key="idle"
-                className="text-center px-4"
-              >
-                <div
-                  className="text-6xl mb-4"
-                >
-                  ⚡
-                </div>
-                <p className="text-2xl font-bold text-on-surface mb-2">
-                  {t('点击开始', 'Tap to Start')}
-                </p>
-                <p className="text-sm text-secondary">
-                  {t(
-                    '当背景变绿时，尽快点击！',
-                    'When the background turns green, tap as fast as you can!',
-                  )}
-                </p>
-              </div>
-            )}
+            <div key="idle" className="text-center px-4">
+              <div className="text-6xl mb-4">⚡</div>
+              <p className="text-2xl font-bold text-on-surface mb-2">
+                {t('点击开始', 'Tap to Start')}
+              </p>
+              <p className="text-sm text-secondary">
+                {t(
+                  '当背景变绿时，尽快点击！',
+                  'When the background turns green, tap as fast as you can!',
+                )}
+              </p>
+            </div>
+          )}
 
-            {phase === 'waiting' && (
-              <div
-                key="waiting"
-                className="text-center px-4"
-              >
-                <p
-                  className="text-4xl font-black text-white mb-2"
-                >
-                  {t('等待变色...', 'Wait for green...')}
-                </p>
-                <p className="text-sm text-white/80">{t('不要提前点击！', "Don't click early!")}</p>
-              </div>
-            )}
+          {phase === 'waiting' && (
+            <div key="waiting" className="text-center px-4">
+              <p className="text-4xl font-black text-white mb-2">
+                {t('等待变色...', 'Wait for green...')}
+              </p>
+              <p className="text-sm text-white/80">{t('不要提前点击！', "Don't click early!")}</p>
+            </div>
+          )}
 
-            {phase === 'ready' && (
-              <div
-                key="ready"
-                className="text-center px-4"
-              >
-                <p
-                  className="text-6xl font-black text-white drop-shadow-lg"
-                >
-                  {t('点击！', 'TAP!')}
-                </p>
-              </div>
-            )}
+          {phase === 'ready' && (
+            <div key="ready" className="text-center px-4">
+              <p className="text-6xl font-black text-white drop-shadow-lg">{t('点击！', 'TAP!')}</p>
+            </div>
+          )}
 
-            {phase === 'early' && (
-              <div
-                key="early"
-                className="text-center px-4"
-              >
-                <p className="text-5xl mb-3">😤</p>
-                <p className="text-3xl font-black text-white mb-2">{t('太早了！', 'Too Early!')}</p>
-                <p className="text-sm text-white/80">{t('点击重新开始', 'Tap to try again')}</p>
-              </div>
-            )}
+          {phase === 'early' && (
+            <div key="early" className="text-center px-4">
+              <p className="text-5xl mb-3">😤</p>
+              <p className="text-3xl font-black text-white mb-2">{t('太早了！', 'Too Early!')}</p>
+              <p className="text-sm text-white/80">{t('点击重新开始', 'Tap to try again')}</p>
+            </div>
+          )}
 
-            {phase === 'result' && (
-              <div
-                key="result"
-                className="text-center px-4"
-              >
-                <p className="text-lg text-secondary mb-1">
-                  {t('你的反应时间', 'Your reaction time')}
-                </p>
-                <p
-                  className={`text-7xl font-black ${rating.color} tabular-nums drop-shadow-lg`}
-                >
-                  {reactionTime}ms
-                </p>
-                <p
-                  className="text-2xl font-bold mt-3"
-                >
-                  {rating.emoji} {rating.text}
-                </p>
-                <p className="text-sm text-secondary mt-2">
-                  {t('点击再来一次', 'Tap to try again')}
-                </p>
-              </div>
-            )}
+          {phase === 'result' && (
+            <div key="result" className="text-center px-4">
+              <p className="text-lg text-secondary mb-1">
+                {t('你的反应时间', 'Your reaction time')}
+              </p>
+              <p className={`text-7xl font-black ${rating.color} tabular-nums drop-shadow-lg`}>
+                {reactionTime}ms
+              </p>
+              <p className="text-2xl font-bold mt-3">
+                {rating.emoji} {rating.text}
+              </p>
+              <p className="text-sm text-secondary mt-2">{t('点击再来一次', 'Tap to try again')}</p>
+            </div>
+          )}
         </button>
 
         {/* Controls */}
@@ -319,9 +283,7 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
 
         {/* History */}
         {history.length > 0 && (
-          <div
-            className="mt-6 p-4 bg-surface-container-high rounded-2xl"
-          >
+          <div className="mt-6 p-4 bg-surface-container-high rounded-2xl">
             <div className="flex items-center gap-2 mb-3">
               <Timer className="w-4 h-4 text-secondary" />
               <span className="text-sm font-semibold text-on-surface">
@@ -332,10 +294,7 @@ export default function ReactionTest({ onBack }: { onBack: () => void }) {
               {history.map((ms, i) => {
                 const r = language === 'en' ? getRatingEn(ms) : getRating(ms);
                 return (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center"
-                  >
+                  <div key={i} className="flex justify-between items-center">
                     <span className="text-sm text-secondary">
                       {t('第', '#')}
                       {i + 1}

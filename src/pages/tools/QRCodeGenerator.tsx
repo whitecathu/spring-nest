@@ -102,9 +102,7 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('二维码生成器', 'QR Code Generator')}
         </h2>
@@ -114,6 +112,7 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
             {t('输入文本或链接', 'Enter text or URL')}
           </label>
           <textarea
+            aria-label={t('二维码内容', 'QR code content')}
             rows={3}
             value={input}
             onChange={(e) => handleInputChange(e.target.value)}
@@ -138,9 +137,7 @@ export default function QRCodeGenerator({ onBack }: { onBack: () => void }) {
         {/* QR Code Display */}
         <div className="flex flex-col items-center">
           {qrDataUrl ? (
-            <div
-              className="bg-white p-4 rounded-2xl shadow-sm border border-surface-variant/30 mb-4"
-            >
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-surface-variant/30 mb-4">
               <img src={qrDataUrl} alt="QR Code" className="w-64 h-64" />
             </div>
           ) : (

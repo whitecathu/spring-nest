@@ -11,6 +11,19 @@ const PASSWORD_HASH_PREFIX_V2 = 'local-v2:';
 const PBKDF2_ITERATIONS = 100_000;
 const PBKDF2_SALT_BYTES = 16;
 const PBKDF2_KEY_BITS = 256;
+const EMAIL_MAX_LENGTH = 254;
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_LENGTH = 128;
+const USERNAME_MIN_LENGTH = 2;
+const USERNAME_MAX_LENGTH = 50;
+const BIO_MAX_LENGTH = 500;
+
+export interface ProfileUpdateResult {
+  success: boolean;
+  user?: PublicUserAccount;
+  error?: string;
+  emailConfirmationPending: boolean;
+}
 
 function bytesToBase64(bytes: Uint8Array): string {
   let binary = '';
@@ -149,12 +162,57 @@ function generateId(): string {
   return 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function defaultUsernameForEmail(email: string): string {
+  const prefix = email.split('@')[0]?.slice(0, USERNAME_MAX_LENGTH) ?? '';
+  return prefix.length >= USERNAME_MIN_LENGTH ? prefix : 'spring-user';
+}
+
 function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return email.length <= EMAIL_MAX_LENGTH && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function isValidPassword(password: string): boolean {
-  return password.length >= 8;
+  return password.length >= PASSWORD_MIN_LENGTH && password.length <= PASSWORD_MAX_LENGTH;
+}
+
+function validateUsername(username: string | undefined): string | null {
+  if (username === undefined || username.trim() === '') return null;
+  const normalized = username.trim();
+  if (normalized.length < USERNAME_MIN_LENGTH || normalized.length > USERNAME_MAX_LENGTH) {
+    return `昵称长度需为 ${USERNAME_MIN_LENGTH}–${USERNAME_MAX_LENGTH} 个字符`;
+  }
+  return null;
+}
+
+function validateBio(bio: string | undefined): string | null {
+  if (bio !== undefined && bio.length > BIO_MAX_LENGTH) {
+    return `个人简介不能超过 ${BIO_MAX_LENGTH} 个字符`;
+  }
+  return null;
+}
+
+function validateCredentials(email: string, password: string): { email: string; error?: string } {
+  const normalizedEmail = normalizeEmail(email);
+  if (!isValidEmail(normalizedEmail)) {
+    return { email: normalizedEmail, error: '邮箱格式不正确' };
+  }
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return {
+      email: normalizedEmail,
+      error: `密码至少需要 ${PASSWORD_MIN_LENGTH} 位`,
+    };
+  }
+  if (password.length > PASSWORD_MAX_LENGTH) {
+    return {
+      email: normalizedEmail,
+      error: `密码不能超过 ${PASSWORD_MAX_LENGTH} 位`,
+    };
+  }
+  return { email: normalizedEmail };
 }
 
 export async function register(
@@ -162,23 +220,23 @@ export async function register(
   password: string,
   username?: string,
 ): Promise<RegisterResult> {
-  if (!isValidEmail(email)) {
-    return { success: false, error: '邮箱格式不正确' };
-  }
-  if (!isValidPassword(password)) {
-    return { success: false, error: '密码至少需要 8 位' };
-  }
+  const credentials = validateCredentials(email, password);
+  if (credentials.error) return { success: false, error: credentials.error };
+  const normalizedEmail = credentials.email;
+  const usernameError = validateUsername(username);
+  if (usernameError) return { success: false, error: usernameError };
+  const normalizedUsername = username?.trim();
 
   const users = getUsers();
-  if (users.find((u) => u.email === email)) {
+  if (users.find((u) => normalizeEmail(u.email) === normalizedEmail)) {
     return { success: false, error: '该邮箱已注册' };
   }
 
   const newUser: UserAccount = {
     id: generateId(),
-    email,
-    username: username || email.split('@')[0],
-    passwordHash: await hashPasswordV2(email, password),
+    email: normalizedEmail,
+    username: normalizedUsername || defaultUsernameForEmail(normalizedEmail),
+    passwordHash: await hashPasswordV2(normalizedEmail, password),
     bio: '',
     createdAt: new Date().toISOString(),
   };
@@ -192,25 +250,23 @@ export async function register(
 }
 
 export async function login(email: string, password: string): Promise<LoginResult> {
-  if (!isValidEmail(email)) {
-    return { success: false, error: '邮箱格式不正确' };
-  }
-  if (!isValidPassword(password)) {
-    return { success: false, error: '密码至少需要 8 位' };
-  }
+  const credentials = validateCredentials(email, password);
+  if (credentials.error) return { success: false, error: credentials.error };
+  const normalizedEmail = credentials.email;
 
   const users = getUsers();
-  const idx = users.findIndex((u) => u.email === email);
+  const idx = users.findIndex((u) => normalizeEmail(u.email) === normalizedEmail);
   if (idx === -1) {
     return { success: false, error: '邮箱或密码错误' };
   }
 
   const user = users[idx]!;
-  const ok = await verifyAndUpgradePassword(user, email, password);
+  const ok = await verifyAndUpgradePassword(user, normalizedEmail, password);
   if (!ok) {
     return { success: false, error: '邮箱或密码错误' };
   }
 
+  user.email = normalizedEmail;
   users[idx] = user;
   saveUsers(users);
 
@@ -223,42 +279,138 @@ export function logout(): void {
   setCurrentUser(null);
 }
 
-export function updateProfile(
+export async function updateProfile(
   updates: Partial<Omit<UserAccount, 'id' | 'createdAt' | 'password' | 'passwordHash'>>,
-): PublicUserAccount | null {
+): Promise<ProfileUpdateResult> {
   const current = getCurrentUser();
-  if (!current) return null;
+  if (!current) {
+    return {
+      success: false,
+      error: '请先登录',
+      emailConfirmationPending: false,
+    };
+  }
 
   const users = getUsers();
   const idx = users.findIndex((u) => u.id === current.id);
-  if (idx === -1) return null;
+  const normalizedEmail =
+    updates.email === undefined ? current.email : normalizeEmail(updates.email);
+  if (!isValidEmail(normalizedEmail)) {
+    return {
+      success: false,
+      error: '邮箱格式不正确',
+      emailConfirmationPending: false,
+    };
+  }
+  const usernameError = validateUsername(updates.username);
+  if (usernameError) {
+    return {
+      success: false,
+      error: usernameError,
+      emailConfirmationPending: false,
+    };
+  }
+  const bioError = validateBio(updates.bio);
+  if (bioError) {
+    return {
+      success: false,
+      error: bioError,
+      emailConfirmationPending: false,
+    };
+  }
+  const normalizedUsername = updates.username?.trim();
 
-  if (updates.email) {
-    if (!isValidEmail(updates.email)) return null;
+  if (idx !== -1) {
+    const duplicateEmail = users.some(
+      (candidate, candidateIndex) =>
+        candidateIndex !== idx && normalizeEmail(candidate.email) === normalizedEmail,
+    );
+    if (duplicateEmail) {
+      return {
+        success: false,
+        error: '该邮箱已注册',
+        emailConfirmationPending: false,
+      };
+    }
+
+    users[idx] = {
+      ...users[idx],
+      ...updates,
+      email: normalizedEmail,
+      ...(normalizedUsername !== undefined ? { username: normalizedUsername } : {}),
+    };
+    saveUsers(users);
+    const safeUser = toPublicUser(users[idx]);
+    setCurrentUser(safeUser);
+    return {
+      success: true,
+      user: safeUser,
+      emailConfirmationPending: false,
+    };
   }
 
-  users[idx] = { ...users[idx], ...updates };
-  saveUsers(users);
+  if (!supabase || current.id === 'guest') {
+    return {
+      success: false,
+      error: '未找到当前账号',
+      emailConfirmationPending: false,
+    };
+  }
 
-  const safeUser = toPublicUser(users[idx]);
-  setCurrentUser(safeUser);
+  try {
+    const profileUpdates: Record<string, string> = {};
+    if (normalizedUsername !== undefined) {
+      profileUpdates.username = normalizedUsername;
+      profileUpdates.display_name = normalizedUsername;
+    }
+    if (updates.bio !== undefined) profileUpdates.bio = updates.bio;
 
-  if (supabase && current.id !== 'guest') {
-    void (async () => {
-      try {
-        await supabase.from('profiles').upsert({
-          id: current.id,
-          username: safeUser.username,
-          display_name: safeUser.username,
-          bio: safeUser.bio,
-        });
-      } catch {
-        // Local profile updates remain the source of truth if cloud sync fails.
+    if (Object.keys(profileUpdates).length > 0) {
+      const { error } = await supabase.from('profiles').update(profileUpdates).eq('id', current.id);
+      if (error) {
+        return {
+          success: false,
+          error: `资料更新失败：${error.message}`,
+          emailConfirmationPending: false,
+        };
       }
-    })();
-  }
+    }
 
-  return safeUser;
+    let emailConfirmationPending = false;
+    let effectiveEmail = current.email;
+    if (normalizedEmail !== normalizeEmail(current.email)) {
+      const { data, error } = await supabase.auth.updateUser({ email: normalizedEmail });
+      if (error) {
+        return {
+          success: false,
+          error: `邮箱更新失败：${error.message}`,
+          emailConfirmationPending: false,
+        };
+      }
+      const returnedEmail = normalizeEmail(data.user?.email || current.email);
+      emailConfirmationPending = returnedEmail !== normalizedEmail;
+      effectiveEmail = emailConfirmationPending ? current.email : normalizedEmail;
+    }
+
+    const safeUser: PublicUserAccount = {
+      ...current,
+      ...updates,
+      email: effectiveEmail,
+      ...(normalizedUsername !== undefined ? { username: normalizedUsername } : {}),
+    };
+    setCurrentUser(safeUser);
+    return {
+      success: true,
+      user: safeUser,
+      emailConfirmationPending,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '资料更新失败',
+      emailConfirmationPending: false,
+    };
+  }
 }
 
 // Returns the effective user ID for storage (real user ID or 'guest')
@@ -309,18 +461,19 @@ export async function ensureSupabaseProfile(
   } | null = null;
 
   if (supabase) {
-    const { data } = await supabase
+    const { data, error: profileReadError } = await supabase
       .from('profiles')
       .select('username, display_name, avatar_url, bio, created_at')
       .eq('id', user.id)
       .maybeSingle();
+    if (profileReadError) throw profileReadError;
     profileRow = data;
 
     const username = profileRow?.username || fallbackName;
     const displayName = profileRow?.display_name || username;
     const bio = profileRow?.bio ?? metadataBio;
 
-    await supabase.from('profiles').upsert({
+    const { error: profileWriteError } = await supabase.from('profiles').upsert({
       id: user.id,
       username,
       display_name: displayName,
@@ -331,14 +484,16 @@ export async function ensureSupabaseProfile(
           : null),
       bio,
     });
+    if (profileWriteError) throw profileWriteError;
 
-    await supabase.from('user_settings').upsert({
+    const { error: settingsWriteError } = await supabase.from('user_settings').upsert({
       user_id: user.id,
       theme: localStorage.getItem('spring_nest_theme') || 'system',
       language: localStorage.getItem('spring_nest_lang') || 'zh',
       settings: { source: 'web' },
       updated_at: new Date().toISOString(),
     });
+    if (settingsWriteError) throw settingsWriteError;
   }
 
   const username = profileRow?.username || fallbackName;
@@ -361,12 +516,18 @@ export async function supabaseSignUp(
   username?: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
+  const credentials = validateCredentials(email, password);
+  if (credentials.error) return { success: false, error: credentials.error };
+  const usernameError = validateUsername(username);
+  if (usernameError) return { success: false, error: usernameError };
+  const normalizedEmail = credentials.email;
+  const normalizedUsername = username?.trim();
   try {
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
-        data: { username: username || email.split('@')[0] },
+        data: { username: normalizedUsername || defaultUsernameForEmail(normalizedEmail) },
       },
     });
     if (error) {
@@ -377,12 +538,14 @@ export async function supabaseSignUp(
         return { success: false, error: '请输入有效邮箱地址' };
       if (msg.includes('Password') || msg.includes('password'))
         return { success: false, error: '密码不符合要求' };
-      if (msg.includes('rate limit'))
-        return { success: false, error: '请求过于频繁，请稍后再试' };
+      if (msg.includes('rate limit')) return { success: false, error: '请求过于频繁，请稍后再试' };
       return { success: false, error: `注册失败：${msg}` };
     }
     if (data.user) {
-      await ensureSupabaseProfile(data.user, username || email.split('@')[0]);
+      await ensureSupabaseProfile(
+        data.user,
+        normalizedUsername || defaultUsernameForEmail(normalizedEmail),
+      );
     }
     return { success: true };
   } catch (err) {
@@ -395,15 +558,18 @@ export async function sendRegisterOtp(
   email: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
+  const normalizedEmail = normalizeEmail(email);
+  if (!isValidEmail(normalizedEmail)) {
+    return { success: false, error: '邮箱格式不正确' };
+  }
   try {
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: normalizedEmail,
       options: { shouldCreateUser: true },
     });
     if (error) {
       const msg = error.message;
-      if (msg.includes('rate limit'))
-        return { success: false, error: '请求过于频繁，请稍后再试' };
+      if (msg.includes('rate limit')) return { success: false, error: '请求过于频繁，请稍后再试' };
       return { success: false, error: `验证码发送失败：${msg}` };
     }
     return { success: true };
@@ -420,11 +586,16 @@ export async function verifyRegisterOtp(
   username?: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
-  if (!token || token.length !== 6)
-    return { success: false, error: '请输入 6 位验证码' };
+  const credentials = validateCredentials(email, password);
+  if (credentials.error) return { success: false, error: credentials.error };
+  const usernameError = validateUsername(username);
+  if (usernameError) return { success: false, error: usernameError };
+  if (!token || token.length !== 6) return { success: false, error: '请输入 6 位验证码' };
+  const normalizedEmail = credentials.email;
+  const normalizedUsername = username?.trim();
   try {
     const { data, error } = await supabase.auth.verifyOtp({
-      email,
+      email: normalizedEmail,
       token,
       type: 'email',
     });
@@ -438,10 +609,19 @@ export async function verifyRegisterOtp(
 
     // Set password for the newly verified user
     if (password) {
-      await supabase.auth.updateUser({ password });
+      const { error: passwordError } = await supabase.auth.updateUser({ password });
+      if (passwordError) {
+        return {
+          success: false,
+          error: `密码设置失败：${passwordError.message}`,
+        };
+      }
     }
 
-    await ensureSupabaseProfile(data.user, username || email.split('@')[0]);
+    await ensureSupabaseProfile(
+      data.user,
+      normalizedUsername || defaultUsernameForEmail(normalizedEmail),
+    );
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -454,8 +634,13 @@ export async function supabaseSignIn(
   password: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
+  const credentials = validateCredentials(email, password);
+  if (credentials.error) return { success: false, error: credentials.error };
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password,
+    });
     if (error) {
       const msg = error.message;
       if (msg.includes('Invalid login') || msg.includes('invalid credentials'))
@@ -486,8 +671,12 @@ export async function supabaseResetPassword(
   email: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
+  const normalizedEmail = normalizeEmail(email);
+  if (!isValidEmail(normalizedEmail)) {
+    return { success: false, error: '邮箱格式不正确' };
+  }
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
       redirectTo: `${window.location.origin}/`,
     });
     if (error) return { success: false, error: error.message };
@@ -502,6 +691,12 @@ export async function supabaseUpdatePassword(
   newPassword: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: 'Supabase not configured' };
+  if (!isValidPassword(newPassword)) {
+    return {
+      success: false,
+      error: `密码长度需为 ${PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} 位`,
+    };
+  }
   try {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) return { success: false, error: error.message };

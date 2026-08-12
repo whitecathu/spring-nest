@@ -96,9 +96,7 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('密码生成器', 'Password Generator')}
         </h2>
@@ -155,6 +153,7 @@ export default function PasswordGenerator({ onBack }: { onBack: () => void }) {
             </div>
             <input
               type="range"
+              aria-label={t('密码长度', 'Password length')}
               min={6}
               max={32}
               value={length}

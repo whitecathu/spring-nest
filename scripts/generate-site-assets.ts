@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { format } from 'prettier';
 import { games } from '../src/data/games';
 import { tools } from '../src/data/tools';
@@ -8,6 +9,21 @@ import type { AppItem } from '../src/types/app';
 
 const root = process.cwd();
 const fallbackOrigin = 'https://spring-nest.pages.dev';
+
+function collectTestStats() {
+  try {
+    const vitestEntry = resolve(root, 'node_modules/vitest/vitest.mjs');
+    const output = execFileSync(
+      process.execPath,
+      [vitestEntry, 'list', '--staticParse', '--json'],
+      { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] },
+    );
+    const tests = JSON.parse(output) as Array<{ file: string }>;
+    return { tests: tests.length, files: new Set(tests.map((test) => test.file)).size };
+  } catch {
+    return { tests: 0, files: 0 };
+  }
+}
 
 function normalizeOrigin(value?: string) {
   if (!value) return fallbackOrigin;
@@ -46,9 +62,9 @@ ${rows}
 <!-- AUTO:${name}_END -->`;
 }
 
-function statsBlock() {
+function statsBlock(testStats: ReturnType<typeof collectTestStats>) {
   return `<!-- AUTO:STATS_START -->
-Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 ${tools.length} 个效率工具和 ${games.length} 个休闲小游戏，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
+Spring Nest 是一个汇集实用工具与休闲小游戏的 PWA Web 应用，提供 ${tools.length} 个效率工具和 ${games.length} 个休闲小游戏，当前由 ${testStats.files} 个测试文件覆盖 ${testStats.tests} 个测试用例，支持中英双语、本地账号、收藏功能、暗色主题、离线访问和可选的 Supabase 云端同步。
 <!-- AUTO:STATS_END -->`;
 }
 
@@ -63,11 +79,15 @@ function replaceAutoBlock(content: string, name: string, replacement: string) {
 async function updateReadme() {
   const readmePath = resolve(root, 'README.md');
   let readme = readFileSync(readmePath, 'utf8');
+  const testStats = collectTestStats();
 
   if (readme.includes('<!-- AUTO:STATS_START -->')) {
-    readme = replaceAutoBlock(readme, 'STATS', statsBlock());
+    readme = replaceAutoBlock(readme, 'STATS', statsBlock(testStats));
   } else {
-    readme = readme.replace(/Spring Nest 是一个汇集[\s\S]*?Supabase 云端同步。/, statsBlock());
+    readme = readme.replace(
+      /Spring Nest 是一个汇集[\s\S]*?Supabase 云端同步。/,
+      statsBlock(testStats),
+    );
   }
 
   if (readme.includes('<!-- AUTO:TOOLS_START -->')) {
@@ -101,7 +121,10 @@ async function updateReadme() {
       /提供 \d+ 个效率工具和 \d+ 个休闲小游戏/g,
       `提供 ${tools.length} 个效率工具和 ${games.length} 个休闲小游戏`,
     )
-    .replace(/运行 \d+ 个单元测试/g, `运行 83 个单元测试`);
+    .replace(
+      /运行 \d+ 个单元测试/g,
+      `运行 ${testStats.tests} 个测试用例（${testStats.files} 个测试文件）`,
+    );
 
   writeFileSync(readmePath, await format(readme, { filepath: readmePath }));
 }
@@ -130,12 +153,9 @@ function updateStaticFiles() {
   ];
 
   const uniqueRoutes = [...new Set(publicRoutes)].sort(routeSort);
-  const today = new Date().toISOString().slice(0, 10);
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${uniqueRoutes
-  .map((route) => `  <url><loc>${siteOrigin}${route}</loc><lastmod>${today}</lastmod></url>`)
-  .join('\n')}
+${uniqueRoutes.map((route) => `  <url><loc>${siteOrigin}${route}</loc></url>`).join('\n')}
 </urlset>
 `;
 

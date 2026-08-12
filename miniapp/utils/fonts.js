@@ -38,6 +38,22 @@ const FACES = [
   },
 ];
 
+function isDevToolsRuntime() {
+  if (typeof wx === 'undefined') return false;
+
+  try {
+    const device =
+      typeof wx.getDeviceInfo === 'function'
+        ? wx.getDeviceInfo()
+        : typeof wx.getSystemInfoSync === 'function'
+          ? wx.getSystemInfoSync()
+          : null;
+    return Boolean(device && device.platform === 'devtools');
+  } catch (e) {
+    return false;
+  }
+}
+
 function loadFace(family, weight, source) {
   return new Promise(function (resolve) {
     if (typeof wx === 'undefined' || typeof wx.loadFontFace !== 'function') {
@@ -79,7 +95,13 @@ function loadFromHttps(face) {
 function loadFromPackage(face) {
   return new Promise(function (resolve) {
     if (typeof wx === 'undefined' || !wx.getFileSystemManager) {
-      resolve({ family: face.family, weight: face.weight, ok: false, reason: 'no-fs', via: 'none' });
+      resolve({
+        family: face.family,
+        weight: face.weight,
+        ok: false,
+        reason: 'no-fs',
+        via: 'none',
+      });
       return;
     }
     const fsm = wx.getFileSystemManager();
@@ -90,8 +112,7 @@ function loadFromPackage(face) {
         encoding: 'base64',
         success: function (res) {
           // application/font-woff is more reliable than font/woff on WeChat OTS
-          const source =
-            'url("data:application/font-woff;charset=utf-8;base64,' + res.data + '")';
+          const source = 'url("data:application/font-woff;charset=utf-8;base64,' + res.data + '")';
           loadFace(face.family, face.weight, source).then(function (result) {
             resolve(
               Object.assign({}, result, {
@@ -123,6 +144,11 @@ function loadFromPackage(face) {
 }
 
 function loadOne(face) {
+  // DevTools may return ERR_CACHE_MISS for valid HTTPS font URLs. Use the
+  // package copy there so renderer diagnostics remain actionable.
+  if (isDevToolsRuntime()) {
+    return loadFromPackage(face);
+  }
   if (!ENABLE_REMOTE_FONTS) {
     return loadFromPackage(face);
   }
@@ -153,5 +179,6 @@ module.exports = {
   FONT_BASE,
   ENABLE_REMOTE_FONTS,
   FACES,
+  isDevToolsRuntime,
   loadBrandFonts,
 };

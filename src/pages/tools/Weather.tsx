@@ -245,9 +245,7 @@ export default function Weather({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-surface-container-high rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-on-surface">{t('微风天气', 'Breeze Weather')}</h2>
           <div className="flex items-center gap-2">
@@ -273,6 +271,7 @@ export default function Weather({ onBack }: { onBack: () => void }) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/50" />
             <input
               type="text"
+              aria-label={t('搜索城市', 'Search city')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -329,92 +328,88 @@ export default function Weather({ onBack }: { onBack: () => void }) {
         )}
 
         {weather && !loading && (
-            <div
-              key={weather.location}
-            >
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="text-secondary font-medium">
-                  {weather.location}
-                  {weather.country ? `, ${weather.country}` : ''}
-                </span>
-              </div>
+          <div key={weather.location}>
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span className="text-secondary font-medium">
+                {weather.location}
+                {weather.country ? `, ${weather.country}` : ''}
+              </span>
+            </div>
 
-              <div className="text-center mb-8">
-                <div className="text-7xl mb-2">{getWeatherEmoji(weather.conditionIcon)}</div>
-                <div className="text-6xl font-bold text-on-surface tabular-nums tracking-tight mb-1">
-                  {temp(weather.tempC, weather.tempF)}
-                </div>
-                <div className="text-lg text-secondary font-medium mb-1">{weather.condition}</div>
-                <div className="text-sm text-secondary/70">
-                  {t('体感', 'Feels like')} {feelsLike(weather.feelsLikeC, weather.feelsLikeF)}
-                </div>
+            <div className="text-center mb-8">
+              <div className="text-7xl mb-2">{getWeatherEmoji(weather.conditionIcon)}</div>
+              <div className="text-6xl font-bold text-on-surface tabular-nums tracking-tight mb-1">
+                {temp(weather.tempC, weather.tempF)}
               </div>
-
-              <div className="grid grid-cols-2 gap-3 mb-8">
-                <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">
-                  <Droplets className="w-5 h-5 text-blue-400 shrink-0" />
-                  <div>
-                    <div className="text-xs text-secondary">{t('湿度', 'Humidity')}</div>
-                    <div className="text-base font-bold text-on-surface">{weather.humidity}%</div>
-                  </div>
-                </div>
-                <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">
-                  <Wind className="w-5 h-5 text-teal-400 shrink-0" />
-                  <div>
-                    <div className="text-xs text-secondary">{t('风速', 'Wind')}</div>
-                    <div className="text-base font-bold text-on-surface">
-                      {weather.windKph} km/h {weather.windDir}
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">
-                  <Eye className="w-5 h-5 text-purple-400 shrink-0" />
-                  <div>
-                    <div className="text-xs text-secondary">{t('能见度', 'Visibility')}</div>
-                    <div className="text-base font-bold text-on-surface">
-                      {weather.visibility} km
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">
-                  <Thermometer className="w-5 h-5 text-orange-400 shrink-0" />
-                  <div>
-                    <div className="text-xs text-secondary">{t('紫外线', 'UV Index')}</div>
-                    <div className="text-base font-bold text-on-surface">{weather.uvIndex}</div>
-                  </div>
-                </div>
-              </div>
-
-              <h3 className="text-sm font-bold text-secondary mb-3">
-                {t('未来三天预报', '3-Day Forecast')}
-              </h3>
-              <div className="space-y-2">
-                {weather.forecast.map((day) => (
-                  <div
-                    key={day.date}
-                    className="bg-surface-container-low rounded-xl p-3 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <span className="text-2xl">{getWeatherEmoji(day.conditionIcon)}</span>
-                      <div>
-                        <div className="font-semibold text-on-surface text-sm">{day.dayName}</div>
-                        <div className="text-xs text-secondary">{day.condition}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-bold text-on-surface tabular-nums">
-                        {unit === 'C' ? `${day.maxTempC}°` : `${day.maxTempF}°`}
-                      </span>
-                      <span className="text-secondary ml-1 tabular-nums">
-                        {unit === 'C' ? `${day.minTempC}°` : `${day.minTempF}°`}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-lg text-secondary font-medium mb-1">{weather.condition}</div>
+              <div className="text-sm text-secondary/70">
+                {t('体感', 'Feels like')} {feelsLike(weather.feelsLikeC, weather.feelsLikeF)}
               </div>
             </div>
-          )}
+
+            <div className="grid grid-cols-2 gap-3 mb-8">
+              <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">
+                <Droplets className="w-5 h-5 text-blue-400 shrink-0" />
+                <div>
+                  <div className="text-xs text-secondary">{t('湿度', 'Humidity')}</div>
+                  <div className="text-base font-bold text-on-surface">{weather.humidity}%</div>
+                </div>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">
+                <Wind className="w-5 h-5 text-teal-400 shrink-0" />
+                <div>
+                  <div className="text-xs text-secondary">{t('风速', 'Wind')}</div>
+                  <div className="text-base font-bold text-on-surface">
+                    {weather.windKph} km/h {weather.windDir}
+                  </div>
+                </div>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">
+                <Eye className="w-5 h-5 text-purple-400 shrink-0" />
+                <div>
+                  <div className="text-xs text-secondary">{t('能见度', 'Visibility')}</div>
+                  <div className="text-base font-bold text-on-surface">{weather.visibility} km</div>
+                </div>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-3 flex items-center gap-3">
+                <Thermometer className="w-5 h-5 text-orange-400 shrink-0" />
+                <div>
+                  <div className="text-xs text-secondary">{t('紫外线', 'UV Index')}</div>
+                  <div className="text-base font-bold text-on-surface">{weather.uvIndex}</div>
+                </div>
+              </div>
+            </div>
+
+            <h3 className="text-sm font-bold text-secondary mb-3">
+              {t('未来三天预报', '3-Day Forecast')}
+            </h3>
+            <div className="space-y-2">
+              {weather.forecast.map((day) => (
+                <div
+                  key={day.date}
+                  className="bg-surface-container-low rounded-xl p-3 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="text-2xl">{getWeatherEmoji(day.conditionIcon)}</span>
+                    <div>
+                      <div className="font-semibold text-on-surface text-sm">{day.dayName}</div>
+                      <div className="text-xs text-secondary">{day.condition}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-on-surface tabular-nums">
+                      {unit === 'C' ? `${day.maxTempC}°` : `${day.maxTempF}°`}
+                    </span>
+                    <span className="text-secondary ml-1 tabular-nums">
+                      {unit === 'C' ? `${day.minTempC}°` : `${day.minTempF}°`}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

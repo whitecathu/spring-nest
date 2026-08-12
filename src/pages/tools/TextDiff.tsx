@@ -162,9 +162,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
           {t('文本对比', 'Text Diff')}
         </h2>
@@ -182,6 +180,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
               {t('原始文本', 'Original Text')}
             </label>
             <textarea
+              aria-label={t('原始文本', 'Original text')}
               value={textA}
               onChange={(e) => setTextA(e.target.value)}
               placeholder={t('在此输入原始文本...', 'Enter original text here...')}
@@ -194,6 +193,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
               {t('修改后文本', 'Modified Text')}
             </label>
             <textarea
+              aria-label={t('修改后文本', 'Modified text')}
               value={textB}
               onChange={(e) => setTextB(e.target.value)}
               placeholder={t('在此输入修改后的文本...', 'Enter modified text here...')}
@@ -235,9 +235,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
 
         {/* Stats */}
         {stats && (
-          <div
-            className="flex flex-wrap gap-3 mb-4"
-          >
+          <div className="flex flex-wrap gap-3 mb-4">
             <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
               + {stats.added} {t('行新增', 'lines added')}
             </span>
@@ -252,9 +250,7 @@ export default function TextDiff({ onBack }: { onBack: () => void }) {
 
         {/* Diff Output */}
         {diff && (
-          <div
-            className="rounded-2xl bg-surface-container-low border border-surface-variant/30 overflow-hidden"
-          >
+          <div className="rounded-2xl bg-surface-container-low border border-surface-variant/30 overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-surface-variant/30">
               <div className="overflow-x-auto">
                 <div className="px-3 py-2 text-xs font-semibold text-secondary border-b border-surface-variant/20 bg-surface-container">

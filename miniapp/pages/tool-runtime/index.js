@@ -3,6 +3,8 @@ const favorites = require('../../utils/favorites');
 const historyUtil = require('../../utils/history');
 const toast = require('../../utils/toast');
 const engines = require('../../utils/tool-engines');
+const deadlineTimer = require('../../utils/deadline-timer');
+const localDate = require('../../utils/local-date');
 
 const CALC_KEYS = [
   ['C', '⌫', '%', '÷'],
@@ -70,6 +72,7 @@ Page({
     pwdUpper: true,
     pwdDigits: true,
     pwdSymbols: false,
+    passwordBusy: false,
     dateA: '',
     dateB: '',
     loremCount: 2,
@@ -100,6 +103,7 @@ Page({
   },
 
   _timers: {},
+  _deadlines: {},
   ipLookupRequestId: 0,
 
   onLoad(query) {
@@ -151,8 +155,7 @@ Page({
       historyUtil.addHistory(slug);
     } catch (e) {}
 
-    const today = new Date();
-    const iso = today.toISOString().slice(0, 10);
+    const iso = localDate.formatLocalDate(new Date());
 
     wx.setNavigationBarTitle({ title: tool.title || '工具' });
 
@@ -205,7 +208,10 @@ Page({
     }
     if (field === 'countdownSec') {
       const n = Math.max(1, Number(value) || 60);
-      this.setData({ countdownSec: n, countdownLeft: this.data.countdownRunning ? this.data.countdownLeft : n });
+      this.setData({
+        countdownSec: n,
+        countdownLeft: this.data.countdownRunning ? this.data.countdownLeft : n,
+      });
       return;
     }
     this.setData({ [field]: value });
@@ -336,7 +342,7 @@ Page({
     if (!key) return;
     const next = engines.calculatorPress(
       { display: this.data.calcDisplay, expression: this.data.calcExpression },
-      key
+      key,
     );
     this.setData({ calcDisplay: next.display, calcExpression: next.expression });
   },
@@ -423,9 +429,11 @@ Page({
     }
   },
 
-  runPassword() {
+  async runPassword() {
+    if (this.data.passwordBusy) return;
+    this.setData({ passwordBusy: true });
     try {
-      const pwd = engines.generatePassword(this.data.pwdLength, {
+      const pwd = await engines.generatePassword(this.data.pwdLength, {
         lower: this.data.pwdLower,
         upper: this.data.pwdUpper,
         digits: this.data.pwdDigits,
@@ -433,7 +441,9 @@ Page({
       });
       this.setResult(pwd, 'ok');
     } catch (e) {
-      this.setResult(e.message, 'error');
+      this.setResult((e && e.message) || '安全随机数不可用，请稍后重试', 'error');
+    } finally {
+      this.setData({ passwordBusy: false });
     }
   },
 
@@ -461,10 +471,19 @@ Page({
       const kind = this.data.unitKind;
       let value;
       if (kind === 'temp') {
-        value = engines.convertTemperature(this.data.unitValue, this.data.unitFrom, this.data.unitTo);
+        value = engines.convertTemperature(
+          this.data.unitValue,
+          this.data.unitFrom,
+          this.data.unitTo,
+        );
       } else {
         const table = kind === 'weight' ? engines.WEIGHT : engines.LENGTH;
-        value = engines.convertUnit(this.data.unitValue, this.data.unitFrom, this.data.unitTo, table);
+        value = engines.convertUnit(
+          this.data.unitValue,
+          this.data.unitFrom,
+          this.data.unitTo,
+          table,
+        );
       }
       this.setResult(String(engines.round2(value)), 'ok');
     } catch (e) {
@@ -481,7 +500,7 @@ Page({
       temp: { unitFrom: 'C', unitTo: 'F' },
     };
     this.setData(
-      Object.assign({ unitKind: kind, unitKindLabel: UNIT_KIND_LABELS[kind] }, presets[kind] || {})
+      Object.assign({ unitKind: kind, unitKindLabel: UNIT_KIND_LABELS[kind] }, presets[kind] || {}),
     );
   },
 
@@ -563,7 +582,11 @@ Page({
         'card.qrCanvasPx': qrCanvasPx,
         'card.fullCopy': qrResult.text,
       });
-      this.setResult('二维码已生成（' + qrResult.size + '×' + qrResult.size + '）', 'ok', qrResult.text);
+      this.setResult(
+        '二维码已生成（' + qrResult.size + '×' + qrResult.size + '）',
+        'ok',
+        qrResult.text,
+      );
     } catch (e) {
       this._qrModules = null;
       this.setData({ 'card.qrSize': 0, 'card.qrRows': [], 'card.qrCanvasPx': 200 });
@@ -702,12 +725,18 @@ Page({
   onShow() {
     if (this.data.slug === 'notes') this.loadNotes();
     if (this.data.slug === 'compass') this.startCompass();
+    if (this.data.pomodoroRunning && this._deadlines.pomodoro) {
+      this.startPomodoroInterval();
+    }
+    if (this.data.countdownRunning && this._deadlines.countdown) {
+      this.startCountdownInterval();
+    }
   },
 
   onHide() {
     this.stopCompass();
     this.clearTimers();
-    this.setData({ pomodoroRunning: false, stopwatchRunning: false, countdownRunning: false });
+    this.setData({ stopwatchRunning: false });
   },
 
   stopCompass() {
@@ -751,6 +780,7 @@ Page({
     const seconds = mode === 'break' ? 5 * 60 : 25 * 60;
     clearInterval(this._timers.pomodoro);
     delete this._timers.pomodoro;
+    delete this._deadlines.pomodoro;
     this.setData({
       pomodoroMode: mode,
       pomodoroSeconds: seconds,
@@ -762,29 +792,49 @@ Page({
 
   togglePomodoro() {
     if (this.data.pomodoroRunning) {
+      if (this._deadlines.pomodoro) {
+        this.setPomodoroLeft(deadlineTimer.getRemainingSeconds(this._deadlines.pomodoro));
+      }
       clearInterval(this._timers.pomodoro);
       delete this._timers.pomodoro;
+      delete this._deadlines.pomodoro;
       this.setData({ pomodoroRunning: false });
       return;
     }
+    const start = this.data.pomodoroLeft > 0 ? this.data.pomodoroLeft : this.data.pomodoroSeconds;
+    this._deadlines.pomodoro = deadlineTimer.createDeadline(start);
     this.setData({ pomodoroRunning: true });
-    this._timers.pomodoro = setInterval(() => {
-      let left = this.data.pomodoroLeft - 1;
-      if (left <= 0) {
-        clearInterval(this._timers.pomodoro);
-        delete this._timers.pomodoro;
-        this.setPomodoroLeft(0);
-        this.setData({ pomodoroRunning: false });
-        toast.showToast(this.data.pomodoroMode === 'break' ? '休息结束' : '专注完成，可以休息 5 分钟');
-        return;
-      }
+    this.startPomodoroInterval();
+  },
+
+  startPomodoroInterval() {
+    clearInterval(this._timers.pomodoro);
+    const update = () => {
+      const deadline = this._deadlines.pomodoro;
+      if (!deadline || !this.data.pomodoroRunning) return;
+      const left = deadlineTimer.getRemainingSeconds(deadline);
       this.setPomodoroLeft(left);
+      if (left > 0) return;
+
+      clearInterval(this._timers.pomodoro);
+      delete this._timers.pomodoro;
+      delete this._deadlines.pomodoro;
+      this.setData({ pomodoroRunning: false });
+      toast.showToast(
+        this.data.pomodoroMode === 'break' ? '休息结束' : '专注完成，可以休息 5 分钟',
+      );
+    };
+    update();
+    if (!this.data.pomodoroRunning) return;
+    this._timers.pomodoro = setInterval(() => {
+      update();
     }, 1000);
   },
 
   resetPomodoro() {
     clearInterval(this._timers.pomodoro);
     delete this._timers.pomodoro;
+    delete this._deadlines.pomodoro;
     this.setPomodoroLeft(this.data.pomodoroSeconds);
     this.setData({ pomodoroRunning: false });
   },
@@ -824,29 +874,50 @@ Page({
 
   toggleCountdown() {
     if (this._timers.cd) {
+      if (this._deadlines.countdown) {
+        this.setData({
+          countdownLeft: deadlineTimer.getRemainingSeconds(this._deadlines.countdown),
+        });
+      }
       clearInterval(this._timers.cd);
       delete this._timers.cd;
+      delete this._deadlines.countdown;
       this.setData({ countdownRunning: false });
       return;
     }
-    const start = this.data.countdownLeft > 0 ? this.data.countdownLeft : Number(this.data.countdownSec) || 60;
+    const start =
+      this.data.countdownLeft > 0 ? this.data.countdownLeft : Number(this.data.countdownSec) || 60;
+    this._deadlines.countdown = deadlineTimer.createDeadline(start);
     this.setData({ countdownRunning: true, countdownLeft: start });
-    this._timers.cd = setInterval(() => {
-      let left = this.data.countdownLeft - 1;
-      if (left <= 0) {
-        clearInterval(this._timers.cd);
-        delete this._timers.cd;
-        this.setData({ countdownLeft: 0, countdownRunning: false });
-        toast.showToast('倒计时结束');
-        return;
-      }
+    this.startCountdownInterval();
+  },
+
+  startCountdownInterval() {
+    clearInterval(this._timers.cd);
+    const update = () => {
+      const deadline = this._deadlines.countdown;
+      if (!deadline || !this.data.countdownRunning) return;
+      const left = deadlineTimer.getRemainingSeconds(deadline);
       this.setData({ countdownLeft: left });
+      if (left > 0) return;
+
+      clearInterval(this._timers.cd);
+      delete this._timers.cd;
+      delete this._deadlines.countdown;
+      this.setData({ countdownRunning: false });
+      toast.showToast('倒计时结束');
+    };
+    update();
+    if (!this.data.countdownRunning) return;
+    this._timers.cd = setInterval(() => {
+      update();
     }, 1000);
   },
 
   resetCountdown() {
     clearInterval(this._timers.cd);
     delete this._timers.cd;
+    delete this._deadlines.countdown;
     this.setData({
       countdownLeft: Number(this.data.countdownSec) || 60,
       countdownRunning: false,

@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { syncSettingsToCloud } from '../services/cloudSyncService';
 import { isUsingSupabase, getUserId } from '../services/authService';
+import { publishSyncFailure } from '../services/syncResult';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -60,7 +61,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const userId = getUserId();
       if (userId && userId !== 'guest') {
         const language = localStorage.getItem('spring_nest_lang') || 'zh';
-        syncSettingsToCloud(userId, { theme: m, language }).catch(() => {});
+        void syncSettingsToCloud(userId, { theme: m, language }).then(publishSyncFailure);
       }
     }
   }, []);

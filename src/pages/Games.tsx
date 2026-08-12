@@ -16,7 +16,7 @@ import {
   useRef,
   useCallback,
 } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import gsap from 'gsap';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
@@ -479,9 +479,7 @@ export default function Games() {
       />
 
       {/* Header */}
-      <header
-        className="text-center mb-12 sm:mb-16 lg:mb-20 relative pt-8 pb-4 forest-readable-hero"
-      >
+      <header className="text-center mb-12 sm:mb-16 lg:mb-20 relative pt-8 pb-4 forest-readable-hero">
         <h1 className="font-nunito font-extrabold text-3xl sm:text-4xl lg:text-5xl forest-page-title mb-6 flex items-center justify-center gap-4">
           <Gamepad2 className="text-primary w-10 h-10" />
           {categoryRoute
@@ -567,45 +565,42 @@ export default function Games() {
 
       {/* Card grid with AnimatePresence */}
       <MotionList
-          key={`grid-${activeCategory}-${query}-${sortMode}`}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full mb-16"
-        >
-          {filteredGames.length === 0 ? (
-            <div
-              className="surface-playful col-span-full flex flex-col items-center justify-center rounded-3xl py-20 text-secondary"
-            >
-              <div
-              >
-                <Gamepad2 className="w-16 h-16 text-secondary/30 mb-4" />
-              </div>
-              <p className="font-medium text-lg">
-                {t('没有找到相关游戏', 'No matching games found')}
-              </p>
-              <button
-                onClick={() => {
-                  setQuery('');
-                  handleCategorySwitch('all');
-                }}
-                className="mt-4 rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary"
-              >
-                {t('清除筛选', 'Clear filters')}
-              </button>
+        key={`grid-${activeCategory}-${query}-${sortMode}`}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full mb-16"
+      >
+        {filteredGames.length === 0 ? (
+          <div className="surface-playful col-span-full flex flex-col items-center justify-center rounded-3xl py-20 text-secondary">
+            <div>
+              <Gamepad2 className="w-16 h-16 text-secondary/30 mb-4" />
             </div>
-          ) : (
-            filteredGames.map((game) => (
-              <CatalogItemCard
-                key={game.id}
-                item={game}
-                variant="game"
-                actionLabel={t('开始游戏', 'Play')}
-                isFavorite={favoriteIds.includes(game.id)}
-                onFavorite={toggle}
-                onAction={() => handlePlay(game.id)}
-                t={t}
-              />
-            ))
-          )}
-        </MotionList>
-</div>
+            <p className="font-medium text-lg">
+              {t('没有找到相关游戏', 'No matching games found')}
+            </p>
+            <button
+              onClick={() => {
+                setQuery('');
+                handleCategorySwitch('all');
+              }}
+              className="mt-4 rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary"
+            >
+              {t('清除筛选', 'Clear filters')}
+            </button>
+          </div>
+        ) : (
+          filteredGames.map((game) => (
+            <CatalogItemCard
+              key={game.id}
+              item={game}
+              variant="game"
+              actionLabel={t('开始游戏', 'Play')}
+              isFavorite={favoriteIds.includes(game.id)}
+              onFavorite={toggle}
+              onAction={() => handlePlay(game.id)}
+              t={t}
+            />
+          ))
+        )}
+      </MotionList>
+    </div>
   );
 }

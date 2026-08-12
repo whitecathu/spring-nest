@@ -107,9 +107,7 @@ export default function JsonFormatter({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('JSON 格式化', 'JSON Formatter')}
         </h2>
@@ -120,6 +118,7 @@ export default function JsonFormatter({ onBack }: { onBack: () => void }) {
             {t('输入 JSON', 'Input JSON')}
           </label>
           <textarea
+            aria-label={t('输入 JSON', 'Input JSON')}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
@@ -189,6 +188,7 @@ export default function JsonFormatter({ onBack }: { onBack: () => void }) {
               {t('结果', 'Result')}
             </label>
             <textarea
+              aria-label={t('格式化结果', 'Formatted result')}
               value={output}
               readOnly
               rows={8}

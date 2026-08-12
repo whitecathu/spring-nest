@@ -45,8 +45,7 @@ function HomeHeroStageInner({
   const prefersReducedMotion = useReducedMotion();
   const reducedMotion = reducedMotionOverride ?? prefersReducedMotion;
   const forest = useForestRuntimeOptional();
-  const forestVideo =
-    !!forest && tierAllowsVideo(forest.tier) && !reducedMotion;
+  const forestVideo = !!forest && tierAllowsVideo(forest.tier) && !reducedMotion;
 
   return (
     <div

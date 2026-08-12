@@ -219,9 +219,7 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
           {t('随机文本生成', 'Lorem Ipsum Generator')}
         </h2>
@@ -242,6 +240,7 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
               </label>
               <input
                 type="range"
+                aria-label={t('段落数', 'Paragraphs')}
                 min={1}
                 max={20}
                 value={paragraphs}
@@ -260,6 +259,7 @@ export default function LoremGenerator({ onBack }: { onBack: () => void }) {
               </label>
               <input
                 type="range"
+                aria-label={t('每段句数', 'Sentences per paragraph')}
                 min={1}
                 max={15}
                 value={sentencesPerParagraph}

@@ -33,19 +33,18 @@ Page({
     if (!deck) {
       wx.showToast({ title: '题集不存在', icon: 'none' });
       setTimeout(function () {
-        wx.navigateBack({ fail: function () {
-          wx.redirectTo({ url: '/packageStudy/pages/home/index' });
-        }});
+        wx.navigateBack({
+          fail: function () {
+            wx.redirectTo({ url: '/packageStudy/pages/home/index' });
+          },
+        });
       }, 400);
       return;
     }
 
     var examSettings = sessionUtil.getExamSettings();
     var questionCount = deck.questions.length;
-    var effectiveExamCount = Math.min(
-      examSettings.questionCount,
-      Math.max(questionCount, 1)
-    );
+    var effectiveExamCount = Math.min(examSettings.questionCount, Math.max(questionCount, 1));
     var dailyPlanMax = Math.max(questionCount, 100);
     var dailyPlanCount = Math.min(this.data.dailyPlanCount || 50, dailyPlanMax);
     if (dailyPlanCount < 5) dailyPlanCount = Math.min(5, dailyPlanMax);
@@ -100,7 +99,11 @@ Page({
   },
 
   onExamCountInput(e) {
-    var value = helpers.clampNumber(parseInt(e.detail.value, 10), 1, Math.max(this.data.questionCount, 1));
+    var value = helpers.clampNumber(
+      parseInt(e.detail.value, 10),
+      1,
+      Math.max(this.data.questionCount, 1),
+    );
     sessionUtil.saveExamSettings({
       questionCount: value,
       durationMinutes: this.data.examDurationMinutes,

@@ -19,9 +19,7 @@ export default function TimerStopwatch({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('倒计时与秒表', 'Timer & Stopwatch')}
         </h2>
@@ -160,6 +158,7 @@ function CountdownTab() {
           <div className="flex flex-col items-center">
             <input
               type="number"
+              aria-label={t('计时分钟', 'Timer minutes')}
               min={0}
               max={99}
               value={inputMinutes}
@@ -174,6 +173,7 @@ function CountdownTab() {
           <div className="flex flex-col items-center">
             <input
               type="number"
+              aria-label={t('计时秒数', 'Timer seconds')}
               min={0}
               max={59}
               value={inputSeconds}

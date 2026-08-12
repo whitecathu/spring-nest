@@ -158,17 +158,23 @@ export default function LedgerSelector({
             className="flex-1 flex items-center gap-2.5 text-left text-sm"
           >
             <span className="text-base">📒</span>
-            <span className={`${
-              selectedLedgerId === DEFAULT_LEDGER_ID
-                ? 'text-indigo-700 dark:text-indigo-300 font-semibold'
-                : 'text-neutral-600 dark:text-neutral-300'
-            }`}>
+            <span
+              className={`${
+                selectedLedgerId === DEFAULT_LEDGER_ID
+                  ? 'text-indigo-700 dark:text-indigo-300 font-semibold'
+                  : 'text-neutral-600 dark:text-neutral-300'
+              }`}
+            >
               {t('默认账本', 'Default')}
             </span>
           </button>
           <button
             onClick={() => {
-              if (confirm(t('确定删除默认账本中的所有记录？', 'Delete all records in the default ledger?'))) {
+              if (
+                confirm(
+                  t('确定删除默认账本中的所有记录？', 'Delete all records in the default ledger?'),
+                )
+              ) {
                 onDelete(DEFAULT_LEDGER_ID);
               }
             }}

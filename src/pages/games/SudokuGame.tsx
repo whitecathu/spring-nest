@@ -128,31 +128,23 @@ const SudokuCell = memo(function SudokuCell({
     >
       {/* Pulsing ring on selected cell */}
       {isSelected && (
-        <span
-          className="absolute inset-0 rounded border-[3px] border-primary pointer-events-none"
-        />
+        <span className="absolute inset-0 rounded border-[3px] border-primary pointer-events-none" />
       )}
       {/* Green glow on correct placement */}
       {isCorrectBrief && (
-          <div
-            className="absolute inset-0 rounded bg-green-400/25 pointer-events-none"
-          />
-        )}
+        <div className="absolute inset-0 rounded bg-green-400/25 pointer-events-none" />
+      )}
       {/* Number with scale-from-zero entrance */}
       {value !== 0 && (
-          <span
-            key={value}
-            className={`relative z-10 ${isHint ? 'text-amber-500 dark:text-amber-400' : ''}`}
-          >
-            {value}
-          </span>
-        )}
-      {/* Hint golden glow pulse */}
-      {isHint && (
-        <div
-          className="absolute inset-0 rounded bg-amber-400/20 pointer-events-none"
-        />
+        <span
+          key={value}
+          className={`relative z-10 ${isHint ? 'text-amber-500 dark:text-amber-400' : ''}`}
+        >
+          {value}
+        </span>
       )}
+      {/* Hint golden glow pulse */}
+      {isHint && <div className="absolute inset-0 rounded bg-amber-400/20 pointer-events-none" />}
     </button>
   );
 });
@@ -402,15 +394,11 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
                   <Trophy className="w-3 h-3" />
                   {t('最佳', 'Best')}
                 </div>
-                <div
-                  className="text-lg font-bold text-tertiary tabular-nums"
-                >
+                <div className="text-lg font-bold text-tertiary tabular-nums">
                   {formatTime(bestTime)}
                 </div>
                 {isNewRecord && (
-                  <div
-                    className="absolute inset-0 rounded-xl bg-amber-400/20 pointer-events-none"
-                  />
+                  <div className="absolute inset-0 rounded-xl bg-amber-400/20 pointer-events-none" />
                 )}
               </div>
             )}
@@ -440,9 +428,7 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
 
         {/* Mistake counter */}
         {gameState === 'playing' && (
-          <div
-            className="flex justify-center mb-3"
-          >
+          <div className="flex justify-center mb-3">
             <div className="bg-surface-container-high rounded-full px-4 py-1.5 flex items-center gap-2 text-sm">
               <span className="text-secondary font-medium">{t('错误', 'Mistakes')}:</span>
               <span
@@ -457,58 +443,53 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
 
         {/* Board */}
         {gameState !== 'idle' && (
-            <div
-              key="board"
-              className="mb-4"
-            >
-              <div className="grid grid-cols-9 gap-0 max-w-[360px] mx-auto border-2 border-on-surface/20 rounded-lg overflow-hidden">
-                {board.map((row, r) =>
-                  row.map((val, c) => {
-                    const isSelected = selected?.[0] === r && selected?.[1] === c;
-                    const isError = errors.has(`${r}-${c}`);
-                    const isHighlight =
-                      selected !== null &&
-                      (selected[0] === r ||
-                        selected[1] === c ||
-                        (Math.floor(selected[0] / 3) === Math.floor(r / 3) &&
-                          Math.floor(selected[1] / 3) === Math.floor(c / 3)));
-                    const isHint = hintCells.has(`${r}-${c}`);
-                    const borderRight =
-                      (c + 1) % 3 === 0 && c < 8
-                        ? 'border-r-2 border-on-surface/20'
-                        : 'border-r border-on-surface/10';
-                    const borderBottom =
-                      (r + 1) % 3 === 0 && r < 8
-                        ? 'border-b-2 border-on-surface/20'
-                        : 'border-b border-on-surface/10';
+          <div key="board" className="mb-4">
+            <div className="grid grid-cols-9 gap-0 max-w-[360px] mx-auto border-2 border-on-surface/20 rounded-lg overflow-hidden">
+              {board.map((row, r) =>
+                row.map((val, c) => {
+                  const isSelected = selected?.[0] === r && selected?.[1] === c;
+                  const isError = errors.has(`${r}-${c}`);
+                  const isHighlight =
+                    selected !== null &&
+                    (selected[0] === r ||
+                      selected[1] === c ||
+                      (Math.floor(selected[0] / 3) === Math.floor(r / 3) &&
+                        Math.floor(selected[1] / 3) === Math.floor(c / 3)));
+                  const isHint = hintCells.has(`${r}-${c}`);
+                  const borderRight =
+                    (c + 1) % 3 === 0 && c < 8
+                      ? 'border-r-2 border-on-surface/20'
+                      : 'border-r border-on-surface/10';
+                  const borderBottom =
+                    (r + 1) % 3 === 0 && r < 8
+                      ? 'border-b-2 border-on-surface/20'
+                      : 'border-b border-on-surface/10';
 
-                    const isCorrectBrief = correctCells.has(`${r}-${c}`);
+                  const isCorrectBrief = correctCells.has(`${r}-${c}`);
 
-                    return (
-                      <div key={`${r}-${c}`} className={`${borderRight} ${borderBottom}`}>
-                        <SudokuCell
-                          value={val}
-                          isOriginal={puzzle[r]?.[c] !== 0}
-                          isSelected={isSelected}
-                          isError={isError}
-                          isHighlight={isHighlight && !isSelected}
-                          isHint={isHint}
-                          isCorrectBrief={isCorrectBrief}
-                          onClick={() => handleCellClick(r, c)}
-                        />
-                      </div>
-                    );
-                  }),
-                )}
-              </div>
+                  return (
+                    <div key={`${r}-${c}`} className={`${borderRight} ${borderBottom}`}>
+                      <SudokuCell
+                        value={val}
+                        isOriginal={puzzle[r]?.[c] !== 0}
+                        isSelected={isSelected}
+                        isError={isError}
+                        isHighlight={isHighlight && !isSelected}
+                        isHint={isHint}
+                        isCorrectBrief={isCorrectBrief}
+                        onClick={() => handleCellClick(r, c)}
+                      />
+                    </div>
+                  );
+                }),
+              )}
             </div>
-          )}
+          </div>
+        )}
 
         {/* Number Pad + Actions */}
         {gameState === 'playing' && (
-          <div
-            className="max-w-[360px] mx-auto"
-          >
+          <div className="max-w-[360px] mx-auto">
             {/* Actions */}
             <div className="flex justify-center gap-3 mb-3">
               <button
@@ -551,42 +532,33 @@ export default function SudokuGame({ onBack }: { onBack: () => void }) {
 
         {/* Start/Play Again */}
         {(gameState === 'idle' || gameState === 'won') && (
-            <div
-              key={gameState}
-              className="flex flex-col items-center gap-3 mt-4"
+          <div key={gameState} className="flex flex-col items-center gap-3 mt-4">
+            {gameState === 'won' && (
+              <div className="text-center mb-2">
+                <p className="text-4xl mb-2">🎉</p>
+                <p className="text-2xl font-bold text-on-surface">{t('恭喜通关！', 'You Win!')}</p>
+                <p className="text-sm text-secondary">
+                  {t('用时', 'Time')}: {formatTime(time)}
+                </p>
+                <p className="text-xs text-secondary mt-1">
+                  {t('错误', 'Mistakes')}: {mistakeCount}
+                </p>
+                {isNewRecord && (
+                  <p className="text-sm text-green-500 font-bold mt-1">
+                    🏆 {t('新纪录！', 'New Record!')}
+                  </p>
+                )}
+              </div>
+            )}
+            <button
+              onClick={startGame}
+              className="px-8 py-3 bg-primary text-on-primary rounded-full font-semibold flex items-center gap-2 min-h-[48px]"
             >
-              {gameState === 'won' && (
-                <div
-                  className="text-center mb-2"
-                >
-                  <p className="text-4xl mb-2">🎉</p>
-                  <p className="text-2xl font-bold text-on-surface">
-                    {t('恭喜通关！', 'You Win!')}
-                  </p>
-                  <p className="text-sm text-secondary">
-                    {t('用时', 'Time')}: {formatTime(time)}
-                  </p>
-                  <p className="text-xs text-secondary mt-1">
-                    {t('错误', 'Mistakes')}: {mistakeCount}
-                  </p>
-                  {isNewRecord && (
-                    <p
-                      className="text-sm text-green-500 font-bold mt-1"
-                    >
-                      🏆 {t('新纪录！', 'New Record!')}
-                    </p>
-                  )}
-                </div>
-              )}
-              <button
-                onClick={startGame}
-                className="px-8 py-3 bg-primary text-on-primary rounded-full font-semibold flex items-center gap-2 min-h-[48px]"
-              >
-                <RotateCcw className="w-5 h-5" />
-                {gameState === 'won' ? t('再来一局', 'Play Again') : t('开始游戏', 'Start Game')}
-              </button>
-            </div>
-          )}
+              <RotateCcw className="w-5 h-5" />
+              {gameState === 'won' ? t('再来一局', 'Play Again') : t('开始游戏', 'Start Game')}
+            </button>
+          </div>
+        )}
 
         {/* Confetti on win */}
         {gameState === 'won' && <WinConfetti />}

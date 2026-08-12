@@ -78,6 +78,32 @@ describe('authService', () => {
       expect(store['spring_nest_current_user']).not.toContain('password123');
       expect(store['spring_nest_users']).toContain('local-v2:');
     });
+
+    it('normalizes email casing and surrounding whitespace', async () => {
+      const result = await register('  Test.User@Example.COM  ', 'password123', 'tester');
+      expect(result.success).toBe(true);
+      expect(result.user?.email).toBe('test.user@example.com');
+    });
+
+    it('treats differently-cased emails as the same account', async () => {
+      await register('test@example.com', 'password123', 'tester');
+      const result = await register(' TEST@EXAMPLE.COM ', 'password456', 'other');
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('已注册');
+    });
+
+    it('enforces account field length limits', async () => {
+      const longEmail = `${'a'.repeat(243)}@example.com`;
+      const emailResult = await register(longEmail, 'password123', 'tester');
+      const passwordResult = await register('password@example.com', 'x'.repeat(129), 'tester');
+      const shortNameResult = await register('short@example.com', 'password123', 'x');
+      const longNameResult = await register('long@example.com', 'password123', 'x'.repeat(51));
+
+      expect(emailResult.success).toBe(false);
+      expect(passwordResult.success).toBe(false);
+      expect(shortNameResult.success).toBe(false);
+      expect(longNameResult.success).toBe(false);
+    });
   });
 
   describe('login', () => {
@@ -125,6 +151,12 @@ describe('authService', () => {
       expect(store['spring_nest_users']).toContain('local-v2:');
       expect(store['spring_nest_users']).not.toContain('"password":"password123"');
     });
+
+    it('normalizes email before looking up the account', async () => {
+      const result = await login('  TEST@EXAMPLE.COM ', 'password123');
+      expect(result.success).toBe(true);
+      expect(result.user?.email).toBe('test@example.com');
+    });
   });
 
   describe('logout', () => {
@@ -138,21 +170,30 @@ describe('authService', () => {
   describe('updateProfile', () => {
     it('should update user profile fields', async () => {
       await register('test@example.com', 'password123', 'oldname');
-      const updated = updateProfile({ username: 'newname', bio: 'hello' });
-      expect(updated).toBeDefined();
-      expect(updated!.username).toBe('newname');
-      expect(updated!.bio).toBe('hello');
+      const result = await updateProfile({ username: 'newname', bio: 'hello' });
+      expect(result.success).toBe(true);
+      expect(result.user?.username).toBe('newname');
+      expect(result.user?.bio).toBe('hello');
+      expect(result.emailConfirmationPending).toBe(false);
     });
 
     it('should reject invalid email update', async () => {
       await register('test@example.com', 'password123');
-      const updated = updateProfile({ email: 'invalid' });
-      expect(updated).toBeNull();
+      const result = await updateProfile({ email: 'invalid' });
+      expect(result.success).toBe(false);
     });
 
-    it('should return null when no user is logged in', () => {
-      const updated = updateProfile({ username: 'x' });
-      expect(updated).toBeNull();
+    it('should return an error when no user is logged in', async () => {
+      const result = await updateProfile({ username: 'valid-name' });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects an oversized bio without mutating the current user', async () => {
+      await register('test@example.com', 'password123', 'oldname');
+      const result = await updateProfile({ bio: 'x'.repeat(501) });
+
+      expect(result.success).toBe(false);
+      expect(getCurrentUser()?.bio).toBe('');
     });
   });
 

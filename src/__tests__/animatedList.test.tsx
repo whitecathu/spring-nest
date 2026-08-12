@@ -8,14 +8,6 @@ vi.mock('../lib/animations', () => ({
   easeOutExpo: [0.16, 1, 0.3, 1],
 }));
 
-vi.mock('motion/react', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('motion/react')>();
-  return {
-    ...actual,
-    useInView: vi.fn(() => true),
-  };
-});
-
 describe('AnimatedList', () => {
   it('renders all children', () => {
     render(

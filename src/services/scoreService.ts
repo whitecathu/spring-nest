@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { syncScoreToCloud, getLeaderboard, type LeaderboardEntry } from './cloudSyncService';
+import { publishSyncFailure } from './syncResult';
 
 export type { LeaderboardEntry };
 
@@ -32,9 +33,7 @@ export function saveBestScore(gameSlug: string, score: number, userId?: string):
 
   // Sync to cloud if user is logged in and Supabase is configured
   if (userId && userId !== 'guest' && supabase) {
-    syncScoreToCloud(userId, gameSlug, score).catch(() => {
-      // Silently fail - localStorage is the source of truth
-    });
+    void syncScoreToCloud(userId, gameSlug, score).then(publishSyncFailure);
   }
 }
 

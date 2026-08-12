@@ -3,7 +3,7 @@ const catalog = require('./catalog');
 
 const FAVORITES_KEY = 'favorites:v1';
 
-function saveValid(ids) {
+function normalizeValid(ids) {
   const known = new Set(catalog.getAllTools().map((t) => t.slug));
   const next = [];
   const seen = {};
@@ -13,12 +13,17 @@ function saveValid(ids) {
       next.push(id);
     }
   });
+  return next;
+}
+
+function saveValid(ids) {
+  const next = normalizeValid(ids);
   storage.setJSON(FAVORITES_KEY, next);
   return next;
 }
 
 function getFavorites() {
-  return saveValid(storage.getJSON(FAVORITES_KEY, []));
+  return normalizeValid(storage.getJSON(FAVORITES_KEY, []));
 }
 
 function isFavorite(toolId) {

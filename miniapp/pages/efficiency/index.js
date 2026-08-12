@@ -11,11 +11,14 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 });
     }
-    const learning = catalog.getBySection('learning').slice().sort((a, b) => {
-      if (a.slug === 'question-bank-importer') return -1;
-      if (b.slug === 'question-bank-importer') return 1;
-      return (b.homePriority || 0) - (a.homePriority || 0);
-    });
+    const learning = catalog
+      .getBySection('learning')
+      .slice()
+      .sort((a, b) => {
+        if (a.slug === 'question-bank-importer') return -1;
+        if (b.slug === 'question-bank-importer') return 1;
+        return (b.homePriority || 0) - (a.homePriority || 0);
+      });
     this.setData({
       timeTools: catalog.getBySection('time'),
       learningTools: learning,

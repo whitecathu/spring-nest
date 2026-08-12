@@ -43,12 +43,8 @@ export default function ErrorState({
       </div>
       <div className="space-y-1.5">
         <h3 className="text-lg font-bold text-on-surface">{title}</h3>
-        {description && (
-          <p className="text-sm text-secondary leading-relaxed">{description}</p>
-        )}
-        {detail && (
-          <p className="text-xs text-secondary/80 break-words font-mono mt-2">{detail}</p>
-        )}
+        {description && <p className="text-sm text-secondary leading-relaxed">{description}</p>}
+        {detail && <p className="text-xs text-secondary/80 break-words font-mono mt-2">{detail}</p>}
       </div>
       {(action || secondaryAction) && (
         <div className="flex flex-wrap items-center justify-center gap-3 pt-1">

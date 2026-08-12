@@ -144,19 +144,15 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
               {t('输入文本', 'Input Text')}
             </label>
             <span className="text-xs text-secondary">
-              <span
-                key={charCount}
-                className="inline-block"
-              >
+              <span key={charCount} className="inline-block">
                 {charCount}
               </span>{' '}
               {t('字符', 'chars')} · {wordCount} {t('词', 'words')} · {lineCount} {t('行', 'lines')}
             </span>
           </div>
-          <div
-            className="relative"
-          >
+          <div className="relative">
             <textarea
+              aria-label={t('待转换文本', 'Text to convert')}
               ref={textareaRef}
               spellCheck="false"
               value={input}
@@ -165,14 +161,14 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
               className="w-full h-40 px-4 py-3 bg-surface-container rounded-xl outline-none focus:ring-2 focus:ring-primary text-on-surface resize-none"
             />
             {input && (
-                <button
-                  onClick={() => setInput('')}
-                  className="absolute top-3 right-3 min-w-[48px] min-h-[48px] rounded-full bg-surface-container-high text-secondary flex items-center justify-center hover:text-on-surface transition-colors"
-                  aria-label={t('清除输入', 'Clear input')}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+              <button
+                onClick={() => setInput('')}
+                className="absolute top-3 right-3 min-w-[48px] min-h-[48px] rounded-full bg-surface-container-high text-secondary flex items-center justify-center hover:text-on-surface transition-colors"
+                aria-label={t('清除输入', 'Clear input')}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -187,9 +183,7 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
               }`}
             >
               {activeCase === c.id && (
-                <div
-                  className="absolute inset-0 bg-primary rounded-full -z-10"
-                />
+                <div className="absolute inset-0 bg-primary rounded-full -z-10" />
               )}
               <span className="relative z-10">{t(...c.label)}</span>
             </button>
@@ -198,56 +192,47 @@ export default function CaseConverter({ onBack }: { onBack: () => void }) {
 
         {/* Output with AnimatePresence */}
         {input ? (
-            <div
-              key={`output-${activeCase}`}
-              className="mb-4"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-sm font-semibold text-secondary">
-                  {t('转换结果', 'Result')}
-                </label>
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[48px]"
-                >
-                  {copied ? (
-                      <span
-                        key="check"
-                        className="flex items-center gap-1 text-green-600 dark:text-green-400"
-                      >
-                        <Check className="w-3 h-3" /> {t('已复制', 'Copied')}
-                      </span>
-                    ) : (
-                      <span
-                        key="copy"
-                        className="flex items-center gap-1"
-                      >
-                        <Copy className="w-3 h-3" /> {t('复制', 'Copy')}
-                      </span>
-                    )}
-                </button>
-              </div>
-              <div className="relative">
-                <div
-                  key={output}
-                  className="w-full h-40 px-4 py-3 bg-surface-container-low rounded-xl text-on-surface overflow-auto whitespace-pre-wrap"
-                >
-                  {output}
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-surface-container-low to-transparent rounded-b-xl pointer-events-none" />
-              </div>
+          <div key={`output-${activeCase}`} className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-semibold text-secondary">
+                {t('转换结果', 'Result')}
+              </label>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[48px]"
+              >
+                {copied ? (
+                  <span
+                    key="check"
+                    className="flex items-center gap-1 text-green-600 dark:text-green-400"
+                  >
+                    <Check className="w-3 h-3" /> {t('已复制', 'Copied')}
+                  </span>
+                ) : (
+                  <span key="copy" className="flex items-center gap-1">
+                    <Copy className="w-3 h-3" /> {t('复制', 'Copy')}
+                  </span>
+                )}
+              </button>
             </div>
-          ) : (
-            <div
-              key="empty-output"
-              className="mb-4 bg-surface-container rounded-2xl p-8 text-center"
-            >
-              <Type className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
-              <p className="text-sm text-secondary/50">
-                {t('结果将显示在此处', 'Results will appear here')}
-              </p>
+            <div className="relative">
+              <div
+                key={output}
+                className="w-full h-40 px-4 py-3 bg-surface-container-low rounded-xl text-on-surface overflow-auto whitespace-pre-wrap"
+              >
+                {output}
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-surface-container-low to-transparent rounded-b-xl pointer-events-none" />
             </div>
-          )}
+          </div>
+        ) : (
+          <div key="empty-output" className="mb-4 bg-surface-container rounded-2xl p-8 text-center">
+            <Type className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
+            <p className="text-sm text-secondary/50">
+              {t('结果将显示在此处', 'Results will appear here')}
+            </p>
+          </div>
+        )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('选择转换类型，结果实时更新', 'Select a conversion type, results update in real-time')}

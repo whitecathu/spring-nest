@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import gsap from 'gsap';
 import { Home, Search, ArrowLeft, Leaf } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
@@ -21,43 +21,27 @@ export default function NotFound() {
         )}
         noindex
       />
-      <div
-        className="text-center max-w-lg relative z-10"
-      >
+      <div className="text-center max-w-lg relative z-10">
         {/* Animated 404 */}
-        <div
-          className="relative mb-8"
-        >
-          <div
-            className="text-9xl font-black text-primary/10 select-none"
-          >
-            404
-          </div>
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-          >
+        <div className="relative mb-8">
+          <div className="text-9xl font-black text-primary/10 select-none">404</div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             <Leaf className="w-20 h-20 text-primary/30 fill-primary/30" />
           </div>
         </div>
 
-        <h1
-          className="text-3xl font-bold text-on-surface mb-3"
-        >
+        <h1 className="text-3xl font-bold text-on-surface mb-3">
           {t('页面未找到', 'Page Not Found')}
         </h1>
 
-        <p
-          className="text-secondary mb-10 text-lg"
-        >
+        <p className="text-secondary mb-10 text-lg">
           {t(
             '你访问的页面不存在，可能已被移除或地址输入有误。',
             'The page you are looking for does not exist or has been moved.',
           )}
         </p>
 
-        <div
-          className="flex flex-col sm:flex-row justify-center gap-4 mb-8"
-        >
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface-container-high dark:bg-surface-container text-on-surface rounded-full font-semibold hover:shadow-md transition-all border border-surface-variant/30"
@@ -75,9 +59,7 @@ export default function NotFound() {
         </div>
 
         {/* Search suggestion */}
-        <div
-          className="mt-8 pt-8 border-t border-surface-variant/30"
-        >
+        <div className="mt-8 pt-8 border-t border-surface-variant/30">
           <p className="text-sm text-secondary mb-4">{t('或者试试搜索：', 'Or try searching:')}</p>
           <Link
             to="/search"

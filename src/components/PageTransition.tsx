@@ -15,10 +15,7 @@ export default function PageTransition({ children, className = '' }: PageTransit
   }
 
   return (
-    <div
-      style={{ willChange: 'transform, opacity' }}
-      className={className}
-    >
+    <div style={{ willChange: 'transform, opacity' }} className={className}>
       {children}
     </div>
   );

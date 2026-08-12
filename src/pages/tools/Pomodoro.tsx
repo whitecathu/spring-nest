@@ -198,9 +198,7 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-8 shadow-lg border border-surface-variant/30 text-center"
-      >
+      <div className="bg-white rounded-3xl p-8 shadow-lg border border-surface-variant/30 text-center">
         {/* Mode Switch */}
         <div className="flex justify-center mb-6">
           <div className="bg-surface-container-high rounded-full p-1 flex gap-1">
@@ -220,9 +218,7 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Timer Circle */}
-        <div
-          className="relative w-56 h-56 mx-auto mb-8"
-        >
+        <div className="relative w-56 h-56 mx-auto mb-8">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
             <circle cx="100" cy="100" r="90" fill="none" stroke="#e2e3df" strokeWidth="8" />
             <circle
@@ -342,9 +338,7 @@ export default function Pomodoro({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Stats */}
-        <div
-          className="bg-surface-container-low rounded-2xl p-4 flex justify-around"
-        >
+        <div className="bg-surface-container-low rounded-2xl p-4 flex justify-around">
           <div>
             <div className="text-2xl font-bold text-primary">{stats.sessions}</div>
             <div className="text-xs text-secondary font-medium">{t('完成次数', 'Sessions')}</div>

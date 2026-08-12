@@ -1,5 +1,5 @@
 import { Heart, Gamepad2, Wrench, Play } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import gsap from 'gsap';
 import { useUser } from '../contexts/UserContext';
 import { useFavorites } from '../hooks/useFavorites';
@@ -35,9 +35,7 @@ export default function Favorites() {
         title={t('我的收藏 - Spring Nest 春日小筑', 'Favorites - Spring Nest')}
         description={t('查看你收藏的工具和游戏', 'View your favorite tools and games')}
       />
-      <div
-        className="flex flex-col gap-10"
-      >
+      <div className="flex flex-col gap-10">
         {/* Header */}
         <div className="flex flex-col items-center text-center forest-readable-hero px-4 py-6">
           <div className="w-16 h-16 rounded-2xl bg-tertiary-container/70 text-tertiary flex items-center justify-center shadow-inner mb-4">
@@ -62,60 +60,59 @@ export default function Favorites() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favoriteGames.map((item, i) => (
-                  <div
-
-                    key={item.id}
-                    className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
-                  >
-                    <div className="flex gap-4">
-                      <div
-                        className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 ${item.iconBg || 'bg-surface-container'} flex items-center justify-center text-3xl`}
-                      >
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={t(item.title, item.titleEn)}
-                            loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        ) : (
-                          <span>{item.icon}</span>
-                        )}
-                      </div>
-                      <div className="flex-grow flex flex-col justify-between py-1">
-                        <div>
-                          <div className="flex justify-between items-start">
-                            <h3 className="font-bold text-on-surface line-clamp-1">
-                              {t(item.title, item.titleEn)}
-                            </h3>
-                            <button
-                              onClick={() => toggle(item.id)}
-                              className="text-red-400 hover:text-red-600 transition-colors shrink-0"
-                              aria-label={t('取消收藏', 'Remove Favorite')}
-                            >
-                              <Heart className="w-4 h-4 fill-current" />
-                            </button>
-                          </div>
-                          <p className="text-xs text-secondary mt-1 line-clamp-2">
-                            {t(item.description, item.descriptionEn)}
-                          </p>
-                        </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs font-semibold px-2 py-1 bg-surface-container-high rounded-full text-on-surface-variant">
-                            {item.category}
-                          </span>
+                <div
+                  key={item.id}
+                  className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
+                >
+                  <div className="flex gap-4">
+                    <div
+                      className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 ${item.iconBg || 'bg-surface-container'} flex items-center justify-center text-3xl`}
+                    >
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={t(item.title, item.titleEn)}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      ) : (
+                        <span>{item.icon}</span>
+                      )}
+                    </div>
+                    <div className="flex-grow flex flex-col justify-between py-1">
+                      <div>
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-bold text-on-surface line-clamp-1">
+                            {t(item.title, item.titleEn)}
+                          </h3>
                           <button
-                            onClick={() => handlePlayGame(item.id)}
-                            className="text-primary hover:text-primary/80 transition-colors bg-primary-container/30 hover:bg-primary-container p-1.5 rounded-lg"
+                            onClick={() => toggle(item.id)}
+                            className="text-red-400 hover:text-red-600 transition-colors shrink-0"
+                            aria-label={t('取消收藏', 'Remove Favorite')}
                           >
-                            <Play className="w-4 h-4" />
+                            <Heart className="w-4 h-4 fill-current" />
                           </button>
                         </div>
+                        <p className="text-xs text-secondary mt-1 line-clamp-2">
+                          {t(item.description, item.descriptionEn)}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs font-semibold px-2 py-1 bg-surface-container-high rounded-full text-on-surface-variant">
+                          {item.category}
+                        </span>
+                        <button
+                          onClick={() => handlePlayGame(item.id)}
+                          className="text-primary hover:text-primary/80 transition-colors bg-primary-container/30 hover:bg-primary-container p-1.5 rounded-lg"
+                        >
+                          <Play className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </div>
-                ))}
-</div>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
@@ -128,72 +125,71 @@ export default function Favorites() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favoriteTools.map((item, i) => (
-                  <div
-
-                    key={item.id}
-                    className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
-                  >
-                    <div className="flex gap-4">
-                      <div
-                        className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 ${item.iconBg || 'bg-surface-container'} flex items-center justify-center text-3xl`}
-                      >
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={t(item.title, item.titleEn)}
-                            loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        ) : (
-                          <span>{item.icon}</span>
-                        )}
-                      </div>
-                      <div className="flex-grow flex flex-col justify-between py-1">
-                        <div>
-                          <div className="flex justify-between items-start">
-                            <h3 className="font-bold text-on-surface line-clamp-1">
-                              {t(item.title, item.titleEn)}
-                            </h3>
-                            <button
-                              onClick={() => toggle(item.id)}
-                              className="text-red-400 hover:text-red-600 transition-colors shrink-0"
-                              aria-label={t('取消收藏', 'Remove Favorite')}
-                            >
-                              <Heart className="w-4 h-4 fill-current" />
-                            </button>
-                          </div>
-                          <p className="text-xs text-secondary mt-1 line-clamp-2">
-                            {t(item.description, item.descriptionEn)}
-                          </p>
-                        </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs font-semibold px-2 py-1 bg-surface-container-high rounded-full text-on-surface-variant">
-                            {item.category}
-                          </span>
+                <div
+                  key={item.id}
+                  className="bg-white/80 dark:bg-surface-container-high/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm hover:shadow-md border border-surface-variant/30 hover:border-primary/20 transition-all duration-300 group"
+                >
+                  <div className="flex gap-4">
+                    <div
+                      className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 ${item.iconBg || 'bg-surface-container'} flex items-center justify-center text-3xl`}
+                    >
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={t(item.title, item.titleEn)}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      ) : (
+                        <span>{item.icon}</span>
+                      )}
+                    </div>
+                    <div className="flex-grow flex flex-col justify-between py-1">
+                      <div>
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-bold text-on-surface line-clamp-1">
+                            {t(item.title, item.titleEn)}
+                          </h3>
                           <button
-                            onClick={() => handleOpenTool(item.id)}
-                            className="text-primary hover:text-primary/80 transition-colors bg-primary-container/30 hover:bg-primary-container p-1.5 rounded-lg"
+                            onClick={() => toggle(item.id)}
+                            className="text-red-400 hover:text-red-600 transition-colors shrink-0"
+                            aria-label={t('取消收藏', 'Remove Favorite')}
                           >
-                            <Play className="w-4 h-4" />
+                            <Heart className="w-4 h-4 fill-current" />
                           </button>
                         </div>
+                        <p className="text-xs text-secondary mt-1 line-clamp-2">
+                          {t(item.description, item.descriptionEn)}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs font-semibold px-2 py-1 bg-surface-container-high rounded-full text-on-surface-variant">
+                          {item.category}
+                        </span>
+                        <button
+                          onClick={() => handleOpenTool(item.id)}
+                          className="text-primary hover:text-primary/80 transition-colors bg-primary-container/30 hover:bg-primary-container p-1.5 rounded-lg"
+                        >
+                          <Play className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </div>
-                ))}
-</div>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
         {/* Empty State */}
         {totalFavorites === 0 && (
-          <div
-            className="forest-empty-panel mx-auto flex max-w-xl flex-col items-center justify-center px-8 py-16 text-secondary"
-          >
+          <div className="forest-empty-panel mx-auto flex max-w-xl flex-col items-center justify-center px-8 py-16 text-secondary">
             <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-4">
               <Heart className="w-10 h-10 text-secondary/40" />
             </div>
-            <p className="font-medium text-lg text-on-surface">{t('暂无收藏内容', 'No favorites yet')}</p>
+            <p className="font-medium text-lg text-on-surface">
+              {t('暂无收藏内容', 'No favorites yet')}
+            </p>
             <p className="text-sm text-secondary mb-6">
               {t(
                 '快去探索游戏和工具，收藏你喜欢的吧',

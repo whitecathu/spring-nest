@@ -43,8 +43,7 @@ export default function GameToolLoading() {
                 />
               );
             })}
-          <div
-          >
+          <div>
             <Leaf className="w-10 h-10 text-primary fill-primary/30" />
           </div>
         </div>
@@ -60,11 +59,7 @@ export default function GameToolLoading() {
             />
           </div>
         )}
-        <span
-          className="text-sm text-primary/60 font-nunito"
-        >
-          Loading
-        </span>
+        <span className="text-sm text-primary/60 font-nunito">Loading</span>
       </div>
     </div>
   );

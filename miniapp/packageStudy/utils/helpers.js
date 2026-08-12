@@ -4,7 +4,9 @@ function pad2(value) {
 }
 
 function uid(prefix) {
-  return (prefix || 'id') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  return (
+    (prefix || 'id') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8)
+  );
 }
 
 function clampNumber(value, min, max) {
@@ -22,7 +24,7 @@ function getLocalDateKey(date) {
 
 function getDisplayReviewDate(date) {
   const d = date || new Date();
-  return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  return d.getMonth() + 1 + '月' + d.getDate() + '日';
 }
 
 function toText(value, fallback) {
@@ -48,7 +50,7 @@ function normalizeChoiceAnswer(value) {
 
 function normalizeImportedChoiceAnswer(value) {
   return normalizeChoiceAnswer(
-    String(value || '').replace(/^(正确答案|正确选项|答案|answer|correct answer)\s*[:：]?\s*/i, '')
+    String(value || '').replace(/^(正确答案|正确选项|答案|answer|correct answer)\s*[:：]?\s*/i, ''),
   );
 }
 
@@ -134,7 +136,13 @@ function normalizeQuestion(raw, id) {
   if (!raw || typeof raw !== 'object') return null;
   var stem = toText(raw.stem, toText(raw.q, toText(raw.question, ''))).trim();
   var options = normalizeChoiceOptions(
-    Array.isArray(raw.options) ? raw.options.map(function (o) { return toText(o); }).filter(Boolean) : []
+    Array.isArray(raw.options)
+      ? raw.options
+          .map(function (o) {
+            return toText(o);
+          })
+          .filter(Boolean)
+      : [],
   );
   var answer = answerToStorage(raw.answer);
   if (!stem || !answer) return null;
@@ -150,7 +158,12 @@ function normalizeQuestion(raw, id) {
     } else if (options.length < 2) {
       return null;
     } else {
-      type = answer.length > 1 ? 'multiple' : (options.indexOf('是') >= 0 && options.indexOf('否') >= 0 && options.length === 2 ? 'judge' : 'single');
+      type =
+        answer.length > 1
+          ? 'multiple'
+          : options.indexOf('是') >= 0 && options.indexOf('否') >= 0 && options.length === 2
+            ? 'judge'
+            : 'single';
     }
   }
   if (type === 'judge' && options.length < 2) {
@@ -173,12 +186,12 @@ function normalizeQuestion(raw, id) {
 
 function isValidQuestion(question) {
   return Boolean(
-    question
-    && question.stem
-    && question.stem.trim().length > 0
-    && Array.isArray(question.options)
-    && question.options.length > 0
-    && normalizeChoiceAnswer(question.answer).length > 0
+    question &&
+    question.stem &&
+    question.stem.trim().length > 0 &&
+    Array.isArray(question.options) &&
+    question.options.length > 0 &&
+    normalizeChoiceAnswer(question.answer).length > 0,
   );
 }
 
@@ -214,10 +227,12 @@ function createEmptyStudyStats() {
 function normalizeStudyStats(input) {
   var fallback = createEmptyStudyStats();
   input = input || {};
-  var totalAnswered = input.totalAnswered != null ? input.totalAnswered : (input.todayCount || fallback.totalAnswered);
-  var totalCorrect = input.totalCorrect != null
-    ? input.totalCorrect
-    : Math.round(totalAnswered * ((input.correctRate || 0) / 100));
+  var totalAnswered =
+    input.totalAnswered != null ? input.totalAnswered : input.todayCount || fallback.totalAnswered;
+  var totalCorrect =
+    input.totalCorrect != null
+      ? input.totalCorrect
+      : Math.round(totalAnswered * ((input.correctRate || 0) / 100));
   var dailyCounts = Array.isArray(input.dailyCounts)
     ? input.dailyCounts.slice(-7)
     : fallback.dailyCounts.slice();

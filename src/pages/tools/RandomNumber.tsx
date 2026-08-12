@@ -129,9 +129,7 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
       <div {...toolPageEnter}>
         <div className="mb-6">
           <h1 className="text-3xl font-black text-on-surface flex items-center gap-3">
-            <span
-              className="inline-flex"
-            >
+            <span className="inline-flex">
               <Dice6 className="w-8 h-8 text-primary" />
             </span>
             {t('随机数生成', 'Random Number')}
@@ -166,26 +164,26 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
           className={`bg-surface-container rounded-2xl p-5 mb-4 transition-shadow ${minMaxInvalid ? 'ring-2 ring-error/50' : ''}`}
         >
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div
-            >
+            <div>
               <label className="text-xs font-semibold text-secondary mb-1 block">
                 {t('最小值', 'Min')}
               </label>
               <input
                 type="number"
+                aria-label={t('最小值', 'Minimum value')}
                 inputMode="numeric"
                 value={min}
                 onChange={(e) => setMin(e.target.value)}
                 className={`w-full px-4 py-3 bg-surface-container-lowest rounded-xl outline-none focus:ring-2 text-on-surface text-center font-bold text-lg ${minMaxInvalid ? 'focus:ring-error' : 'focus:ring-primary'}`}
               />
             </div>
-            <div
-            >
+            <div>
               <label className="text-xs font-semibold text-secondary mb-1 block">
                 {t('最大值', 'Max')}
               </label>
               <input
                 type="number"
+                aria-label={t('最大值', 'Maximum value')}
                 inputMode="numeric"
                 value={max}
                 onChange={(e) => setMax(e.target.value)}
@@ -199,6 +197,7 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
             </label>
             <input
               type="number"
+              aria-label={t('生成个数', 'Number count')}
               inputMode="numeric"
               value={count}
               onChange={(e) => setCount(e.target.value)}
@@ -208,12 +207,10 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
             />
           </div>
           {minMaxInvalid && (
-              <p
-                className="text-xs text-error mt-2 overflow-hidden"
-              >
-                {t('最小值不能大于最大值', 'Min cannot be greater than max')}
-              </p>
-            )}
+            <p className="text-xs text-error mt-2 overflow-hidden">
+              {t('最小值不能大于最大值', 'Min cannot be greater than max')}
+            </p>
+          )}
         </div>
 
         {/* Generate Button */}
@@ -228,93 +225,91 @@ export default function RandomNumber({ onBack }: { onBack: () => void }) {
 
         {/* Results */}
         {results.length > 0 ? (
-            <div
-              key="results"
-              className="mt-4 bg-gradient-to-br from-primary-container/30 to-primary/5 rounded-2xl p-5"
-            >
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-sm font-semibold text-secondary">{t('结果', 'Results')}</span>
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[48px]"
+          <div
+            key="results"
+            className="mt-4 bg-gradient-to-br from-primary-container/30 to-primary/5 rounded-2xl p-5"
+          >
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-semibold text-secondary">{t('结果', 'Results')}</span>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold min-h-[48px]"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3 h-3" /> {t('已复制', 'Copied')}
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3" /> {t('复制', 'Copy')}
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {results.map((num, i) => (
+                <span
+                  key={`${generation}-${i}`}
+                  className="inline-block px-4 py-2 bg-white dark:bg-surface-container-high rounded-xl font-bold text-lg text-primary shadow-sm"
                 >
-                  {copied ? (
-                    <>
-                      <Check className="w-3 h-3" /> {t('已复制', 'Copied')}
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" /> {t('复制', 'Copy')}
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {results.map((num, i) => (
-                    <span
-                      key={`${generation}-${i}`}
-                      className="inline-block px-4 py-2 bg-white dark:bg-surface-container-high rounded-xl font-bold text-lg text-primary shadow-sm"
-                    >
-                      {num}
-                    </span>
-                  ))}
-              </div>
+                  {num}
+                </span>
+              ))}
             </div>
-          ) : (
-            <div
-              key="empty-results"
-              className="mt-4 bg-surface-container rounded-2xl p-8 text-center"
-            >
-              <Dice6 className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
-              <p className="text-sm text-secondary/50">
-                {t('点击生成随机数', 'Click to generate random numbers')}
-              </p>
-            </div>
-          )}
+          </div>
+        ) : (
+          <div
+            key="empty-results"
+            className="mt-4 bg-surface-container rounded-2xl p-8 text-center"
+          >
+            <Dice6 className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
+            <p className="text-sm text-secondary/50">
+              {t('点击生成随机数', 'Click to generate random numbers')}
+            </p>
+          </div>
+        )}
 
         {/* Confetti overlay */}
         {confetti.length > 0 && (
-            <div className="fixed inset-0 pointer-events-none z-50">
-              {confetti.map((p) => (
-                <div
-                  key={p.id}
-                  className="absolute w-2 h-2 rounded-full"
-                  style={{ left: `${p.x}%`, top: `${p.y}%`, backgroundColor: p.color }}
-                />
-              ))}
-            </div>
-          )}
+          <div className="fixed inset-0 pointer-events-none z-50">
+            {confetti.map((p) => (
+              <div
+                key={p.id}
+                className="absolute w-2 h-2 rounded-full"
+                style={{ left: `${p.x}%`, top: `${p.y}%`, backgroundColor: p.color }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* History */}
         {history.length > 0 && (
-            <div
-              className="mt-4"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs font-semibold text-secondary flex items-center gap-1">
-                  <History className="w-3 h-3" />
-                  {t('历史记录', 'History')}
-                </h3>
-                <button
-                  onClick={() => setHistory([])}
-                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-secondary hover:text-error hover:bg-error/10 transition-colors min-h-[48px]"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  {t('清除', 'Clear')}
-                </button>
-              </div>
-              <div className="space-y-1.5 max-h-40 overflow-auto">
-                {history.map((h, i) => (
-                    <div
-                      key={i}
-                      className="text-xs text-secondary bg-surface-container rounded-lg px-3 py-1.5"
-                    >
-                      {h.join(', ')}
-                    </div>
-                  ))}
-              </div>
+          <div className="mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-xs font-semibold text-secondary flex items-center gap-1">
+                <History className="w-3 h-3" />
+                {t('历史记录', 'History')}
+              </h3>
+              <button
+                onClick={() => setHistory([])}
+                className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-secondary hover:text-error hover:bg-error/10 transition-colors min-h-[48px]"
+              >
+                <Trash2 className="w-3 h-3" />
+                {t('清除', 'Clear')}
+              </button>
             </div>
-          )}
+            <div className="space-y-1.5 max-h-40 overflow-auto">
+              {history.map((h, i) => (
+                <div
+                  key={i}
+                  className="text-xs text-secondary bg-surface-container rounded-lg px-3 py-1.5"
+                >
+                  {h.join(', ')}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('设置范围和数量，点击生成随机数', 'Set range and count, click to generate')}

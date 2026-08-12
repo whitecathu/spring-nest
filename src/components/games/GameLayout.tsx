@@ -36,7 +36,11 @@ function useInteractive<T extends HTMLElement>(hoverScale = 1.05, tapScale = 0.9
 
       function onEnter() {
         tweenRef.current?.kill();
-        tweenRef.current = gsap.to(node!, { scale: hoverScale, duration: 0.25, ease: 'power2.out' });
+        tweenRef.current = gsap.to(node!, {
+          scale: hoverScale,
+          duration: 0.25,
+          ease: 'power2.out',
+        });
       }
       function onLeave() {
         tweenRef.current?.kill();
@@ -48,7 +52,11 @@ function useInteractive<T extends HTMLElement>(hoverScale = 1.05, tapScale = 0.9
       }
       function onUp() {
         tweenRef.current?.kill();
-        tweenRef.current = gsap.to(node!, { scale: hoverScale, duration: 0.2, ease: 'back.out(1.7)' });
+        tweenRef.current = gsap.to(node!, {
+          scale: hoverScale,
+          duration: 0.2,
+          ease: 'back.out(1.7)',
+        });
       }
 
       node.addEventListener('mouseenter', onEnter);
@@ -116,13 +124,21 @@ export default function GameLayout({
 
   useEffect(() => {
     if (wrapperRef.current) {
-      gsap.fromTo(wrapperRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
+      gsap.fromTo(
+        wrapperRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' },
+      );
     }
   }, []);
 
   useEffect(() => {
     if (scoreValueRef.current) {
-      gsap.fromTo(scoreValueRef.current, { scale: 1.4 }, { scale: 1, duration: 0.3, ease: 'back.out(2)' });
+      gsap.fromTo(
+        scoreValueRef.current,
+        { scale: 1.4 },
+        { scale: 1, duration: 0.3, ease: 'back.out(2)' },
+      );
     }
   }, [score]);
 
@@ -131,7 +147,7 @@ export default function GameLayout({
       <button
         onClick={onBack}
         className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors font-semibold text-sm min-h-[48px] px-2 -ml-2"
-    >
+      >
         <ArrowLeft className="w-5 h-5" />
         {backLabel ?? t('返回游戏列表', 'Back to Games')}
       </button>
@@ -144,13 +160,19 @@ export default function GameLayout({
             <p className="text-sm text-secondary">{subtitle}</p>
           </div>
           <div className="flex gap-2">
-            <div ref={scoreHoverRef} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            <div
+              ref={scoreHoverRef}
+              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
+            >
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
               <div ref={scoreValueRef} className="text-xl font-bold text-primary tabular-nums">
                 {score}
               </div>
             </div>
-            <div ref={bestHoverRef} className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
+            <div
+              ref={bestHoverRef}
+              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
+            >
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
                 <Trophy className="w-3 h-3" />
                 {t('最佳', 'Best')}
@@ -170,7 +192,7 @@ export default function GameLayout({
               ref={restartRef}
               onClick={onRestart}
               className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all flex items-center gap-2"
-          >
+            >
               <RotateCcw className="w-5 h-5" />
               {restartLabel ?? t('重新开始', 'Restart')}
             </button>

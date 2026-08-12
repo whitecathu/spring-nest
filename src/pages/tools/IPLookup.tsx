@@ -118,9 +118,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-2">
           {t('IP 查询', 'IP Address Lookup')}
         </h2>
@@ -152,9 +150,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
 
         {/* Error */}
         {error && (
-          <div
-            className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium flex items-center gap-2"
-          >
+          <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium flex items-center gap-2">
             <AlertCircle className="w-5 h-5 shrink-0" />
             {error}
           </div>
@@ -177,9 +173,7 @@ export default function IPLookup({ onBack }: { onBack: () => void }) {
 
         {/* IP Info */}
         {ipInfo && (
-          <div
-            key={ipInfo.ip}
-          >
+          <div key={ipInfo.ip}>
             {/* Big IP display */}
             <div className="text-center mb-6 p-6 rounded-2xl bg-gradient-to-br from-primary-container/30 to-tertiary-container/20">
               <p className="text-xs text-secondary mb-2">

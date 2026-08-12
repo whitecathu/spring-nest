@@ -44,7 +44,9 @@
   font-size: 13px;
   font-weight: 600;
   border: 1px solid rgba(193, 200, 193, 0.25);
-  transition: transform 0.1s ease, background-color 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    background-color 0.15s ease;
 }
 
 .filter-chip:active {
@@ -58,6 +60,13 @@
   box-shadow: 0 2px 8px rgba(39, 79, 58, 0.2);
 }
 
-.row { display: flex; align-items: center; }
-.gap-md { gap: 12px; }
-.flex-1 { flex: 1; }
+.row {
+  display: flex;
+  align-items: center;
+}
+.gap-md {
+  gap: 12px;
+}
+.flex-1 {
+  flex: 1;
+}

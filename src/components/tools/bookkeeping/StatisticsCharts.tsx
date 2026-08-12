@@ -44,8 +44,7 @@ export default function StatisticsCharts({
 }: StatisticsChartsProps) {
   // Category pie chart data
   const categoryData = useMemo(() => {
-    const types: BookkeepingEntryType[] =
-      typeFilter === 'all' ? ['expense'] : [typeFilter];
+    const types: BookkeepingEntryType[] = typeFilter === 'all' ? ['expense'] : [typeFilter];
     const monthEntries = entries.filter(
       (e) => types.includes(e.type) && e.date.startsWith(selectedMonth),
     );
@@ -228,9 +227,7 @@ export default function StatisticsCharts({
 
       {/* Yearly Trend */}
       <div>
-        <h4 className="text-sm font-bold text-on-surface mb-3">
-          {t('年度趋势', 'Yearly Trend')}
-        </h4>
+        <h4 className="text-sm font-bold text-on-surface mb-3">{t('年度趋势', 'Yearly Trend')}</h4>
         <div className="h-52">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData}>

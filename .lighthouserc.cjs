@@ -3,18 +3,17 @@ module.exports = {
     collect: {
       staticDistDir: './dist',
       url: ['/', '/tools/', '/games/', '/search/'],
-      numberOfRuns: 1,
+      numberOfRuns: 3,
       settings: {
-        chromeFlags: '--no-sandbox --disable-dev-shm-usage',
+        chromeFlags: '--no-sandbox --disable-dev-shm-usage --force-prefers-reduced-motion',
       },
     },
     assert: {
       assertions: {
-        'categories:performance': ['warn', { minScore: 0.3 }],
-        'categories:accessibility': ['error', { minScore: 0.85 }],
-        'categories:best-practices': ['error', { minScore: 0.85 }],
-        'categories:seo': ['error', { minScore: 0.85 }],
-        'categories:pwa': ['warn', { minScore: 0.5 }],
+        'categories:performance': ['error', { minScore: 0.65 }],
+        'categories:accessibility': ['error', { minScore: 0.9 }],
+        'categories:best-practices': ['error', { minScore: 0.9 }],
+        'categories:seo': ['error', { minScore: 0.9 }],
       },
     },
     upload: {

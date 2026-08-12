@@ -63,12 +63,6 @@ export const supportedFormats: SupportedFormat[] = [
     description: '浏览器端暂不解析 Excel，请先另存为 CSV 或接入后端解析服务。',
   },
   {
-    extension: '.xls',
-    label: 'XLS',
-    level: 'backend-required',
-    description: '浏览器端暂不解析旧版 XLS，请先另存为 CSV 或接入后端解析服务。',
-  },
-  {
     extension: '.pdf',
     label: 'PDF',
     level: 'backend-required',
@@ -91,5 +85,5 @@ export const fullLocalExtensions = new Set([
   'zip',
   'rar',
 ]);
-export const limitedLocalExtensions = new Set(['xlsx', 'xls', 'pdf']);
+export const limitedLocalExtensions = new Set(['xlsx', 'pdf']);
 export const backendRequiredExtensions = new Set(['7z', ...limitedLocalExtensions]);

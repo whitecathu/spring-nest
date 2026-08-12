@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router';
 import gsap from 'gsap';
 import Navigation from './components/Navigation';
 import AnnouncementBanner from './components/AnnouncementBanner';
@@ -12,14 +12,18 @@ import { ConsentProvider } from './contexts/ConsentContext';
 import CookieBanner from './components/CookieBanner';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { useReducedMotion, pageTransitionVariants, softEase } from './lib/animations';
+import { useReducedMotion } from './lib/animations';
 import { trackPageView } from './lib/analytics';
 import { useSwipeNavigation } from './lib/useSwipeNavigation';
 import { getBackgroundProfileForLocation } from './lib/backgroundProfiles';
 import { reportWebVitals } from './lib/webVitals';
 import { Leaf } from 'lucide-react';
 import SkipLink from './components/accessibility/SkipLink';
-import { ForestRuntimeProvider, useForestRuntime, useForestRuntimeSelector } from './lib/forest/ForestRuntime';
+import {
+  ForestRuntimeProvider,
+  useForestRuntime,
+  useForestRuntimeSelector,
+} from './lib/forest/ForestRuntime';
 import StartupSplash from './components/StartupSplash';
 import ForestCursor from './components/animations/ForestCursor';
 import ForestAmbientEggs from './components/animations/ForestAmbientEggs';
@@ -48,11 +52,15 @@ const LoadingFallback = () => {
   const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current || reducedMotion) return;
+    const container = containerRef.current;
+    const logo = logoRef.current;
+    const label = labelRef.current;
+    const progress = progressRef.current;
+    if (!container || reducedMotion) return;
 
     // Logo floating animation
-    if (logoRef.current) {
-      gsap.to(logoRef.current, {
+    if (logo) {
+      gsap.to(logo, {
         y: -8,
         scale: 1.05,
         duration: 2,
@@ -63,23 +71,25 @@ const LoadingFallback = () => {
     }
 
     // Label entrance
-    if (labelRef.current) {
-      gsap.fromTo(labelRef.current,
+    if (label) {
+      gsap.fromTo(
+        label,
         { opacity: 0, y: 8 },
-        { opacity: 1, y: 0, duration: 0.6, delay: 0.3, ease: 'power2.out' }
+        { opacity: 1, y: 0, duration: 0.6, delay: 0.3, ease: 'power2.out' },
       );
     }
 
     // Progress bar animation
-    if (progressRef.current) {
-      gsap.fromTo(progressRef.current,
+    if (progress) {
+      gsap.fromTo(
+        progress,
         { x: '-100%' },
-        { x: '100%', duration: 2.5, repeat: -1, ease: 'power1.inOut' }
+        { x: '100%', duration: 2.5, repeat: -1, ease: 'power1.inOut' },
       );
     }
 
     return () => {
-      gsap.killTweensOf([containerRef.current, logoRef.current, labelRef.current, progressRef.current]);
+      gsap.killTweensOf([container, logo, label, progress]);
     };
   }, [reducedMotion]);
 
@@ -95,52 +105,18 @@ const LoadingFallback = () => {
             <Leaf className="w-12 h-12 text-primary fill-primary/30" />
           </div>
         </div>
-        <span
-          ref={labelRef}
-          className="font-nunito font-bold text-lg text-primary"
-        >
+        <span ref={labelRef} className="font-nunito font-bold text-lg text-primary">
           Spring Nest
         </span>
         {!reducedMotion && (
           <div className="loading-progress">
-            <div
-              ref={progressRef}
-              className="h-full bg-primary/60 rounded-full"
-            />
+            <div ref={progressRef} className="h-full bg-primary/60 rounded-full" />
           </div>
         )}
       </div>
     </div>
   );
 };
-
-function applyFormControlAccessibleNames() {
-  const controls = document.querySelectorAll<
-    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-  >('input:not([type="hidden"]), textarea, select');
-
-  controls.forEach((control) => {
-    if (
-      control.getAttribute('aria-label') ||
-      control.getAttribute('aria-labelledby') ||
-      control.getAttribute('title')
-    )
-      return;
-    if (control.closest('label')) return;
-
-    const id = control.getAttribute('id');
-    if (id && document.querySelector(`label[for="${CSS.escape(id)}"]`)) return;
-
-    const placeholder = control.getAttribute('placeholder')?.replace(/\s+/g, ' ').trim();
-    const fallback =
-      placeholder ||
-      control.getAttribute('name') ||
-      (control.tagName.toLowerCase() === 'select' ? '选择选项' : control.getAttribute('type')) ||
-      '表单控件';
-
-    control.setAttribute('aria-label', fallback);
-  });
-}
 
 function PageWrapper({
   children,
@@ -152,24 +128,23 @@ function PageWrapper({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ref.current || reducedMotion) return;
+    const element = ref.current;
+    if (!element || reducedMotion) return;
 
-    gsap.fromTo(ref.current,
+    gsap.fromTo(
+      element,
       { opacity: 0, y: 20, scale: 0.98 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'power3.out' }
+      { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'power3.out' },
     );
 
     return () => {
-      if (ref.current) gsap.killTweensOf(ref.current);
+      gsap.killTweensOf(element);
     };
   }, [reducedMotion]);
 
   if (reducedMotion) return children;
   return (
-    <div
-      ref={ref}
-      style={{ transformOrigin: '50% 18%', willChange: 'transform, opacity' }}
-    >
+    <div ref={ref} style={{ transformOrigin: '50% 18%', willChange: 'transform, opacity' }}>
       {children}
     </div>
   );
@@ -230,21 +205,11 @@ function AppShell() {
   }, [forceSplash, location.hash, location.pathname, location.search]);
 
   useEffect(() => {
-    applyFormControlAccessibleNames();
-    const observer = new MutationObserver(applyFormControlAccessibleNames);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     reportWebVitals();
   }, []);
 
   const damperEnabled =
-    !reducedMotion &&
-    !forest.flags.isGameRoute &&
-    forest.tier !== 'low' &&
-    splashDone;
+    !reducedMotion && !forest.flags.isGameRoute && forest.tier !== 'low' && splashDone;
 
   const cursorEnabled =
     forest.tier !== 'low' &&
@@ -253,198 +218,202 @@ function AppShell() {
     !forest.flags.reducedMotion &&
     splashDone;
 
-  const eggsEnabled = forest.tier === 'high' && !forest.flags.isGameRoute && !forest.flags.reducedMotion && splashDone;
+  const eggsEnabled =
+    forest.tier === 'high' &&
+    !forest.flags.isGameRoute &&
+    !forest.flags.reducedMotion &&
+    splashDone;
 
   return (
-          <div
-            className="relative isolate flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden bg-background font-sans text-on-surface selection:bg-primary-container selection:text-on-primary-container transition-colors duration-300"
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-          >
-              <SkipLink />
-              <DynamicSpringBackground profile={backgroundProfile} />
-              {!splashDone && (
-                <StartupSplash
-                  forceShow={forceSplash}
-                  onComplete={() => {
-                    setSplashDone(true);
-                    setForceSplash(false);
-                  }}
-                />
-              )}
-              <div
-                className="contents"
-                inert={!splashDone ? true : undefined}
-                aria-hidden={!splashDone ? true : undefined}
-              >
-              <ForestCursor enabled={cursorEnabled} />
-              <ForestAmbientEggs
-                enabled={eggsEnabled}
-                idleMs={idleMs}
-                onStrongWind={() => forest.pulseStrongWind()}
-                onGust={(x, y) => forest.pulseGust(x, y)}
-                onResetScroll={() => forest.resetScrollView()}
-                onBrightness={(n) => forest.setBrightnessBoost(n)}
-              />
-              <Navigation />
-              <AnnouncementBanner />
-              <ForestScrollDamper
-                scrollerRef={mainRef}
-                enabled={damperEnabled}
-                damping={
-                  scrollSection === 'hero'
-                    ? 1.4
-                    : scrollSection === 'cards'
-                      ? 1.1
-                      : scrollSection === 'footer'
-                        ? 1.0
-                        : 1.2
+    <div
+      className="relative isolate flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden bg-background font-sans text-on-surface selection:bg-primary-container selection:text-on-primary-container transition-colors duration-300"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <SkipLink />
+      <DynamicSpringBackground profile={backgroundProfile} />
+      {!splashDone && (
+        <StartupSplash
+          forceShow={forceSplash}
+          onComplete={() => {
+            setSplashDone(true);
+            setForceSplash(false);
+          }}
+        />
+      )}
+      <div
+        className="contents"
+        inert={!splashDone ? true : undefined}
+        aria-hidden={!splashDone ? true : undefined}
+      >
+        <ForestCursor enabled={cursorEnabled} />
+        <ForestAmbientEggs
+          enabled={eggsEnabled}
+          idleMs={idleMs}
+          onStrongWind={() => forest.pulseStrongWind()}
+          onGust={(x, y) => forest.pulseGust(x, y)}
+          onResetScroll={() => forest.resetScrollView()}
+          onBrightness={(n) => forest.setBrightnessBoost(n)}
+        />
+        <Navigation />
+        <AnnouncementBanner />
+        <ForestScrollDamper
+          scrollerRef={mainRef}
+          enabled={damperEnabled}
+          damping={
+            scrollSection === 'hero'
+              ? 1.4
+              : scrollSection === 'cards'
+                ? 1.1
+                : scrollSection === 'footer'
+                  ? 1.0
+                  : 1.2
+          }
+        />
+        <main
+          id="main-content"
+          ref={mainRef}
+          data-forest-ui
+          className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain [perspective:1400px]"
+        >
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes location={location} key={location.pathname}>
+              <Route
+                path="/"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Home />
+                  </PageWrapper>
                 }
               />
-              <main
-                id="main-content"
-                ref={mainRef}
-                data-forest-ui
-                className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain [perspective:1400px]"
-              >
-                <Suspense fallback={<LoadingFallback />}>
-                  <Routes location={location} key={location.pathname}>
-                      <Route
-                        path="/"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Home />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/games"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Games />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/games/:slug"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Games />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/tools"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Tools />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/tools/:slug"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Tools />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/about"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <About />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/profile"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Profile />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/favorites"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Favorites />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/leaderboard"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Leaderboard />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/admin"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Admin />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/feedback"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Feedback />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/privacy"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Privacy />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/terms"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Terms />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/offline"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <Offline />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="/search"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <SearchResults />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="*"
-                        element={
-                          <PageWrapper reducedMotion={reducedMotion}>
-                            <NotFound />
-                          </PageWrapper>
-                        }
-                      />
-                    </Routes>
-                </Suspense>
-                <Footer />
-              </main>
-              <PwaUpdatePrompt />
-              {splashDone && <CookieBanner />}
-              </div>
-            </div>
+              <Route
+                path="/games"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Games />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/games/:slug"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Games />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/tools"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Tools />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/tools/:slug"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Tools />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/about"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <About />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Profile />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/favorites"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Favorites />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/leaderboard"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Leaderboard />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Admin />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/feedback"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Feedback />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/privacy"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Privacy />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/terms"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Terms />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/offline"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <Offline />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/search"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <SearchResults />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="*"
+                element={
+                  <PageWrapper reducedMotion={reducedMotion}>
+                    <NotFound />
+                  </PageWrapper>
+                }
+              />
+            </Routes>
+          </Suspense>
+          <Footer />
+        </main>
+        <PwaUpdatePrompt />
+        {splashDone && <CookieBanner />}
+      </div>
+    </div>
   );
 }
 

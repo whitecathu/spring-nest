@@ -410,20 +410,13 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
             </p>
           </div>
           <div className="flex gap-2">
-            <div
-              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium">{t('分数', 'Score')}</div>
-              <div
-                key={score}
-                className="text-xl font-bold tabular-nums"
-              >
+              <div key={score} className="text-xl font-bold tabular-nums">
                 {score}
               </div>
             </div>
-            <div
-              className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-            >
+            <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
               <div className="text-xs text-secondary font-medium flex items-center gap-1">
                 <Trophy className="w-3 h-3" />
                 {t('最佳', 'Best')}
@@ -469,32 +462,28 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
           {/* Merge score popup layer */}
           <div className="absolute inset-3 pointer-events-none overflow-hidden">
             {mergePopups.map((mp) => {
-                const cellSize = 100 / 4;
-                const x = mp.col * cellSize + cellSize / 2;
-                const y = mp.row * cellSize + cellSize / 2;
-                return (
-                  <div
-                    key={mp.id}
-                    className="absolute font-black text-lg drop-shadow-md"
-                    style={{
-                      color: '#f59563',
-                      textShadow: '0 1px 3px rgba(0,0,0,0.3), 0 0 8px rgba(245,149,99,0.4)',
-                    }}
-                  >
-                    +{mp.value}
-                  </div>
-                );
-              })}
+              const cellSize = 100 / 4;
+              const x = mp.col * cellSize + cellSize / 2;
+              const y = mp.row * cellSize + cellSize / 2;
+              return (
+                <div
+                  key={mp.id}
+                  className="absolute font-black text-lg drop-shadow-md"
+                  style={{
+                    color: '#f59563',
+                    textShadow: '0 1px 3px rgba(0,0,0,0.3), 0 0 8px rgba(245,149,99,0.4)',
+                  }}
+                >
+                  +{mp.value}
+                </div>
+              );
+            })}
           </div>
 
           {/* Confetti layer */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
             {confetti.map((p) => (
-              <div
-                key={p.id}
-                className="absolute text-center"
-                style={{ fontSize: `${p.size}px` }}
-              >
+              <div key={p.id} className="absolute text-center" style={{ fontSize: `${p.size}px` }}>
                 {p.emoji}
               </div>
             ))}
@@ -522,68 +511,52 @@ export default function Game2048({ onBack }: { onBack: () => void }) {
 
         {/* Win celebration */}
         {showWin && (
-            <div
-              className="mt-6 p-6 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200 dark:border-amber-700/30 rounded-2xl text-center"
-            >
-              <p
-                className="text-4xl mb-2"
+          <div className="mt-6 p-6 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200 dark:border-amber-700/30 rounded-2xl text-center">
+            <p className="text-4xl mb-2">🏆</p>
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+              {t('恭喜通关！', 'You Win!')}
+            </p>
+            <p className="text-lg font-bold text-amber-500 mb-4">
+              {t('得分', 'Score')}: {score}
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={continueAfterWin}
+                className="px-6 py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition-colors"
               >
-                🏆
-              </p>
-              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
-                {t('恭喜通关！', 'You Win!')}
-              </p>
-              <p className="text-lg font-bold text-amber-500 mb-4">
-                {t('得分', 'Score')}: {score}
-              </p>
-              <div className="flex justify-center gap-3">
-                <button
-                  onClick={continueAfterWin}
-                  className="px-6 py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition-colors"
-                >
-                  {t('继续挑战', 'Keep Going')}
-                </button>
-                <button
-                  onClick={reset}
-                  className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all"
-                >
-                  {t('再来一局', 'Play Again')}
-                </button>
-              </div>
-            </div>
-          )}
-
-        {/* Game over panel */}
-        {gameOver && (
-            <div
-              className="mt-6 p-6 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-700/30 rounded-2xl text-center"
-            >
-              <p
-                className="text-3xl mb-2"
-              >
-                😵
-              </p>
-              <p className="text-2xl font-bold text-red-500 dark:text-red-400 mb-1">
-                {t('游戏结束', 'Game Over')}
-              </p>
-              <p className="text-xl font-bold text-red-400 mb-1">
-                {t('最终得分', 'Final Score')}: {score}
-              </p>
-              {score > 0 && score === bestScore && (
-                <p
-                  className="text-sm text-orange-500 mb-4"
-                >
-                  🏆 {t('新纪录！', 'New Record!')}
-                </p>
-              )}
+                {t('继续挑战', 'Keep Going')}
+              </button>
               <button
                 onClick={reset}
-                className="px-6 py-3 bg-red-500 text-white rounded-full font-semibold hover:bg-red-600 transition-colors"
+                className="px-6 py-3 bg-surface-container-high text-on-surface rounded-full font-semibold hover:bg-surface-variant transition-all"
               >
                 {t('再来一局', 'Play Again')}
               </button>
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Game over panel */}
+        {gameOver && (
+          <div className="mt-6 p-6 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-700/30 rounded-2xl text-center">
+            <p className="text-3xl mb-2">😵</p>
+            <p className="text-2xl font-bold text-red-500 dark:text-red-400 mb-1">
+              {t('游戏结束', 'Game Over')}
+            </p>
+            <p className="text-xl font-bold text-red-400 mb-1">
+              {t('最终得分', 'Final Score')}: {score}
+            </p>
+            {score > 0 && score === bestScore && (
+              <p className="text-sm text-orange-500 mb-4">🏆 {t('新纪录！', 'New Record!')}</p>
+            )}
+            <button
+              onClick={reset}
+              className="px-6 py-3 bg-red-500 text-white rounded-full font-semibold hover:bg-red-600 transition-colors"
+            >
+              {t('再来一局', 'Play Again')}
+            </button>
+          </div>
+        )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t('方向键或滑动控制', 'Arrow keys or swipe to control')}

@@ -321,11 +321,7 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
 
         <div>
           <div className="text-center mb-8">
-            <div
-              className="text-5xl mb-4 inline-block"
-            >
-              🃏
-            </div>
+            <div className="text-5xl mb-4 inline-block">🃏</div>
             <h1 className="text-3xl font-black text-on-surface mb-2">
               {t('记忆翻牌', 'Memory Match')}
             </h1>
@@ -416,18 +412,14 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
 
         {/* Stats */}
         <div className="flex justify-center gap-4 mb-6">
-          <div
-            className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-          >
+          <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
             <div className="text-xs text-secondary flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {t('用时', 'Time')}
             </div>
             <div className="text-xl font-bold text-primary tabular-nums">{formatTime(elapsed)}</div>
           </div>
-          <div
-            className="bg-surface-container-high rounded-xl px-4 py-2 text-center"
-          >
+          <div className="bg-surface-container-high rounded-xl px-4 py-2 text-center">
             <div className="text-xs text-secondary flex items-center gap-1">
               <Footprints className="w-3 h-3" />
               {t('步数', 'Moves')}
@@ -487,28 +479,20 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
                       transform: 'rotateY(180deg)',
                     }}
                   >
-                    {isFlipped && (
-                        <span
-                        >
-                          {card.emoji}
-                        </span>
-                      )}
+                    {isFlipped && <span>{card.emoji}</span>}
                   </div>
                 </button>
 
                 {/* Sparkle burst on match */}
                 {showSparklesOnThis && matchSparkles && (
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
-                      {matchSparkles.sparkles.map((sparkle) => (
-                        <span
-                          key={sparkle.id}
-                          className="absolute text-lg"
-                        >
-                          {sparkle.emoji}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
+                    {matchSparkles.sparkles.map((sparkle) => (
+                      <span key={sparkle.id} className="absolute text-lg">
+                        {sparkle.emoji}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -533,74 +517,60 @@ export default function MemoryGame({ onBack }: { onBack: () => void }) {
         </div>
 
         {gameComplete && (
-            <div
-              className="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl text-center relative overflow-hidden"
-            >
-              {/* Confetti particles */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                {confetti.map((particle) => (
-                  <div
-                    key={particle.id}
-                    className="absolute w-2.5 h-2.5 rounded-sm"
-                    style={{
-                      backgroundColor: particle.color,
-                      left: '50%',
-                      top: '50%',
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div
-                className="text-4xl mb-2 relative z-10"
-              >
-                🎉
-              </div>
-              <p
-                className="text-xl font-bold text-green-600 mb-2 relative z-10"
-              >
-                {t('恭喜完成！', 'Congratulations!')}
-              </p>
-              <div
-                className="relative z-10"
-              >
-                <p className="text-sm text-green-500 mb-1">
-                  {t('难度', 'Difficulty')}: {t(...config.label)}
-                </p>
-                <p className="text-sm text-green-500 mb-1">
-                  {t('用时', 'Time')}: {formatTime(elapsed)}
-                </p>
-                <p className="text-sm text-green-500 mb-4">
-                  {t('步数', 'Moves')}: {moves}
-                </p>
-                {bestMoves === moves && (
-                  <div
-                    className="flex items-center justify-center gap-1 text-amber-500 mb-4"
-                  >
-                    <Star className="w-4 h-4 fill-amber-400" />
-                    <span className="text-sm font-bold">{t('新纪录！', 'New Record!')}</span>
-                    <Star className="w-4 h-4 fill-amber-400" />
-                  </div>
-                )}
-              </div>
-              <div
-                className="flex justify-center gap-3 relative z-10"
-              >
-                <button
-                  onClick={reset}
-                  className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors"
-                >
-                  {t('再来一局', 'Play Again')}
-                </button>
-                <button
-                  onClick={changeDifficulty}
-                  className="px-6 py-2 bg-white text-green-600 border border-green-300 rounded-full font-semibold hover:bg-green-50 transition-colors"
-                >
-                  {t('切换难度', 'Change Difficulty')}
-                </button>
-              </div>
+          <div className="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl text-center relative overflow-hidden">
+            {/* Confetti particles */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {confetti.map((particle) => (
+                <div
+                  key={particle.id}
+                  className="absolute w-2.5 h-2.5 rounded-sm"
+                  style={{
+                    backgroundColor: particle.color,
+                    left: '50%',
+                    top: '50%',
+                  }}
+                />
+              ))}
             </div>
-          )}
+
+            <div className="text-4xl mb-2 relative z-10">🎉</div>
+            <p className="text-xl font-bold text-green-600 mb-2 relative z-10">
+              {t('恭喜完成！', 'Congratulations!')}
+            </p>
+            <div className="relative z-10">
+              <p className="text-sm text-green-500 mb-1">
+                {t('难度', 'Difficulty')}: {t(...config.label)}
+              </p>
+              <p className="text-sm text-green-500 mb-1">
+                {t('用时', 'Time')}: {formatTime(elapsed)}
+              </p>
+              <p className="text-sm text-green-500 mb-4">
+                {t('步数', 'Moves')}: {moves}
+              </p>
+              {bestMoves === moves && (
+                <div className="flex items-center justify-center gap-1 text-amber-500 mb-4">
+                  <Star className="w-4 h-4 fill-amber-400" />
+                  <span className="text-sm font-bold">{t('新纪录！', 'New Record!')}</span>
+                  <Star className="w-4 h-4 fill-amber-400" />
+                </div>
+              )}
+            </div>
+            <div className="flex justify-center gap-3 relative z-10">
+              <button
+                onClick={reset}
+                className="px-6 py-2 bg-green-500 text-white rounded-full font-semibold hover:bg-green-600 transition-colors"
+              >
+                {t('再来一局', 'Play Again')}
+              </button>
+              <button
+                onClick={changeDifficulty}
+                className="px-6 py-2 bg-white text-green-600 border border-green-300 rounded-full font-semibold hover:bg-green-50 transition-colors"
+              >
+                {t('切换难度', 'Change Difficulty')}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

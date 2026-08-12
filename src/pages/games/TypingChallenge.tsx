@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import gsap from 'gsap';
 import { ArrowLeft, RotateCcw, Clock, Zap, Target } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -306,7 +305,11 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
 
         {/* Input Area */}
         <div className="mb-4">
+          <label htmlFor="typing-challenge-input" className="sr-only">
+            {t('打字挑战输入', 'Typing challenge input')}
+          </label>
           <input
+            id="typing-challenge-input"
             ref={inputRef}
             type="text"
             value={inputValue}
@@ -355,34 +358,30 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
 
         {/* Completion Stats */}
         {finished && (
-            <div
-              className="p-6 bg-blue-50 border border-blue-200 rounded-2xl mb-6"
-            >
-              <p className="text-xl font-bold text-blue-700 mb-3 text-center">
-                {t('完成！', 'Complete!')}
-              </p>
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div>
-                  <p className="text-xs text-blue-500">{t('用时', 'Time')}</p>
-                  <p className="text-lg font-bold text-blue-700">{formatTime(finalElapsed)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-blue-500">{t('准确率', 'Accuracy')}</p>
-                  <p className="text-lg font-bold text-blue-700">{accuracy}%</p>
-                </div>
-                <div>
-                  <p className="text-xs text-blue-500">
-                    {mode === 'zh' ? t('字/分', 'CPM') : 'WPM'}
-                  </p>
-                  <p className="text-lg font-bold text-blue-700">
-                    {mode === 'zh'
-                      ? Math.round((targetPhrase.length / (finalElapsed / 1000)) * 60)
-                      : Math.round(targetPhrase.length / 5 / (finalElapsed / 60000))}
-                  </p>
-                </div>
+          <div className="p-6 bg-blue-50 border border-blue-200 rounded-2xl mb-6">
+            <p className="text-xl font-bold text-blue-700 mb-3 text-center">
+              {t('完成！', 'Complete!')}
+            </p>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-xs text-blue-500">{t('用时', 'Time')}</p>
+                <p className="text-lg font-bold text-blue-700">{formatTime(finalElapsed)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-blue-500">{t('准确率', 'Accuracy')}</p>
+                <p className="text-lg font-bold text-blue-700">{accuracy}%</p>
+              </div>
+              <div>
+                <p className="text-xs text-blue-500">{mode === 'zh' ? t('字/分', 'CPM') : 'WPM'}</p>
+                <p className="text-lg font-bold text-blue-700">
+                  {mode === 'zh'
+                    ? Math.round((targetPhrase.length / (finalElapsed / 1000)) * 60)
+                    : Math.round(targetPhrase.length / 5 / (finalElapsed / 60000))}
+                </p>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
         {/* History */}
         {history.length > 0 && (
@@ -392,7 +391,7 @@ export default function TypingChallenge({ onBack }: { onBack: () => void }) {
               {t('最近记录', 'Recent Attempts')}
             </h3>
             <div className="space-y-2">
-              {history.map((attempt, i) => (
+              {history.map((attempt) => (
                 <div
                   key={attempt.timestamp}
                   className="flex items-center justify-between bg-surface-container-high rounded-xl px-4 py-2 text-sm"

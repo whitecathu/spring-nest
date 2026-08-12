@@ -74,6 +74,7 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
             </span>
             <input
               type="number"
+              aria-label={t('账单金额', 'Bill amount')}
               inputMode="decimal"
               value={billAmount}
               onChange={(e) => setBillAmount(e.target.value)}
@@ -109,6 +110,7 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
           </div>
           <input
             type="number"
+            aria-label={t('自定义小费比例', 'Custom tip percentage')}
             inputMode="numeric"
             value={customTip}
             onChange={(e) => setCustomTip(e.target.value)}
@@ -147,94 +149,84 @@ export default function TipCalculator({ onBack }: { onBack: () => void }) {
 
         {/* Results */}
         {bill > 0 ? (
+          <div
+            key="results"
+            onClick={showToast}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                showToast();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={t('复制小费计算结果', 'Copy tip calculation results')}
+            className="relative bg-gradient-to-br from-primary-container/50 to-primary/10 rounded-2xl p-6 space-y-3 cursor-pointer"
+          >
+            {/* Gradient shift overlay on value change */}
             <div
-              key="results"
-              onClick={showToast}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  showToast();
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label={t('复制小费计算结果', 'Copy tip calculation results')}
-              className="relative bg-gradient-to-br from-primary-container/50 to-primary/10 rounded-2xl p-6 space-y-3 cursor-pointer"
-            >
-              {/* Gradient shift overlay on value change */}
-              <div
-                key={`${calculations.tipAmount}-${calculations.total}-${calculations.perPerson}`}
-                className="absolute inset-0 bg-gradient-to-br from-primary/15 to-tertiary/10 rounded-2xl pointer-events-none"
-              />
-              {/* Tip Amount - staggered row 1 */}
-              <div
-                className="flex justify-between items-center"
+              key={`${calculations.tipAmount}-${calculations.total}-${calculations.perPerson}`}
+              className="absolute inset-0 bg-gradient-to-br from-primary/15 to-tertiary/10 rounded-2xl pointer-events-none"
+            />
+            {/* Tip Amount - staggered row 1 */}
+            <div className="flex justify-between items-center">
+              <span className="text-secondary font-medium">{t('小费金额', 'Tip Amount')}</span>
+              <span
+                key={formatCurrency(calculations.tipAmount)}
+                className="text-xl font-bold text-on-surface"
               >
-                <span className="text-secondary font-medium">{t('小费金额', 'Tip Amount')}</span>
-                <span
-                  key={formatCurrency(calculations.tipAmount)}
-                  className="text-xl font-bold text-on-surface"
-                >
-                  {formatCurrency(calculations.tipAmount)}
-                </span>
-              </div>
+                {formatCurrency(calculations.tipAmount)}
+              </span>
+            </div>
 
-              {/* Total - staggered row 2 */}
-              <div
-                className="flex justify-between items-center border-t border-on-surface/10 pt-3"
+            {/* Total - staggered row 2 */}
+            <div className="flex justify-between items-center border-t border-on-surface/10 pt-3">
+              <span className="text-secondary font-medium">{t('总计', 'Total')}</span>
+              <span
+                key={formatCurrency(calculations.total)}
+                className="text-2xl font-black text-primary"
               >
-                <span className="text-secondary font-medium">{t('总计', 'Total')}</span>
-                <span
-                  key={formatCurrency(calculations.total)}
-                  className="text-2xl font-black text-primary"
-                >
-                  {formatCurrency(calculations.total)}
-                </span>
-              </div>
+                {formatCurrency(calculations.total)}
+              </span>
+            </div>
 
-              {/* Per Person - staggered row 3, AnimatePresence for show/hide */}
-              {splitCount > 1 && (
-                  <div
-                    key="per-person"
+            {/* Per Person - staggered row 3, AnimatePresence for show/hide */}
+            {splitCount > 1 && (
+              <div key="per-person">
+                <div className="flex justify-between items-center border-t border-on-surface/10 pt-3">
+                  <span className="text-secondary font-medium">{t('每人', 'Per Person')}</span>
+                  <span
+                    key={formatCurrency(calculations.perPerson)}
+                    className="text-2xl font-black text-tertiary"
                   >
-                    <div className="flex justify-between items-center border-t border-on-surface/10 pt-3">
-                      <span className="text-secondary font-medium">{t('每人', 'Per Person')}</span>
-                      <span
-                        key={formatCurrency(calculations.perPerson)}
-                        className="text-2xl font-black text-tertiary"
-                      >
-                        {formatCurrency(calculations.perPerson)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-            </div>
-          ) : (
-            <div
-              key="empty"
-              className="bg-surface-container rounded-2xl p-8 text-center"
-            >
-              <div
-              >
-                <Calculator className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
+                    {formatCurrency(calculations.perPerson)}
+                  </span>
+                </div>
               </div>
-              <p className="text-sm text-secondary/50">
-                {t('输入账单金额查看结果', 'Enter bill amount to see results')}
-              </p>
+            )}
+          </div>
+        ) : (
+          <div key="empty" className="bg-surface-container rounded-2xl p-8 text-center">
+            <div>
+              <Calculator className="w-10 h-10 text-secondary/30 mx-auto mb-2" />
             </div>
-          )}
+            <p className="text-sm text-secondary/50">
+              {t('输入账单金额查看结果', 'Enter bill amount to see results')}
+            </p>
+          </div>
+        )}
 
         {/* Copied toast */}
         {toastVisible && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-on-surface text-surface px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-lg z-50"
-            >
-              <Check className="w-4 h-4" />
-              {t('已复制结果', 'Copied!')}
-            </div>
-          )}
+          <div
+            role="status"
+            aria-live="polite"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-on-surface text-surface px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-lg z-50"
+          >
+            <Check className="w-4 h-4" />
+            {t('已复制结果', 'Copied!')}
+          </div>
+        )}
 
         <div className="mt-4 text-center text-xs text-secondary/50">
           {t(

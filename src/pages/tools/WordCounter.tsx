@@ -81,9 +81,7 @@ export default function WordCounter({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('字数统计', 'Word Counter')}
         </h2>
@@ -91,6 +89,7 @@ export default function WordCounter({ onBack }: { onBack: () => void }) {
         {/* Textarea */}
         <div className="mb-4">
           <textarea
+            aria-label={t('待统计文本', 'Text to count')}
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={t('在此输入或粘贴文本...', 'Type or paste text here...')}

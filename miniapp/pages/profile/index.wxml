@@ -11,6 +11,7 @@
             open-type="chooseAvatar"
             bind:chooseavatar="onChooseAvatar"
             hover-class="avatar-btn-hover"
+            aria-label="选择本机头像"
           >
             <image
               wx:if="{{draftAvatarUrl || (user && user.avatarUrl)}}"

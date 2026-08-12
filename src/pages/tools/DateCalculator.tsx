@@ -125,9 +125,7 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('日期计算器', 'Date Calculator')}
         </h2>
@@ -166,6 +164,7 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
               <div className="flex gap-2">
                 <input
                   type="date"
+                  aria-label={t('起始日期', 'Start date')}
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   className="flex-1 bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:border-primary/50"
@@ -193,6 +192,7 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
               <div className="flex gap-2">
                 <input
                   type="date"
+                  aria-label={t('结束日期', 'End date')}
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   className="flex-1 bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:border-primary/50"
@@ -232,6 +232,7 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
               <div className="flex gap-2">
                 <input
                   type="date"
+                  aria-label={t('偏移起始日期', 'Offset start date')}
                   value={offsetDate}
                   onChange={(e) => setOffsetDate(e.target.value)}
                   className="flex-1 bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:border-primary/50"
@@ -265,6 +266,7 @@ export default function DateCalculator({ onBack }: { onBack: () => void }) {
                 </button>
                 <input
                   type="number"
+                  aria-label={t('偏移天数', 'Offset days')}
                   value={offsetDays}
                   onChange={(e) => setOffsetDays(e.target.value)}
                   className="flex-1 bg-surface-container-low border border-surface-variant/30 rounded-xl py-3 px-4 text-on-surface text-center text-lg font-semibold outline-none focus:border-primary/50"

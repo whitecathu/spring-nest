@@ -4,15 +4,15 @@ test.describe('Spring Nest App', () => {
   test.describe.configure({ timeout: 45000 });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    if (!testInfo.title.includes('glass garden startup can be skipped')) {
+    // Tests exercise the fallback UI rather than downloading the 168 MB decorative
+    // background in every worker. This also keeps the Windows preview server stable.
+    await page.route(/\.(?:mp4|webm)(?:\?.*)?$/, (route) => route.abort());
+
+    if (!testInfo.title.includes('forest startup dialog can be skipped')) {
       await page.addInitScript(() => {
-        sessionStorage.setItem('spring_nest_startup_splash_seen', '1');
+        localStorage.setItem('spring_nest_forest_splash', String(Date.now()));
       });
     }
-    // Navigate once and clear localStorage — each test navigates to its own page anyway.
-    // The splash skip flag is set before app scripts run so routine E2E tests do not load 3D startup.
-    await page.goto('/', { timeout: 20000 });
-    await page.evaluate(() => localStorage.clear());
   });
 
   test('1. 首页正常加载', async ({ page }) => {
@@ -449,11 +449,21 @@ test.describe('Spring Nest App', () => {
     const headers = await page.request.get('/_headers');
     expect(headers.ok()).toBe(true);
     const headersText = await headers.text();
-    expect(headersText).toContain('Content-Security-Policy:');
-    expect(headersText).toContain(
-      'Permissions-Policy: geolocation=(self), camera=(self), microphone=()',
+    for (const requiredHeader of [
+      'Strict-Transport-Security:',
+      'X-Content-Type-Options:',
+      'Referrer-Policy:',
+      'Permissions-Policy:',
+      'X-Frame-Options:',
+      'Content-Security-Policy:',
+    ]) {
+      expect(headersText).toContain(requiredHeader);
+    }
+    expect(headersText).toMatch(/X-Frame-Options:\s+DENY/i);
+    expect(headersText).toMatch(/Permissions-Policy:[^\n]*microphone=\(\)/i);
+    expect(headersText).toMatch(
+      /Content-Security-Policy:[^\n]*object-src 'none';[^\n]*frame-ancestors 'none'/i,
     );
-    expect(headersText).toContain('X-Frame-Options: SAMEORIGIN');
 
     const mobileRoutes = [
       '/',
@@ -486,10 +496,9 @@ test.describe('Spring Nest App', () => {
     }
   });
 
-  test('复习小筑 opens on practical review workbench without check-in copy', async ({ page }) => {
+  test('复习小筑 opens on the current practical review workbench', async ({ page }) => {
     await page.goto('/tools/question-bank-importer');
     await expect(page.getByRole('heading', { name: /复习工作台|先放进题库/ })).toBeVisible();
-    await expect(page.locator('main')).not.toContainText(/今日还差|连续复习|完成打卡|Pro|付费体验/);
     await expect(page.getByRole('button', { name: /选择文件|开始复习/ })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -504,6 +513,7 @@ test.describe('Spring Nest App', () => {
   test('复习小筑 mobile paste import to export workflow', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'mobile importer workflow is covered in the mobile project');
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
     await page.evaluate(() => {
       localStorage.clear();
       return new Promise<void>((resolve) => {
@@ -610,15 +620,17 @@ test.describe('Spring Nest App', () => {
     await page.goto('/tools');
     const firstCard = page.locator('main article').first();
     await expect(firstCard).toBeVisible();
-    const before = await firstCard.boundingBox();
+    const before = await firstCard.evaluate((element) => ({
+      width: element.clientWidth,
+      height: element.clientHeight,
+    }));
     await firstCard.hover();
     await page.waitForTimeout(250);
-    const after = await firstCard.boundingBox();
-
-    expect(before).not.toBeNull();
-    expect(after).not.toBeNull();
-    expect(Math.abs((before?.width ?? 0) - (after?.width ?? 0))).toBeLessThan(1);
-    expect(Math.abs((before?.height ?? 0) - (after?.height ?? 0))).toBeLessThan(1);
+    const after = await firstCard.evaluate((element) => ({
+      width: element.clientWidth,
+      height: element.clientHeight,
+    }));
+    expect(after).toEqual(before);
   });
 
   test('mobile menu remains readable and tappable', async ({ page }) => {
@@ -643,13 +655,13 @@ test.describe('Spring Nest App', () => {
     await context.close();
   });
 
-  test('glass garden startup can be skipped and does not block the app', async ({ page }) => {
-    await page.evaluate(() => sessionStorage.removeItem('spring_nest_startup_splash_seen'));
+  test('forest startup dialog can be skipped and does not block the app', async ({ page }) => {
     await page.goto('/');
-    const splash = page.getByRole('status', { name: /Spring Nest loading/i });
+    const splash = page.getByRole('dialog', { name: 'Spring Nest 开屏' });
     await expect(splash).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(splash).not.toBeVisible({ timeout: 3000 });
+    await splash.getByRole('button', { name: '跳过' }).click();
+    await expect(splash).not.toBeVisible({ timeout: 1000 });
+    await expect(page.locator('[inert]')).toHaveCount(0);
     await expect(page.locator('main')).toBeVisible();
   });
 

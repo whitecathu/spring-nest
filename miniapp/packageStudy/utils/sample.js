@@ -51,9 +51,11 @@ function createSampleDeck() {
       answer: '是',
       explanation: '模拟考试支持设置题量与时长，并在交卷后统计成绩。',
     },
-  ].map(function (q) {
-    return helpers.normalizeQuestion(q, q.id);
-  }).filter(Boolean);
+  ]
+    .map(function (q) {
+      return helpers.normalizeQuestion(q, q.id);
+    })
+    .filter(Boolean);
 
   return {
     id: helpers.uid('deck-sample'),

@@ -104,9 +104,7 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
         {t('返回工具列表', 'Back to Tools')}
       </button>
 
-      <div
-        className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30"
-      >
+      <div className="bg-white rounded-3xl p-6 shadow-lg border border-surface-variant/30">
         <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
           {t('抽签工具', 'Random Picker')}
         </h2>
@@ -122,6 +120,7 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
             </span>
           </div>
           <textarea
+            aria-label={t('候选项列表', 'Candidate list')}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t('例如：\n吃火锅\n吃烧烤\n吃面条', 'e.g.\nHot pot\nBBQ\nNoodles')}
@@ -159,33 +158,33 @@ export default function RandomPicker({ onBack }: { onBack: () => void }) {
 
         {/* Result */}
         {(result || spinDisplay) && (
-            <div
-              key={spinDisplay || result || ''}
-              className="bg-surface-container-low rounded-2xl p-6 text-center"
-            >
-              <div className="text-xs text-secondary font-medium mb-2">
-                {spinning ? t('抽取中...', 'Picking...') : t('结果', 'Result')}
-              </div>
-              <div
-                className={`text-3xl font-bold mb-4 ${spinning ? 'text-secondary animate-pulse' : 'text-primary'}`}
-              >
-                {spinDisplay || result}
-              </div>
-              {result && !spinning && (
-                <button
-                  onClick={handleCopy}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 mx-auto ${
-                    copied
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'
-                  }`}
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? t('已复制!', 'Copied!') : t('复制结果', 'Copy Result')}
-                </button>
-              )}
+          <div
+            key={spinDisplay || result || ''}
+            className="bg-surface-container-low rounded-2xl p-6 text-center"
+          >
+            <div className="text-xs text-secondary font-medium mb-2">
+              {spinning ? t('抽取中...', 'Picking...') : t('结果', 'Result')}
             </div>
-          )}
+            <div
+              className={`text-3xl font-bold mb-4 ${spinning ? 'text-secondary animate-pulse' : 'text-primary'}`}
+            >
+              {spinDisplay || result}
+            </div>
+            {result && !spinning && (
+              <button
+                onClick={handleCopy}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 mx-auto ${
+                  copied
+                    ? 'bg-green-100 text-green-600'
+                    : 'bg-white text-secondary hover:text-primary hover:bg-primary-container/20'
+                }`}
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? t('已复制!', 'Copied!') : t('复制结果', 'Copy Result')}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

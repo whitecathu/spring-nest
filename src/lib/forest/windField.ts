@@ -48,12 +48,8 @@ export function createWindField(options: WindFieldOptions = {}): WindField {
       gustX *= gustDecay;
       gustY *= gustDecay;
 
-      const turbX = useTurb
-        ? Math.sin(phase) * 0.18 + Math.sin(phase * 1.73 + 0.4) * 0.1
-        : 0;
-      const turbY = useTurb
-        ? Math.cos(phase * 0.91) * 0.12 + Math.sin(phase * 2.1) * 0.06
-        : 0;
+      const turbX = useTurb ? Math.sin(phase) * 0.18 + Math.sin(phase * 1.73 + 0.4) * 0.1 : 0;
+      const turbY = useTurb ? Math.cos(phase * 0.91) * 0.12 + Math.sin(phase * 2.1) * 0.06 : 0;
 
       const scrollPush = scrollVy * 0.0015;
       const strength =

@@ -11,7 +11,6 @@ function safeEvalExpression(expr) {
     .replace(/÷/g, '/')
     .replace(/[^0-9+\-*/().%\s]/g, '');
   if (!cleaned.trim()) throw new Error('请输入算式');
-  // eslint-disable-next-line no-new-func
   const fn = new Function('return (' + cleaned + ')');
   const result = fn();
   if (typeof result !== 'number' || !isFinite(result)) throw new Error('无效算式');
@@ -156,20 +155,86 @@ function pickRandom(lines) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function generatePassword(length, opts) {
+function getSecureRandomBytes(length) {
+  return new Promise((resolve, reject) => {
+    if (typeof wx === 'undefined' || typeof wx.getRandomValues !== 'function') {
+      reject(new Error('安全随机数 API 不可用'));
+      return;
+    }
+
+    try {
+      wx.getRandomValues({
+        length: length,
+        success: function (result) {
+          const values = result && result.randomValues;
+          if (!(values instanceof ArrayBuffer) || values.byteLength === 0) {
+            reject(new Error('安全随机数 API 返回了无效数据'));
+            return;
+          }
+          resolve(new Uint8Array(values));
+        },
+        fail: function (error) {
+          const message = error && error.errMsg ? error.errMsg : '安全随机数生成失败';
+          reject(error instanceof Error ? error : new Error(message));
+        },
+      });
+    } catch (error) {
+      reject(error instanceof Error ? error : new Error('安全随机数生成失败'));
+    }
+  });
+}
+
+function createSecureRandomIndex() {
+  let bytes = null;
+  let offset = 0;
+
+  async function nextByte() {
+    if (!bytes || offset >= bytes.length) {
+      bytes = await getSecureRandomBytes(64);
+      offset = 0;
+    }
+    return bytes[offset++];
+  }
+
+  return async function secureRandomIndex(maxExclusive) {
+    const limit = 256 - (256 % maxExclusive);
+    for (let attempts = 0; attempts < 1024; attempts++) {
+      const value = await nextByte();
+      if (value < limit) return value % maxExclusive;
+    }
+    throw new Error('安全随机数生成失败');
+  };
+}
+
+async function generatePassword(length, opts) {
   opts = opts || {};
   length = Math.max(4, Math.min(64, Number(length) || 16));
-  let chars = '';
-  if (opts.lower !== false) chars += 'abcdefghijklmnopqrstuvwxyz';
-  if (opts.upper !== false) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  if (opts.digits !== false) chars += '0123456789';
-  if (opts.symbols) chars += '!@#$%^&*()-_=+[]{};:,.?';
-  if (!chars) throw new Error('请至少选择一种字符集');
-  let out = '';
-  for (let i = 0; i < length; i++) {
-    out += chars.charAt(Math.floor(Math.random() * chars.length));
+
+  const groups = [];
+  if (opts.lower !== false) groups.push('abcdefghijklmnopqrstuvwxyz');
+  if (opts.upper !== false) groups.push('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+  if (opts.digits !== false) groups.push('0123456789');
+  if (opts.symbols) groups.push('!@#$%^&*()-_=+[]{};:,.?');
+  if (!groups.length) throw new Error('请至少选择一种字符集');
+
+  const chars = groups.join('');
+  const randomIndex = createSecureRandomIndex();
+  const password = [];
+
+  for (const group of groups) {
+    password.push(group.charAt(await randomIndex(group.length)));
   }
-  return out;
+  while (password.length < length) {
+    password.push(chars.charAt(await randomIndex(chars.length)));
+  }
+  for (let index = password.length - 1; index > 0; index--) {
+    const swapIndex = await randomIndex(index + 1);
+    const current = password[index];
+    password[index] = password[swapIndex];
+    password[swapIndex] = current;
+  }
+
+  return password.join('');
 }
 
 function tipSplit(bill, tipPercent, people) {
@@ -227,7 +292,9 @@ function convertTemperature(value, from, to) {
 }
 
 function hexToRgb(hex) {
-  let h = String(hex || '').replace('#', '').trim();
+  let h = String(hex || '')
+    .replace('#', '')
+    .trim();
   if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
   if (!/^[0-9a-fA-F]{6}$/.test(h)) throw new Error('无效 HEX');
   return {

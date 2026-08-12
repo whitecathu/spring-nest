@@ -67,7 +67,9 @@ function ShinyTextInner({
     const unsubscribe = progress.subscribe((p) => {
       setBackgroundPosition(`${150 - p * 2}% center`);
     });
-    return () => { unsubscribe(); };
+    return () => {
+      unsubscribe();
+    };
   }, [progress]);
 
   const handleMouseEnter = useCallback(() => {

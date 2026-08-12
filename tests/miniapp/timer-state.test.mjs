@@ -1,11 +1,11 @@
-// @vitest-environment node
+// @vitest-environment jsdom
 
 import { createRequire } from 'node:module';
 
 import { describe, expect, it } from 'vitest';
 
 const require = createRequire(import.meta.url);
-const timers = require('../utils/deadline-timer');
+const timers = require('../../miniapp/utils/deadline-timer');
 
 describe('deadline based timers', () => {
   it('computes remaining time from an absolute deadline', () => {
