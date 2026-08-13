@@ -54,12 +54,30 @@ describe('StartupSplash completion guarantees', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('uses an independent eight-second watchdog when media and fog stall', async () => {
+  it('keeps waiting for slow media after 1.8 seconds', async () => {
     const onComplete = vi.fn();
     render(<StartupSplash forceShow onComplete={onComplete} />);
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(8_000);
+      await vi.advanceTimersByTimeAsync(1_801);
+    });
+
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog', { name: 'Spring Nest 开屏' })).toBeInTheDocument();
+  });
+
+  it('uses a twelve-second watchdog and bounded exit transition when media and fog stall', async () => {
+    const onComplete = vi.fn();
+    render(<StartupSplash forceShow onComplete={onComplete} />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12_000);
+    });
+
+    expect(onComplete).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_500);
     });
 
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -75,6 +93,80 @@ describe('StartupSplash completion guarantees', () => {
     fireEvent.ended(video as HTMLVideoElement);
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1_500);
+    });
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('only reveals video after playback actually starts', () => {
+    const { container } = render(<StartupSplash forceShow />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+
+    expect(video.style.opacity).toBe('0');
+    fireEvent.playing(video);
+    expect(video.style.opacity).toBe('1');
+  });
+
+  it('does not restart playback when the parent passes a new completion callback', () => {
+    const firstComplete = vi.fn();
+    const secondComplete = vi.fn();
+    const { container, rerender } = render(<StartupSplash forceShow onComplete={firstComplete} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+    fireEvent.playing(video);
+    vi.mocked(HTMLMediaElement.prototype.pause).mockClear();
+
+    rerender(<StartupSplash forceShow onComplete={secondComplete} />);
+
+    expect(container.querySelector('video')).toBe(video);
+    expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
+    expect(video.style.opacity).toBe('1');
+  });
+
+  it('finishes from media time rather than wall-clock time', async () => {
+    const onComplete = vi.fn();
+    const { container } = render(<StartupSplash forceShow onComplete={onComplete} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+
+    video.currentTime = 5.8;
+    fireEvent.timeUpdate(video);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_500);
+    });
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the branded fallback before exiting on media failure', async () => {
+    fog.gather.mockResolvedValue();
+    fog.disperse.mockResolvedValue();
+    const onComplete = vi.fn();
+    const { container } = render(<StartupSplash forceShow onComplete={onComplete} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+
+    fireEvent.error(video);
+    expect(video.style.opacity).toBe('0');
+    expect(onComplete).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_200);
+      await Promise.resolve();
+    });
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the same branded fallback when autoplay is rejected', async () => {
+    fog.gather.mockResolvedValue();
+    fog.disperse.mockResolvedValue();
+    vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValueOnce(new Error('blocked'));
+    const onComplete = vi.fn();
+    const { container } = render(<StartupSplash forceShow onComplete={onComplete} />);
+    const video = container.querySelector('video') as HTMLVideoElement;
+
+    fireEvent.loadedData(video);
+    await act(async () => {
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(1_200);
     });
 
     expect(onComplete).toHaveBeenCalledTimes(1);

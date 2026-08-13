@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import splashPoster from '../../assets/forest/splash-poster.webp';
+import splashVideo from '../../assets/forest/splash-startup.mp4';
 import { markForestSplashSeen, shouldShowForestSplash } from '../../lib/forest/forestSplashMemory';
 import { useReducedMotion } from '../../lib/animations';
 import { useFocusTrap } from '../../lib/useFocusTrap';
 import ForestFogTransition, { type ForestFogHandle } from './ForestFogTransition';
 import SpringNestLogoMotion from './SpringNestLogoMotion';
 
-const SPLASH_SRC = '/forest/splash-startup.mp4';
-const SPLASH_POSTER = '/forest/splash-poster.webp';
-const LOAD_TIMEOUT_MS = 1800;
-const TOTAL_WATCHDOG_MS = 8_000;
+const LOGO_FALLBACK_DELAY_MS = 1_800;
+const MEDIA_FAILURE_DISPLAY_MS = 1_200;
+const TOTAL_WATCHDOG_MS = 12_000;
 const EXIT_TRANSITION_MAX_MS = 1_500;
 /** Show brand after the frame has settled. */
 const LOGO_AT_SEC = 1.8;
@@ -41,28 +42,31 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
   const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fogRef = useRef<ForestFogHandle>(null);
+  const onCompleteRef = useRef(onComplete);
   const completedRef = useRef(false);
   const exitStartedRef = useRef(false);
   const logoShownRef = useRef(false);
+  const mediaFailedRef = useRef(false);
   const [showLogo, setShowLogo] = useState(false);
-  const [usePosterOnly, setUsePosterOnly] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const [visible, setVisible] = useState(true);
   const [videoFade, setVideoFade] = useState(1);
   const showFullSplash =
     forceShow || (typeof window !== 'undefined' ? shouldShowForestSplash() : true);
 
-  const completeImmediately = useCallback(
-    (markSeen = true) => {
-      if (completedRef.current) return;
-      completedRef.current = true;
-      if (markSeen) markForestSplashSeen();
-      setVideoFade(0);
-      destroyVideo(videoRef.current);
-      setVisible(false);
-      onComplete?.();
-    },
-    [onComplete],
-  );
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  const completeImmediately = useCallback((markSeen = true) => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    if (markSeen) markForestSplashSeen();
+    setVideoFade(0);
+    destroyVideo(videoRef.current);
+    setVisible(false);
+    onCompleteRef.current?.();
+  }, []);
 
   const finishWithTransition = useCallback(
     (opts?: { gatherFirst?: boolean; markSeen?: boolean }) => {
@@ -111,12 +115,12 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
   useEffect(() => {
     if (!visible) return;
 
-    const watchdog = window.setTimeout(
-      () => completeImmediately(showFullSplash),
-      TOTAL_WATCHDOG_MS,
-    );
+    const watchdog = window.setTimeout(() => {
+      if (showFullSplash) runGatherThenComplete();
+      else completeImmediately(false);
+    }, TOTAL_WATCHDOG_MS);
     return () => window.clearTimeout(watchdog);
-  }, [completeImmediately, showFullSplash, visible]);
+  }, [completeImmediately, runGatherThenComplete, showFullSplash, visible]);
 
   useEffect(() => {
     if (!visible) return;
@@ -135,9 +139,8 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
     if (!video) return;
 
     let disposed = false;
-    let endTimer: number | null = null;
-    let loadTimer: number | null = null;
-    let startedTimeline = false;
+    let logoTimer: number | null = null;
+    let failureTimer: number | null = null;
 
     video.muted = true;
     video.playsInline = true;
@@ -152,34 +155,27 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
       setShowLogo(true);
     };
 
-    const startTimeline = (durationHint?: number) => {
-      if (disposed || startedTimeline) return;
-      startedTimeline = true;
-
-      const duration =
-        durationHint && Number.isFinite(durationHint) && durationHint > 0
-          ? durationHint
-          : video.duration && Number.isFinite(video.duration)
-            ? video.duration
-            : PLAY_UNTIL_SEC;
-
-      const playUntil = Math.min(PLAY_UNTIL_SEC, Math.max(LOGO_AT_SEC + 1.2, duration - 0.35));
-      const wallMs = (playUntil / PLAYBACK_RATE) * 1000;
-
-      endTimer = window.setTimeout(() => {
-        if (!disposed) runGatherThenComplete();
-      }, wallMs);
+    const handleMediaFailure = () => {
+      if (disposed || mediaFailedRef.current || exitStartedRef.current) return;
+      mediaFailedRef.current = true;
+      setVideoPlaying(false);
+      revealLogo();
+      failureTimer = window.setTimeout(runGatherThenComplete, MEDIA_FAILURE_DISPLAY_MS);
     };
 
     const onLoaded = () => {
       if (disposed) return;
-      if (loadTimer) {
-        window.clearTimeout(loadTimer);
-        loadTimer = null;
-      }
       const play = video.play();
-      if (play) void play.catch(() => setUsePosterOnly(true));
-      startTimeline(video.duration);
+      if (play) void play.catch(handleMediaFailure);
+    };
+
+    const onPlaying = () => {
+      if (disposed || mediaFailedRef.current) return;
+      setVideoPlaying(true);
+    };
+
+    const onWaiting = () => {
+      if (!disposed && !mediaFailedRef.current) setVideoPlaying(false);
     };
 
     const onEnded = () => {
@@ -196,25 +192,28 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
     };
 
     video.addEventListener('loadeddata', onLoaded);
+    video.addEventListener('playing', onPlaying);
+    video.addEventListener('waiting', onWaiting);
+    video.addEventListener('stalled', onWaiting);
     video.addEventListener('ended', onEnded);
     video.addEventListener('timeupdate', onTimeUpdate);
-    video.src = SPLASH_SRC;
+    video.addEventListener('error', handleMediaFailure);
+    video.src = splashVideo;
     video.load();
 
-    loadTimer = window.setTimeout(() => {
-      if (disposed || startedTimeline) return;
-      setUsePosterOnly(true);
-      revealLogo();
-      startTimeline(PLAY_UNTIL_SEC);
-    }, LOAD_TIMEOUT_MS);
+    logoTimer = window.setTimeout(revealLogo, LOGO_FALLBACK_DELAY_MS);
 
     return () => {
       disposed = true;
-      if (endTimer) window.clearTimeout(endTimer);
-      if (loadTimer) window.clearTimeout(loadTimer);
+      if (logoTimer) window.clearTimeout(logoTimer);
+      if (failureTimer) window.clearTimeout(failureTimer);
       video.removeEventListener('loadeddata', onLoaded);
+      video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('waiting', onWaiting);
+      video.removeEventListener('stalled', onWaiting);
       video.removeEventListener('ended', onEnded);
       video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('error', handleMediaFailure);
       destroyVideo(video);
     };
   }, [visible, showFullSplash, reducedMotion, runGatherThenComplete, runDisperseOnly]);
@@ -231,7 +230,7 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
       tabIndex={-1}
     >
       <img
-        src={SPLASH_POSTER}
+        src={splashPoster}
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
         style={{ filter: FOREST_FILTER }}
@@ -245,10 +244,10 @@ export default function StartupSplash({ onComplete, forceShow = false }: Startup
           muted
           playsInline
           preload="auto"
-          poster={SPLASH_POSTER}
+          poster={splashPoster}
           style={{
             filter: FOREST_FILTER,
-            opacity: usePosterOnly ? 0 : videoFade,
+            opacity: videoPlaying ? videoFade : 0,
           }}
         />
       )}
